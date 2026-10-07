@@ -1101,6 +1101,17 @@ class WorkerJob:
 
 It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abilities and limits below still apply.
 
+**Built 2026-10-07: the worker's model is the `agent.worker` choice** (`engine/wiring.py` `provider_getter`, `engine/gateway.py`):
+- The gateway decides from the token's session. A worker pane's gateway token is keyed by its swarm binding
+  (`swarm:<swarm>:<worker>`, `Mode1Units.prepare`), a main pane's by its unit, so the gateway answers a main pane with the current
+  main provider and a worker's pane with the worker choice.
+- The worker's provider is built by the hub's `swarm_provider_factory` (`make_swarm_provider`: the `agent.worker` chain in
+  Choices, its fallback decided at spawn, HC23) at the worker's first call, and kept for the worker's life: a worker never changes
+  provider mid-task.
+- With no worker choice, the chain is `follow:agent.main` (the registry's and the bridge's default): the worker follows the main
+  agent. A worker choice that cannot be built (no key) is an OpenAI-style error for that pane, never the main provider instead.
+- Tested with a scripted provider each (`tests/test_engine_wiring.py`).
+
 **Contract.**
 - Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
   each worker's conversation in Hermes, beside its parent's (R6 under the captain's durability ruling).

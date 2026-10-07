@@ -270,6 +270,71 @@ def test_the_wiring_check_uses_check_advertised_against_the_board_the_config_cam
         assert wiring.check("s1", "lwe_other", allowed + [_tool("delegate_task")]) is None   # a scene pane: subagents is chosen
 
 
+CHAT = "/engine/v1/chat/completions"
+
+
+def _ask(http, token, text="hello"):
+    r = http.post(CHAT, json={"messages": [{"role": "user", "content": text}]}, headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200, r.text
+    return r.json()["choices"][0]["message"]["content"]
+
+
+def test_a_mode1_workers_gateway_calls_are_answered_by_the_worker_choice_and_the_main_session_by_the_main_provider(settings):
+    """Spec S2 (as superseded by A): a Mode 1 worker's pane thinks through the gateway on the ``agent.worker`` choice, not on the main
+    agent's provider. The gateway tells them apart by the token's session: a worker pane's token is keyed by its swarm binding
+    (``Mode1Units.prepare``), a main pane's by its unit. The worker's provider is built once, at its first call (HC23: never
+    mid-turn), and only for workers."""
+    from lampway_server.agent.providers.mock import ScriptedProvider
+    main = ScriptedProvider([[Text("main says hi")], [Text("main again")]])
+    worker = ScriptedProvider([[Text("worker 1 says hi")], [Text("worker 1 again")], [Text("worker 2 says hi")]])
+    built = []
+    app = create_app(settings, provider=main, swarm_provider_factory=lambda label: built.append(label) or worker)
+    with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
+        reg = app.state.engine_tokens
+        unit, w1, w2 = reg.issue_token("scene-1"), reg.issue_token("swarm:sw1:worker-1"), reg.issue_token("swarm:sw1:worker-2")
+        assert _ask(http, unit) == "main says hi"
+        assert _ask(http, w1) == "worker 1 says hi"
+        assert _ask(http, w1) == "worker 1 again"
+        assert _ask(http, w2) == "worker 2 says hi"
+        assert _ask(http, unit) == "main again"
+    assert len(main.requests) == 2 and len(worker.requests) == 3, "each pane was answered by its own choice, never the other's"
+    assert built == ["worker-1", "worker-2"], "one worker provider per worker pane, built at its first call"
+
+
+def test_with_no_worker_choice_a_mode1_worker_follows_the_main_agent(settings):
+    """The documented default (Choices registry and bridge): with no ``agent.worker`` choice and no swarm provider set, the chain is
+    ``follow:agent.main``: the worker is answered by a provider like the main one (``make_swarm_provider``); with a provider handed
+    to the app and no worker factory, by the current main provider itself."""
+    from lampway_server.agent.providers.mock import ScriptedProvider
+    from lampway_server.choices.bridge import chains
+    assert chains(settings)["agent.worker"]["preferred"] == "follow:agent.main"
+    app = create_app(settings)                                       # the configured providers: mock, no worker choice
+    get = W.provider_getter(app.state.agent)
+    assert get("swarm:sw1:worker-1").name == get("scene-1").name == "mock"
+    main = ScriptedProvider([[Text("main answers the worker")]])
+    app = create_app(settings, provider=main)
+    with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
+        assert _ask(http, app.state.engine_tokens.issue_token("swarm:sw1:worker-1")) == "main answers the worker"
+
+
+def test_a_worker_choice_that_cannot_be_built_is_an_openai_error_not_the_main_provider(settings):
+    """The gateway never answers a worker with another provider than its choice: a worker choice that cannot be built (no key) is an
+    OpenAI-style error for that pane, and the main session is still answered."""
+    from lampway_server.agent.providers.mock import ScriptedProvider
+    main = ScriptedProvider([[Text("main is fine")]])
+
+    def factory(label):
+        raise ValueError("no OpenRouter key is connected for the swarm workers")
+    app = create_app(settings, provider=main, swarm_provider_factory=factory)
+    with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
+        reg = app.state.engine_tokens
+        r = http.post(CHAT, json={"messages": [{"role": "user", "content": "hi"}]},
+                      headers={"Authorization": f"Bearer {reg.issue_token('swarm:sw1:worker-1')}"})
+        assert r.status_code >= 400 and "OpenRouter key" in r.json()["error"]["message"]
+        assert _ask(http, reg.issue_token("scene-1")) == "main is fine"
+    assert len(main.requests) == 1
+
+
 def test_the_gateway_is_answered_by_the_current_main_provider(settings, provider):
     """The engine's hidden swarm workers, with a provider of their own, are gone (spec A5): every pane is answered by the current
     main provider, whatever its session."""

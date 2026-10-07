@@ -12,7 +12,8 @@ line says why:
 Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes Lampway's two doors and the user's choices:
 
 * **the model gateway** (E1.4): ``http://127.0.0.1:<port>/engine/v1`` on this server; each pane's key is a fresh
-  ``gateway.Registry`` token for its unit (a worker's: its swarm binding), an older one for the same pane revoked first;
+  ``gateway.Registry`` token for its unit (a worker's: its swarm binding), an older one for the same pane revoked first; a main
+  pane is answered by the main provider, a worker's by the ``agent.worker`` choice (``provider_getter``, spec S2);
 * **the MCP endpoints** (A3, S3): a main pane's ``/engine/mcp/<unit>`` with its per-unit bearer, a worker's the pane endpoint;
 * **the egress proxy** (E1.5): ``engine/proxy.py`` on loopback, on the port it had before a restart when that port is free (the
   panes outlive the server and keep its address), with the server's port as the gateway's;
@@ -125,11 +126,44 @@ class WorkerBoard:
         return self.board.effective(cid, project, routes_on)
 
 
+#: How many Mode 1 worker panes' providers the gateway keeps (a swarm has at most 6 workers; older entries are dropped first).
+WORKER_PROVIDERS_KEPT = 64
+
+
+def is_worker_session(session_id) -> bool:
+    """A Mode 1 worker pane's gateway token is keyed by its swarm binding ``swarm:<swarm_id>:<worker_id>`` (``Mode1Units.prepare``);
+    a main pane's by its unit (the scene session id)."""
+    parts = str(session_id or "").split(":")
+    return len(parts) == 3 and parts[0] == "swarm" and all(parts)
+
+
 def provider_getter(agent):
-    """The gateway's provider for a pane: the current main provider, read at call time. Callable with or without the session id.
-    The engine's hidden swarm workers, which had a provider of their own, are gone (spec A5)."""
+    """The gateway's provider for a pane, decided from its token's session (spec S2 as superseded by A):
+
+    * a unit's main pane: the current main provider (``agent.provider``, the ``agent.main`` choice), read at call time;
+    * a Mode 1 worker's pane (its token keyed by its swarm binding): the ``agent.worker`` choice, built by the hub's
+      ``swarm_provider_factory`` (``make_swarm_provider``: the worker chain in Choices, its fallback decided at spawn, HC23) at the
+      worker's FIRST call and kept for that worker's life, so a worker never changes provider mid-task. With no worker choice the
+      chain is ``follow:agent.main`` (the documented default), and with no factory at all the worker follows the current main
+      provider. A factory that cannot build the worker's provider raises: the gateway answers that pane with an OpenAI-style error
+      and never with another provider.
+
+    Callable with or without the session id (``models-dev.json`` asks without one: the main provider)."""
+    import collections
+    workers: "collections.OrderedDict" = collections.OrderedDict()
+
     def get(session_id: Optional[str] = None):
-        return agent.provider
+        if not is_worker_session(session_id):
+            return agent.provider
+        key = str(session_id)
+        provider = workers.get(key)
+        if provider is None:
+            factory = getattr(agent, "swarm_provider_factory", None)
+            provider = factory(key.rsplit(":", 1)[1]) if factory is not None else agent.provider
+            workers[key] = provider
+            while len(workers) > WORKER_PROVIDERS_KEPT:
+                workers.popitem(last=False)
+        return provider
     return get
 
 
