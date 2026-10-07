@@ -84,7 +84,7 @@ def _show_terminal_images() -> dict:
     existing one, else a new window. Anything else is skipped and named."""
     import json
     import os
-    from mixar.modules.lampway_tools import settings
+    from mixar.modules.lampway_tools import canon_io, settings
     out = {"loaded": [], "skipped": [], "shown_in": None}
     q = settings.lampway_home() / "wezterm" / "show_in_blender.jsonl"
     if not q.exists():
@@ -106,10 +106,10 @@ def _show_terminal_images() -> dict:
             continue
         if path in out["loaded"]:
             continue
-        bpy.data.images.load(path, check_existing=True)
+        canon_io.load_image(path, check_existing=True)       # the canon door: every image load goes through canon_io
         out["loaded"].append(path)
     if out["loaded"] and not bpy.app.background:
-        out["shown_in"] = _image_editor_show(bpy.data.images.load(out["loaded"][-1], check_existing=True))
+        out["shown_in"] = _image_editor_show(canon_io.load_image(out["loaded"][-1], check_existing=True))
     return out
 
 
