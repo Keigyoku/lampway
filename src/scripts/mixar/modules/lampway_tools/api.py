@@ -1106,12 +1106,45 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz"):
+def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz", object=""):
     """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
     spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the user has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
     more than 25 degrees off is refused), chest = the audits' placement unchanged. piece/body are npz files (mesh_to_npz, body with joints); turn brings the piece to -Y front, +Z up. Writes
-    placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report."""
-    return _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out)
+    placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report. object=<name>: the scene piece
+    the later stages work on is moved by the same placement - the similarity fitted from piece.npz to placed.npz (it must be one, residual
+    < 1e-9 m) - after checking that piece.npz IS that object's world mesh (same vertex count, within 1e-6 m)."""
+    res = _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out)
+    if object:
+        res["object"] = _place_object(object, _p(piece), res["placed"])
+    return res
+
+
+def _place_object(name, piece_npz, placed_npz):
+    """Move the scene object by the placement's similarity (piece.npz -> placed.npz, vertex for vertex)."""
+    import numpy as _np
+    from . import canon_geom as _G
+    from mathutils import Matrix
+    ob = bpy.data.objects.get(name)
+    if ob is None or ob.type != "MESH":
+        raise LookupError(f"no mesh object named {name!r}")
+    V0, V1 = _np.load(piece_npz)["V"].astype(float), _np.load(placed_npz)["V"].astype(float)
+    mw = _np.array(ob.matrix_world)
+    co = _np.empty(len(ob.data.vertices) * 3)
+    ob.data.vertices.foreach_get("co", co)
+    W = co.reshape(-1, 3) @ mw[:3, :3].T + mw[:3, 3]
+    if len(W) != len(V0) or float(_np.abs(W - V0).max()) > 1e-6:
+        raise ValueError(f"piece.npz is not {name}'s world mesh ({len(V0)} vs {len(W)} vertices"
+                         + (f", max {float(_np.abs(W - V0).max()):.6f} m apart" if len(W) == len(V0) else "") + "): write it from this object, then place")
+    fit = _G.similarity_fit(V0, V1)
+    if fit["max"] > 1e-9:
+        raise ValueError(f"the placement is not one similarity of the piece (residual {fit['max']:.3e} m): it is never applied piecewise")
+    M = _np.eye(4)
+    M[:3, :3] = fit["s"] * fit["R"]
+    M[:3, 3] = fit["t"]
+    ob.data.transform(Matrix((_np.linalg.inv(mw) @ M @ mw).tolist()))
+    ob.data.update()
+    bpy.context.view_layer.update()
+    return {"name": name, "scale": round(float(fit["s"]), 9), "similarity_residual_m": float(fit["max"]), "vertices": int(len(W))}
 
 
 def _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out):
@@ -1249,14 +1282,15 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out=""):
+def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out="", apply=False):
     """The closest pose of the body to a piece (canon 08). With dofs [{bone, axis (joint grammar: up | forward | lateral | {line} | {perp} |
     a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
     skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
     axis to the piece, regions {name: {bones, threshold_m}}; answers the pose in the replayable grammar, the A-pose and posed numbers, and
     writes pose.json to out. dofs="chest" is the canon's chest table (arms lowered 0..40 x swung -10..10, mirrored; then spine_01,
     spine_03, neck_01 pitch -8..8). Without dofs: chest is routed to pose_clearance; helmet, waist, boots, gauntlets answer needs_decision (the
-    bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified)."""
+    bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified). apply=true puts the armature
+    in the pose found (the FIT pose the piece is bound at, canon 03 B.9): the entries replayed through each bone's joint, parents first."""
     from . import posing as _PO
     if dofs == "chest":                                          # the canon's chest table (canon 08 B.4), by name
         t = _PO.CHEST
@@ -1264,7 +1298,16 @@ def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, region
     elif isinstance(dofs, str):
         raise ValueError(f"dofs is a list of DOFs or 'chest' (the canon's table); {dofs!r} names no table")
     if dofs:
-        return _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
+        res = _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root))
+        if apply:
+            from .features import validate_pose as _VPO
+            arm = bpy.data.objects[armature]
+            joints = _VPO._joints(arm)
+            _VPO._pose(arm, res["entries"], joints, _VPO._frame(joints))
+            res["applied"] = res["entries"]
+        return res
+    if apply:
+        raise ValueError("apply needs a pose: pass dofs (the kind's DOF table)")
     return _PO.fit_pose(kind)
 
 
@@ -1476,12 +1519,13 @@ def fit_export(object, armature, out_dir, body, textures=None, validation="", bi
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None):
+def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_dir="fit/bind", body_object="", accept_seam_gap_mm=None, body=""):
     """Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} - the user's or
     the recipe's, never a render's colour: a part without one is refused - and a mode: metal = rigid, ONE bone at full weight (the bone with most of its vertices nearest, or the override), anything else =
     restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
     an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
-    weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body_object` (a skinned body in the scene: an approximation, the native sidecar sampler is not built).
+    weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body`, the fit_body package's NATIVE sidecar (the engine's weights, every influence, skinned to the
+    armature's current pose: canon 03 F.6) - `body_object`, a skinned scene body, is accepted as an approximation and labelled so. A cloth/leather vertex within 5 mm of a rigid part takes its bone (canon 07 B.5; at a seam, the bone alone).
     A restrict part (canon 07) is welded by position, matched only on the body's own region for its bones (a closer surface of another region cannot
     capture it), within 30 degrees of normal (or flipped); a weight on a disallowed bone moves to its nearest allowed ancestor, else to the part's
     `fallback` (bind_overrides {part: {fallback}}), else the bone is refused by name; a vertex left with no weight is refused, never written empty.
@@ -1491,7 +1535,7 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
     if stage == "plan":
         return _FB.plan(piece, armature, roles, bind_overrides, out_dir, root)
     if stage == "weights":
-        return _FB.weights(piece, armature, out_dir, body_object, root)
+        return _FB.weights(piece, armature, out_dir, body_object, root, body=body)
     if stage == "return":
         return _FB.return_report(piece, armature, out_dir, root)
     if stage == "apply":
@@ -1517,6 +1561,16 @@ def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None
     raise ValueError("stage is labels | pose | bind | report")
 
 
+@tool(consumes={"piece": Need(kind=("mesh",), accept_raw=True), "source": Need(kind=("mesh",), accept_raw=True)})
+def fit_source_check(piece, source, rigid_groups=None):
+    """The source-part check, the detached-glove guard (canon 03 G, 09 G): is `piece` ONE similarity of its `source` (the same mesh
+    before any weld or fit: same vertex count and order) per rigid group, residual < 0.5 mm? Parts are the source's vertex groups;
+    rigid_groups [[part, ...], ...] lists the parts that move as one (default: every part, one shell). A failing group reports each
+    part's rotation relative to the group's first part (a glove turned 22 deg off its bracer says so). Changes nothing."""
+    from .features import source_check as _SC
+    return _SC.run(piece, source, rigid_groups)
+
+
 @tool(consumes=NONE("an orchestrator: each stage's tool passes its own door with the stage's arguments"))
 def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decider="agent", texture_discard_ack=False):
     """The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md B, G): intake -> proportion -> match -> place ->
@@ -1524,11 +1578,13 @@ def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decid
     delegates to its tool with `args` (the tool's own arguments: normalize_mesh, run_tool piece_ratios, fit_place, fit_pose,
     fit_openings, fit_bind plan / weights, fit_validate, fit_export) and appends {stage, tool, inputs_sha256, receipt_sha256,
     decider} to <piece>/fit/fit.json. intake records each part's role (`roles` {part: metal | leather | cloth | embroidery}, for
-    every part in args.parts: the captain's or the recipe's, never the render's colour) and verifies `body` (a fit_body package);
-    match is the captain's sign-off (args {captain_seen: true, render_sha256}); pose_correct records the measured rigid
-    correction per segment (args {segments}); conform refuses metal and is not built (decision 03-H2); weights needs the body
-    package's native sidecar. A geometry stage after a recorded texture needs texture_discard_ack. status: stages done, the next
-    one, and why each later one is refused."""
+    every part in args.parts: the captain's or the recipe's, never the render's colour), verifies `body` (a fit_body package,
+    refused unless closed with its head) and runs the source-part check against args.source before normalizing; match is the
+    captain's sign-off (args {captain_seen: true, render_sha256}); pose_correct records the measured rigid correction per segment
+    (args {segments}); pose is applied (the fit pose); conform refuses metal and is not built (decision 03-H2); bind is fit_bind
+    plan; weights is fit_bind weights from the package's native sidecar, then return; validate writes <piece>/fit/validation.json,
+    which export reads. The roles, kind and package are the intake's record. A geometry stage after a recorded texture needs
+    texture_discard_ack. status: stages done, the next one, and why each later one is refused."""
     from .pipeline import fit_order as _FO
     if not piece:
         raise ValueError("piece is required (the folder under the project root that holds <piece>/fit/fit.json)")
