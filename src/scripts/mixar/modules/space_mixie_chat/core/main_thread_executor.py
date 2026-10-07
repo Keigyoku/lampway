@@ -5,6 +5,8 @@
 """
 Async script execution queue for main thread execution.
 
+The render/device/job contract is documented in docs/render-job-contract.md.
+
 The WebSocket thread queues ExecutionRequests (never executes scripts); a
 main-thread timer executes ONE script per tick; long scripts must bound their
 own work because synchronous bpy still blocks the UI. The

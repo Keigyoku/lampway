@@ -143,8 +143,11 @@ def test_feedback_cpp_is_split_into_bounded_translation_units():
     for filename in (
         "mixie_chat_feedback.cc",
         "mixie_chat_hit_testing.cc",
+        "mixie_chat_empty_prompt_click.cc",
+        "mixie_chat_messages_state.cc",
         "mixie_chat_messages_render.cc",
     ):
+        assert filename in cmake
         assert len((cpp_root / filename).read_text(encoding="utf-8").splitlines()) <= 500
 
 

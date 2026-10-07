@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Ahoj, jsem Naman z Mixaru.
+
+2
+00:00:02,750 --> 00:00:06,200
+Za pár minut vám ukážu aplikaci.
+
+3
+00:00:06,760 --> 00:00:08,250
+Toto je váš 3D pohled.
+
+4
+00:00:08,250 --> 00:00:10,300
+Prostor 3D, ve kterém se můžete pohybovat.
+
+5
+00:00:11,000 --> 00:00:13,200
+Tažením prostředním tlačítkem otáčejte, kolečkem přibližujte.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift a prostřední tlačítko posouvají pohled.
+
+7
+00:00:15,850 --> 00:00:17,160
+Zkuste si to.
+
+8
+00:00:18,180 --> 00:00:20,700
+Kliknutím vyberte, G pro přesun,
+
+9
+00:00:20,700 --> 00:00:22,600
+R pro otočení, S pro změnu měřítka.
+
+10
+00:00:22,600 --> 00:00:25,410
+Tady je pár užitečných zkratek.
+
+11
+00:00:26,040 --> 00:00:29,500
+Vidíte ostrůvek dole? To je Mixie, váš agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Kliknutím jej otevřete.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie má záložky.
+
+14
+00:00:33,920 --> 00:00:38,800
+V Agent popište běžnými slovy, co chcete. Agent upraví vaši scénu.
+
+15
+00:00:39,400 --> 00:00:43,300
+Agent používá modely jako Tripo, Meshy a Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Pro větší kontrolu otevřete další záložky:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video nebo World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Vyberte model a upravte jeho nastavení.
+
+19
+00:00:53,560 --> 00:00:55,730
+Vše, co vygenerujete, se uloží do knihovny.
+
+20
+00:00:56,670 --> 00:00:58,700
+Tady jsou vaše výtvory.
+
+21
+00:00:59,140 --> 00:01:03,000
+Připojte vlastní knihovnu, aby agent používal vaše podklady,
+
+22
+00:01:03,000 --> 00:01:06,320
+a šetřil kredity.
+
+23
+00:01:06,830 --> 00:01:09,550
+Vlevo nahoře je panel scén.
+
+24
+00:01:09,550 --> 00:01:12,980
+Každá scéna má vlastní záložku a agenta Mixie.
+
+25
+00:01:12,980 --> 00:01:17,010
+Spouštějte úlohy souběžně a kdykoli mezi nimi přepínejte.
+
+26
+00:01:17,640 --> 00:01:21,100
+Až bude scéna hotová, přepněte do Cinema Mode,
+
+27
+00:01:21,100 --> 00:01:24,510
+kde můžete řídit kameru a tvořit postupy pro video.
+
+28
+00:01:25,000 --> 00:01:26,700
+Nápady začínají ve 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Vytáhněte moodboard zprava nebo stiskněte vlnovku.
+
+30
+00:01:30,860 --> 00:01:33,500
+Je to plátno pro reference a koncepty.
+
+31
+00:01:33,500 --> 00:01:36,270
+Přetáhněte sem obrázky, videa nebo náčrty.
+
+32
+00:01:36,940 --> 00:01:40,930
+Tvořte uzlové grafy generativních modelů jako v ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Jste v Zen Mode, nejjednodušším zobrazení.
+
+34
+00:01:44,400 --> 00:01:46,840
+Znáte Blender? Přepněte do Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Je tu celé prostředí Blenderu, všechny panely i zkratky.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie funguje v obou. Vyberte si, co vám vyhovuje.
+
+37
+00:01:56,560 --> 00:01:57,570
+Vraťme se do Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Náš program pro tvůrčí partnery nabízí kredity
+
+39
+00:02:02,200 --> 00:02:05,900
+a komunitu, která utváří budoucnost AI a 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+To je vše. Už víte, kde co najít.
+
+41
+00:02:08,550 --> 00:02:10,240
+Pojďme společně tvořit ve 3D.

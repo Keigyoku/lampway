@@ -4,6 +4,8 @@
 """One language choice, synchronous registration, complete timed fallback."""
 
 import json
+import importlib.util
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,6 +16,28 @@ from mixar.modules.onboarding.core.tour.beats import MIXAR_INTRO
 from mixar.modules.onboarding.core.tour.session_lifecycle import SessionLifecycleMixin
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_subtitle_builder_creates_clean_output_and_detects_a_missing_track(tmp_path, monkeypatch, capsys):
+    script = ROOT / "scripts/dev/tour_subtitles/build.py"
+    spec = importlib.util.spec_from_file_location("tour_subtitle_builder", script)
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    output = tmp_path / "assets" / "tour" / "subtitles"
+    monkeypatch.setattr(builder, "OUT", output)
+    monkeypatch.setattr(sys, "argv", [str(script)])
+    builder.main()
+    expected = dict(builder.tracks())
+    assert {p.stem for p in output.glob("*.srt")} == set(expected)
+    for code, text in expected.items():
+        assert (output / f"{code}.srt").read_text(encoding="utf-8") == text
+    monkeypatch.setattr(sys, "argv", [str(script), "--check"])
+    builder.main()
+    (output / "en.srt").unlink()
+    with pytest.raises(SystemExit) as missing:
+        builder.main()
+    assert missing.value.code == 1
+    assert "Stale subtitles: en" in capsys.readouterr().err
 
 
 def test_choice_updates_ui_flags_and_refreshes_catalog_immediately(monkeypatch):

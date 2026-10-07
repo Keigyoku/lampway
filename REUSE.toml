@@ -891,3 +891,52 @@ path = ["scripts/dev/brand_art/lampway_icons.py", "tests/lampway/test_lampway_pl
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Generated onboarding subtitles retain their checked-in source attribution.
+[[annotations]]
+path = [
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ab.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ar.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/be.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/bg_BG.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ca_AD.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/cs_CZ.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/da.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/el_GR.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/en.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/eo.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/eu_EU.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/fa_IR.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/fi_FI.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/he_IL.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/hi_IN.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/hr.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/hu_HU.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/id_ID.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ka.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ky_KG.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/lt.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ml.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/nb.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/nl_NL.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/pl_PL.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/pt_BR.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ro_RO.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ru_RU.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sk_SK.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sl.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sr_RS.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sr_RS[@]latin.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sv_SE.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/sw.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ta.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/th_TH.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/tr_TR.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/uk_UA.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/ur.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/vi_VN.srt",
+  "src/scripts/mixar/modules/onboarding/assets/tour/subtitles/zh_HANT.srt"
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-3.0-or-later"
