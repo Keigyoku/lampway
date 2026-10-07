@@ -61,3 +61,54 @@ def test_a_unit_on_the_real_herdr_is_one_tab_the_main_agent_keeps_60_percent_and
     assert len({r["x"] for r in column}) == 1, "the workers stand in one column right of the main agent"
     heights = [r["height"] for r in column]
     assert max(heights) - min(heights) <= 2, f"an even column: {heights}"
+
+
+OTHER = "0b7d9e14-55aa-4c2e-8d3f-9a1b2c3d4e5f"
+
+
+@needs_herdr
+def test_on_the_real_herdr_a_units_next_swarm_closes_its_finished_worker_panes_and_splits_right_of_the_main_pane_again(lroot, tmp_path):  # noqa: F811
+    """Spec A4, Q13 (built 2026-10-07) on a real herdr server: the previous run's finished worker panes of the unit are closed by
+    ``Cockpit.close_ended_workers`` (and only they: the main pane, another unit's finished worker and a pane no record names stay),
+    then the next swarm's first worker splits right of the main pane, which keeps 60 % again."""
+    c = Cockpit(lroot)
+    c.ensure_server()
+    cwd = str(tmp_path)
+
+    def record(pane, role, unit, swarm=None, by="user"):
+        rec = {"id": f"r{len(c.list_sessions()) + 1}", "name": f"{role} {swarm or unit[:8]}", "agent": "shell", "pane_id": pane["pane_id"],
+               "terminal_id": pane.get("terminal_id"), "tab_id": pane.get("tab_id"), "unit": unit, "role": role, "state": "live",
+               "swarm_binding": swarm, "created_by": by, "match": [], "created_at": time.time() + len(c.list_sessions())}
+        c._update(lambda d: d["sessions"].append(rec))
+        return rec
+
+    def start(role, unit, label, swarm=None, planned=None):
+        snap = c.snapshot()
+        pane = _open(lroot, LY.place(role, unit, label, c.list_sessions(), snap, swarm=LY.swarm_of(swarm), planned=planned), snap, cwd, label)
+        return pane, record(pane, role, unit, swarm, by="swarm" if role == LY.WORKER else "user")
+
+    LY.created_pane(L.run(lroot, LY.workspace_create(cwd, [])))
+    main, _ = start(LY.MAIN, SCENE, "Chest fit")
+    old = [start(LY.WORKER, SCENE, "Chest fit", swarm=f"swarm:sw1:worker-{n}", planned=2) for n in (1, 2)]
+    _theirs_main, _ = start(LY.MAIN, OTHER, "Boots")
+    theirs, _ = start(LY.WORKER, OTHER, "Boots", swarm="swarm:sw9:worker-1", planned=1)
+    ws = next(w for w in c.snapshot()["workspaces"] if w.get("label") == LY.WORKSPACE_LABEL)
+    unknown = LY.created_pane(L.run(lroot, LY.tab_create(ws["workspace_id"], cwd, "the user's own", [])))
+    rect = {p["pane_id"]: p["rect"] for p in json.loads(L.run(lroot, ["pane", "layout", "--pane", main["pane_id"]]))["result"]["layout"]["panes"]}
+    assert old[0][0]["pane_id"] in rect, "the first run's workers stand beside the main pane"
+
+    closed = c.close_ended_workers(SCENE, lambda binding: False)                 # sw1 and sw9 finished: no live binding
+    assert sorted(x["id"] for x in closed) == sorted(r["id"] for _, r in old)
+    live = {p["pane_id"] for p in c.snapshot()["panes"]}
+    assert not {p["pane_id"] for p, _ in old} & live, "the finished worker panes are gone from herdr"
+    assert {main["pane_id"], theirs["pane_id"], unknown["pane_id"]} <= live, "never the main pane, another unit's or an unknown pane"
+    assert {r["state"] for r in c.list_sessions() if r["id"] in {x["id"] for x in closed}} == {"ended"}
+
+    where = LY.place(LY.WORKER, SCENE, "Chest fit", c.list_sessions(), c.snapshot(), swarm="sw2", planned=1)
+    assert (where.verb, where.of, where.direction, where.ratio) == ("split", main["pane_id"], "right", LY.MAIN_SHARE)
+    fresh, _ = start(LY.WORKER, SCENE, "Chest fit", swarm="swarm:sw2:worker-1", planned=1)
+    layout = json.loads(L.run(lroot, ["pane", "layout", "--pane", main["pane_id"]]))["result"]["layout"]
+    rect = {p["pane_id"]: p["rect"] for p in layout["panes"]}
+    assert set(rect) == {main["pane_id"], fresh["pane_id"]}, f"the unit's tab is the main pane and the new run's worker: {rect}"
+    assert abs(rect[main["pane_id"]]["width"] / layout["area"]["width"] - LY.MAIN_SHARE) < 0.03, (rect, layout["area"])
+    assert rect[fresh["pane_id"]]["x"] > rect[main["pane_id"]]["x"], "the new worker is right of the main pane"

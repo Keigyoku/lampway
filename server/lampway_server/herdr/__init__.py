@@ -7,7 +7,8 @@ INVARIANTS (the captain's rulings, 2026-10-05):
      The server is launched detached (a transient systemd user unit when available, else its own session), never as a child that dies with Blender. Nothing here stops a pane or the server
      implicitly: only an explicit user action in the cockpit (with a confirm), or an agent finishing on its own. The one exception is the swarm's own:
      a swarm closes a worker pane IT opened (its record names that swarm and worker) when the task is cancelled, fails or times out
-     (agent-modes spec S3, ``Cockpit.end_swarm_pane``); it can never close any other pane.
+     (agent-modes spec S3, ``Cockpit.end_swarm_pane``), and a unit's next swarm closes the previous runs' worker panes of THAT unit
+     whose worker has ended (spec Q13, ``Cockpit.close_ended_workers``); it can never close any other pane, nor a live one.
   3. RECONCILE ON START. The live server is the truth and the session registry is the map. Live pane + record: re-adopt. Live pane, no record: show as "unadopted", never kill it. Record, no
      pane (or the agent process gone): mark ended, keep the transcript for resume, never respawn silently. Server not running: report it and offer start / resume as user actions; never
      auto-relaunch agents without a click. Reconcile is idempotent: a second run changes nothing and never double-spawns.

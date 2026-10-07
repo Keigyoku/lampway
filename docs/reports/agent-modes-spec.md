@@ -268,7 +268,29 @@ overwhelming/losing information the better."
   focusing a pane is one click from a card.
 - **A finished worker's pane** stays readable until the unit's next swarm starts. Then Lampway closes the previous run's ended
   worker panes before it splits new ones. It only ever closes a pane it started that has ended, never a live or unknown one
-  (law 5). This is proposed in **Q13**.
+  (law 5). Decided in **Q13**.
+
+**Built 2026-10-07: the next swarm's fresh column (Q13)** (`Cockpit.close_ended_workers`, `SwarmManager._close_ended_panes`):
+- **When:** a unit's `swarm_start`, after its run is activated and before any worker pane splits; serialized with the
+  placements, so a swarm opening workers at the same moment never splits a pane being closed.
+- **What may close:** only a pane whose record says Lampway opened it as a swarm worker (`created_by` swarm, `role` worker, a
+  swarm binding) of that unit, and only while herdr still shows it for the terminal the record names (a pane id herdr gave
+  another terminal is unknown and stays).
+- **"Ended" means one of:**
+  - the record is ended (the swarm ended it on cancel, failure or timeout, or reconcile found its harness gone);
+  - its binding is not live in this server: `lampway_worker_done` finished it, a failure, cancel or timeout revoked it, or a
+    server restart dropped it, so the pane can no longer reach any scene;
+  - herdr's process info shows the worker's harness no longer runs (the pane is at a shell prompt).
+
+  A pane herdr cannot inspect is no proof of an end: it stays.
+- **Never closed:** the unit's main pane, another unit's panes, an ad-hoc pane, a pane no record names, a worker still working.
+- **After:** the record ends with the reason ("closed when its unit's next swarm started"); a Mode 1 worker's gateway key is
+  revoked with its pane; `swarm_start` returns what it closed (`closed_panes`), so the agent is told. With the column empty, the
+  run's first worker splits right of the main pane, which keeps 60 % again; a worker still working stays, and the new workers go
+  on down its column.
+- **Tested:** played herdr (`tests/test_herdr_layout.py`, `tests/test_swarm_panes.py`) and the real herdr 0.9.3
+  (`tests/test_herdr_layout_live.py`: two finished workers closed, the main pane, another unit's worker and an unknown pane kept,
+  the next worker right of the main pane at 60 %).
 
 **Built 2026-10-07 and checked against the real herdr 0.9.3,** built from `herdrdev/herdr`:
 - the CLI spellings come from herdr's CLI reference;
@@ -1146,6 +1168,20 @@ class WorkerJob:
 
 It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abilities and limits below still apply.
 
+**Built 2026-10-07: the worker's model is the `agent.worker` choice** (`engine/wiring.py` `provider_getter`, `engine/gateway.py`):
+- The gateway decides from the token's session. A worker pane's gateway token is keyed by its swarm binding
+  (`swarm:<swarm>:<worker>`, `Mode1Units.prepare`), a main pane's by its unit, so the gateway answers a main pane with the current
+  main provider and a worker's pane with the worker choice.
+- The worker's provider is built by the hub's `swarm_provider_factory` (`make_swarm_provider`: the `agent.worker` chain in
+  Choices, its fallback decided at spawn, HC23) at the worker's first call, and kept for the worker's life: a worker never changes
+  provider mid-task.
+- With no worker choice, the chain is `follow:agent.main` (the registry's and the bridge's default): the worker follows the main
+  agent. A worker choice that cannot be built (no key) is an OpenAI-style error for that pane, never the main provider instead.
+- One answer for the workers, in this order: the environment (`LAMPWAY_SWARM_PROVIDER` and its swarm models, a session scope),
+  then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's worker role both write, then
+  the default `follow:agent.main`. The dialog's swarm model is therefore what the gateway answers a worker with.
+- Tested with a scripted provider each, and the dialog's swarm model through the gateway (`tests/test_engine_wiring.py`).
+
 **Contract.**
 - Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
   each worker's conversation in Hermes, beside its parent's (R6 under the captain's durability ruling).
@@ -1187,6 +1223,30 @@ It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abi
   never get them (invariant 4). No swarm tool spends.
 - **Visibility:** worker panes show in the cockpit like any pane. Closing a worker pane cancels its task; it never kills a pane the
   swarm did not start (law 5).
+
+**Built 2026-10-07: the Parallel Agents cards and Retry for every swarm** (`agent/swarm_island.py`, `SwarmManager.retry`; the
+captain: nothing hidden, finish it). Before, the cards came only from a swarm started inside a built-in hub turn; a swarm started
+by a bound Mode 2 pane over MCP, or by Lampway Agent's Hermes pane over its engine endpoint, emitted none.
+- **Where the cards go:** every swarm reports its workers to the island of its unit's scene tab, in the client's own frames (the
+  `todo` slot the Parallel Agents panel mirrors, and the "Retry failed tasks" `actions` chip):
+  - a swarm started in a turn that handed it its stream: on that turn, as before;
+  - a Mode 1 swarm while Lampway Agent's island turn runs (the front's live sink): on that turn's own bubble;
+  - otherwise (a Mode 2 swarm; a Mode 1 swarm between island turns): on a card turn of its own, on the scene tab's current Client
+    socket: `agent.turn.started` with `observed: true`, the `swarm` id and the parent `pane`; `run_status`; the rows on one bubble;
+    at collect the Retry chip when a task failed, `turn_end` (no `offset`, so the pane's transcript cursor is untouched) and
+    `agent.turn.ended`. A Your agent tab renders it as it renders an observed turn. `[UNVERIFIED in the client]` **For the client
+    lane:** a Lampway Agent tab takes only its own turns and their wakeups, so it drops a card turn; it needs to accept a `swarm`
+    card turn too (the same gap as A2's `origin: pane` turns).
+- **Retry, under the same rules:** the chip sends the user's "continue" (`agent.chat` in a Lampway Agent tab, `agent.byoa.send`
+  in a Your agent tab). Only from the user's own Client socket, and only while failed tasks are on offer, it is a retry:
+  - the failed tasks run once more as one new swarm, in the mode, harness, folder and owner of the swarm they failed in, under
+    capability `swarm`, and are collected into the scene; a second click finds nothing left to retry;
+  - the unit's agent is told in one line (nothing is hidden from it): Lampway Agent's Hermes gets it with the user's "continue"
+    after the retry ran inside the island turn (its steps and cards on that bubble); a Your agent pane is typed the user's
+    "continue" with that line, as the user's click; `swarm_status` of the original names the new swarm (`retried_as`), which is
+    the pane's own swarm too;
+  - an agent's "continue" is never a retry.
+- **Tested** with the fake desktop receiving the frames (`tests/test_swarm_cards.py`, `tests/test_engine_front.py`).
 - **Egress:** the panes talk to their vendor under the user's account (B5). Lampway gates the start and logs it.
 
 ## S4. Choosing the brain
@@ -1257,13 +1317,14 @@ pane's harness in Mode 2.
 11. **Q11 Mode 2 swarm binding (built, open).** The pane bearers go on a direct loopback endpoint instead of the client launcher
     (S3, "as built"). Also open:
     - the worker timeout, 1800 s as a placeholder;
-    - finished worker panes stay open for the user to read;
+    - finished worker panes stay open for the user to read (until the unit's next swarm closes them, Q13, built 2026-10-07);
     - Codex's pane bearer is visible briefly on the herdr client's command line.
 
 12. **Q12 the architecture — decided 2026-10-07:** two modes, Mode 1 on the Hermes runtime, every agent in a herdr pane, wrappers
     only, no agent without a pane; workers keep their own headless Blender scene (A0).
 13. **Q13 the herdr view — decided 2026-10-07: minimal switching.** One tab per unit; workers split beside the main agent;
-    pane metadata in herdr's sidebar (A4). Proposed and open: closing a unit's ended worker panes when its next swarm starts.
+    pane metadata in herdr's sidebar (A4). Closing a unit's ended worker panes when its next swarm starts: decided as
+    recommended, built 2026-10-07; the captain: nothing hidden, finish it (A4).
 14. **Q14 Mode 1's pane — decided 2026-10-07:** Hermes's own TUI in the pane, with the island as a second client of the same
     `hermes serve` session. Nothing is lost, and the agent persists (A1, A2). ACP is retired.
 15. **Q15 `/new` in a Mode 1 pane (proposed):** the island follows the pane to its new session (A2). The other choice is to

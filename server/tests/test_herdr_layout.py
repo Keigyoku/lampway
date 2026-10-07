@@ -105,7 +105,7 @@ def test_workers_split_into_their_units_tab_in_order(cockpit, herdr):
     assert herdr.metadata[w2["pane_id"]]["title"].startswith("belt: model the belt piece")
     w4 = worker(cockpit, 1, swarm="sw2", task="cape")                    # the unit's next swarm: down the same column
     assert herdr.splits[w4["pane_id"]] == {"of": w3["pane_id"], "direction": "down", "ratio": 0.5}
-    assert herdr.closed() == [], "a finished run's worker panes stay as they are (Q13 is not decided)"
+    assert herdr.closed() == [], "opening a pane closes nothing: only the swarm's start closes a unit's ended worker panes (Q13)"
 
 
 def test_a_swarm_that_says_how_many_workers_it_has_gets_an_even_column(cockpit, herdr):
@@ -193,3 +193,82 @@ def test_binding_a_pane_makes_it_its_units_main_and_unbinding_lets_it_go_without
     before = len(herdr.calls)
     out = cockpit.unbind(pane["id"])
     assert (out["unit"], out["role"]) == (None, None) and len(herdr.calls) == before, "unbinding never touches a pane"
+
+
+# ------------------------------------------------------------------------------------------------- Q13: the next swarm's fresh column
+def _live(*bindings):
+    """The swarm's bindings table as ``close_ended_workers`` asks it: only these are live workers."""
+    return lambda name: name in bindings
+
+
+def test_the_units_next_swarm_closes_its_ended_worker_panes_and_starts_a_fresh_column_from_the_main_pane(cockpit, herdr):
+    """Spec A4, Q13 (built 2026-10-07): before a unit's next swarm splits its workers, the previous run's ENDED worker panes of
+    that unit are closed: only panes Lampway itself opened as that unit's swarm workers, only once their worker has ended. The main
+    pane, another unit's panes, an ad-hoc pane and a pane the user split by hand stay. The next worker then splits right of the
+    main pane again, which keeps 60 %."""
+    scratch = adhoc(cockpit)
+    root = main(cockpit)
+    w1, w2 = worker(cockpit, 1, planned=2), worker(cockpit, 2, task="belt", planned=2)
+    elsewhere = main(cockpit, OTHER, label="Boots")
+    theirs = worker(cockpit, 1, unit=OTHER, swarm="sw9", task="cape")              # another unit's finished worker
+    herdr.panes["p99"] = {"terminal_id": "t99", "cmd": "-bash", "tab_id": root["tab_id"]}   # the user split this one by hand
+    herdr.tabs[root["tab_id"]]["panes"].append("p99")
+    closed = cockpit.close_ended_workers(SCENE, _live())                            # sw1 finished: no live binding
+    assert [c["id"] for c in closed] == [w1["id"], w2["id"]] and all(c["why"] for c in closed)
+    assert herdr.closed() == [w1["pane_id"], w2["pane_id"]]
+    for kept in (scratch, root, elsewhere, theirs):
+        assert kept["pane_id"] in herdr.panes, f"{kept['name']} is not a finished worker of this unit: never closed (law 5)"
+    assert "p99" in herdr.panes, "an unknown pane is never closed"
+    recs = {r["id"]: r for r in cockpit.list_sessions()}
+    for w in (w1, w2):
+        assert recs[w["id"]]["state"] == "ended" and "next swarm" in recs[w["id"]]["end_reason"] and recs[w["id"]]["closed_at"]
+    assert recs[theirs["id"]]["state"] == "live"
+    nxt = worker(cockpit, 1, swarm="sw2", task="hood", planned=1)
+    assert herdr.splits[nxt["pane_id"]] == {"of": root["pane_id"], "direction": "right", "ratio": 0.6}, "a fresh column from the main pane"
+    assert cockpit.close_ended_workers(SCENE, _live("swarm:sw2:worker-1")) == [], "closing twice closes nothing more"
+
+
+def test_a_live_worker_pane_is_never_closed_and_one_whose_harness_exited_is(cockpit, herdr):
+    """Ended means: the swarm ended the worker (its record), its binding is finished or revoked (``lampway_worker_done``, a
+    failure, a cancel, or a server that no longer holds it), or herdr's process info shows its harness is no longer running. A
+    worker whose binding is live and whose harness runs is working: it stays, and the next swarm's worker goes down its column."""
+    root = main(cockpit)
+    w1, w2 = worker(cockpit, 1), worker(cockpit, 2, task="belt")
+    herdr.panes[w2["pane_id"]]["cmd"] = "-bash"                                    # worker-2's harness quit: the pane is at a shell
+    closed = cockpit.close_ended_workers(SCENE, _live("swarm:sw1:worker-1", "swarm:sw1:worker-2"))
+    assert [c["id"] for c in closed] == [w2["id"]] and "no longer running" in closed[0]["why"]
+    assert w1["pane_id"] in herdr.panes and root["pane_id"] in herdr.panes
+    nxt = worker(cockpit, 1, swarm="sw2", task="hood")
+    assert herdr.splits[nxt["pane_id"]]["of"] == w1["pane_id"] and herdr.splits[nxt["pane_id"]]["direction"] == "down"
+
+
+def test_a_pane_herdr_gave_to_another_terminal_is_unknown_and_never_closed(cockpit, herdr):
+    """The record names the pane Lampway opened by its terminal: a pane id herdr now shows for another terminal is not that pane."""
+    main(cockpit)
+    w1 = worker(cockpit, 1)
+    herdr.panes[w1["pane_id"]]["terminal_id"] = "t-someone-else"
+    assert cockpit.close_ended_workers(SCENE, _live()) == [] and herdr.closed() == []
+    assert cockpit.close_ended_workers(None, _live()) == [] and cockpit.close_ended_workers("", _live()) == []
+
+
+@pytest.fixture
+def board(tmp_path):
+    from lampway_server import capabilities as CAP
+    prev = CAP.ACTIVE
+    CAP.set_active(CAP.Store(tmp_path / "caps"))
+    yield CAP.ACTIVE
+    CAP.set_active(prev)
+
+
+def test_closing_a_mode1_workers_pane_revokes_its_gateway_key(cockpit, herdr, settings, tmp_path, board):
+    """A Mode 1 worker's pane (``lampway_hermes``) holds a gateway key keyed by its binding: closing the pane ends the key too."""
+    from lampway_server.engine import gateway as GW
+    from .mode1_support import fake_engine, units_for
+    reg = GW.Registry()
+    cockpit.mode1 = units_for(cockpit, settings.state_dir, reg, engine=fake_engine(tmp_path / "engines"))
+    binding = "swarm:sw1:worker-1"
+    rec = cockpit.create_session("lampway_hermes", "boots (sw1 worker-1)", cockpit.project_root, task="boots", by="swarm",
+                                 prompt="You are worker-1.", swarm_worker=(binding, "tok-1"), unit=SCENE)
+    assert binding in reg._sessions.values()
+    closed = cockpit.close_ended_workers(SCENE, _live())
+    assert [c["id"] for c in closed] == [rec["id"]] and binding not in reg._sessions.values()

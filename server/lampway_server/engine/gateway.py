@@ -8,8 +8,9 @@ clients only, for the pinned Hermes of Lampway's own Mode 1 panes (``hermes serv
 * Authenticated by a per-engine-process bearer from ``Registry.issue_token(session_id)``: random, held in memory (as a digest), never
   logged (``logredact`` redacts the ``lwe_`` shape). The user's own login is not accepted here, and an engine token opens nothing else.
 * A request is translated into Lampway's neutral ``ModelRequest`` and answered by the CURRENT main provider (``app.state.agent.provider``:
-  whatever the user chose in Choices, an API key, a bare endpoint or Sign in with ChatGPT), so Lampway's own egress gate, budgets and
-  disclosure apply and the engine holds no key. The gateway never builds a provider and never retries or falls back to another one: a
+  whatever the user chose in Choices, an API key, a bare endpoint or Sign in with ChatGPT), or, for a Mode 1 swarm worker's pane, by
+  the ``agent.worker`` choice (spec S2; ``wiring.provider_getter`` decides from the token's session), so Lampway's own egress gate,
+  budgets and disclosure apply and the engine holds no key. The gateway never builds a provider and never retries or falls back to another one: a
   provider's failure is an OpenAI-style error object carrying its own recovery text (the ChatGPT usage-limit text, for one).
 * ``GET /engine/v1/models-dev.json`` is the engine's models.dev mirror (hermes_config points ``models_dev.url`` at it): a minimal
   registry naming the gateway's model. Hermes fetches it with no key, so it is served to loopback clients without the token; it
@@ -373,10 +374,10 @@ def _bearer(request: Request) -> str:
 
 def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
     """The gateway's routes. ``provider_getter()`` returns the current main provider at call time (a Choices change swaps it). A
-    getter that takes an argument gets the token's session id, so a session can be answered on another choice than the main one.
-    ``wiring.provider_getter`` answers every pane with the main provider since the engine's hidden swarm workers went (spec A5): a
-    Mode 1 worker's Hermes pane (A1) too, whose token is keyed by its swarm binding. [UNVERIFIED decision] S2's ``agent.worker``
-    choice for workers is not wired here."""
+    getter that takes an argument gets the token's session id, so a session can be answered on another choice than the main one:
+    ``wiring.provider_getter`` answers a unit's main pane with the current main provider and a Mode 1 worker's pane (its token keyed
+    by its swarm binding) with the ``agent.worker`` choice (spec S2 as superseded by A). A getter that cannot build a pane's provider
+    raises: that request is an OpenAI-style error, never answered by another provider."""
     import inspect
     try:
         takes_session = len(inspect.signature(provider_getter).parameters) >= 1
@@ -385,6 +386,14 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
 
     def provider_for(session_id):
         return provider_getter(session_id) if takes_session else provider_getter()
+
+    def provider_or_error(session_id):
+        """(provider, None) or (None, the OpenAI-style error response): a pane whose choice cannot be built is told so."""
+        try:
+            return provider_for(session_id), None
+        except Exception as exc:  # noqa: BLE001 - a missing key, a retired option: reported, never answered by another provider
+            status, err = _provider_error(None, exc)
+            return None, JSONResponse(err, status_code=status)
 
     def admit(request: Request):
         """(session id, None) or (None, the refusal response)."""
@@ -400,7 +409,9 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         session_id, refused = admit(request)
         if refused is not None:
             return refused
-        provider = provider_for(session_id)
+        provider, refused = provider_or_error(session_id)
+        if refused is not None:
+            return refused
         entry = {"id": _model_of(provider), "object": "model", "created": 0, "owned_by": "lampway"}
         window = getattr(provider, "context_length", None)
         if isinstance(window, int) and window > 0:
@@ -432,7 +443,9 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         refusal = registry.check_first(_bearer(request), session_id, body.get("tools"))
         if refusal is not None:                                        # E1.3: the engine offered what the choices do not allow
             return JSONResponse(error_body(refusal, type="invalid_request_error", code="engine_tools_mismatch"), status_code=400)
-        provider = provider_for(session_id)
+        provider, refused = provider_or_error(session_id)
+        if refused is not None:
+            return refused
         for observer in list(registry.observers):                      # e.g. the island's one-time "Using your ChatGPT plan" notice
             try:
                 observer(session_id, getattr(provider, "name", ""))

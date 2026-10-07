@@ -8,6 +8,11 @@ question at a time; the batched ``ask_user`` wizard was the built-in loop's and 
 import json
 
 TRANSPORT_ACTIONS = {"", "respond", "submit"}
+# The Parallel Agents cards' Retry chip (agent/swarm_island.py): its wire values are the client's (chat_special_ops / retry_action,
+# parked_resume.CONTINUE_MESSAGE). A click sends the user's "continue", which reruns a unit's failed swarm tasks (SwarmManager.retry).
+RETRY_ACTION = "retry_failed_tasks"
+RETRY_LABEL = "Retry failed tasks"
+CONTINUE_MESSAGE = "continue"
 
 
 def single_answer(text, answers, action) -> str:

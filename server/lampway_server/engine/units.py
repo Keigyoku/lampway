@@ -304,6 +304,11 @@ class Mode1Units:
             raise CockpitError("Lampway Agent's pane opened but its serve token cannot be read")
         return info
 
+    def forget(self, rec: dict) -> None:
+        """A Mode 1 worker's pane was closed (spec Q13): its gateway key, keyed by its swarm binding, ends with it."""
+        if rec.get("role") == LY.WORKER and rec.get("swarm_binding"):
+            self.registry.revoke_session(rec["swarm_binding"])
+
     def check_mcp(self, unit: str, token: str) -> bool:
         known = self.mcp_digests.get(unit)
         return bool(known and token) and secrets.compare_digest(known, GW.Registry.digest(token))
