@@ -24,6 +24,7 @@ import numpy as np
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 
+from .. import canon_io
 from . import common as C
 from . import rig_conform as RF
 from ..canon_geom import bones as CB
@@ -40,6 +41,7 @@ def _sha_bytes(b):
     return hashlib.sha256(b).hexdigest()
 
 
+@canon_io.rollback_imports
 def _example(example, root):
     """(object, sha256, how): a scene mesh (its geometry sha256, canon_io) or a .glb/.fbx/.obj imported through canon_io (the file's)."""
     from .. import canon_io
@@ -94,6 +96,7 @@ def _inside(ob, points):
     return out
 
 
+@canon_io.rollback_imports
 def fit(example, joints, root, template="", hands="none", hidden=None, convention="blender", weights="procedural", allow_outside=None, out="",
         dry_run=False):
     if hands != "none":

@@ -43,6 +43,13 @@ def find_sentence(file: str, phrase: str):
     lines = (REPO / file).read_text().splitlines()
     for i, l in enumerate(lines, 1):
         if phrase in l or phrase.replace("`", "") in l.replace("`", ""):
+            if file == 'server/lampway_server/agent/prompt.py' and l.lstrip().startswith('- '):
+                parts = [l.lstrip()[2:].rstrip('\\').rstrip()]
+                cursor = i
+                while lines[cursor - 1].endswith('\\') and cursor < len(lines):
+                    parts.append(lines[cursor].strip().rstrip('\\').rstrip())
+                    cursor += 1
+                return ' '.join(parts), f"{file}:{i}"
             return phrase, f"{file}:{i}"
     raise LawError(f"the sentence {phrase!r} is not in {file}")
 
@@ -63,6 +70,12 @@ def registry() -> list:
                   for k, v in (sch.get("properties") or {}).items()]
         rows.append({"name": t.name, "description": t.description, "params": params, "offered": t.name in offered})
     return rows
+
+
+def registry_counts():
+    """Shared source for documentation and coordination-ledger headers."""
+    from ..mcp import offered_tools
+    return {'agent_tools': len(registry()), 'mcp_tools': len(offered_tools())}
 
 
 def registry_hash(rows) -> str:
@@ -241,7 +254,7 @@ def mcp_local_tool_names():
         raise ValueError("Local schemas must declare literal tool keys")
     internal = {ast.literal_eval(key) for key in schemas.keys}
     aliases = ast.literal_eval(assignment(client / "mcp_bridge/core/aliases.py", "OLD_TO_NEW"))
-    return internal | {aliases[name] for name in internal if name in aliases}
+    return {aliases.get(name, name) for name in internal}
 
 
 def mcp_local_instructions(local_tool_names):
@@ -257,18 +270,21 @@ def mcp_instructions(local_tool_names=()) -> str:
     first = next((name for name in ("lampway_inspect", "scene_summary") if name in offered), None)
     if first:
         lines.append(f"First call {first} with no arguments to inspect the scene.")
-    lines.extend(_mcp_workflow_lines(offered))
-    lines += ["Nothing offered here spends credits: generation and studios are the user's, in the Client.",
+    workflow = _mcp_workflow_lines(offered)
+    safety = ["Nothing offered here spends credits: generation and studios are the user's, in the Client.",
               "Agents can plan, never confirm a spend: only the user confirms, from the Client.",
               "Ask the user when an open choice matters (method, style, scale, detail); settle small details yourself.",
               "Native UI tools require the user's opt-in; never use OS-level computer use on Lampway.",
               "Never delete or overwrite the user's source files; the tools write new files.",
               "A proposal is never a ruling; only the user's tags or typed answers are.",
               "Project instructions: AGENTS.md in the project root"]
-    text = "\n".join(lines)
-    if len(text.encode()) > 2048:
-        raise ValueError("MCP workflow exceeds the 2048-byte instruction cap")
-    return text
+    # Reserve the safety guidance, then fit whole workflow bullets. UTF-8 bytes
+    # determine the cap; no phrase or multibyte character is cut in half.
+    chosen = []
+    for line in workflow:
+        if len('\n'.join(lines + chosen + [line] + safety).encode()) <= 2048:
+            chosen.append(line)
+    return '\n'.join(lines + chosen + safety)
 
 
 def mcp_fallback_source() -> str:

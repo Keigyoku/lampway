@@ -63,3 +63,16 @@ print("RESULT", json.dumps({"a": call("retopo", object="nope"), "b": call("retop
     out = r.results[0]
     assert out["a"]["ok"] is False and "nope" in out["a"]["error"]
     assert out["b"]["ok"] is False and "target_faces" in out["b"]["error"]
+
+
+def test_voxel_reports_achieved_count_against_target(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+ob=sphere(subdiv=4)
+r=call('retopo',object=ob.name,method='voxel',target_faces=2000)
+assert r.get('ok'),r
+n=len(bpy.data.objects[r['object']].data.polygons)
+assert n!=2000 and r['achieved_faces']==n,r
+assert str(n) in r['note'] and '2000' in r['note'],r
+''')

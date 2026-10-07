@@ -206,7 +206,8 @@ class Connector:
             # (the interface controller still starting after launch, sign-in) means
             # this connection holds no input to release.
             if (released.get("result") or {}).get("isError") and refusal.get("error_type") == "modal_active":
-                raise RuntimeError(refusal.get("error") or "Finish or cancel the UI operation before using scene tools")
+                from mixar.modules.common.ui_control.constants import UIError
+                raise UIError("modal_active", refusal.get("error") or "Finish or cancel the UI operation before using scene tools")
         meta = {"mixar/request-id": call_id, **({"mixar/client": self.client} if self.client else {})}
         message = {"jsonrpc": "2.0", "id": call_id, "method": "tools/call", "params": {
             "name": name, "arguments": arguments, "_meta": meta}}

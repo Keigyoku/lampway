@@ -88,3 +88,47 @@ def test_numbers_are_canonical_and_empty_tables_use_the_toon_4_form(path, capsys
     ax.kv({"line\n": 1})
     out = capsys.readouterr().out
     assert "seeds: []" in out and "[0]:" not in out and '"line\\n": 1' in out, out
+
+
+@pytest.mark.parametrize('module', ['mixar.modules.lampway_tools.axi', 'lampway_server.studios.axi'])
+def test_numpy_scalars_in_real_table_and_kv_shapes(module, capsys):
+    """G1: proportion tables carry numpy 2 scalars rather than Python literals."""
+    import numpy as np
+    sys.path.insert(0, str(REPO / 'server'))
+    ax = importlib.import_module(module)
+    from lampway_server.compute.toon_out import decode
+    values = [np.float64(.5), np.float32(.25), np.int64(7), np.bool_(True),
+              np.float64(np.nan), np.float32(np.inf), np.float64(1e21)]
+    ax.table('ratios', [{'value': value} for value in values], ['value'])
+    ax.kv({'passed': np.bool_(False), 'ratio': np.float32(.5)})
+    data = decode(capsys.readouterr().out)
+    assert data['ratios'] == [{'value': value} for value in [.5, .25, 7, True, None, None, 1e21]]
+    assert data['passed'] is False and data['ratio'] == .5
+    assert ax._num(np.int64(7)) == '7'
+
+
+@pytest.mark.parametrize('script', ['proportion_ratios.py', 'piece_ratios.py'])
+def test_standalone_proportion_cli_loads_the_authoritative_codec(tmp_path, script):
+    import subprocess
+    command = REPO / 'src/scripts/mixar/modules/lampway_tools/scripts/proportion' / script
+    result = subprocess.run([sys.executable, '-I', str(command)], cwd=tmp_path, text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr
+    assert 'help[' in result.stdout
+    assert 'lampway_' in result.stdout
+    assert 'Traceback' not in result.stdout + result.stderr
+
+
+def test_standalone_axi_out_renders_numpy_through_the_same_source_codec(tmp_path):
+    import subprocess
+    scripts = REPO / 'src/scripts/mixar/modules/lampway_tools/scripts'
+    codec = REPO / 'src/scripts/mixar/modules/common/toon/codec.py'
+    source = f'''import sys
+sys.path.insert(0, {str(scripts)!r})
+import axi_out as ax
+import numpy as np
+assert ax.encode.__code__.co_filename == {str(codec)!r}, ax.encode.__code__.co_filename
+ax.table("rows", [{{"n": np.float64(0.5), "b": np.bool_(True)}}], ["n", "b"])
+'''
+    result = subprocess.run([sys.executable, '-I', '-c', source], cwd=tmp_path, text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == 'rows[1]{n,b}:\n  0.5,true'

@@ -165,3 +165,38 @@ print("RESULT", json.dumps({"absent": absent, "family": ins["family"], "missing"
     o = r.results[0]
     assert o["absent"] == [], f"rigify table rows naming no bone of a generated Rigify rig: {o['absent']}"
     assert o["family"]["name"] == "rigify" and o["missing"] == [], o
+
+
+def test_readback_success_and_partial_failure_restore_nested_ids_and_selection(tmp_path):
+    r = run(tmp_path, MIXAMO + '''
+from mixar.modules.lampway_tools import canon_io
+from mixar.modules.lampway_tools.features import rig_tools as RT
+ob = mixamo()
+for x in bpy.context.scene.objects: x.select_set(x is ob)
+bpy.context.view_layer.objects.active = ob
+path = os.path.join(root,"nested.fbx")
+bpy.ops.export_scene.fbx(filepath=path,use_selection=True,add_leaf_bones=False,primary_bone_axis="Y",secondary_bone_axis="X")
+before = canon_io.snapshot_ids()
+original = canon_io.import_raw
+def nested(*a,**kw):
+    rec = original(*a,**kw)
+    bpy.data.node_groups.new("imported_nested","ShaderNodeTree")
+    bpy.data.textures.new("imported_texture",type="IMAGE")
+    return rec
+canon_io.import_raw = nested
+result = RT.readback(path,"mx",root)
+clean = all(set(getattr(bpy.data,k)) == before[k] for k in canon_io._KINDS) and canon_io._selection() == before["selection"]
+def partial(*a,**kw):
+    bpy.data.node_groups.new("partial_nested","ShaderNodeTree")
+    raise RuntimeError("partial readback")
+canon_io.import_raw = partial
+try:
+    RT.readback(path,"mx",root)
+except RuntimeError as error:
+    failed = str(error) == "partial readback"
+finally:
+    canon_io.import_raw = original
+print("RESULT",json.dumps({"clean":clean,"verdict":result["verdict"],"failed":failed,"partial_clean":all(set(getattr(bpy.data,k)) == before[k] for k in canon_io._KINDS) and canon_io._selection() == before["selection"]}))
+''',timeout=300)
+    assert r.rc == 0,r.out[-2000:]
+    assert r.results[0] == {"clean":True,"verdict":"PASS","failed":True,"partial_clean":True}

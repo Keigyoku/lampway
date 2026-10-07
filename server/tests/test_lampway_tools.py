@@ -165,3 +165,10 @@ def test_uv_tools_reach_blender_with_their_arguments():
 def test_seed_audit_reaches_blender_with_its_proposals_as_an_object():
     got = args_of(T.script_for("lampway_seed_audit", {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}))
     assert got == {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}
+
+
+def test_qa_tag_layers_requires_the_explicit_target_piece():
+    spec = next(t for t in T.TOOLS if t.name == "lampway_qa_tag_layers")
+    assert "piece" in spec.parameters.get("required", [])
+    with pytest.raises(ValueError, match="piece"):
+        LT.build_script(next(d for d in LT.DEFS if d.name == "lampway_qa_tag_layers"), {})

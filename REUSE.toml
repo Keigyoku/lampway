@@ -909,3 +909,9 @@ path = ["scripts/dev/brand_art/lampway_icons.py", "tests/lampway/test_lampway_pl
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "server/tests/tool_schema_debt.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

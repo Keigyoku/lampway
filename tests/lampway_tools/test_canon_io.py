@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent))
 from blender_run import run_script  # noqa: E402
@@ -92,3 +93,92 @@ def test_npz_carries_its_canonical_header(tmp_path):
     assert canon == doc and V.shape == (3, 3) and T.tolist() == [[0, 1, 2]]
     np.savez(tmp_path / "raw.npz", V=np.zeros((3, 3)), T=np.array([[0, 1, 2]]))
     assert canon_io.read_npz(tmp_path / "raw.npz")[2] is None
+
+
+def test_partial_native_import_rolls_back_every_new_id(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+p=os.path.join(root,'triangle.ply');open(p,'w').write('ply\\nformat ascii 1.0\\nelement vertex 3\\nproperty float x\\nproperty float y\\nproperty float z\\nelement face 1\\nproperty list uchar int vertex_indices\\nend_header\\n0 0 0\\n1 0 0\\n0 1 0\\n3 0 1 2\\n')
+before=ids();original=bpy.ops.wm.ply_import
+class Broken:
+    def __call__(self,**kw):
+        original(**kw)
+        raise RuntimeError('planted native failure')
+# Patch the canonical resolver instead of bpy's immutable operator registry.
+original_table=canon_io.importers
+class Ops:
+    broken=Broken()
+bpy.ops.issue2_failure=Ops()
+canon_io.importers=lambda flavour: {'.ply':('issue2_failure','broken')}
+try:
+    try:canon_io.import_raw(p)
+    except RuntimeError as e:assert 'planted' in str(e)
+    else:raise AssertionError('failure not raised')
+    assert ids()==before,(ids(),before)
+finally:
+    canon_io.importers=original_table
+    del bpy.ops.issue2_failure
+''')
+
+
+@pytest.mark.parametrize('case', ['rig_example', 'rig_fit', 'live_rebuild', 'motion', 'animation', 'compare_ui'])
+def test_downstream_import_refusals_remove_only_imported_ids(case, tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+case=CASE
+bpy.ops.wm.read_factory_settings(use_empty=True);ob=sphere('Source');mat=bpy.data.materials.new('Material');mat.use_nodes=True;ob.data.materials.append(mat)
+camera=bpy.data.objects.new('Camera',bpy.data.cameras.new('Camera'));bpy.context.scene.collection.objects.link(camera)
+p=os.path.join(root,'piece.glb');bpy.ops.export_scene.gltf(filepath=p,export_format='GLB')
+if case=='rig_example':
+    bpy.ops.mesh.primitive_cube_add(location=(3,0,0));bpy.ops.export_scene.gltf(filepath=p,export_format='GLB')
+if case=='animation':
+    arm=bpy.data.armatures.new('Target');ob=bpy.data.objects.new('Target',arm);bpy.context.scene.collection.objects.link(ob)
+    bpy.ops.object.select_all(action='DESELECT');ob.select_set(True);bpy.context.view_layer.objects.active=ob
+    bpy.ops.object.mode_set(mode='EDIT');b=arm.edit_bones.new('root');b.head=(0,0,0);b.tail=(0,0,1);bpy.ops.object.mode_set(mode='OBJECT')
+if case=='compare_ui':
+    from mixar.modules.lampway_tools.features import model_compare as M
+    M._scratch()
+    bpy.ops.object.select_all(action='DESELECT');bpy.data.objects['Camera'].select_set(True)
+    bpy.ops.export_scene.gltf(filepath=p,export_format='GLB',use_selection=True,export_cameras=True)
+if case=='motion':
+    os.makedirs(root+'/anims');json.dump([{'name':'wave','file':'piece.glb'}],open(root+'/anims/index.json','w'))
+before=ids();calls=[];original=canon_io.import_raw
+def counted(*args,**kwargs):
+    r=original(*args,**kwargs);calls.append(args[0]);return r
+canon_io.import_raw=counted
+try:
+    if case=='rig_example':
+        from mixar.modules.lampway_tools.features import rig_fit as R
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R._example=R._example.__wrapped__
+        R._example(p,root)
+    elif case=='rig_fit':
+        from mixar.modules.lampway_tools.features import rig_fit as R
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.fit=R.fit.__wrapped__
+        R.fit(p,'missing-joints.json',root,template='missing-template.blend')
+    elif case=='live_rebuild':
+        from mixar.modules.lampway_tools import live_load as R
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.load_rebuild=R.load_rebuild.__wrapped__
+        R.load_rebuild(p,root,'rebuild','Material',turn=1000)
+    elif case=='motion':
+        from mixar.modules.lampway_tools.features import motion_generate as R
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.generate=R.generate.__wrapped__
+        R.generate(root,'wave',root+'/anims')
+    elif case=='animation':
+        from mixar.modules.lampway_tools.features import animation as R
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.retarget=R.retarget.__wrapped__
+        R.retarget(p,'Target',root=root)
+    elif case=='compare_ui':
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('native_compare_ui',OVERLAY+'/mixar/modules/lampway_tools/ui/compare.py')
+        R=importlib.util.module_from_spec(spec);spec.loader.exec_module(R)
+        R.STATE['manifest']={'id':'invalid','models':[{'file':'piece.glb'}]};R.STATE['root']=root
+        if os.environ.get("LAMPWAY_PLANT_IMPORT_GUARD"): R.ensure_textured=R.ensure_textured.__wrapped__
+        R.ensure_textured()
+except Exception as e:
+    refusal=str(e)
+    assert refusal,(case,type(e).__name__)
+else:raise AssertionError('downstream offender did not refuse: '+case)
+assert calls==[p],(case,calls,refusal)
+canon_io.import_raw=original
+assert ids()==before,(case,ids(),before)
+'''.replace('CASE',repr(case)))

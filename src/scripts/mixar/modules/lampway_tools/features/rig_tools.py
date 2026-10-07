@@ -348,8 +348,9 @@ def readback(fbx, reference, root):
         raise C.FeatureError(f"no FBX at {path}")
     ref = _armature(reference)
     from .. import canon_io
-    rec = canon_io.import_raw(str(path), automatic_bone_orientation=False)
+    before = canon_io.snapshot_ids()
     try:
+        rec = canon_io.import_raw(str(path), automatic_bone_orientation=False)
         arms = [bpy.data.objects[n] for n in rec["objects"] if bpy.data.objects[n].type == "ARMATURE"]
         if len(arms) != 1:
             raise C.FeatureError(f"the FBX holds {len(arms)} armatures: one is compared")
@@ -360,15 +361,7 @@ def readback(fbx, reference, root):
         except RC.RigRefused as exc:
             raise C.FeatureError(str(exc)) from None
     finally:
-        for n in rec["objects"]:
-            o = bpy.data.objects.get(n)
-            if o is not None:
-                bpy.data.objects.remove(o)
-        for kind in ("armatures", "meshes", "actions", "materials", "images"):
-            for n in rec.get(kind, []):
-                d = getattr(bpy.data, kind).get(n)
-                if d is not None and d.users == 0:
-                    getattr(bpy.data, kind).remove(d)
+        canon_io.remove_new_ids(before)
     return {"verdict": "PASS" if not rows["over_tolerance"] else "FAIL", "fbx": str(path), "reference": ref.name,
             "readback": {k: v for k, v in rows.items() if k != "rows"}, "rows": rows["rows"],
             "sha256": {"fbx": rec["sha256"], "reference_rest": _fingerprint(ref, read(ref))},

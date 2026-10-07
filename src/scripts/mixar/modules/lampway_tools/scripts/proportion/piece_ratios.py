@@ -32,7 +32,7 @@
 # above the elbow). Gauntlets first scored 0.28: axis flipped ('wider end', then 'rounder end' both wrong) and the wrist detector
 # sat mid-forearm - fixed (cuff = upper end; wrist = where the section flattens; body fingertip = farthest arm vertex).
 # Usage: <python with numpy> piece_ratios.py <kind> <out.json> <body.npz> <name>=<piece.npz>:<turn_deg> [...] [--clear-mm 15]
-#   body.npz from mesh_to_npz.py 'body' (with joints, -Y front); turn_deg brings the piece to -Y front, +Z up (Tripo FBX: -90).
+#   body.npz from mesh_to_npz.py 'body' (with joints, -Y front); turn_deg brings the piece to -Y front, +Z up (declare each piece; canonical npz uses 0).
 import argparse, json, os, sys, warnings, numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')); import axi_out as ax
 warnings.filterwarnings('ignore')
@@ -60,9 +60,7 @@ def pca_extent(p):
     ext = np.percentile(q, 99, 0) - np.percentile(q, 1, 0); return float(max(ext)), float(min(ext))
 
 
-def load_piece(f, turn):
-    d = np.load(f); V = d['V'].astype(float); T = d['T']; th = np.radians(turn)
-    R = np.array([[np.cos(th), -np.sin(th), 0], [np.sin(th), np.cos(th), 0], [0, 0, 1]]); return V @ R.T, T
+from proportion.frame import load_piece
 
 
 Z, X, NEGY = np.array([0., 0, 1]), np.array([1., 0, 0]), np.array([0., -1, 0])
@@ -158,18 +156,18 @@ def gauntlets(body, V, T, C):
 def main():
     if len(sys.argv) == 1:
         ax.home(__file__, 'Proportion scores for helmet / waist / boots / gauntlets vs the MetaHuman (scale-free ratios, RMS log deviation; NEW, unvalidated)')
-        ax.helps(['python3 tools/proportion/piece_ratios.py <helmet|waist|boots|gauntlets> <out.json> <body.npz> <name>=<piece.npz>:<turn_deg> ...']); sys.exit(0)
+        ax.helps(['lampway_piece_ratios kind=<helmet|waist|boots|gauntlets> out=<out.json> body=<body.npz> pieces=[<name=piece.npz:turn_deg>]']); sys.exit(0)
     ap = argparse.ArgumentParser(); ap.add_argument('kind', choices=KINDS); ap.add_argument('out'); ap.add_argument('body'); ap.add_argument('pieces', nargs='+')
     ap.add_argument('--clear-mm', type=float, default=15.0); a = ap.parse_args(); C = a.clear_mm / 1000
     if not 0 <= a.clear_mm <= 40: ax.refuse(f'--clear-mm {a.clear_mm} is out of range: use 0 to 40 (a wear clearance in millimetres)', [])
-    if not os.path.exists(a.body): ax.refuse(f'{a.body} not found', ['blender -b -P tools/proportion/mesh_to_npz.py -- <out.npz> body'])
+    if not os.path.exists(a.body): ax.refuse(f'{a.body} not found', ['lampway_mesh_to_npz out=<body.npz> mode=body file=<body>'])
     bd = np.load(a.body)
-    if 'J' not in bd.files or 'names' not in bd.files: ax.refuse('body.npz has no joints: export with `mesh_to_npz ... body` (mode body)', ['blender -b -P tools/proportion/mesh_to_npz.py -- <out.npz> body'])
+    if 'J' not in bd.files or 'names' not in bd.files: ax.refuse('body.npz has no joints: export with `mesh_to_npz ... body` (mode body)', ['lampway_mesh_to_npz out=<body.npz> mode=body file=<body>'])
     J = {str(n): v for n, v in zip(bd['names'], bd['J'])}; body = (bd['V'].astype(float), bd['T'], J)
     fn = {'helmet': helmet, 'waist': waist, 'boots': boots, 'gauntlets': gauntlets}[a.kind]; rows = {}
     for spec in a.pieces:
         name, rest = spec.split('=', 1); f, turn = rest.rsplit(':', 1)
-        if not os.path.exists(f): ax.refuse(f'{f} not found', ['blender -b -P tools/proportion/mesh_to_npz.py -- <out.npz> piece <mesh>'])
+        if not os.path.exists(f): ax.refuse(f'{f} not found', ['lampway_mesh_to_npz out=<piece.npz> mode=piece file=<mesh>'])
         V, T = load_piece(f, float(turn)); r, b, info = fn(body, V, T, C)
         if r is None: rows[name] = {'file': f, 'error': info.get('error')}; continue
         dev = {k: float(np.log(r[k] / b[k])) for k in r}
@@ -179,7 +177,7 @@ def main():
     json.dump({'kind': a.kind, 'clearance_mm': a.clear_mm, 'method': 'tools/proportion/piece_ratios.py header', 'validated': False, 'ranking': order, 'pieces': rows}, open(a.out, 'w'), indent=1)
     ax.kv({'kind': a.kind, 'scored': len(order), 'out': a.out, 'validated': False})
     ax.table('ranking', [dict(name=n, rms=rows[n]['rms_logdev'], devs=json.dumps(rows[n]['dev_pct'])) for n in order], ['name', 'rms', 'devs'])
-    ax.helps([f'python3 tools/studios/tripo/seed_db.py ingest-scores {a.out}'])
+    ax.helps(['lampway_seed_audit stage=measure piece=<piece> seeds=<npz_paths> scores=<seed_scores>'])
 
 
 if __name__ == '__main__':

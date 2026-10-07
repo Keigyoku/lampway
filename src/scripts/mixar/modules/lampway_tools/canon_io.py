@@ -16,6 +16,9 @@
 The tests' AST scan (tests/lampway_tools/test_canon_doors.py) fails on any importer call anywhere else, by file:line. Kept free of
 package-relative imports so the batch scripts can import it from their own Blender."""
 
+from contextlib import contextmanager
+from contextvars import ContextVar
+from functools import wraps
 import hashlib
 import json
 import os
@@ -31,7 +34,47 @@ NATIVE = dict(IMPORTERS, **{".fbx": ("wm", "fbx_import")})
 SRGB_ROLES = ("basecolor", "emission", "reference")
 LINEAR_ROLES = ("hdri",)
 DATA_ROLES = ("normal", "roughness", "metallic", "ao", "orm", "height", "displacement", "opacity", "mask", "material_id", "curvature")
-_KINDS = ("objects", "meshes", "armatures", "actions", "images", "materials", "curves")
+_KINDS = ("objects", "meshes", "armatures", "actions", "images", "materials", "curves",
+          "cameras", "lights", "textures", "node_groups", "collections", "scenes", "worlds")
+
+
+_IMPORT_SCOPES = ContextVar("lampway_import_scopes", default=())
+
+
+def _record_import(before):
+    pointers = {d.as_pointer() for k in _KINDS for d in getattr(bpy.data, k) if d not in before[k]}
+    for scope in _IMPORT_SCOPES.get():
+        scope.update(pointers)
+
+
+def _remove_imported(pointers):
+    for kind in ("objects", "scenes", *[k for k in _KINDS if k not in ("objects", "scenes")]):
+        collection = getattr(bpy.data, kind)
+        for data in [d for d in collection if d.as_pointer() in pointers]:
+            collection.remove(data, do_unlink=True)
+    bpy.context.view_layer.update()
+
+
+def rollback_imports(function):
+    """A failed consumer removes only IDs its imports created; successful persistent imports stay."""
+    @wraps(function)
+    def guarded(*args, **kwargs):
+        made = set()
+        selection = _selection()
+        token = _IMPORT_SCOPES.set((*_IMPORT_SCOPES.get(), made))
+        try:
+            result = function(*args, **kwargs)
+            if isinstance(result, dict) and result.get("ok") is False:
+                _remove_imported(made)
+                _restore_selection(selection)
+            return result
+        except BaseException:
+            _remove_imported(made)
+            _restore_selection(selection)
+            raise
+        finally:
+            _IMPORT_SCOPES.reset(token)
+    return guarded
 
 
 def file_sha256(path):
@@ -42,8 +85,31 @@ def file_sha256(path):
     return h.hexdigest()
 
 
-def _snapshot():
-    return {k: set(getattr(bpy.data, k)) for k in _KINDS}
+def _selection():
+    return (list(bpy.context.selected_objects), bpy.context.view_layer.objects.active)
+
+
+def _restore_selection(selection):
+    selected, active = selection
+    present = set(bpy.context.view_layer.objects)
+    for ob in bpy.context.selected_objects:
+        ob.select_set(False)
+    for ob in selected:
+        if ob in present:
+            ob.select_set(True)
+    bpy.context.view_layer.objects.active = active if active in present else None
+    bpy.context.view_layer.update()
+
+
+def snapshot_ids():
+    return {**{k: set(getattr(bpy.data, k)) for k in _KINDS}, "selection": _selection()}
+
+
+def remove_new_ids(before):
+    """Remove only IDs created after a transaction's snapshot, including partial imports."""
+    pointers = {d.as_pointer() for k in _KINDS for d in getattr(bpy.data, k) if d not in before[k]}
+    _remove_imported(pointers)
+    _restore_selection(before["selection"])
 
 
 def _stamp(db, record):
@@ -70,8 +136,15 @@ def import_raw(path, flavour="addon", **settings):
         raise ValueError(f"cannot import {ext or 'a file without an extension'}: canon_io reads {', '.join(sorted(table))}")
     module, name = table[ext]
     record = {"sha256": file_sha256(path), "container": ext.lstrip("."), "importer": f"{module}.{name}", "settings": dict(settings)}
-    before = _snapshot()
-    result = getattr(getattr(bpy.ops, module), name)(filepath=path, **settings)
+    before = snapshot_ids()
+    try:
+        result = getattr(getattr(bpy.ops, module), name)(filepath=path, **settings)
+        if "FINISHED" not in result:
+            raise RuntimeError(f"{module}.{name} did not finish: {sorted(result)}")
+    except BaseException:
+        remove_new_ids(before)
+        raise
+    _record_import(before)
     out = dict(record, result=sorted(result))
     for k in _KINDS:
         new = [d for d in getattr(bpy.data, k) if d not in before[k]]
@@ -95,7 +168,10 @@ def load_image(path, role=None, **kw):
     """The image at ``path`` (Blender's ``images.load`` keywords pass through), its colour space bound to ``role`` when one is
     given, stamped ``lw_raw`` with the role."""
     path = os.fspath(path)
+    before = snapshot_ids() if _IMPORT_SCOPES.get() else None
     img = bpy.data.images.load(path, **kw)
+    if before is not None:
+        _record_import(before)
     if "lw_canon" in img.keys():                                    # check_existing returned a normalized image: it stays canonical
         return img
     if role is not None:
@@ -105,9 +181,18 @@ def load_image(path, role=None, **kw):
     return img
 
 
+@contextmanager
 def load_library(path, **kw):
     """Blender's ``bpy.data.libraries.load(path, **kw)`` context manager (the only call of it)."""
-    return bpy.data.libraries.load(os.fspath(path), **kw)
+    before = snapshot_ids()
+    try:
+        with bpy.data.libraries.load(os.fspath(path), **kw) as library:
+            yield library
+    except BaseException:
+        remove_new_ids(before)
+        raise
+    finally:
+        _record_import(before)
 
 
 def geometry_sha256(ob, space="world"):

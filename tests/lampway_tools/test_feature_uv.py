@@ -76,3 +76,16 @@ print("RESULT", json.dumps(rep))
 ''')
     rep = r.results[0]
     assert rep["overlap_fraction"] > 0.8 and rep["islands"] >= 1
+
+
+def test_atlas_outside_unit_tile_reports_tiles_and_warning(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+from mixar.modules.lampway_tools.features.uv_islands import measure_object
+ob=bpy.data.objects['Cube']
+for loop in ob.data.uv_layers.active.data: loop.uv += __import__('mathutils').Vector((1,1))
+print('RESULT '+json.dumps(measure_object(ob,res=64)))
+''')[0]
+    assert out['tiles'] == [1012], out
+    assert out['warnings'] and any('outside' in w for w in out['warnings'])
+    assert out['utilization'] == 0

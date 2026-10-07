@@ -38,7 +38,10 @@ def specs() -> list:
 
 
 def render() -> str:
-    return json.dumps({"generated_by": "scripts/lampway/facelift/tool_specs.py", "tools": specs()}, indent=1) + "\n"
+    tools = specs()
+    from lampway_server.agent.lampway_tools import DEFS
+    calls = {d.api: {"name": d.name, "required": [p.name for p in d.params if p.required]} for d in DEFS if d.api and not d.batch}
+    return json.dumps({"generated_by": "scripts/lampway/facelift/tool_specs.py", "tools": tools, "api_calls": calls}, indent=1) + "\n"
 
 
 def main(argv=None) -> int:

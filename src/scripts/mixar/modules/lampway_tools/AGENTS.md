@@ -44,6 +44,14 @@ The MetaHuman normalizer retains corrective fan-out authored frames/roll and
 records `authored_helper_frame`; unknown branching bones still require a named
 continuation. Canon 03/17 and their real-shape covering tests own these rules.
 
+A native weight sidecar and optional GLB preview keep separate source paths and bytes in the body package; supplying both cannot replace engine weights with the preview. Corrective helper endpoints used by weighting come from the validated normalized MetaHuman document and unchanged rest fingerprint; never use a raw imported tail to bypass an unknown branch. Readback imports are transactions over every supported Blender ID collection: both success and partial failure restore pre-import IDs. Independent glove stages use the existing pose and bind engines with recorded labels and body joints; only absent numerical DOF rows stay explicit decisions. The complete canon 08 helmet proposal is accepted and available by name or with scene inputs.
+
+Large receipts from `mesh_defect_scan`, `procedural_library`, `rig_game_extract` and `mesh_prep` use `bounded.py`: compact default fields, `limit=50` (1..1000), zero-based `offset=0`, and per-table `pages` with exact totals. `fields` selects top-level receipt fields; `full=true` restores detailed fields while retaining pagination. Explicit legacy `max_candidates` caps a defect page, while offsets address the complete measured candidate list. Presentation arguments are checked before execution. The covering tests measure default JSON size and verify later pages and full detail.
+
+`anim_multiview_fit` validates panel paths, calibration shape and positive finite scale/rate before reading input files; its refusal includes a callable template. `edit_locality_check` accepts the schema's `{bbox: [x0, y0, z0, x1, y1, z1]}` object as well as the coordinate list, and checks finite coordinates before resolving meshes. `uv_islands.measure_object` reports the tiles touched using the existing `uv_check` tile helper alongside its outside-0..1 warning; utilization still measures the 0..1 tile. These changes preserve the canon 11/13 fitting and scoring algorithms.
+
+AXI renders through the authoritative `common/toon/codec.py`; numpy integer, float and boolean scalars normalize to their native scalar types before TOON formatting. A CLI loading `axi.py` by file path loads that same sibling codec by path when no package namespace exists; it never imports Blender registration or maintains a second codec. Standalone proportion CLI and numpy-table subprocess tests run with Python `-I` to prove this path. Refusals use registry-generated `tool_specs.json` `api_calls` templates (with specific multiview/locality shapes); normalization helpers and proportion CLI next steps name registered tools rather than Python API names or the old tool shelf.
+
 ## Test
 
 ```bash
@@ -70,3 +78,14 @@ page; the canon's open decisions are the captain's.
 | 2026-10-07 | complete MCP acceptance after re-audit | captain: finish original C0-C2 and T1-T3 scope | skipped geometry and isolated-only evidence left acceptance gaps | document metric shared interfaces, conservative budgets, source-pin backlinks and cloud GUI falsifiers | measured contract checklist and retained receipts |
 
 | 2026-10-07 | real native body and corrective intake | issue 2 G2/G4 | UV seams looked open and corrective fan-outs had no continuation | analytical topology plus generalized winding, authored corrective frames and native shape regressions | issue 2 acceptance receipts |
+
+| 2026-10-07 | issue 2 glove and readback completion | captain requested issue 2 completion | typed stages lacked engine wiring and readback retained importer IDs | route independent recorded labels through existing canon engines; restore all imported IDs; accept the complete helmet proposal without inventing other ranges | issue 2 |
+
+| 2026-10-07 | body package dual input | sidecar plus preview acceptance fixture | reused source path copied GLB bytes into sidecar.json | keep separate native-sidecar source and preserve both byte streams | issue 2 G2 |
+
+| 2026-10-07 | issue 2 bounded receipts and input shapes | captain requested every issue 2 acceptance criterion | large replies lacked pagination; wrong input shapes reached file reads; outside-tile atlas scores omitted tiles | document compact fields and exact page totals, pre-execution shape checks and callable refusals, and shared UV tile reporting | AC46/52/60 real-binary RED/GREEN receipts |
+
+| 2026-10-07 | corrective consumer continuity | native multi-child corrective weight-plan fixture | normalization succeeded but downstream segment weighting still refused the same branch | share normalized helper endpoints and refuse stale frames or unstamped branches | issue 2 G2/G4 |
+
+| 2026-10-07 | shared scalar codec and standalone CLI | issue 2 G1 and full fit-chain intake | numpy constructor repr broke decimal formatting and package-only imports broke standalone proportion workers | normalize explicit numpy scalars in the shared codec; path-loaded AXI loads the same canonical file; prove subprocess isolation and source-file identity | 746 AXI/TOON tests and native 11-stage full-chain receipts |
+| 2026-10-07 | registry-backed refusal next steps | issue 2 G19/F13/G20 | Python API names, obsolete shelf commands and invented normalizers were not callable next tools | generate complete API call-name mapping; validate help names against the live registry, with an unknown-tool plant and native refusal checks | server refusal-template and isolated binary tests |

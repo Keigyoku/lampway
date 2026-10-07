@@ -185,3 +185,38 @@ def test_b5_strict_two_different_rigid_anchors_at_one_point_are_refused():
         G.rigid_blend({"spine_03": 1.0}, {"spine_01": 0.0, "pelvis": 0.0}, fade=0.005)
     with pytest.raises(ValueError, match="fade"):
         G.rigid_blend({"spine_03": 1.0}, {"spine_01": 0.0}, fade=0.0)
+
+
+def test_normalized_metahuman_corrective_segments_are_consumable_by_weight_plan(tmp_path):
+    from issue2_native import run_issue_case
+    from test_canon_normalize_rigged import RIG
+    run_issue_case(tmp_path, RIG+'''
+bpy.ops.wm.read_factory_settings(use_empty=True)
+for side,sign in (('l',1),('r',-1)):
+    for i,finger in enumerate(('thumb','index','middle','ring','pinky')):
+        for joint in (1,2,3):
+            name=f'{finger}_{joint:02d}_{side}';J[name]=(sign*(.40+.025*joint),.015*(i-2),.60)
+            P[name]=f'{finger}_{joint-1:02d}_{side}' if joint>1 else f'hand_{side}'
+J['upperarm_correctiveRoot_l']=J['upperarm_l'];P['upperarm_correctiveRoot_l']='upperarm_l'
+for tag,dy in (('front',-.02),('back',.02)):
+    name='upperarm_corrective_'+tag+'_l';J[name]=(.13,dy,.86);P[name]='upperarm_correctiveRoot_l'
+arm=build('mh_rig')
+bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT');arm.data.edit_bones['upperarm_correctiveRoot_l'].roll=math.radians(120);bpy.ops.object.mode_set(mode='OBJECT')
+r=call('normalize_rigged',armature=arm.name,profile='metahuman',dry_run=False);assert r.get('ok'),r
+from mixar.modules.lampway_tools.features import weights as W
+segments=W.bone_segments(arm)
+rows={b['name']:b for b in json.loads(arm['lw_canon'])['body']['bones']};row=rows['upperarm_correctiveRoot_l']
+a,b=segments[row['name']];expected=np.array(row['head_m'])+np.array(row['along'])*row['length_m']
+assert np.allclose(b,expected,atol=1e-8),(b,expected)
+piece=sphere('garment',2)
+r=call('weight_audit',action='plan',object=piece.name,armature=arm.name)
+assert r.get('ok'),r
+bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT');arm.data.edit_bones[row['name']].roll+=.2;bpy.ops.object.mode_set(mode='OBJECT')
+try:W.bone_segments(arm)
+except Exception as e:assert 'rest frames changed' in str(e) and 'normalize_rigged' in str(e),e
+else:raise AssertionError('stale corrective frame accepted')
+del arm['lw_canon']
+try:W.bone_segments(arm)
+except ValueError as e:assert 'no named continuation' in str(e),e
+else:raise AssertionError('unstamped corrective tail was guessed')
+''')

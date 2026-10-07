@@ -1054,6 +1054,38 @@
      "required": false,
      "flag": null,
      "repeat": false
+    },
+    {
+     "name": "fields",
+     "type": "array",
+     "desc": "Top-level receipt fields to return; omitted uses compact defaults",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "limit",
+     "type": "integer",
+     "desc": "Maximum rows per logical table, default 50; full detail keeps this bound",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "offset",
+     "type": "integer",
+     "desc": "Zero-based row offset in each logical table, default 0",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "full",
+     "type": "boolean",
+     "desc": "Include all receipt and row fields, default false; tables remain paginated",
+     "required": false,
+     "flag": null,
+     "repeat": false
     }
    ]
   },
@@ -2617,5 +2649,991 @@
     }
    ]
   }
- ]
+ ],
+ "api_calls": {
+  "status": {
+   "name": "lampway_status",
+   "required": []
+  },
+  "qa_setup": {
+   "name": "lampway_qa_setup",
+   "required": [
+    "object",
+    "recipe"
+   ]
+  },
+  "qa_tag_layers": {
+   "name": "lampway_qa_tag_layers",
+   "required": [
+    "piece"
+   ]
+  },
+  "qa_candidates": {
+   "name": "lampway_qa_candidates",
+   "required": []
+  },
+  "qa_draw": {
+   "name": "lampway_qa_draw",
+   "required": []
+  },
+  "qa_propose": {
+   "name": "lampway_qa_propose",
+   "required": []
+  },
+  "qa_descriptors": {
+   "name": "lampway_qa_descriptors",
+   "required": []
+  },
+  "qa_proposals": {
+   "name": "lampway_qa_proposals",
+   "required": []
+  },
+  "qa_read_tags": {
+   "name": "lampway_qa_read_tags",
+   "required": []
+  },
+  "qa_rulings": {
+   "name": "lampway_qa_rulings",
+   "required": []
+  },
+  "rebuild_setup": {
+   "name": "lampway_rebuild_setup",
+   "required": [
+    "source_mesh",
+    "source_owner",
+    "relief_dir",
+    "plates_dir",
+    "template_material"
+   ]
+  },
+  "rebuild": {
+   "name": "lampway_rebuild",
+   "required": [
+    "tag"
+   ]
+  },
+  "job_status": {
+   "name": "lampway_job_status",
+   "required": []
+  },
+  "run_tool": {
+   "name": "lampway_run_tool",
+   "required": [
+    "name"
+   ]
+  },
+  "meshpaint": {
+   "name": "lampway_meshpaint",
+   "required": [
+    "stage"
+   ]
+  },
+  "export_piece": {
+   "name": "lampway_export_piece",
+   "required": [
+    "object",
+    "out_dir"
+   ]
+  },
+  "retopo": {
+   "name": "lampway_retopo",
+   "required": [
+    "object"
+   ]
+  },
+  "uv_unwrap": {
+   "name": "lampway_uv_unwrap",
+   "required": [
+    "object"
+   ]
+  },
+  "segment_mesh": {
+   "name": "lampway_segment_mesh",
+   "required": [
+    "object"
+   ]
+  },
+  "mesh_prep": {
+   "name": "lampway_mesh_prep",
+   "required": [
+    "object"
+   ]
+  },
+  "asset_acceptance": {
+   "name": "lampway_asset_acceptance",
+   "required": [
+    "object"
+   ]
+  },
+  "rig_armor": {
+   "name": "lampway_rig_armor",
+   "required": [
+    "object",
+    "armature"
+   ]
+  },
+  "auto_rig": {
+   "name": "lampway_auto_rig",
+   "required": [
+    "object"
+   ]
+  },
+  "bind_to_armature": {
+   "name": "lampway_bind_to_armature",
+   "required": [
+    "object",
+    "armature"
+   ]
+  },
+  "pose_test": {
+   "name": "lampway_pose_test",
+   "required": [
+    "armature",
+    "object",
+    "poses"
+   ]
+  },
+  "asset_lineage": {
+   "name": "lampway_asset_lineage",
+   "required": [
+    "action",
+    "object"
+   ]
+  },
+  "workflow_graph": {
+   "name": "lampway_workflow_graph",
+   "required": [
+    "action"
+   ]
+  },
+  "plate_pick": {
+   "name": "lampway_plate_pick",
+   "required": [
+    "stage",
+    "piece"
+   ]
+  },
+  "uv_score": {
+   "name": "lampway_uv_score",
+   "required": []
+  },
+  "uv_texel_density": {
+   "name": "lampway_uv_texel_density",
+   "required": [
+    "object"
+   ]
+  },
+  "mesh_defect_scan": {
+   "name": "lampway_mesh_defect_scan",
+   "required": [
+    "object"
+   ]
+  },
+  "silhouette_compare": {
+   "name": "lampway_silhouette_compare",
+   "required": [
+    "a",
+    "b"
+   ]
+  },
+  "seed_audit": {
+   "name": "lampway_seed_audit",
+   "required": [
+    "stage",
+    "piece"
+   ]
+  },
+  "parts_critique": {
+   "name": "lampway_parts_critique",
+   "required": [
+    "stage",
+    "piece",
+    "recipe"
+   ]
+  },
+  "palette_fit": {
+   "name": "lampway_palette_fit",
+   "required": [
+    "stage",
+    "piece"
+   ]
+  },
+  "bake_maps": {
+   "name": "lampway_bake_maps",
+   "required": [
+    "source",
+    "target"
+   ]
+  },
+  "pbr_pack": {
+   "name": "lampway_pbr_pack",
+   "required": [
+    "action"
+   ]
+  },
+  "armor_piece_pipeline": {
+   "name": "lampway_armor_piece_pipeline",
+   "required": [
+    "piece"
+   ]
+  },
+  "fit_pose": {
+   "name": "lampway_fit_pose",
+   "required": [
+    "kind"
+   ]
+  },
+  "weight_audit": {
+   "name": "lampway_weight_audit",
+   "required": [
+    "action",
+    "object",
+    "armature"
+   ]
+  },
+  "weight_cleanup": {
+   "name": "lampway_weight_cleanup",
+   "required": [
+    "object",
+    "armature",
+    "ops"
+   ]
+  },
+  "joints_from_views": {
+   "name": "lampway_joints_from_views",
+   "required": []
+  },
+  "normalize_rigged": {
+   "name": "lampway_normalize_rigged",
+   "required": [
+    "armature"
+   ]
+  },
+  "normalize_texture": {
+   "name": "lampway_normalize_texture",
+   "required": [
+    "input"
+   ]
+  },
+  "normalize_mesh": {
+   "name": "lampway_normalize_mesh",
+   "required": [
+    "input"
+   ]
+  },
+  "weight_transfer": {
+   "name": "lampway_weight_transfer",
+   "required": [
+    "object",
+    "source"
+   ]
+  },
+  "garment_clearance": {
+   "name": "lampway_garment_clearance",
+   "required": [
+    "piece",
+    "body",
+    "armature"
+   ]
+  },
+  "fit_source_check": {
+   "name": "lampway_fit_source_check",
+   "required": [
+    "piece",
+    "source"
+   ]
+  },
+  "fit": {
+   "name": "lampway_fit",
+   "required": [
+    "piece"
+   ]
+  },
+  "fit_validate": {
+   "name": "lampway_fit_validate",
+   "required": [
+    "stage"
+   ]
+  },
+  "skeleton_export_check": {
+   "name": "lampway_skeleton_export_check",
+   "required": []
+  },
+  "engine_import_check": {
+   "name": "lampway_engine_import_check",
+   "required": [
+    "package_dir"
+   ]
+  },
+  "fit_body": {
+   "name": "lampway_fit_body",
+   "required": [
+    "verb"
+   ]
+  },
+  "fit_export": {
+   "name": "lampway_fit_export",
+   "required": [
+    "object",
+    "armature",
+    "out_dir",
+    "body"
+   ]
+  },
+  "fit_bind": {
+   "name": "lampway_fit_bind",
+   "required": [
+    "stage"
+   ]
+  },
+  "fit_glove": {
+   "name": "lampway_fit_glove",
+   "required": [
+    "stage"
+   ]
+  },
+  "fit_state": {
+   "name": "lampway_fit_state",
+   "required": []
+  },
+  "anim_reference_render": {
+   "name": "lampway_anim_reference_render",
+   "required": [
+    "character"
+   ]
+  },
+  "animation_retarget": {
+   "name": "lampway_animation_retarget",
+   "required": [
+    "source",
+    "target"
+   ]
+  },
+  "anim_multiview_fit": {
+   "name": "lampway_anim_multiview_fit",
+   "required": []
+  },
+  "anim_check": {
+   "name": "lampway_anim_check",
+   "required": [
+    "poses"
+   ]
+  },
+  "anim_loop_export": {
+   "name": "lampway_anim_loop_export",
+   "required": [
+    "take"
+   ]
+  },
+  "anim_clip": {
+   "name": "lampway_anim_clip",
+   "required": [
+    "reference_image"
+   ]
+  },
+  "anim_track": {
+   "name": "lampway_anim_track",
+   "required": []
+  },
+  "anim_from_video": {
+   "name": "lampway_anim_from_video",
+   "required": [
+    "character"
+   ]
+  },
+  "fit_place": {
+   "name": "lampway_fit_place",
+   "required": [
+    "kind",
+    "piece",
+    "body"
+   ]
+  },
+  "fit_openings": {
+   "name": "lampway_fit_openings",
+   "required": [
+    "stage",
+    "object"
+   ]
+  },
+  "detail_normals": {
+   "name": "lampway_detail_normals",
+   "required": [
+    "material"
+   ]
+  },
+  "image_to_3d": {
+   "name": "lampway_image_to_3d",
+   "required": []
+  },
+  "splat_import": {
+   "name": "lampway_splat_import",
+   "required": [
+    "path"
+   ]
+  },
+  "render_video": {
+   "name": "lampway_render_video",
+   "required": [
+    "object",
+    "out"
+   ]
+  },
+  "project_views": {
+   "name": "lampway_project_views",
+   "required": [
+    "object",
+    "views"
+   ]
+  },
+  "texture_gen": {
+   "name": "lampway_texture_gen",
+   "required": [
+    "object",
+    "prompt"
+   ]
+  },
+  "ai_render": {
+   "name": "lampway_ai_render",
+   "required": [
+    "object",
+    "prompt"
+   ]
+  },
+  "repair_texture": {
+   "name": "lampway_repair_texture",
+   "required": [
+    "object",
+    "texture",
+    "view",
+    "patch",
+    "mask",
+    "out"
+   ]
+  },
+  "uv_rectify": {
+   "name": "lampway_uv_rectify",
+   "required": [
+    "object"
+   ]
+  },
+  "uv_layout": {
+   "name": "lampway_uv_layout",
+   "required": [
+    "object"
+   ]
+  },
+  "model_compare": {
+   "name": "lampway_model_compare",
+   "required": []
+  },
+  "clip_classify": {
+   "name": "lampway_clip_classify",
+   "required": [
+    "armature"
+   ]
+  },
+  "view_verify": {
+   "name": "lampway_view_verify",
+   "required": []
+  },
+  "scene_cleanup": {
+   "name": "lampway_scene_cleanup",
+   "required": []
+  },
+  "batch_export": {
+   "name": "lampway_batch_export",
+   "required": []
+  },
+  "camera_shot": {
+   "name": "lampway_camera_shot",
+   "required": []
+  },
+  "segment_image": {
+   "name": "lampway_segment_image",
+   "required": [
+    "image"
+   ]
+  },
+  "procedural_library": {
+   "name": "lampway_procedural_library",
+   "required": []
+  },
+  "layered_material": {
+   "name": "lampway_layered_material",
+   "required": []
+  },
+  "material_bake_export": {
+   "name": "lampway_material_bake_export",
+   "required": [
+    "object"
+   ]
+  },
+  "asset_place": {
+   "name": "lampway_vault_place",
+   "required": [
+    "asset_id"
+   ]
+  },
+  "asset_catalog_export": {
+   "name": "lampway_vault_catalog_export",
+   "required": [
+    "asset_ids",
+    "dest_library"
+   ]
+  },
+  "ue_material": {
+   "name": "lampway_ue_material",
+   "required": [
+    "material"
+   ]
+  },
+  "ue_look": {
+   "name": "lampway_ue_look",
+   "required": []
+  },
+  "ue_export": {
+   "name": "lampway_ue_export",
+   "required": [
+    "type",
+    "out_dir"
+   ]
+  },
+  "ue_parity": {
+   "name": "lampway_ue_parity",
+   "required": [
+    "scene",
+    "out_dir"
+   ]
+  },
+  "modular_character": {
+   "name": "lampway_modular_character",
+   "required": [
+    "action",
+    "character_id"
+   ]
+  },
+  "character_pipeline": {
+   "name": "lampway_character_pipeline",
+   "required": [
+    "character_id",
+    "parts"
+   ]
+  },
+  "playblast_capture": {
+   "name": "lampway_playblast_capture",
+   "required": [
+    "shots"
+   ]
+  },
+  "lod_chain": {
+   "name": "lampway_lod_chain",
+   "required": [
+    "object"
+   ]
+  },
+  "motion_experiment": {
+   "name": "lampway_motion_experiment",
+   "required": [
+    "brief",
+    "armature"
+   ]
+  },
+  "secondary_chain_rig": {
+   "name": "lampway_secondary_chain_rig",
+   "required": [
+    "object",
+    "armature",
+    "parent_bone"
+   ]
+  },
+  "cloth_garment_sim": {
+   "name": "lampway_cloth_garment_sim",
+   "required": [
+    "garment",
+    "body",
+    "pin_group"
+   ]
+  },
+  "face_rig_validate": {
+   "name": "lampway_face_rig_validate",
+   "required": [
+    "object"
+   ]
+  },
+  "glb_optimize": {
+   "name": "lampway_glb_optimize",
+   "required": [
+    "glb",
+    "out"
+   ]
+  },
+  "traversal_check": {
+   "name": "lampway_traversal_check",
+   "required": [
+    "route",
+    "collection",
+    "player"
+   ]
+  },
+  "level_blockout": {
+   "name": "lampway_level_blockout",
+   "required": [
+    "layout"
+   ]
+  },
+  "part_budget_plan": {
+   "name": "lampway_part_budget_plan",
+   "required": []
+  },
+  "platform_budget_check": {
+   "name": "lampway_platform_budget_check",
+   "required": [
+    "object",
+    "platform"
+   ]
+  },
+  "print_check": {
+   "name": "lampway_print_check",
+   "required": [
+    "object"
+   ]
+  },
+  "print_prep": {
+   "name": "lampway_print_prep",
+   "required": [
+    "object",
+    "target_height_mm"
+   ]
+  },
+  "profile_revolve": {
+   "name": "lampway_profile_revolve",
+   "required": [
+    "profile"
+   ]
+  },
+  "splat_world": {
+   "name": "lampway_splat_world_import",
+   "required": [
+    "path"
+   ]
+  },
+  "splat_collision_proxy": {
+   "name": "lampway_splat_collision_proxy",
+   "required": [
+    "object"
+   ]
+  },
+  "vehicle_wheel_rig": {
+   "name": "lampway_vehicle_wheel_rig",
+   "required": [
+    "body",
+    "wheels"
+   ]
+  },
+  "editor_connection_receipt": {
+   "name": "lampway_editor_connection_receipt",
+   "required": [
+    "disposable"
+   ]
+  },
+  "terrain": {
+   "name": "lampway_terrain",
+   "required": [
+    "action"
+   ]
+  },
+  "addon_read": {
+   "name": "lampway_addon_read",
+   "required": [
+    "project",
+    "path"
+   ]
+  },
+  "addon_stage_patch": {
+   "name": "lampway_addon_stage_patch",
+   "required": [
+    "project",
+    "files"
+   ]
+  },
+  "addon_commit": {
+   "name": "lampway_addon_commit",
+   "required": [
+    "project",
+    "patch_id"
+   ]
+  },
+  "addon_rollback": {
+   "name": "lampway_addon_rollback",
+   "required": [
+    "project",
+    "to"
+   ]
+  },
+  "material_palette": {
+   "name": "lampway_material_palette",
+   "required": [
+    "image"
+   ]
+  },
+  "scene_from_image": {
+   "name": "lampway_scene_from_image",
+   "required": [
+    "image"
+   ]
+  },
+  "motion_generate": {
+   "name": "lampway_motion_generate",
+   "required": []
+  },
+  "side_label_check": {
+   "name": "lampway_side_label_check",
+   "required": [
+    "object"
+   ]
+  },
+  "mirror_pair": {
+   "name": "lampway_mirror_pair",
+   "required": [
+    "object"
+   ]
+  },
+  "scale_to_measure": {
+   "name": "lampway_scale_to_measure",
+   "required": [
+    "object"
+   ]
+  },
+  "uv_check": {
+   "name": "lampway_uv_check",
+   "required": [
+    "object"
+   ]
+  },
+  "render_condition_passes": {
+   "name": "lampway_render_condition_passes",
+   "required": [
+    "objects"
+   ]
+  },
+  "image_material_id": {
+   "name": "lampway_image_material_id",
+   "required": [
+    "piece",
+    "palette"
+   ]
+  },
+  "parts_material_slots": {
+   "name": "lampway_parts_material_slots",
+   "required": [
+    "object",
+    "recipe"
+   ]
+  },
+  "zone_sheet": {
+   "name": "lampway_zone_sheet",
+   "required": [
+    "object"
+   ]
+  },
+  "mesh_region_extract": {
+   "name": "lampway_mesh_region_extract",
+   "required": [
+    "object",
+    "region"
+   ]
+  },
+  "mesh_local_edit": {
+   "name": "lampway_mesh_local_edit",
+   "required": [
+    "object",
+    "region"
+   ]
+  },
+  "edit_locality_check": {
+   "name": "lampway_edit_locality_check",
+   "required": [
+    "before",
+    "after",
+    "region"
+   ]
+  },
+  "mesh_join_boolean": {
+   "name": "lampway_mesh_join_boolean",
+   "required": [
+    "op",
+    "objects"
+   ]
+  },
+  "multi_piece_material": {
+   "name": "lampway_multi_piece_material",
+   "required": [
+    "action"
+   ]
+  },
+  "seamless_tile": {
+   "name": "lampway_seamless_tile",
+   "required": [
+    "out"
+   ]
+  },
+  "relief_tiles": {
+   "name": "lampway_relief_tiles",
+   "required": [
+    "stage",
+    "v3_dir",
+    "tile_dir"
+   ]
+  },
+  "image_upscale": {
+   "name": "lampway_image_upscale",
+   "required": [
+    "image"
+   ]
+  },
+  "reference_pack": {
+   "name": "lampway_reference_pack",
+   "required": [
+    "stage",
+    "asset",
+    "approved_reference"
+   ]
+  },
+  "workflow_reference_to_asset": {
+   "name": "lampway_workflow_reference_to_asset",
+   "required": [
+    "piece"
+   ]
+  },
+  "image_matte": {
+   "name": "lampway_image_matte",
+   "required": [
+    "action",
+    "src",
+    "out"
+   ]
+  },
+  "prompt_image": {
+   "name": "lampway_prompt_image",
+   "required": [
+    "template"
+   ]
+  },
+  "recon_measure": {
+   "name": "lampway_recon_measure",
+   "required": [
+    "object",
+    "plates"
+   ]
+  },
+  "texture_library_stage": {
+   "name": "lampway_texture_library_stage",
+   "required": [
+    "manifest",
+    "staging_root"
+   ]
+  },
+  "scribble_read": {
+   "name": "lampway_scribble_read",
+   "required": []
+  },
+  "rig_inspect": {
+   "name": "lampway_rig_inspect",
+   "required": [
+    "armature"
+   ]
+  },
+  "rig_map": {
+   "name": "lampway_rig_map",
+   "required": [
+    "armature",
+    "out"
+   ]
+  },
+  "rig_normalize": {
+   "name": "lampway_rig_normalize",
+   "required": [
+    "armature"
+   ]
+  },
+  "rig_readback": {
+   "name": "lampway_rig_readback",
+   "required": [
+    "fbx",
+    "reference"
+   ]
+  },
+  "rig_convert": {
+   "name": "lampway_rig_convert",
+   "required": [
+    "verb"
+   ]
+  },
+  "rig_skin": {
+   "name": "lampway_rig_skin",
+   "required": [
+    "verb",
+    "input",
+    "out"
+   ]
+  },
+  "rig_conform": {
+   "name": "lampway_rig_conform",
+   "required": [
+    "armature",
+    "map"
+   ]
+  },
+  "rig_export_ue": {
+   "name": "lampway_rig_export_ue",
+   "required": [
+    "armature",
+    "out"
+   ]
+  },
+  "rig_fit_template": {
+   "name": "lampway_rig_fit_template",
+   "required": [
+    "example",
+    "joints"
+   ]
+  },
+  "rig_game_extract": {
+   "name": "lampway_rig_game_extract",
+   "required": [
+    "control"
+   ]
+  },
+  "rig_bake": {
+   "name": "lampway_rig_bake",
+   "required": [
+    "driver",
+    "target",
+    "actions"
+   ]
+  },
+  "rig_retarget": {
+   "name": "lampway_rig_retarget",
+   "required": [
+    "source",
+    "target"
+   ]
+  },
+  "rig_rest_pose": {
+   "name": "lampway_rig_rest_pose",
+   "required": [
+    "armature",
+    "pose"
+   ]
+  },
+  "inspect": {
+   "name": "lampway_inspect",
+   "required": []
+  },
+  "view": {
+   "name": "lampway_view",
+   "required": []
+  }
+ }
 }

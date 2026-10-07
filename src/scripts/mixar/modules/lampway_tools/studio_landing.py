@@ -15,6 +15,7 @@ COLLECTION = "Studio"
 _LANDS = (".glb", ".gltf", ".fbx", ".obj")
 
 
+@canon_io.rollback_imports
 def import_file(path: str, prefix: str = "", turn_deg=None, generator: str = "unknown") -> dict:
     """Import a Studio file RAW (canon_io), then normalize every mesh it made (lampway_normalize_mesh) when the piece's facing is
     declared (``turn_deg``); without it the objects land raw (``lw_raw``) and ``normalize`` says why - every door refuses them until

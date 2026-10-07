@@ -8,16 +8,53 @@ are called by the server directly, never through Blender.
 """
 
 import json
+import sys
 
 from .tool_defs import Def, P, needs  # noqa: F401  (the records live in tool_defs.py; re-exported here)
+
+
+def _fit_dof_items():
+    """Joint grammar; bounds describe finite binary64 representation, never a physical angle ruling."""
+    finite = {"type": "number", "minimum": -sys.float_info.max, "maximum": sys.float_info.max}
+    joint = {"type": "string", "minLength": 1}
+    pair = {"type": "array", "minItems": 2, "maxItems": 2, "items": joint}
+    axis_ref = {"$ref": "#/$defs/axis"}
+    axis = {"oneOf": [
+        {"type": "string", "enum": ["up", "forward", "lateral", "-up", "-forward", "-lateral"]},
+        {"type": "array", "minItems": 3, "maxItems": 3, "items": {**finite, "description": "Finite binary64 vector component; technical representation bound."}},
+        {"type": "object", "properties": {"line": {**pair, "description": "Two joints defining the directed line."}}, "required": ["line"], "additionalProperties": False},
+        {"type": "object", "properties": {"perp": {**pair, "description": "Two joints defining the line crossed with to."},
+                                           "to": {**axis_ref, "description": "Joint-grammar axis crossed with the line."}},
+         "required": ["perp", "to"], "additionalProperties": False},
+    ]}
+    expect = {"type": "object", "properties": {
+        "joint": {**joint, "description": "Joint measured at the first DOF's positive sign-check rotation."},
+        "along": {**axis_ref, "description": "Axis of the measured displacement."},
+        "closer_to": {**joint, "description": "Joint approached instead of measuring along an axis."},
+        "min_cm": {**finite, "description": "Minimum measured displacement in centimetres; finite binary64 technical bounds."}},
+        "required": ["joint"], "anyOf": [{"required": ["along"]}, {"required": ["closer_to"]}], "additionalProperties": False}
+    return {"$id": "urn:lampway:fit-dof:1", "$defs": {"axis": axis}, "type": "object", "properties": {
+        "bone": {**joint, "description": "Rest skeleton bone to rotate."},
+        "axis": {**axis_ref, "description": "Named, joint-derived or explicit component-space direction."},
+        "range": {"type": "array", "minItems": 2, "maxItems": 2,
+                  "items": {**finite, "description": "Finite binary64 degrees; these are representation bounds, not physical limits."},
+                  "description": "Lower and upper angles in degrees. Runtime enforces a width of at most 90 degrees; absolute endpoints are not a canon ruling."},
+        "step": {"type": "number", "exclusiveMinimum": 0, "maximum": sys.float_info.max,
+                 "description": "Strictly positive finite binary64 grid increment in degrees."},
+        "expect": {**expect, "description": "Required on the first grid DOF: measured sign-check expectation."},
+        "mirror": {"type": "boolean", "description": "Explicitly reflect this sided bone's rotation to its counterpart; default false."}},
+        "required": ["bone", "axis", "range", "step"], "additionalProperties": False}
 
 
 class BadArguments(ValueError):
     pass
 
 
-def _literal(payload: dict) -> str:
-    return json.dumps(json.dumps(payload))
+def _literal(payload: dict, name=None) -> str:
+    try:
+        return json.dumps(json.dumps(payload, allow_nan=False))
+    except (ValueError, TypeError) as exc:
+        raise BadArguments("Arguments must contain finite JSON values. Next call: " + (name or "lampway_status")) from exc
 
 
 def _args_for(d: Def, arguments: dict) -> list:
@@ -39,6 +76,14 @@ def _args_for(d: Def, arguments: dict) -> list:
         else:
             out += [p.flag, str(v)]
     return out
+
+
+# Shared presentation controls: full detail still uses a bounded page.
+def _bounded_params():
+    return [P("fields", "array", "Top-level receipt fields to return; omitted uses compact defaults"),
+            P("limit", "integer", "Maximum rows per logical table, default 50; full detail keeps this bound", minimum=1, maximum=1000),
+            P("offset", "integer", "Zero-based row offset in each logical table, default 0", minimum=0),
+            P("full", "boolean", "Include all receipt and row fields, default false; tables remain paginated")]
 
 
 # 5.8 (HC14): each Def with an `engine` serves one Choices purpose; a local option is the Def's own method (or mode / weights)
@@ -119,6 +164,12 @@ def build_script(d: Def, arguments: dict) -> str:
         if unknown:
             raise BadArguments("unknown argument: " + ", ".join(sorted(unknown)))
     given = {k: v for k, v in arguments.items() if k in known}
+    if d.name == "lampway_fit_glove":
+        from jsonschema import Draft202012Validator
+        error = next(Draft202012Validator(d.spec().parameters).iter_errors(given), None)
+        if error:
+            path = ".".join(str(part) for part in error.absolute_path) or "arguments"
+            raise BadArguments(f"Invalid {path}: {error.message}. Next call: lampway_fit_glove stage=pose piece=<piece> armature=<armature> body_object=<body> dofs=<DOFs>")
     if d.name in ENGINE_PURPOSES:
         given = _resolve_engine(d.name, given)
     if d.name == "lampway_view_verify" and given.get("action") == "ladder" and not given.get("models"):
@@ -130,7 +181,7 @@ def build_script(d: Def, arguments: dict) -> str:
     else:
         fn, payload = d.api, given
     return ("from mixar.modules.lampway_tools import api\n"
-            f"__RESULT__ = api.call({json.dumps(fn)}, {_literal(payload)})\n")
+            f"__RESULT__ = api.call({json.dumps(fn)}, {_literal(payload, d.name)})\n")
 
 
 _PATHS = " Paths are relative to the project root; a path outside it is refused."
@@ -149,8 +200,7 @@ DEFS = [
          P("max_shell_tris", "integer", "A floating shell has at most this many triangles; default 400"),
          P("float_mm", "number", "A shell floats when its nearest neighbour is further than this (mm); default 3")], api="qa_setup"),
     Def("lampway_qa_tag_layers", "Add the three annotation tag layers the user draws on: Red = Delete, Green = Mislabel, "
-        "Yellow = Hole (placement Surface). Existing layers are kept. For a piece set up with lampway_qa_setup (piece, default the "
-        "active one); refused when none is.", [P("piece", desc="The piece (default: the last one set up)")], api="qa_tag_layers"),
+        "Yellow = Hole (placement Surface). Existing layers are kept. For the explicit target piece set up with lampway_qa_setup; refused when none is.", [P("piece", required=True, desc="Target object name; set it up with lampway_qa_setup first")], api="qa_tag_layers"),
     Def("lampway_qa_candidates", "Find open loops (holes) and floating shells on the piece and write them as typed candidates "
         "(descriptor: size, bordering parts and their motion classes, side of the body, which views see it, what lies behind). "
         "Ruled deletions are applied first. `draw` also draws them into the scene (collection QA_<piece>, markers <piece>_L000).",
@@ -261,7 +311,7 @@ DEFS = [
          P("labels", "object", "{mode: map | recipe, island_labels: {island: label}, recipe: parts json, owner: .npy, min_share, max_unlabeled}")], api="segment_mesh"),
     Def("lampway_mesh_prep", "Workflow, geometry preparation: a branch `<object>_prep` of a generated mesh with its source hash "
         "recorded, loose and doubled vertices removed and inverted normals fixed; returns before/after reports. The source is untouched.",
-        [P("object", required=True), P("merge_distance", "number", "Weld distance, default 1e-5")], api="mesh_prep"),
+        [P("object", required=True), P("merge_distance", "number", "Weld distance, default 1e-5")] + _bounded_params(), api="mesh_prep"),
     Def("lampway_asset_acceptance", "Workflow, engine acceptance: identity / orientation / geometry / materials gates for a candidate "
         "asset (optionally against a `reference` object), each with reasons, and an overall `accepted`. Lists what it did not check.",
         [P("object", required=True), P("reference", desc="An approved object to compare bounds against"),
@@ -334,8 +384,8 @@ DEFS = [
     Def("lampway_mesh_defect_scan", "A read-only clay inspection: typed defect candidates for the user's decisions, NEVER an edit. kinds (default all): open_loop, floating_shell (a small shell "
         ">3 mm from the body), intersection (faces crossing faces, by BVH), thin (thinner than thin_threshold_m inward; default 0.002, unverified), flipped_shell (closed or open), degenerate, "
         "isolated_tri. Each candidate: id, kind, descriptor {faces, area_m2, centroid, bbox, normal, rim_length_m}, rule_verdict (keep|delete|hole|ambiguous), rule, severity. More than "
-        "max_candidates: the first N plus truncated and total.", [P("object", required=True), P("piece"), P("kinds", "array", "Subset of the kinds"),
-                                                          P("thin_threshold_m", "number", "0.0001..0.05"), P("max_candidates", "integer", "1..500, default 100")], api="mesh_defect_scan"),
+        "Compact rows by default; full=true includes descriptors. limit/offset page every candidate and preserve exact totals.", [P("object", required=True), P("piece"), P("kinds", "array", "Subset of the kinds"),
+                                                          P("thin_threshold_m", "number", "0.0001..0.05"), P("max_candidates", "integer", "Legacy page cap 1..500 when supplied; omitted uses limit", minimum=1, maximum=500)] + _bounded_params(), api="mesh_defect_scan"),
     Def("lampway_silhouette_compare", "Did the piece drift? Render the approved source `a` and the candidate `b` (a mesh, or a plate image with an alpha or a flat background) from the SAME "
         "orthographic cameras (Front/Back/Left/Right, framed on a) and report per view the silhouette IoU, area ratio, centroid shift and, with landmarks [{name, point}] in world space, the "
         "drift to b's surface. `pass` = worst IoU >= min_iou (default 0.9, a placeholder). Side-by-side PNGs under <root>/<piece>/compare/. A mirrored candidate fails the view that sees it.",
@@ -391,10 +441,10 @@ DEFS = [
          P("record_step", "integer", "record: which step"), P("artefacts", "array", "record: files produced"), P("mesh_hash", desc="record: the mesh+UV hash at that step"), P("note")], api="armor_piece_pipeline"),
     Def("lampway_fit_pose", "The closest pose of the body to a piece (canon 08). With dofs (bone, axis in the joint grammar, range <= 90 deg, step; the first with an expect for the "
         "sign check) and the scene's piece, skinned body and armature: a deterministic sweep, rays from each skin sample's bone axis to the piece, regions by bone; answers the pose in "
-        "the replayable grammar with the A-pose and posed numbers and writes pose.json. Without dofs: chest is routed to pose_clearance; helmet | waist | boots | gauntlets: "
+        "the replayable grammar with the A-pose and posed numbers and writes pose.json. Without dofs: chest is routed to pose_clearance; helmet uses the canon neck/head pitch and roll table (dofs=helmet); waist | boots | gauntlets: "
         "needs_decision - the bones, axes and ranges to sweep are the user's to rule; the contract's proposals are included, marked unverified. apply=true puts the armature in the pose found (the fit pose).",
         [P("kind", required=True, desc="chest | helmet | waist | boots | gauntlets"), P("piece", desc="the placed piece"), P("body", desc="the skinned body"),
-         P("armature", desc="the body's armature"), P("dofs", desc="[{bone, axis, range, step, expect, mirror}] or 'chest' (the canon's chest table)"), P("chain", "array", "[{bone, axis, range, step}] after the grid"),
+         P("armature", desc="the body's armature"), P("dofs", desc="[{bone, axis, range, step, expect, mirror}] or 'chest' / 'helmet' (the canon tables)"), P("chain", "array", "[{bone, axis, range, step}] after the grid"),
          P("regions", "object", "{name: {bones, threshold_m}}"), P("out", desc="pose.json path under the project root"),
          P("apply", "boolean", "put the armature in the pose found (the fit pose bind samples at)")], api="fit_pose"),
     Def("lampway_weight_audit", "Read-only audit of a skinned mesh's weights, or a plan for how to bind it. audit: unweighted vertices, vertices over the influence cap, sums not 1, per-bone counts and mean weight, a "
@@ -462,7 +512,7 @@ DEFS = [
     Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
         "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
         "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour), `body` (a fit_body package: "
-        "verified, CLOSED with its HEAD), and args.source for the source-part check (the detached-glove guard) before normalize_mesh; match: the captain's sign-off, args {captain_seen: true, "
+        "verified with its head included by measured generalized winding; native openings are accepted and raw plus position-welded boundary/non-manifold counts are reported), and args.source for the source-part check (the detached-glove guard) before normalize_mesh; match: the captain's sign-off, args {captain_seen: true, "
         "render_sha256}; pose_correct: args {segments}; pose: fit_pose applied (the fit pose); conform: metal refused, soft parts wait on decision 03-H2; bind: fit_bind plan; weights: fit_bind weights "
         "from the package's native sidecar, then return; validate: fit_validate measure, written to <piece>/fit/validation.json; export: fit_export with it. The roles, kind and package are the "
         "intake's record. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
@@ -508,11 +558,20 @@ DEFS = [
         "on the body's OWN region for its bones, a weight on another bone moves to its nearest allowed ancestor else the part's fallback (else refused by name), and a vertex left with no weight is refused. return: the metal rest residual vs the ORIGINAL shell. apply: refused while a seam opens unless accept_seam_gap_mm. report.",
         [P("stage", required=True, desc="plan | weights | return | apply | report"), P("piece"), P("armature"), P("roles", "object", "{part: role}"), P("bind_overrides", "object", "{part: {mode, bones, reason, fallback}}"),
          P("out_dir", desc="default fit/bind"), P("body", desc="weights: the fit_body package dir (its native sidecar)"), P("body_object", desc="weights: a skinned scene body (an approximation)"), P("accept_seam_gap_mm", "number", "apply: accept an opened seam")], api="fit_bind"),
-    Def("lampway_fit_glove", "The glove's plate labels as a typed decision. stage labels: `labels` {plate: bone} for EVERY plate (the piece's vertex groups; an unlabelled plate is named, never guessed), `roles` {plate: role}, "
-        "the glove's own side's bones only, finger caps and the bracer metal = one rigid bone each, a cloth plate (the upper arm) never rigid. Writes <piece>/fit/glove_labels.json and one decision row per plate "
-        "(decider by) and returns the bind_fragment for fit_bind. pose | bind | report need the hand-pose engine of the user's project: needs_decision.",
-        [P("stage", required=True, desc="labels | pose | bind | report"), P("piece"), P("side", desc="r (default) | l"), P("labels", "object", "{plate: bone}"), P("roles", "object", "{plate: role}"),
-         P("overrides", "object", "{plate: {mode}}"), P("by", desc="agent (default) | captain")], api="fit_glove"),
+    Def("lampway_fit_glove", "Label every glove plate with its own side's bones and bind role. stage labels writes <piece>/fit/glove_labels.json and decision rows (by), returning the fit_bind fragment. "
+        "stage pose runs the existing fit_pose grammar from supplied dofs on armature, piece and body_object; the first DOF supplies the sign check, and chain follows the grid. No finger angles or opposite-side labels are guessed. "
+        "stage bind runs the existing fit_bind plan, weights and return stages using labels and a native body package or scene body. apply explicitly replays the pose or applies the bind; "
+        "an opened seam is refused unless accept_seam_gap_mm explicitly accepts it. stage report reads the saved labels, pose and bind results.",
+        [P("stage", required=True, desc="labels | pose | bind | report"), P("piece", desc="Glove mesh object name"), P("side", desc="r (default) | l; labels must name this side's bones"),
+         P("labels", "object", "{plate: bone} for every vertex-group plate"), P("roles", "object", "{plate: rigid-metal | cloth | another canonical bind role}"),
+         P("overrides", "object", "{plate: {mode, bones, reason, fallback}}; explicit bind exceptions"), P("by", desc="Decision author: agent (default) | captain"),
+         P("armature", desc="Body armature object; pose also requires piece, body_object and explicit dofs; required for bind"), P("body_object", desc="Skinned scene body approximation for bind; supply this or body, not both"),
+         P("body", desc="Native fit_body package directory for bind; supply this or body_object, not both"),
+         P("dofs", "array", "Pose grid DOFs: {bone:string, axis:string, range:[number,number] of width <=90 degrees, step:number >0, expect:object on the first DOF, mirror?:boolean}; validated by fit_pose", items=_fit_dof_items()),
+         P("chain", "array", "DOFs applied after the grid, with the same bone/axis/range/step grammar; no inferred angles", items=_fit_dof_items()),
+         P("regions", "object", "Explicit fit_pose region definitions, passed to the existing pose solver"), P("out_dir", desc="Report directory under the project root; default <piece>/fit/glove"),
+         P("apply", "boolean", "False by default; explicitly replay the solved pose or apply the bind"),
+         P("accept_seam_gap_mm", ["number", "null"], "Bind apply only: explicitly accepted seam opening in millimetres; omitted means refuse an opened seam", minimum=0)], api="fit_glove"),
     Def("lampway_fit_state", "The descriptor / question / answer fit loop: NOT BUILT. Answers needs_decision: is the Laya / fit-model route still the direction now that fit_validate measures the fit?", [], api="fit_state"),
     Def("lampway_anim_reference_render", "The character at rest from a KNOWN orthographic camera on a plain grey background, front and side, with the camera recorded: the start images of the animation-from-video set. "
         "Writes ref_<view>.png, ref_<view>_mask.png and cameras.json (orthographic scale, px_per_m, centre, axes) in a throw-away Workbench scene, anti-aliasing off: the grey is exact and two renders are byte-identical. "
@@ -722,7 +781,7 @@ DEFS = [
     Def("lampway_segment_image", "One image to per-part masks, no model: connected components (8-connected) on the alpha channel of a transparent plate (alpha_components) or on the foreground of an opaque sheet (color_regions: pixels that differ from the border's commonest colour). Writes mask_NN.png (8-bit, same size as the image, white = the part) and overlay.png (numbered tints) under out_dir inside the project root; masks are in reading order, left to right. expected_parts labels them only when the count matches. min_pixels (default 6000) drops specks and reports how many. Touching or overlapping parts are ONE component (the note says so). Refused: no transparency for alpha_components (use color_regions), more than 64 components (raise min_pixels), over 16 megapixels, a mask that already exists and differs (a record is never overwritten), a path outside the root, engine studio:* or model:* (no driver or provider exists for segmentation yet). Nothing lands in the scene.",
         [P("image", "string", required=True), P("method", "string"), P("min_pixels", "integer"), P("expected_parts", "array"), P("out_dir", "string"), P("engine", "string")], api="segment_image"),
     Def("lampway_procedural_library", "The procedural material library: 12 armour materials (bronze, gold, brass, steel, iron, two leathers, two cloths) built from parametric node-group templates and a preset table, registered in the Client's own material registry. Every material is one node group with a single Shader output and bounded inputs (Tint, Roughness Scale, Wear, Scale, Bump Strength, Seed, Mask: a mask input lets curvature drive edge wear), in Object space so no UVs are needed. list / find (query ranks by name; material_id for one; category metal|leather|cloth) return the materials with their inputs. seed registers them (idempotent; a changed manifest at the same library_version is refused unless upgrade). verify builds every group and reports shader outputs, input bounds and build time (bake_stats adds real Cycles bakes: base colour mean, hue, metallic and roughness means, and near-duplicate pairs). bake renders one material at size px with params to a PNG and its sha256 (compare_to another PNG for the mean difference). add_to_layer puts the material on `object` as a procedural layer of its paint stack (initialise one first if the refusal says so).",
-        [P("action", "string"), P("category", "string"), P("query", "string"), P("material_id", "string"), P("object", "string"), P("layer_name", "string"), P("params", "object"), P("size", "integer"), P("bake_stats", "boolean"), P("compare_to", "string"), P("upgrade", "boolean")], api="procedural_library"),
+        [P("action", "string"), P("category", "string"), P("query", "string"), P("material_id", "string"), P("object", "string"), P("layer_name", "string"), P("params", "object"), P("size", "integer"), P("bake_stats", "boolean"), P("compare_to", "string"), P("upgrade", "boolean")] + _bounded_params(), api="procedural_library"),
     Def("lampway_layered_material", "The Client's layer-paint stack (an editable material built from layers and masks) from the agent. init puts a paint project on the mesh's material (a material that samples image maps is refused, naming them: init rebuilds the material and would drop them; params {discard_textures: true} starts anyway); inspect returns the stack ({index, name, type, enabled, blend, opacity, channels, mask}); add_layer {type: fill | paint | image | group, name, blend: MIX|ADD|MULTIPLY|SUBTRACT|SCREEN|OVERLAY, opacity 0..1, color [r,g,b] for fill, size for paint/image, mask: {type: edge_detect | color_id | vcol | image}, projection: uv | triplanar | planar | spherical | cylindrical | decal} (uv needs a UV map: otherwise use triplanar or unwrap first); add_procedural puts a library material (see procedural_library) on as a layer; set_params {opacity, enabled, name, blend_type, projection_type, translation, rotation, scale ...} edits layer_index (-1 = the active layer); apply_manifest builds a whole stack from a manifest (index 0 must be a PBR layer). mask {type, invert: true} inverts the new mask, and action mask_invert {params: {invert: true|false}} toggles the INVERT mask modifier on layer_index's first mask (the paint package's own modifier, added once). Refused: not a mesh, no paint project yet (the refusal names init), unknown blend / type / mask / projection (each lists the choices), mask_invert on a layer without a mask. One undo step per Blender operator the Client's package uses.",
         [P("action", "string"), P("object", "string"), P("material", "string"), P("layer", "object"), P("manifest", "object"), P("layer_index", "string"), P("params", "object")], api="layered_material"),
     Def("lampway_material_bake_export", "Bake the layer-stack material of `object` to the images a destination needs, in a niced HEADLESS Cycles worker (never your live scene). channels: base_color, roughness, metallic, normal, ao, emission (default base_color, roughness, metallic, normal); size a power of two 1024..8192; format png | exr | tiff | jpeg (jpeg with normal is refused: lossy normals); normal_green gl (OpenGL, Unity/Blender/Godot) | dx (DirectX, Unreal); pack=orm also writes <object>_orm (R occlusion, G roughness, B metallic; R is 1.0 with a warning when no ao was baked; roughness and metallic must be baked too). Base colour and emission are sRGB, everything else Non-Color. Writes the images and a README with every file's sha256 and the conventions under out_dir (inside the project root). The layer stack is untouched. Refused: no paint-stack material (build one with layered_material), no UV map, an unsaved project (allow_dirty=true to override), a bad size or channel, a path outside the root.",

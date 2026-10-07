@@ -39,7 +39,7 @@ def test_sdk_initializes_and_exposes_ui_without_blender_or_backend(tmp_path, sav
                 prompt = await session.get_prompt("build-and-verify", {"goal": "make a cube"})
                 assert "make a cube" in prompt.messages[0].content.text
                 assert result.instructions in prompt.messages[0].content.text
-                quote = await session.call_tool("mixar_tool_quote", {"tool": "mixar_ui_act"})
+                quote = await session.call_tool("mixar_tool_quote", {"tool": "lampway_ui_act"})
                 assert quote.structured_content["result"]["invocation_credits"] == 0
                 catalog = await session.list_tools()
                 names = {tool.name for tool in catalog.tools}
@@ -48,8 +48,11 @@ def test_sdk_initializes_and_exposes_ui_without_blender_or_backend(tmp_path, sav
                     assert "First call lampway_inspect" in result.instructions
                 else:
                     assert "lampway_inspect" not in result.instructions
-                assert {"mixar_ui_context", "mixar_ui_observe", "mixar_ui_act", "mixar_ui_call_status"} <= names
-                status = await session.call_tool("mixar_ui_context", {})
+                assert {"lampway_ui_context", "lampway_ui_observe", "lampway_ui_act", "lampway_ui_call_status"} <= names
+                from mixar.modules.mcp_bridge.core import aliases
+                assert not set(aliases.OLD_TO_NEW) & names
+                assert not any(old in tool.description for tool in catalog.tools for old in aliases.OLD_TO_NEW)
+                status = await session.call_tool("lampway_ui_context", {})
                 assert status.is_error
                 assert "Lampway is not open" in str(status.content)  # Nothing installed here.
     asyncio.run(run())

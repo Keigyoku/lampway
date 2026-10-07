@@ -141,7 +141,10 @@ RIG_DEFS = [
          P("extract", desc="deform (default) | selected | selected_deform | deform_and_selected"), P("hierarchy", desc="keep (default) | rigify_fix | flat"),
          P("constraint", desc="lotrot (default) | transform | none"), P("root_scale_from", desc="auto (default) | <bone> | none"),
          P("bbones", desc="refuse (default) | convert"), P("rebind_meshes", "boolean", "re-point the control's meshes (default true)"),
-         P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")],
+         P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")] + [P("fields", "array", "Top-level receipt fields; omitted uses control, game, bones, dry_run and follow"),
+         P("limit", "integer", "Maximum rows per receipt table, default 50", minimum=1, maximum=1000),
+         P("offset", "integer", "Zero-based table row offset, default 0", minimum=0),
+         P("full", "boolean", "Include detailed receipt fields, default false; pagination remains in effect")],
         api="rig_game_extract"),
     Def("lampway_rig_bake", "Constraint-driven motion to plain keys, action by action (canon 19 B.6; Game Rig Tools' Action Bakery semantics, "
         "the bake re-implemented): for each listed action of the driver (e.g. the control rig after lampway_rig_game_extract), the target's "

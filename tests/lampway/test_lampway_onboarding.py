@@ -150,3 +150,17 @@ def test_the_caps_step_saves_ruling_5s_day_cap_and_its_defaults():
     from pathlib import Path
     popup = (Path(ob.__file__).parent / "ui" / "onboarding.py").read_text(encoding="utf-8")
     assert "session_cap" not in popup and "Per session" not in popup and '"Per day"' in popup
+
+
+def test_back_and_continue_share_the_footer_not_the_step_rail(ui):
+    w = walk(); w.step = 3
+    rail = Recorder(); ui.draw_rail(rail, w)
+    assert not any(e[0] == "op" and e[1] == "lampway.onboarding_back" for e in rail.log)
+
+
+def test_advancing_redraws_one_popup_without_opening_another(ui, monkeypatch):
+    w = walk(); w.step = 2; ui.WALK["walk"] = w
+    redraws = []
+    context = SimpleNamespace(region=SimpleNamespace(tag_redraw=lambda: redraws.append(True)))
+    result = ui.LAMPWAY_OT_onboarding.execute(SimpleNamespace(report=lambda *a: None), context)
+    assert result == {"FINISHED"} and redraws == [True] and w.step == 3

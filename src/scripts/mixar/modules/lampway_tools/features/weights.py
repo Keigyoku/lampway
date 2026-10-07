@@ -16,6 +16,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
+from .source_identity import stamp_source
 from . import common as C
 from .. import canon_geom as G
 
@@ -95,7 +96,9 @@ def bone_segments(arm):
     lone = {b.name for b in arm.data.bones if b.parent is None and not b.children}      # a one-bone rig: no joint to run to
     heads = {b.name: tuple((mw @ b.head_local)[:]) for b in arm.data.bones if b.name not in lone}
     parents = {b.name: (b.parent.name if b.parent else None) for b in arm.data.bones if b.name not in lone}
-    out = G.bone_segments(heads, parents, main_child=G.CONTINUATION) if heads else {}
+    from .normalize_rigged import canonical_helper_ends
+    helpers = canonical_helper_ends(arm)
+    out = G.bone_segments(heads, parents, main_child=G.CONTINUATION, helper_ends=helpers) if heads else {}
     for b in arm.data.bones:
         if b.name in lone:
             out[b.name] = (np.array((mw @ b.head_local)[:]), np.array((mw @ b.tail_local)[:]))
@@ -355,6 +358,7 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
     _write(dup, gnames, Wt)
     mod = dup.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
+    stamp_source(dup, ob)
     unweighted = int((Wt.sum(axis=1) <= EPS).sum())
     hist = {str(k): int(((Wt > EPS).sum(axis=1) == k).sum()) for k in range(1, 5)}
     return {"ok": True, "object": dup.name, "source": src.name, "engine": engine, "matched_fraction": round(float(matched.mean()), 6), "inpainted_vertices": inpainted, "groups_written": len(gnames),

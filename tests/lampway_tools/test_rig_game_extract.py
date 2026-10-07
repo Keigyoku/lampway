@@ -49,10 +49,10 @@ def test_g19_4_all_five_deform_bones_kept_in_the_collection_constrained_and_mesh
     r = run(tmp_path, PROBE + '''
 ctl, skin = probe()
 mw0 = [list(r) for r in skin.matrix_world]
-cold = call("rig_game_extract", control="ctl")
+cold = call("rig_game_extract", full=True, control="ctl")
 call("rig_inspect", armature="ctl")
-dry = call("rig_game_extract", control="ctl", dry_run=True)
-g = call("rig_game_extract", control="ctl", hierarchy="rigify_fix")
+dry = call("rig_game_extract", full=True, control="ctl", dry_run=True)
+g = call("rig_game_extract", full=True, control="ctl", hierarchy="rigify_fix")
 game = bpy.data.objects.get("ctl_game")
 ctl.pose.bones["ctrl-spine"].location = (0, 0.05, 0.02); ctl.pose.bones["ORG-hips"].rotation_quaternion = (0.966, 0.259, 0, 0)
 bpy.context.view_layer.update()
@@ -62,12 +62,12 @@ rot = max(wc[n].to_quaternion().rotation_difference(wg[n].to_quaternion()).angle
 cols = {c.name: sorted(b.name for b in c.bones) for c in game.data.collections_all}
 cons = {pb.name: sorted(c.type for c in pb.constraints) for pb in game.pose.bones}
 par = {b.name: b.parent.name if b.parent else None for b in game.data.bones}
-k = call("rig_game_extract", control="ctl", name="ctl_keep", hierarchy="keep", rebind_meshes=False)
-f = call("rig_game_extract", control="ctl", name="ctl_flat", hierarchy="flat", constraint="transform", rebind_meshes=False)
+k = call("rig_game_extract", full=True, control="ctl", name="ctl_keep", hierarchy="keep", rebind_meshes=False)
+f = call("rig_game_extract", full=True, control="ctl", name="ctl_flat", hierarchy="flat", constraint="transform", rebind_meshes=False)
 pk = {b.name: b.parent.name if b.parent else None for b in bpy.data.objects["ctl_keep"].data.bones}
 pf = {b.name: b.parent.name if b.parent else None for b in bpy.data.objects["ctl_flat"].data.bones}
 cf = {pb.name: sorted(c.type for c in pb.constraints) for pb in bpy.data.objects["ctl_flat"].pose.bones}
-taken = call("rig_game_extract", control="ctl", name="ctl_skin")
+taken = call("rig_game_extract", full=True, control="ctl", name="ctl_skin")
 print("RESULT", json.dumps({"cold": cold, "dry": dry, "g": g, "err": err, "rot": math.degrees(rot), "cols": cols, "cons": cons, "par": par, "pk": pk, "pf": pf,
     "cf": cf, "taken": taken, "mod": skin.modifiers["Armature"].object.name, "parent": skin.parent.name, "mw": [list(r) for r in skin.matrix_world], "mw0": mw0,
     "ctl_cons": len(ctl.pose.bones["DEF-spine"].constraints), "anim": bool(game.animation_data)}))
@@ -95,11 +95,11 @@ def test_bbones_are_refused_or_converted_with_their_weights_split_between_segmen
 ctl, skin = probe(bbone=True); call("rig_inspect", armature="ctl")
 base = skin.copy(); base.data = skin.data.copy(); base.name = "baseline"; base.parent = None; base.matrix_world = skin.matrix_world
 base.modifiers.remove(base.modifiers["Armature"]); bpy.context.scene.collection.objects.link(base)   # unbound: the tool leaves it alone
-refused = call("rig_game_extract", control="ctl", rebind_meshes=False)
+refused = call("rig_game_extract", full=True, control="ctl", rebind_meshes=False)
 sb = ctl.data.bones["DEF-spine"]                      # a curve to follow: the spine's handles are the hips and the chest
 sb.bbone_handle_type_start = sb.bbone_handle_type_end = "ABSOLUTE"
 sb.bbone_custom_handle_start, sb.bbone_custom_handle_end = ctl.data.bones["DEF-hips"], ctl.data.bones["DEF-chest"]
-conv = call("rig_game_extract", control="ctl", bbones="convert", constraint="transform")
+conv = call("rig_game_extract", full=True, control="ctl", bbones="convert", constraint="transform")
 game = bpy.data.objects["ctl_game"]
 base.modifiers.new("Armature", "ARMATURE").object = ctl                                              # the baseline: the bendy bone itself
 par = {b.name: b.parent.name if b.parent else None for b in game.data.bones}
@@ -132,3 +132,23 @@ print("RESULT", json.dumps({"refused": refused, "conv": conv, "par": par, "group
 def test_the_tail_joint_bone_makes_the_bbone_conversion_exact(tmp_path):
     """The reversal seam (rig_game.TAIL_JOINT_BONE): one more bone at the tail joint and the skin is Blender's own B-Bone deformation."""
     test_bbones_are_refused_or_converted_with_their_weights_split_between_segments(tmp_path, tail=True)
+
+
+def test_large_rig_default_receipt_is_bounded_and_detailed_pages_keep_totals(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+arm=bpy.data.armatures.new('many'); ob=bpy.data.objects.new('many',arm); bpy.context.collection.objects.link(ob)
+bpy.context.view_layer.objects.active=ob; ob.select_set(True); bpy.ops.object.mode_set(mode='EDIT')
+for i in range(160):
+    b=arm.edit_bones.new('bone_%03d'%i); b.head=(i*.01,0,0); b.tail=(i*.01,0,1)
+bpy.ops.object.mode_set(mode='OBJECT')
+assert call('rig_inspect',armature='many')['ok']
+a=call('rig_game_extract',control='many',dry_run=True)
+b=call('rig_game_extract',control='many',dry_run=True,full=True,offset=50,limit=10)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'] and out['bytes'] < 12000, out
+    assert len(out['a']['bones']['kept']) == 50
+    assert out['a']['pages']['bones.kept']['total'] == 160
+    assert out['b']['ok'] and len(out['b']['bones']['kept']) == 10
+    assert 'hierarchy_changes' in out['b']

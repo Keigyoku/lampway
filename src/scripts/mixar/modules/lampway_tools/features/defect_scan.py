@@ -113,7 +113,7 @@ def _open_loops(bm, budget=None):
     return out
 
 
-def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100):
+def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100, *, include_all=False):
     ob = C.need_object(object)
     kinds = list(kinds or KINDS)
     bad = [k for k in kinds if k not in KINDS]
@@ -135,7 +135,7 @@ def run(object, piece="", kinds=None, thin_threshold_m=0.002, max_candidates=100
         bm.edges.ensure_lookup_table()
         bm.normal_update()
         return scan_bmesh(bm, piece=piece or ob.name, kinds=kinds,
-                          thin_threshold_m=thin_threshold_m, max_candidates=max_candidates)
+                          thin_threshold_m=thin_threshold_m, max_candidates=None if include_all else max_candidates)
     finally:
         bm.free()
 

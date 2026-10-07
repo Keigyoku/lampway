@@ -91,3 +91,19 @@ def test_the_lease_is_released_when_the_script_fails():
     r = call(M.McpServer(Hub(client), Agent()), client.scene_session)
     assert r["result"]["isError"] is True
     assert client.calls[-1] == "mcp.end_operation" and client.leases == {}
+
+
+def test_failed_batch_inside_successful_executor_is_an_mcp_error():
+    class FailedBatch(GatedClient):
+        async def request(self, method, params, timeout=None):
+            reply = await super().request(method, params, timeout)
+            if method == 'blender.execute_script' and reply.get('success'):
+                return {'success': True, 'ok': False, 'error': 'batch worker failed', 'output': ''}
+            return reply
+
+    client = FailedBatch()
+    result = call(M.McpServer(Hub(client), Agent()), client.scene_session)['result']
+    assert result['isError'] is True
+    assert 'batch worker failed' in result['content'][0]['text']
+    assert client.calls == ['mcp.begin_operation', 'blender.execute_script', 'mcp.end_operation']
+    assert client.leases == {}

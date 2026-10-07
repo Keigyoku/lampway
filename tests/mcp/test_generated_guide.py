@@ -101,4 +101,6 @@ def test_generated_local_guide_names_come_from_actual_visible_registry():
     from lampway_server.agent_files import generate
     names = {tool["name"] for tool in aliases.expose(schema.tools())}
     assert generate.mcp_local_tool_names() == names
+    assert not set(aliases.OLD_TO_NEW) & names
+    assert not any(old in stdio_server.LOCAL_GUIDE for old in aliases.OLD_TO_NEW)
     assert stdio_server.LOCAL_GUIDE == generate.mcp_local_instructions(names)

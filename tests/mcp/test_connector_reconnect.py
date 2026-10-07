@@ -145,8 +145,13 @@ def test_only_an_unfinished_ui_operation_blocks_scene_tools(monkeypatch, error_t
     client = connector.Connector()
     monkeypatch.setattr(client, "attach", lambda **_: ({"instance_id": "a"}, {"ui_contract": "mixar_ui_v1"}))
     if blocks:
-        with pytest.raises(RuntimeError, match="Finish or cancel the current UI operation"):
+        from mixar.modules.common.ui_control.constants import UIError
+        from mixar.modules.mcp_bridge.core.stdio_server import failure
+        with pytest.raises(UIError, match="Finish or cancel the current UI operation") as refused:
             client.call("scene_overview", {}, "11111111-1111-1111-1111-111111111111")
+        payload = failure(refused.value, "11111111-1111-1111-1111-111111111111").structured_content
+        assert payload["error_type"] == "modal_active"
+        assert "ESC" in payload["next_step"] and "lampway_ui_act" in payload["next_step"]
         assert sent == ["/ui"]
     else:  # The controller is still starting after launch: nothing to release.
         client.call("scene_overview", {}, "11111111-1111-1111-1111-111111111111")

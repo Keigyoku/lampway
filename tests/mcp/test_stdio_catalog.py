@@ -76,9 +76,9 @@ def test_backend_discovery_hints_survive_the_launcher():
     async def check(client, connector):
         tools = {tool.name: tool for tool in (await client.list_tools()).tools}
         assert tools["execute_bpy_script"].meta["anthropic/alwaysLoad"] is True
-        assert tools["mixar_ui_act"].meta["mixar/domain"] == "ui"
+        assert tools["lampway_ui_act"].meta["mixar/domain"] == "ui"
         assert tools["mixar_tool_catalog"].input_schema["properties"]["domain"]["enum"][-2:] == ["ui", "scenes"]
-        assert tools["mixar_scene_new"].meta["mixar/domain"] == "scenes"
+        assert tools["lampway_scene_new"].meta["mixar/domain"] == "scenes"
     run(check)
 
 
@@ -86,7 +86,7 @@ def test_catalog_index_merges_ui_tools_and_answers_the_ui_domain_locally():
     async def check(client, connector):
         merged = (await client.call_tool("mixar_tool_catalog", {})).structured_content["result"]
         assert merged["domains"] == {"build": 1, "ui": 5, "scenes": 5}
-        assert {"mixar_ui_observe", "execute_bpy_script"} <= {entry["name"] for entry in merged["tools"]}
+        assert {"lampway_ui_observe", "execute_bpy_script"} <= {entry["name"] for entry in merged["tools"]}
         ui_only = (await client.call_tool("mixar_tool_catalog", {"domain": "ui"})).structured_content
         assert {entry["domain"] for entry in ui_only["result"]["tools"]} == {"ui"}
         assert len(connector.calls) == 1  # domain="ui" never reaches the backend

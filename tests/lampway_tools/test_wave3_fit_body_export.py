@@ -140,3 +140,33 @@ write_json(os.path.join(root, "validation.json"), GOOD_VALIDATION); write_json(o
 res({"e": api.fit_export("piece_fit", "body_rig", "export/g6", body=pkg, textures=tex, validation="validation.json", bind_check="bind_check.json").get("error")})
 ''')
     assert "not_a_native_bone" in r.results[-1]["e"]
+
+
+def test_readback_removes_every_imported_id_and_partial_exception_ids():
+    r = run('''
+from mixar.modules.lampway_tools import canon_io
+from mixar.modules.lampway_tools.features import fit_export as FE
+arm, body = body_package(); p = piece_fit(arm)
+path = os.path.join(root, "roundtrip.fbx")
+bpy.ops.object.select_all(action="DESELECT"); arm.select_set(True); p.select_set(True)
+bpy.context.view_layer.objects.active = arm
+bpy.ops.export_scene.fbx(filepath=path, use_selection=True, add_leaf_bones=False, primary_bone_axis="Z", secondary_bone_axis="X", bake_anim=False)
+before = canon_io.snapshot_ids()
+FE._readback(path, [])
+clean = all(set(getattr(bpy.data, k)) == before[k] for k in canon_io._KINDS)
+assert canon_io._selection() == before["selection"]
+original = canon_io.import_raw
+def partial(*args, **kwargs):
+    bpy.data.meshes.new("partial_mesh"); bpy.data.node_groups.new("partial_nodes", "ShaderNodeTree")
+    raise RuntimeError("partial import")
+canon_io.import_raw = partial
+try:
+    FE._readback(path, [])
+except RuntimeError as e:
+    err = str(e)
+finally:
+    canon_io.import_raw = original
+res({"clean": clean, "partial_clean": all(set(getattr(bpy.data, k)) == before[k] for k in canon_io._KINDS) and canon_io._selection() == before["selection"], "error": err})
+''')
+    assert r.rc == 0, r.out[-1500:]
+    assert r.results[-1] == {"clean": True, "partial_clean": True, "error": "partial import"}

@@ -74,39 +74,32 @@ def _within(root, p):
 
 def _import_table(path):
     """Import an FBX, read its first armature as a bone table, and remove everything the import added."""
-    before_o, before_a, before_ac = set(bpy.data.objects), set(bpy.data.armatures), set(bpy.data.actions)
+    before = canon_io.snapshot_ids()
     try:
         canon_io.import_raw(str(path), automatic_bone_orientation=False, ignore_leaf_bones=False,
                             primary_bone_axis=BONE_AXES[0], secondary_bone_axis=BONE_AXES[1])
-    except Exception as exc:  # noqa: BLE001
-        raise C.FeatureError(f"{path.name} could not be read as an FBX: {exc}") from exc
-    new = [o for o in bpy.data.objects if o not in before_o]
-    arms = [o for o in new if o.type == "ARMATURE"]
-    try:
+        arms = [o for o in bpy.data.objects if o not in before["objects"] and o.type == "ARMATURE"]
         if not arms:
             raise C.FeatureError(f"{path.name} has no armature")
         return _table(arms[0])
+    except Exception as exc:
+        raise C.FeatureError(f"{path.name} could not be read as an FBX: {exc}") from exc
     finally:
-        for o in new:
-            bpy.data.objects.remove(o, do_unlink=True)
-        for a in [a for a in bpy.data.armatures if a not in before_a]:
-            bpy.data.armatures.remove(a)
-        for a in [a for a in bpy.data.actions if a not in before_ac]:
-            bpy.data.actions.remove(a)
+        canon_io.remove_new_ids(before)
 
 
 def _table(arm_ob):
     bones = {b.name: b for b in arm_ob.data.bones}
     ws = [arm_ob.matrix_world @ b.head_local for b in bones.values()] + [arm_ob.matrix_world @ b.tail_local for b in bones.values()]
     zs = [v.z for v in ws]
-    ext = [max(v[i] for v in ws) - min(v[i] for v in ws) for i in range(3)]
+    ext = [max(v[i] for v in ws) - min(v[i] for v in ws) for i in range(3)] if ws else [0, 0, 0]
     mw = arm_ob.matrix_world.to_3x3().normalized()
     rows = {n: {"parent": b.parent.name if b.parent else None, "length": float(b.length),
                 "axes": [list((mw @ b.matrix_local.to_3x3()).col[k].normalized()[:]) for k in range(3)]} for n, b in bones.items()}
     posed = [pb.name for pb in arm_ob.pose.bones if (np.abs(np.array(pb.rotation_euler[:]) if pb.rotation_mode != "QUATERNION" else np.array(pb.rotation_quaternion[:]) - np.array([1, 0, 0, 0])).max() > 1e-6
                                                         or np.abs(np.array(pb.location[:])).max() > 1e-6 or np.abs(np.array(pb.scale[:]) - 1).max() > 1e-6)]
     has_action = bool(arm_ob.animation_data and arm_ob.animation_data.action)
-    return {"bones": rows, "height": float(max(zs) - min(zs)) if zs else 0.0, "up": "XYZ"[int(np.argmax(ext))], "posed": posed, "animated": has_action,
+    return {"bones": rows, "height": float(max(zs) - min(zs)) if zs else 0.0, "up": "XYZ"[int(np.argmax(ext))] if ws else None, "posed": posed, "animated": has_action,
             "unit_scale_length": float(bpy.context.scene.unit_settings.scale_length)}
 
 
@@ -148,6 +141,8 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     leaf = sorted(n for n in names if n.endswith("_end") and (ref is None or n not in ref["bones"]))
     reasons = []
     missing, extra, mism, root_info, scale = [], [], [], {"name": None, "expected": None}, 1.0
+    roots = [n for n, b in t["bones"].items() if b["parent"] is None]
+    root_info["name"] = roots[0] if roots else None
     frames = {"bones_compared": 0, "worst_deg": None, "worst_bone": None, "over_tolerance": [], "tolerance_deg": FRAME_TOL_DEG}
     ref_scale = fbx_bone_scale(_within(root, names_from)) if names_from and str(names_from).lower().endswith(".fbx") else {n: [1.0, 1.0, 1.0] for n in t_scale}
     bone_scale = _bone_scale(t_scale, ref_scale)
@@ -161,6 +156,10 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
         root_info = {"name": roots[0] if roots else None, "expected": rroots[0] if rroots else None}
         scale = t["height"] / ref["height"] if ref["height"] else 1.0
         frames = _frames(t, ref)
+    if frames["bones_compared"] == 0:
+        reasons.append("no bone frames compared: provide target.names_from with a matching reference skeleton")
+    if root_info["name"] is None:
+        reasons.append("the checked skeleton has no root bone")
     if leaf:
         reasons.append(f"{len(leaf)} leaf bone(s) the target does not have (export with add_leaf_bones off): {leaf[:6]}")
     if missing:
@@ -175,7 +174,7 @@ def skeleton_check(armature, fbx, target, expect_unit_scale, allow_extra_bones, 
     if bone_scale["over_tolerance"]:
         reasons.append(f"{len(bone_scale['over_tolerance'])} bone scale(s) differ from the target (worst {bone_scale['worst_bone']} x{bone_scale['worst']:g}): "
                        "an engine reads each bone's Lcl Scaling times the file's UnitScaleFactor (a metres file reads 100x in UE: export cm-native)")
-    if root_info["name"] != root_info["expected"]:
+    if ref is not None and root_info["name"] != root_info["expected"]:
         reasons.append(f"the root is {root_info['name']!r}, the target's is {root_info['expected']!r}")
     if abs(scale - float(expect_unit_scale)) > 0.05 * float(expect_unit_scale):
         reasons.append(f"unit scale reads {scale:.3g} against the reference (expected {expect_unit_scale}): a metres/centimetres or 100x export")
@@ -205,21 +204,20 @@ def engine_check(package_dir, engine, collision, receipt, root):
         raise C.FeatureError(f"no FBX in {package_dir}: run export_piece first")
     fbx = fbxs[0]
     version = fbx_version(fbx)
-    before_o, before_m, before_i = set(bpy.data.objects), set(bpy.data.materials), set(bpy.data.images)
-    canon_io.import_raw(str(fbx))
-    new = [o for o in bpy.data.objects if o not in before_o]
+    before = canon_io.snapshot_ids()
     try:
+        canon_io.import_raw(str(fbx))
+        new = [o for o in bpy.data.objects if o not in before["objects"]]
         meshes = sorted(re.sub(r"\.\d{3}$", "", o.name) for o in new if o.type == "MESH")        # an import into a scene that holds the same names suffixes them
         slots = sorted({re.sub(r"\.\d{3}$", "", s.material.name) for o in new if o.type == "MESH" for s in o.material_slots if s.material})
         refs = set()
-        for mat in [m for m in bpy.data.materials if m not in before_m]:
+        for mat in [m for m in bpy.data.materials if m not in before["materials"]]:
             if mat.use_nodes:
                 for n in mat.node_tree.nodes:
                     if n.type == "TEX_IMAGE" and n.image and n.image.filepath:
                         refs.add(n.image.filepath)
     finally:
-        for o in new:
-            bpy.data.objects.remove(o, do_unlink=True)
+        canon_io.remove_new_ids(before)
     textures_dir = pkg / "Textures"
     refpaths = {Path(bpy.path.abspath(r)).name for r in refs}
     present = {p.name for p in textures_dir.glob("*")} if textures_dir.is_dir() else set()

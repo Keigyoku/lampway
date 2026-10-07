@@ -168,3 +168,33 @@ print("RESULT", json.dumps({"bad": bad, "m": m, "groups": sorted(g.name for g in
     assert ik["root"]["head"] == [0.0, 0.0, 0.0] and ik["pelvis"]["parent"] == "root" and "root" in k["synthesized"], ik
     assert ik["ik_foot_l"]["head"] == ik["foot_l"]["head"] and ik["ik_foot_l"]["parent"] == "ik_foot_root" and ik["ik_foot_root"]["parent"] == "root"
     assert ik["ik_hand_gun"]["head"] == ik["hand_r"]["head"] and ik["ik_hand_r"]["parent"] == "ik_hand_gun" and ik["ik_hand_gun"]["parent"] == "ik_hand_root"
+
+
+def test_hidden_rig_conform_restores_visibility_and_reports_actionable_runtime_error(tmp_path):
+    """G3: actual skinned armature, hidden both ways; source and copies retain flags."""
+    from isolated_binary import run as isolated_run
+    r = isolated_run(tmp_path, MIXAMO + SKIN + '''
+ob = mixamo(); skin = skinned(ob)
+call("rig_inspect", armature="mx")
+call("rig_map", armature="mx", out="rig/mx.map.json")
+ob.hide_viewport = True; ob.hide_set(True)
+skin.hide_viewport = True; skin.hide_set(True)
+before = [ob.hide_viewport, ob.hide_get(), skin.hide_viewport, skin.hide_get()]
+done = call("rig_conform", armature="mx", map="rig/mx.map.json", dry_run=False)
+after = [ob.hide_viewport, ob.hide_get(), skin.hide_viewport, skin.hide_get()]
+out = bpy.data.objects.get("mx_ue"); mesh = bpy.data.objects.get("mx_skin_mx_ue")
+visibility = [out.hide_viewport, out.hide_get(), mesh.hide_viewport, mesh.hide_get()] if out and mesh else []
+from mixar.modules.lampway_tools.features import rig_conform as rf
+original = rf.conform
+rf.conform = lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("Synthetic mode refusal"))
+refused = call("rig_conform", armature="mx", map="rig/mx.map.json", dry_run=False, out_name="retry")
+rf.conform = original
+print("RESULT", json.dumps({"done": done, "before": before, "after": after, "visibility": visibility, "refused": refused}))
+''')
+    assert r.rc == 0, r.out[-3000:]
+    receipt = r.results[0]
+    assert receipt["done"]["ok"], receipt
+    assert receipt["before"] == receipt["after"] == receipt["visibility"] == [True] * 4
+    assert receipt["done"]["posed_skin_drift_m"] <= 1e-5
+    assert not receipt["refused"]["ok"]
+    assert any("lampway_rig_inspect" in h and "mx" in h for h in receipt["refused"]["help"]), receipt

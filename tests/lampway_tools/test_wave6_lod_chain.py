@@ -137,3 +137,22 @@ src, flat = grid("src", True), grid("flat", False)
 print("RESULT", json.dumps({"dev": L._deviation(flat, src), "diag": src.dimensions.length}))
 '''))
     assert d["dev"] > 0.4 / d["diag"]                      # the spike's tip is ~0.5 m from the flat LOD, though every flat vertex lies on the source
+
+
+def test_many_uv_islands_report_achieved_ratios_and_protection_warnings(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+ob=sphere(subdiv=3);uv=ob.data.uv_layers.new(name='DisjointTriangles')
+for p in ob.data.polygons:
+    for j,li in enumerate(p.loop_indices):uv.data[li].uv=(p.index*.01+j*.001,p.index*.007+j*.002)
+r=call('normalize_mesh',input=ob.name,turn_deg=0)
+assert r.get('ok'),r
+r=call('lod_chain',object=ob.name,ratios=[.5,.25,.1],preserve_uv_seams=True)
+assert r.get('ok'),r
+n=len(ob.data.polygons)
+for i,row in enumerate(r['lods']):
+    assert row['achieved_ratio']==round(row['faces']/n,6),row
+    assert row['warnings'] and any('preserve_uv_seams' in w for w in row['warnings']),row
+    if i:assert any('previous' in w for w in row['warnings']),row
+''')

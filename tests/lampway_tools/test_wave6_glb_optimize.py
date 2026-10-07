@@ -78,3 +78,54 @@ print("RESULT", json.dumps({"inplace": inplace, "outside": outside, "meshopt": m
     assert d["outside"]["ok"] is False and "outside the project root" in d["outside"]["error"]
     assert d["meshopt"]["ok"] is False and "glTF Transform" in d["meshopt"]["error"]
     assert d["quality"]["ok"] is False and "1..100" in d["quality"]["error"]
+
+
+def test_default_cube_context_and_failed_import_leave_all_ids_unchanged(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+from mixar.modules.lampway_tools.features import glb_optimize as G
+source=os.path.join(root,'default.glb')
+bpy.ops.export_scene.gltf(filepath=source,export_format='GLB')
+before=ids()
+r=call('glb_optimize',glb='default.glb',out='optimized.glb',mesh_compression='none')
+assert r.get('ok'),r
+assert ids()==before,(ids(),before)
+original=canon_io.import_raw
+def partial_failure(*args,**kw):
+    original(*args,**kw)
+    raise RuntimeError('planted post-import failure')
+canon_io.import_raw=partial_failure
+try:
+    r=call('glb_optimize',glb='default.glb',out='failure.glb',mesh_compression='none')
+    assert r['ok'] is False and 'planted' in r['error'],r
+    assert ids()==before,(ids(),before)
+finally:canon_io.import_raw=original
+''')
+
+
+def test_public_helmet_optimizer_receipt_on_default_scene(tmp_path):
+    import os
+    import pytest
+    from issue2_native import run_issue_case
+    asset_root=os.environ.get('LAMPWAY_MCP_ACCEPTANCE_ASSETS')
+    if not asset_root or not (Path(asset_root)/'DamagedHelmet.glb').is_file():
+        pytest.skip('pinned DamagedHelmet.glb required; real Tripo remains a separate acceptance input')
+    run_issue_case(tmp_path, '''
+import shutil,hashlib
+shutil.copy2(ASSET,root+'/helmet.glb');before=ids();source_hash=canon_io.file_sha256(root+'/helmet.glb')
+a=call('glb_optimize',glb='helmet.glb',out='a.glb',mesh_compression='none',texture_px=256)
+assert a.get('ok') and a['checks']['vertex_deviation_rel']<.01,a
+assert ids()==before,(ids(),before)
+b=call('glb_optimize',glb='helmet.glb',out='b.glb',mesh_compression='none',texture_px=256)
+assert b.get('ok') and b['checks']==a['checks'],(a,b)
+assert ids()==before and canon_io.file_sha256(root+'/helmet.glb')==source_hash
+from mixar.modules.lampway_tools.features import glb_optimize as G
+original=G._pixels
+G._pixels=lambda image: (_ for _ in ()).throw(RuntimeError('planted image comparison failure'))
+try:
+    refused=call('glb_optimize',glb='helmet.glb',out='refused.glb',mesh_compression='none',texture_px=256)
+    assert not refused.get('ok') and 'planted image' in refused['error'],refused
+    assert ids()==before,(ids(),before)
+finally:G._pixels=original
+print('GEOMETRY_RECEIPT '+json.dumps({'asset':'DamagedHelmet.glb','source_sha256':source_hash,'first':a,'second':b,'ids_unchanged':True}))
+'''.replace('ASSET',repr(str(Path(asset_root)/'DamagedHelmet.glb'))))

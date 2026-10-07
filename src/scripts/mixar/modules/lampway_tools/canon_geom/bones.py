@@ -69,9 +69,9 @@ def chain_ends(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
     return out
 
 
-def bone_segments(heads, parents, leaf=LEAF, main_child=None):
+def bone_segments(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
     """{bone: (head (3,), end (3,))} as numpy arrays: the segment a bone covers for distance-based weighting."""
-    ends = chain_ends(heads, parents, leaf, main_child)
+    ends = chain_ends(heads, parents, leaf, main_child, helper_ends)
     return {b: (np.asarray(heads[b], float), np.asarray(ends[b], float)) for b in heads}
 
 

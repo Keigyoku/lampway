@@ -81,12 +81,17 @@ def rig_fit_template(example, joints, template="", hands="none", hidden=None, co
 @_export
 @tool(consumes={"control": Need(kind=("skeleton", "rigged_mesh"), scale=ALL, accept_raw=True)})
 def rig_game_extract(control, name="", extract="deform", hierarchy="keep", constraint="lotrot", root_scale_from="auto", bbones="refuse",
-                     rebind_meshes=True, collection="Deform", dry_run=False):
+                     rebind_meshes=True, collection="Deform", dry_run=False, fields=None, limit=50, offset=0, full=False):
     """An engine-clean deform rig from any control rig (canon 19 B.4; GRT's Generate Game Rig re-implemented with its defects fixed): kept
     bones by extract mode, hierarchy keep | rigify_fix | flat, every kept bone in one collection, constraints to the control twin (lotrot |
     transform | none), B-Bones refused or converted per segment, meshes re-pointed with their world matrix kept; the follow error measured."""
     from .features import rig_game as _RG
-    return _RG.extract(control, name, extract, hierarchy, constraint, root_scale_from, bbones, rebind_meshes, collection, dry_run)
+    from . import bounded as B
+    config = B.options(fields, limit, offset, full)
+    result = _RG.extract(control, name, extract, hierarchy, constraint, root_scale_from, bbones, rebind_meshes, collection, dry_run)
+    return B.receipt(result, config, tool="lampway_rig_game_extract",
+                     defaults=["control", "game", "bones", "dry_run", "follow"],
+                     tables=["bones.kept", "bones.dropped", "hierarchy_changes", "bbones", "meshes", "constraints_added", "meshes_repointed", "collection_members", "bbones_converted"])
 
 
 @_export
@@ -143,7 +148,11 @@ def rig_conform(armature, map, reference="", convention="blender", ik_bones=Fals
     fractions, the reference's hierarchy, frames from the joints and the reference's Z (blender | ue_axes), vertex groups following their bones,
     merge_weights only when named; heads, rest skin and a world-space test pose verified; the source never touched."""
     from .features import rig_conform as _RF
-    return _RF.conform(armature, map, str(_settings().project_root), reference, convention, ik_bones, offsets, merge_weights, out_name, dry_run)
+    try:
+        return _RF.conform(armature, map, str(_settings().project_root), reference, convention, ik_bones, offsets, merge_weights, out_name, dry_run)
+    except RuntimeError as exc:
+        return {"ok": False, "error": f"RuntimeError: {exc}",
+                "help": [f"Run lampway_rig_inspect armature={armature} to check the source rig, then retry lampway_rig_conform in Object Mode"]}
 
 
 @_export

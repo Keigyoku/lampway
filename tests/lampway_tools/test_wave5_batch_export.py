@@ -121,3 +121,27 @@ wrong_unit = BX._verify(a, path, "fbx", "-Y", "Z", 0.01)
 print("RESULT", json.dumps({"same": same, "other": other, "wrong_unit": wrong_unit}))
 '''))
     assert d["same"] < 1e-4 and d["other"] > 1e-3 and d["wrong_unit"] > 1e-3
+
+
+def test_readback_cleans_all_ids_on_success_and_failure(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+from mixar.modules.lampway_tools.features import batch_export as B
+from pathlib import Path
+bpy.ops.wm.read_factory_settings(use_empty=True);ob=sphere('Source');mat=bpy.data.materials.new('Authored');mat.use_nodes=True;ob.data.materials.append(mat)
+p=Path(root)/'model.glb';bpy.ops.export_scene.gltf(filepath=str(p),export_format='GLB')
+before=ids();B._verify(ob,p,'glb','-Y','Z',1);assert ids()==before,(ids(),before)
+original=B._dims
+calls=[0]
+def fail(obs):
+    calls[0]+=1
+    if calls[0]==2:raise RuntimeError('planted readback failure')
+    return original(obs)
+B._dims=fail
+try:
+    try:B._verify(ob,p,'glb','-Y','Z',1)
+    except RuntimeError:pass
+    else:raise AssertionError('failure not raised')
+    assert ids()==before,(ids(),before)
+finally:B._dims=original
+''')

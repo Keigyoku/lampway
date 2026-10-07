@@ -195,12 +195,19 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
                "sha256": {"input": stamp["input"], "map": _file_sha(mp), "reference": ref["sha256"]}}
     if dry_run:
         return {**summary, "dry_run": True, "how": "dry_run=false writes the conformed copy (the source is never touched)"}
+    visibility = [(o.hide_viewport, o.hide_get()) for o in [ob, *meshes]]
     made = []
     try:
         new, copies = _copy(ob, name, meshes, suffix)
         made += [new, *copies]
         base, base_meshes = _copy(ob, f"{name}__baseline", meshes, f"__baseline_{name}")
         made += [base, *base_meshes]
+        # The source is never revealed. Only disposable working copies must
+        # participate in Edit Mode and depsgraph skin verification.
+        for working in made:
+            working.hide_viewport = False
+            working.hide_set(False)
+        bpy.context.view_layer.update()
         groups = [[g.name for g in c.vertex_groups] for c in copies]
         tmp = {old: f"lw_conform_tmp_{i}" for i, old in enumerate(rename)}
         for old in rename:                                  # two phases, so a rename never lands on a name still in use
@@ -291,6 +298,9 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
             bpy.ops.object.mode_set(mode="OBJECT")
         raise
     _remove([base, *base_meshes])
+    for output, (viewport, hidden) in zip([new, *copies], visibility):
+        output.hide_viewport = viewport
+        output.hide_set(hidden)
     out = {**summary, "dry_run": False, "meshes_out": [c.name for c in copies], "merged_groups": merged, "rest_vertex_drift_m": drift,
            "rest_bar_m": bar, "posed_skin_drift_m": posed, "posed_bar_m": POSED_BAR_M, "max_frame_error_deg": frame_err,
            "animation": "not carried: the copy has no action (rig_retarget or rig_convert carries motion across rest frames)",

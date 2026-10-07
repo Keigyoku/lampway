@@ -49,6 +49,7 @@ def _import(path):
     return [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before]
 
 
+@canon_io.rollback_imports
 def generate(root, prompt, lib, duration=3.0):
     p = _index_path(lib)
     if not os.path.exists(p):
@@ -58,11 +59,6 @@ def generate(root, prompt, lib, duration=3.0):
     full = os.path.join(root, best["file"])
     if not os.path.isfile(full):
         raise C.FeatureError(f"the index names {best['file']}, which is missing: run action=index again")
-    old = bpy.data.objects.get(ARMATURE)
-    if old is not None and old.get("lw_motion_generate"):
-        for child in list(old.children):
-            bpy.data.objects.remove(child)
-        bpy.data.objects.remove(old)
     new = _import(full)
     arm = next((o for o in new if o.type == "ARMATURE"), None)
     if arm is None:
@@ -74,6 +70,11 @@ def generate(root, prompt, lib, duration=3.0):
     act = arm.animation_data.action if arm.animation_data else None
     if act is None:
         raise C.FeatureError(f"{best['file']} has no action on its armature")
+    old = bpy.data.objects.get(ARMATURE)
+    if old is not None and old.get("lw_motion_generate"):
+        for child in list(old.children):
+            bpy.data.objects.remove(child)
+        bpy.data.objects.remove(old)
     act.name = best["name"]
     f0, f1 = act.frame_range
     sc = bpy.context.scene

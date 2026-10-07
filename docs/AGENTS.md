@@ -20,7 +20,7 @@ explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorith
 1. **Every claim is measured or marked.** A number, a "works", a "live" names the run that showed it; what was never run is
    said plainly. Status words mean what the README defines (built, live, partial, planned).
 2. **Generated pages are never hand-edited.** Inspection schemas under `docs/schemas/inspect/` are rendered by `src/scripts/mixar/modules/lampway_tools/inspect/schema.py --check` and registered in the rail catalog.  The tool reference is rendered from the live registry (the docs lane's
-   `docs/gen_tools.py`, with `--check`); change the tool, then regenerate. A page that cannot be regenerated on your base is
+   `docs/gen_tools.py`, with `--check`); the same generator owns the live agent/MCP count paragraph in `lampway/connect-ai-apps.md`. Change the registry, then regenerate both pages; their counts come from `server/lampway_server/agent_files/generate.py:registry_counts`, never a hand-maintained total. A page that cannot be regenerated on your base is
    left alone and the gap reported.
 3. **Public paths only.** These files are published: no home paths, hostnames, account names or private documents; a private
    location is written as a placeholder (`<workspace>`), and a link points only at a path in this repository or a public URL.
@@ -51,3 +51,4 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the documentation rules (measured claims, generated pages, public paths, media metadata) were spread across the gate, the README and the reports | six invariants with their gates and the owner | captain ruling, 2026-10-05 |
 | 2026-10-06 | the canon beside the docs | coordinator: "GO for rail row 1" | a reader of docs/ could not tell the canon from the user docs | docs/canon named, with its own contract | captain ruling, 2026-10-06 |
 | 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
+| 2026-10-07 | generated connection catalogue counts | captain: complete issue 2 G13 | the connection guide retained a stale hand-written tool count | generate and check both the tool reference and connection count paragraph from the live registry | generator checks and count falsifiers |

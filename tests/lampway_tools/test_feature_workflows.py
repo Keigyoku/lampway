@@ -16,7 +16,7 @@ bm.verts.new((9, 9, 9))                                    # a loose vertex
 dup = bmesh.ops.duplicate(bm, geom=[f for f in bm.faces][:1])  # a doubled face's vertices
 bm.to_mesh(src.data); bm.free()
 before = (len(src.data.vertices), len(src.data.polygons))
-res = call("mesh_prep", object="helm")
+res = call("mesh_prep", object="helm", full=True)
 prep = bpy.data.objects.get(res.get("object", ""))
 print("RESULT", json.dumps({"res": res, "src_unchanged": (len(src.data.vertices), len(src.data.polygons)) == before,
                             "prep_hash": prep.get("lw_source_hash") if prep else None}))
@@ -66,3 +66,83 @@ print("RESULT", json.dumps({"res": res, "plate_vg": [g.name for g in plate.verte
     assert out["plate_vg"] == [] and out["fit_vg"] == ["spine_03"], "the original is never bound"
     assert len(res["poses"]) >= 2 and all(p["max_edge_stretch"] < 1.001 for p in res["poses"])
     assert res["accepted"] is True
+
+
+def test_retopo_uv_lod_weight_chain_records_original_source_and_passes_identity(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+from mixar.modules.lampway_tools.features import workflows as W
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+source=sphere('approved',4)
+r=call('normalize_mesh',input=source.name,turn_deg=0);assert r.get('ok'),r
+digest=W.mesh_hash(source)
+r=call('retopo',object=source.name,method='voxel',target_faces=1000);assert r.get('ok'),r
+ret=bpy.data.objects[r['object']]
+r=call('uv_unwrap',object=ret.name,method='smart',texture_size=256);assert r.get('ok'),r
+uv=bpy.data.objects[r['object']]
+r=call('normalize_mesh',input=uv.name,turn_deg=0);assert r.get('ok'),r
+r=call('lod_chain',object=uv.name,ratios=[.5],preserve_uv_seams=False);assert r.get('ok'),r
+lod=bpy.data.objects[r['lods'][0]['object']]
+arm=bpy.data.armatures.new('Rig');rig=bpy.data.objects.new('Rig',arm);bpy.context.scene.collection.objects.link(rig)
+bpy.ops.object.select_all(action='DESELECT');rig.select_set(True);bpy.context.view_layer.objects.active=rig
+bpy.ops.object.mode_set(mode='EDIT');b=arm.edit_bones.new('root');b.head=(0,0,0);b.tail=(0,0,1);bpy.ops.object.mode_set(mode='OBJECT')
+body=lod.copy();body.data=lod.data.copy();body.name='nativebody';bpy.context.scene.collection.objects.link(body)
+g=body.vertex_groups.new(name='root');g.add(list(range(len(body.data.vertices))),1,'REPLACE');m=body.modifiers.new('Armature','ARMATURE');m.object=rig
+r=call('weight_transfer',object=lod.name,source=body.name);assert r.get('ok'),r
+wt=bpy.data.objects[r['object']]
+for ob in (ret,uv,lod,wt):
+    assert ob.get('lw_source_hash')==digest,(ob.name,dict(ob.items()))
+    r=call('asset_acceptance',object=ob.name,reference=source.name,tolerance=.1)
+    assert r.get('ok') and r['gates']['identity']['pass'],r
+assert call('asset_acceptance',object=uv.name,reference=source.name,tolerance=.1)['accepted'],r
+''')
+
+
+def test_mesh_prep_default_receipt_is_compact_with_full_shell_pages(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+a=call('mesh_prep',object='Cube')
+b=call('mesh_prep',object='Cube',full=True,limit=1)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'] and out['bytes'] < 12000, out
+    assert 'source_hash' not in out['a'] and 'source_hash' in out['b']
+    assert out['a']['before'] == out['b']['before']
+    assert len(out['b']['shell_orientation']) == 1
+    assert out['b']['pages']['shell_orientation']['total'] == 1
+
+
+def test_mesh_prep_rejects_wrong_presentation_shapes_before_creating_a_branch(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+before=sorted(bpy.data.objects.keys())
+rows=[call('mesh_prep',object='Cube',**opts) for opts in [{'limit':0},{'offset':-1},{'fields':{}},{'full':'yes'}]]
+print('RESULT '+json.dumps({'rows':rows,'before':before,'after':sorted(bpy.data.objects.keys())}))
+''')[0]
+    assert all(not r['ok'] for r in out['rows'])
+    assert out['before'] == out['after'], out
+
+
+def test_public_bunny_retopo_uv_chain_acceptance_receipt(tmp_path):
+    from pathlib import Path
+    import os
+    import pytest
+    from issue2_native import run_issue_case
+    asset_root=os.environ.get('LAMPWAY_MCP_ACCEPTANCE_ASSETS')
+    if not asset_root or not (Path(asset_root)/'bun_zipper.ply').is_file():
+        pytest.skip('pinned bun_zipper.ply required; original Tripo input remains separate')
+    run_issue_case(tmp_path, '''
+import shutil
+from mixar.modules.lampway_tools.features import workflows as W
+bpy.ops.wm.read_factory_settings(use_empty=True)
+shutil.copy2(ASSET,root+'/bunny.ply')
+n=call('normalize_mesh',input='bunny.ply',turn_deg=0);assert n.get('ok'),n
+source=next(o for o in bpy.data.objects if o.type=='MESH');digest=W.mesh_hash(source)
+r=call('retopo',object=source.name,method='voxel',target_faces=2000);assert r.get('ok'),r
+u=call('uv_unwrap',object=r['object'],method='smart',texture_size=256);assert u.get('ok'),u
+ob=bpy.data.objects[u['object']];assert ob.get('lw_source_hash')==digest
+accepted=call('asset_acceptance',object=ob.name,reference=source.name)
+assert accepted.get('ok') and accepted['accepted'],accepted
+assert W.mesh_hash(source)==digest,'source changed'
+print('GEOMETRY_RECEIPT '+json.dumps({'asset':'bun_zipper.ply','source_hash':digest,'retopo':r,'uv':u,'acceptance':accepted}))
+'''.replace('ASSET',repr(str(Path(asset_root)/'bun_zipper.ply'))))

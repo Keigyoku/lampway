@@ -121,3 +121,19 @@ res({"a": a, "b": b["receipt_recorded"], "pass": b["pass"]})
 ''')
     d = r.results[-1]
     assert "run export_piece first" in d["a"] and d["b"] is True and d["pass"] is True
+
+
+def test_empty_comparison_and_missing_root_cannot_pass(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+arm=bpy.data.armatures.new('Rig');ob=bpy.data.objects.new('Rig',arm);bpy.context.scene.collection.objects.link(ob)
+bpy.context.view_layer.objects.active=ob;ob.select_set(True)
+bpy.ops.object.mode_set(mode='EDIT');bone=arm.edit_bones.new('root');bone.head=(0,0,0);bone.tail=(0,0,1);bpy.ops.object.mode_set(mode='OBJECT')
+r=call('skeleton_export_check',armature=ob.name)
+assert r['frames']['bones_compared']==0 and r['pass'] is False,r
+assert r['root']['name']=='root' and any('compared' in x for x in r['reasons']),r
+bpy.ops.object.mode_set(mode='EDIT');arm.edit_bones.remove(arm.edit_bones['root']);bpy.ops.object.mode_set(mode='OBJECT')
+r=call('skeleton_export_check',armature=ob.name)
+assert r.get('ok') and r['root']['name'] is None and r['pass'] is False,r
+assert any('root' in x for x in r['reasons']),r
+''')

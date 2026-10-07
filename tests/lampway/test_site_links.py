@@ -29,6 +29,8 @@ HOSTS = {
     "api.openai.com": "provider", "chatgpt.com": "provider login", "clerk.higgsfield.ai": "provider login", "mcp.higgsfield.ai": "provider",
     "higgsfield.ai": "provider", "www.tripo3d.ai": "studio", "wavespeed.ai": "provider named in a prompt template", "www.eachlabs.ai": "provider named in a prompt template",
     "huggingface.co": "model downloads", "opencode.ai": "documentation of a connected app", "www.blender.org": "provenance", "developer.blender.org": "provenance",
+    "projects.blender.org": "pinned Blender source, manual and Lab MCP provenance; upstream README code-review host",
+    "docs.blender.org": "official versioned Blender API/manual provenance; upstream README reference-manual host",
     "spdx.dev": "licence tooling", "www.contributor-covenant.org": "code of conduct source", "json-schema.org": "schema namespace", "www.w3.org": "xml namespace",
     "schemas.microsoft.com": "xml namespace", "developer.nvidia.com": "build dependency", "www.apple.com": "signing certificate authority",
     "queue.fal.run": "provider: the fal queue (specs/mrmak/12, behind the job receipts and egress)", "fal.ai": "provider: fal's site, named in the price-source note",
@@ -106,3 +108,32 @@ def test_the_host_gate_sees_a_planted_offender(tmp_path):
     finally:
         sys.modules[__name__].ROOT = saved
     assert bad == ["lampway.app", "www.mixar.app"]
+
+
+def test_native_and_python_profile_links_use_registered_local_operators():
+    native = (ROOT / "src/source/blender/editors/interface/interface_mixar_profile_card.cc").read_text()
+    python = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/topbar.py").read_text()
+    operators = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/operators/auth_ops.py").read_text()
+    guard = re.search(r"#ifdef LAMPWAY(.*?)#else(.*?)#endif", native, flags=re.S)
+    assert guard and "LAMPWAY:" in guard.group(1)
+    assert '"MIXIE_CHAT_OT_open_docs"' in guard.group(1)
+    assert '"MIXIE_CHAT_OT_report_bug"' in guard.group(1)
+    assert '"WM_OT_url_open"' in guard.group(2)
+    assert "MIXAR_URL_DOCS" in guard.group(2) and "MIXAR_URL_BUG" in guard.group(2)
+    for suffix in ("open_docs", "report_bug"):
+        assert f'"MIXIE_CHAT_OT_{suffix}"' in native
+        assert f'"mixie_chat.{suffix}"' in python
+        assert f'"mixie_chat.{suffix}"' in operators
+
+
+def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_path):
+    f = tmp_path / "provenance.py"
+    f.write_text('A = "https://projects.blender.org/blender/blender"\n'
+                 'B = "https://docs.blender.org/api/5.2/"\n'
+                 'C = "https://docs.blender.org.example.invalid/api/5.2/"\n')
+    sys.modules[__name__].ROOT, saved = tmp_path, ROOT
+    try:
+        bad = [h for _p, _n, h in _hosts_in([f]) if h not in HOSTS]
+    finally:
+        sys.modules[__name__].ROOT = saved
+    assert bad == ["docs.blender.org.example.invalid"]

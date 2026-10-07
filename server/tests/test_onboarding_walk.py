@@ -69,3 +69,11 @@ def test_onboarding_starts_with_every_route_off(settings, provider, tmp_path, mo
     assert walk.clicks == [("openrouter", True)]
     policy = settings.spend_policy["openrouter"]
     assert (policy["job_cap"], policy["day_cap"], policy["click"], policy["above"]) == (1.0, 5.0, "above", 0.25)     # the walk sends day_cap (ruling 5)
+
+
+def test_every_registered_route_appears_in_onboarding(http, fake):
+    fake.login()
+    w = onboarding().Walk.read(Door(http, fake.rest_headers()))
+    assert w.online
+    assert {r["id"] for r in w.routes} == set(E.ROUTES)
+    assert len(w.routes) == len(E.ROUTES)

@@ -19,7 +19,22 @@ import sys
 HOME = os.path.expanduser('~')
 
 
-from mixar.modules.common.toon.codec import encode, normalize, _scalar, _key
+if __package__:
+    from mixar.modules.common.toon.codec import encode, normalize, _scalar, _key
+else:
+    # Ported CLIs load axi.py by file path without importing Blender's package.
+    # Load the authoritative sibling codec itself; never copy its implementation.
+    import importlib.util as _codec_util
+
+    _codec_name = "_lampway_toon_codec"
+    _codec = sys.modules.get(_codec_name)
+    if _codec is None:
+        _codec_path = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "common", "toon", "codec.py"))
+        _codec_spec = _codec_util.spec_from_file_location(_codec_name, _codec_path)
+        _codec = _codec_util.module_from_spec(_codec_spec)
+        _codec_spec.loader.exec_module(_codec)
+        sys.modules[_codec_name] = _codec
+    encode, normalize, _scalar, _key = _codec.encode, _codec.normalize, _codec._scalar, _codec._key
 
 _STREAM = None
 _WROTE = False

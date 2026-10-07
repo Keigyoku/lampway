@@ -36,11 +36,10 @@ def _json(root, p, what):
 
 
 def _readback(fbx, joints):
-    before_o, before_a = set(bpy.data.objects), set(bpy.data.armatures)
-    canon_io.import_raw(str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
-    new = [o for o in bpy.data.objects if o not in before_o]
-    arms = [o for o in new if o.type == "ARMATURE"]
+    before = canon_io.snapshot_ids()
     try:
+        canon_io.import_raw(str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
+        arms = [o for o in bpy.data.objects if o not in before["objects"] and o.type == "ARMATURE"]
         if not arms:
             return {"ok": False, "error": "the exported FBX has no armature"}
         arm = arms[0]
@@ -60,10 +59,7 @@ def _readback(fbx, joints):
             n += 1
         return {"ok": pos < POS_TOL_M and ang < AXIS_TOL_DEG, "position_max_m": pos, "axis_max_deg": ang, "bones_compared": n}
     finally:
-        for o in new:
-            bpy.data.objects.remove(o, do_unlink=True)
-        for a in [a for a in bpy.data.armatures if a not in before_a]:
-            bpy.data.armatures.remove(a)
+        canon_io.remove_new_ids(before)
 
 
 def gates(ob, body, textures, validation, bind_check, allow_unverified, root):

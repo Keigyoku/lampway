@@ -28,7 +28,7 @@ def ui_index(query="", domain=None):
     entries = [{"name": tool["name"], "domain": tool["_meta"]["mixar/domain"],
                 "summary": tool["description"].split(". ", 1)[0].rstrip(".") + ".",
                 "read_only": tool["annotations"]["readOnlyHint"], "credits": "free."}
-               for tool in schema.tools()
+               for tool in aliases.expose(schema.tools())
                if domain in (None, tool["_meta"]["mixar/domain"])
                and (query in tool["name"].casefold() or query in tool["description"].casefold())]
     return entries
@@ -45,7 +45,8 @@ def with_ui_domain(tools):
 
 
 def failure(exc, call_id):
-    payload = {"error": str(exc), "call_id": call_id,
+    payload = {**(exc.result() if callable(getattr(exc, "result", None)) else {}),
+               "error": str(exc), "call_id": call_id,
                "note": "No automatic mutation retry occurred. Inspect status before further edits."}
     return types.CallToolResult(content=[types.TextContent(type="text", text=json.dumps(payload))],
                                 structured_content=payload, is_error=True,
@@ -125,7 +126,7 @@ def create_server(connector):
             params = params.model_copy(update={"name": aliases.internal_name(params.name)})  # lampway_* -> the connector's own name
             if params.name in schema.SCHEMAS:
                 schema.validate(params.name, args)
-            if params.name == "mixar_tool_quote" and args.get("tool") in schema.SCHEMAS:
+            if params.name == "mixar_tool_quote" and aliases.internal_name(args.get("tool")) in schema.SCHEMAS:
                 if set(args) != {"tool"}:
                     raise ValueError("Specify only the tool to quote")
                 payload = {"result": {"tool": args["tool"], "invocation_credits": 0,
@@ -183,7 +184,7 @@ def create_server(connector):
                         payload["domains"][entry["domain"]] = payload["domains"].get(entry["domain"], 0) + 1
                 else:  # An older backend returns full tool definitions.
                     query = args.get("query", "").casefold()
-                    payload["tools"].extend(t for t in schema.tools() if query in t["name"].casefold()
+                    payload["tools"].extend(t for t in aliases.expose(schema.tools()) if query in t["name"].casefold()
                                            or query in t["description"].casefold())
                 result["content"][0] = {"type": "text", "text": json.dumps(payload)}
             return types.CallToolResult.model_validate(result)

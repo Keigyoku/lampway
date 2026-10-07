@@ -64,3 +64,24 @@ def test_retina_secret_mask_uses_widget_pixels_without_double_scaling(monkeypatc
 ])
 def test_gesture_path_cannot_cross_an_occluding_panel(start, end, blocked):
     assert native_input.segment_intersects(start, end, (40, 40, 60, 60)) is blocked
+
+
+@pytest.mark.parametrize("item,expected", [
+    ({"text": "Save", "tip": "Save file"}, "Save"),
+    ({"text": "", "tip": "Toggle overlay"}, "Toggle overlay"),
+    ({"op": "wm.search_menu", "type": "BUTTON"}, "wm.search_menu"),
+    ({"prop_owner": "Scene", "prop": "camera", "type": "SEARCH_MENU"}, "Scene.camera"),
+    ({"surface": "profile", "type": "BUTTON"}, "profile"),
+    ({"area_type": "VIEW_3D", "region_type": "HEADER", "type": "SEPARATOR"}, "VIEW_3D HEADER SEPARATOR"),
+])
+def test_observed_controls_have_labels_from_native_sources(item, expected, monkeypatch):
+    win = SimpleNamespace(as_pointer=lambda: 1, screen=SimpleNamespace(areas=[]),
+                          scene=SimpleNamespace(mixie_session_id="fixture", name="Fixture"))
+    monkeypatch.setattr(observe, "main_window", lambda: win)
+    monkeypatch.setattr(observe, "signature", lambda: ())
+    monkeypatch.setattr(observe, "widgets", lambda: [{**item, "w": 1}])
+    monkeypatch.setattr(observe, "window_extent", lambda _: {"width": 10, "height": 10})
+    monkeypatch.setattr(observe, "bpy", SimpleNamespace(context=SimpleNamespace(
+        window_manager=SimpleNamespace(windows=[win]))))
+    result, _ = observe.observe("fixture", {})
+    assert result["targets"][0]["label"] == expected

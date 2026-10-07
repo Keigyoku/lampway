@@ -35,6 +35,31 @@ UNIT_OF = {f: u for u, f in RT.UNITS.items()}          # the factor rig_inspect 
 REFERENCE_ID = {"ue5_body": "ue5_manny", "ue5_body_fingers": "ue5_manny", "metahuman": "metahuman_fullbody"}
 
 
+def canonical_helper_ends(ob):
+    """Endpoints only for canon-17 corrective helpers in a valid, unchanged normalized skeleton."""
+    stamp = ob.get("lw_canon")
+    if not stamp:
+        return {}
+    doc = json.loads(stamp)
+    rows = [row for row in doc.get("body", {}).get("bones", []) if row.get("along_source") == "authored_helper_frame"]
+    if not rows:
+        return {}
+    errors = CA.validate(doc)
+    if (errors or doc.get("kind") != "skeleton" or doc.get("normalized_by", {}).get("tool") != TOOL
+            or doc["body"].get("reference_skeleton", {}).get("id") != REFERENCE_ID["metahuman"]):
+        raise C.FeatureError(f"{ob.name}: corrective helper endpoints need a valid normalized skeleton; re-run normalize_rigged")
+    rig = RT.read(ob)
+    if RT._fingerprint(ob, rig) != doc["body"]["rest_pose"]["sha256"]:
+        raise C.FeatureError(f"{ob.name}: the normalized corrective rest frames changed; re-run normalize_rigged")
+    out = {}
+    for row in rows:
+        name = row["name"]
+        if "_correctiveRoot_" not in name or name not in rig["heads"]:
+            raise C.FeatureError(f"{name}: authored helper endpoints are only for normalized MetaHuman corrective roots")
+        out[name] = np.asarray(row["head_m"], float) + np.asarray(row["along"], float) * row["length_m"]
+    return out
+
+
 def _bones(ob, mapped, convention="blender", profile="ue5_body"):
     rig = RT.read(ob)
     names, parents = rig["names"], rig["parents"]

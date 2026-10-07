@@ -3,7 +3,7 @@
 
 # Canon 08 — Pose the body to the piece (the closest pose)
 
-Status: **CANONICAL for the chest** (measured, regression-pinned numbers); **DRAFT for helmet, waist, boots and gauntlets** (their
+Status: **CANONICAL for the chest** (measured, regression-pinned numbers); **ACCEPTED TABLE for helmet** (captain issue-2 instruction); **DRAFT for waist, boots and gauntlets** (their
 degrees of freedom and ranges are the captain's to rule; BUILD_ORDER decision 1). Implemented by: shelf
 `proportion/pose_clearance.py` (ported byte-for-byte to LT `scripts/proportion/pose_clearance.py`, routed by LT `posing.py`);
 Titan `tools/equipment_fitpose.py` (`swing`, `pose_chain`, `fit_chain`), Titan `armour_validate.py` (`pose_cs`, `resolve_axis`,
@@ -57,6 +57,7 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 | 2026-10-04 | A first version without view-layer updates left the elbow fixed for every pose | update the evaluated pose before every read | `pose_clearance.py:50-51` comment |
 | 2026-09-29 | The fist test added 70 deg per joint to a hand the example rests half-curled and never moved the thumb | curl TO an angle about the knuckle line, thumb included | GENERATED-EQUIPMENT §7m (4) |
 | 2026-09-30 | Curl axis pinky->index bent the fingers back; every curl REFUSED on its expect | sign by expectation, axis index->pinky | `recipes/armour-poses.json` |
+| 2026-10-07 | Captain: implement issue-2 typed stubs with canon recommended values | Helmet H.1 is a complete table: neck_01/neck_02/head pitch and roll -8..8 step4; sign probe carries head forward; retain the existing 2mm neck metric and the reversed-axis refusal | issue 2 ruling, coordinator |
 | 2026-10-04 | Chest seed 9c052d49 measured: A-pose arm vertices > 10 mm: 166 (l) / 207 (r) -> 90 / 103 at lower 0, swing +10; neck fraction > 2 mm 0.2538 -> 0.0639 at neck_01 -4 deg, spine_01 -4, spine_03 0 | the regression pin of the chest sweep | `<shelf-scratch>/proportion/pose_9c052d49/pose_clearance.json` (cited in `<specs>/shelf/fit_pose_solve.md`) |
 
 ## E. Golden tests
@@ -70,7 +71,7 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 
 ## F. Implementation gap
 
-1. LT `posing.py:21-29`: only the chest is routed; other kinds answer `needs_decision` with proposals.
+1. LT `posing.py` supplies chest and the accepted complete helmet table. `fit_pose` uses the helmet table by name or by default with scene inputs. Waist, boots and gauntlets still require the missing numerical rows; supplied DOFs run the shared engine.
 2. LT/shelf `pose_clearance.py:73` and `:119` select torso and neck vertices by ABSOLUTE heights (z 1.15–1.52, 1.50–1.62 m) and
    |x| bands: body-specific constants that break on any other body or placement. Canon: regions from the body's joints.
 3. World axes `(0,1,0)` and `(1,0,0)` (`pose_clearance.py:111-113`) assume the body faces -Y in A-pose; the canon names axes from
@@ -93,7 +94,7 @@ Receipt `pose.json` (`lampway.fit-pose/1`): `{body_sha256, placed_sha256, kind, 
 
 ## H. Decisions owed by the captain
 
-1. DOF ranges for helmet, waist, boots and gauntlets (proposals: helmet neck_01/neck_02/head pitch & roll -8..8 step 4; waist
+1. Remaining DOF ranges for waist, boots and gauntlets (helmet neck_01/neck_02/head pitch & roll -8..8 step4 accepted on 2026-10-07; waist
    spine_01/pelvis pitch -8..8 + thigh flexion/abduction; boots ankle pitch/roll + small knee; gauntlets forearm twist, wrist ±30,
    finger curl fractions).
 2. Is a large required pose (pose_cost above some degrees) a REJECT signal for the seed?

@@ -7,7 +7,7 @@
 Every automatic hand sizing and finger identification failed on the user's gauntlets, so the plate labels are a TYPED DECISION: the algorithm may propose, the user (or an agent's proposal, recorded as such)
 labels each plate with a hand or arm bone. ``labels`` validates (every plate labelled - never guessed -, the right hand's bones, finger caps and the bracer metal on ONE bone each, a cloth plate never rigid),
 writes ``glove_labels.json`` and one decision row per plate to ``<piece>/fit/decisions.jsonl``, and returns the bind plan fragment that fit_bind takes as overrides.
-pose, bind and report need the hand-pose engine of the user's project (not available here) and answer needs_decision; fit_state is the user's to rule (the Laya route against the measured validators)."""
+Pose and bind call the shared canon engines with the body's own joints and each glove's recorded independent labels. Automatic mirror relabelling remains a separate explicit decision; it never blocks an independently labelled glove. The pose's DOF ranges must be supplied until a complete canon table is ruled."""
 
 import json
 import re
@@ -67,13 +67,60 @@ def labels(root, piece, side, plates, labels, roles, overrides=None, by="agent")
             "note": "merge bind_fragment into fit_bind's bind_overrides; finger caps and the bracer are one rigid bone each"}
 
 
-def not_built(stage):
-    return {"ok": False, "stage": stage, "needs_decision": {
-        "what": f"fit_glove {stage}",
-        "questions": ["hand keypoints: the body's joints (exact, the default) or a hand model run on renders for the piece's own implied hand?",
-                      "left glove: mirrored labels from the right (a mirror relabel) or an independent pass?"],
-        "why": f"the {stage} stage needs the hand-pose engine (pose_transforms, similarity, lbs, segment_weights) of the user's project, which is not available here; the label decision (stage labels) is built",
-        "proposal": "labels now; pose and bind when the hand-pose engine is wired in"}}
+def _record(root, piece, side):
+    path = Path(root) / piece / "fit" / "glove_labels.json"
+    if not path.is_file():
+        raise GloveError("run fit_glove stage labels for this glove before pose or bind")
+    rec = json.loads(path.read_text())
+    if rec["side"] != side:
+        raise GloveError(f"the recorded labels belong to side {rec['side']}, not {side}; label this glove independently")
+    return rec
+
+
+def pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply=False):
+    _record(root, piece, side)
+    if not dofs:
+        from .. import posing
+        return posing.fit_pose("gauntlets")
+    from .. import posing
+    result = posing.solve_scene("gauntlets", piece, body_object, armature, dofs, chain, regions, root=root)
+    result["keypoints"] = {"source": "body_joints", "side": side, "labels": "independent"}
+    if apply:
+        import bpy
+        from ..features import validate_pose
+        arm = bpy.data.objects[armature]
+        joints = validate_pose._joints(arm)
+        validate_pose._pose(arm, result["entries"], joints, validate_pose._frame(joints))
+        result["applied"] = result["entries"]
+    path = Path(root) / out_dir / "glove_pose.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(result, indent=1, sort_keys=True))
+    return result
+
+
+def bind(root, piece, side, armature, body_object, body, out_dir, apply=False, accept_seam_gap_mm=None):
+    rec = _record(root, piece, side)
+    from ..features import fit_bind
+    roles = {p: row["role"] for p, row in rec["labels"].items()}
+    overrides = {p: {"mode": row["mode"], "bones": [row["bone"]], "reason": "recorded glove plate label"}
+                 for p, row in rec["labels"].items()}
+    plan = fit_bind.plan(piece, armature, roles, overrides, out_dir, root)
+    weighted = fit_bind.weights(piece, armature, out_dir, body_object, root, body=body)
+    returned = fit_bind.return_report(piece, armature, out_dir, root)
+    result = {"ok": True, "object": weighted["object"], "rest_object": returned["object"],
+              "plan": plan, "weights": weighted, "return": returned,
+              "keypoints": {"source": "body_joints", "side": side, "labels": "independent"}}
+    if apply:
+        result["apply"] = fit_bind.apply(piece, armature, out_dir, accept_seam_gap_mm, root)
+    return result
+
+
+def report(root, piece, side, out_dir):
+    rec = _record(root, piece, side)
+    from ..features import fit_bind
+    path = Path(root) / out_dir / "glove_pose.json"
+    return {"ok": True, "labels": rec, "pose": json.loads(path.read_text()) if path.is_file() else None,
+            "bind": fit_bind.report(out_dir, root)}
 
 
 def fit_state(stage):

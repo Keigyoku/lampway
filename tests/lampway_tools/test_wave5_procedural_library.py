@@ -17,7 +17,7 @@ import bootstrap
 for _ in range(100000):
     if bootstrap._load_ui_batch_tick() is None: break
 def lib(**kw):
-    return call("procedural_library", **kw)
+    return call("procedural_library", full=True, limit=1000, **kw)
 '''
 
 
@@ -165,3 +165,18 @@ lib(action="bake", material_id="gold_polished")
 print("RESULT", json.dumps({"engines": sorted(set(engines))}))
 '''))
     assert d["engines"] == ["BLENDER_EEVEE"]
+
+
+def test_procedural_default_rows_are_compact_and_full_pages_restore_inputs(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+a=call('procedural_library',action='list')
+b=call('procedural_library',action='list',full=True,limit=2,offset=2)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'] and out['bytes'] < 12000, out
+    assert all(set(r) == {'material_id','name','category'} for r in out['a']['materials'])
+    assert out['b']['ok'] and len(out['b']['materials']) == 2
+    assert 'inputs' in out['b']['materials'][0]
+    assert out['b']['pages']['materials']['total'] == out['a']['total'] == 55
+    assert len(out['a']['materials']) == 50

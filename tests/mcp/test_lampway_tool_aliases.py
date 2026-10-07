@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The ten local MCP tools are named ``lampway_*`` for AI apps; the old ``mixar_*`` names stay for one release as deprecated aliases (rebrand M6).
+"""The ten local MCP tools are named ``lampway_*`` for AI apps; internal ``mixar_*`` keys are never advertised (issue #2 G15).
 
 The connector also prints a setup that says ``lampway`` (``python mcp.py --config claude|codex``).
 """
@@ -27,13 +27,12 @@ def test_the_table_is_exactly_the_ten_local_tools():
     assert set(aliases.OLD_TO_NEW) == set(schema.SCHEMAS)
 
 
-def test_every_tool_is_offered_under_both_names_and_the_old_one_says_deprecated():
-    offered = {t["name"]: t for t in aliases.expose(schema.tools())}
-    assert len(offered) == 2 * len(TEN)
-    for old, new in TEN.items():
-        assert offered[new]["description"] == schema.DESCRIPTIONS[old]
-        assert offered[old]["description"].startswith(f"Deprecated alias of {new}.")
-        assert offered[new]["inputSchema"] == offered[old]["inputSchema"]
+def test_every_tool_is_offered_only_under_its_canonical_name():
+    offered = {t['name']: t for t in aliases.expose(schema.tools())}
+    assert len(offered) == len(TEN)
+    for old,new in TEN.items():
+        assert old not in offered
+        assert offered[new]['inputSchema'] == schema.SCHEMAS[old]
 
 
 def test_a_call_by_either_name_reaches_the_same_internal_tool():
@@ -52,3 +51,21 @@ def test_the_printed_setup_says_lampway():
     assert list(claude["mcpServers"]) == ["lampway"]
     codex = tomllib.loads(launcher.configuration("codex", python="/usr/bin/python3"))
     assert list(codex["mcp_servers"]) == ["lampway"]
+
+
+def test_g15_public_catalogue_excludes_deprecated_names_and_mentions():
+    offered = aliases.expose(schema.tools())
+    assert {tool['name'] for tool in offered} == set(TEN.values())
+    for tool in offered:
+        assert all(old not in tool['description'] for old in TEN), tool
+
+
+def test_g15_whole_catalogue_size_is_bounded():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'server'))
+    from lampway_server.mcp import McpServer
+    public = aliases.expose(schema.tools() + McpServer(None, None).tools_payload())
+    # Measured full catalogue, including opt-in UI. Less than audit's 335,426 B.
+    size = len(json.dumps({'tools': public}, ensure_ascii=False).encode())
+    assert size <= 335000, size

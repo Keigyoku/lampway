@@ -2,8 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""fit_pose: the closest pose for a piece. Only the CHEST is built (pose_clearance); every other kind answers ``needs_decision`` because the degrees of freedom and their ranges are the user's to
-rule (the shelf has the chest's alone). The proposals are the contract's, marked unverified."""
+"""fit_pose: the closest pose for a piece. Chest and the captain-accepted canon 08 helmet proposal have complete tables. Other kinds retain explicit questions for the ranges not specified by canon; callers can supply a complete DOF list."""
 
 KINDS = ("chest", "helmet", "waist", "boots", "gauntlets")
 
@@ -21,6 +20,8 @@ def fit_pose(kind, **_):
     if kind == "chest":
         return {"ok": True, "route": "pose_clearance",
                 "how": "run_tool('pose_clearance', [...]): both upper arms lowered/swung, then the spine_01, spine_03, neck_01 pitch chain, as the shelf's chest pose sweep"}
+    if kind in TABLES:
+        return {"ok": True, "route": "pose_solve", "table": TABLES[kind], "how": "supply piece, body and armature or use the named DOF table"}
     return {"ok": False, "needs_decision": {
         "what": f"fit_pose degrees of freedom for {kind}",
         "question": f"which bones, axes and ranges may the body move through to find the closest pose for a {kind}, and which poses count as natural?",
@@ -44,6 +45,18 @@ CHEST = {
                 "torso": {"bones": ["spine_01", "spine_02", "spine_03", "spine_04", "spine_05"], "threshold_m": 0.002},
                 "neck": {"bones": ["neck_01", "neck_02", "head"], "threshold_m": 0.002}},
 }
+
+# Canon 08 H.1's complete helmet proposal, accepted by the captain's issue-2 instruction.
+# Pitch is lateral and roll is forward in the canonical joint frame; the first neck
+# probe must carry head forward. The existing neck penetration threshold is unchanged.
+HELMET = {
+    "dofs": [{"bone": "neck_01", "axis": "lateral", "range": [-8, 8], "step": 4,
+              "expect": {"joint": "head", "along": "forward", "min_cm": 0}}],
+    "chain": [{"bone": b, "axis": a, "range": [-8, 8], "step": 4}
+              for b, a in (("neck_01", "forward"), ("neck_02", "lateral"), ("neck_02", "forward"), ("head", "lateral"), ("head", "forward"))],
+    "regions": {"neck": {"bones": ["neck_01", "neck_02", "head"], "threshold_m": 0.002}},
+}
+TABLES = {"chest": CHEST, "helmet": HELMET}
 
 MAX_SAMPLES = 20000          # skin samples per solve (a stride over the body's vertices beyond that: a bound on the sweep's cost)
 

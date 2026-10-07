@@ -11,6 +11,7 @@ The server's compute/toon_out.py is a byte-identical vendored copy, tested in CI
 from __future__ import annotations
 
 import math
+import numbers
 import re
 from decimal import Decimal
 
@@ -26,6 +27,15 @@ def _check_string(value):
 
 
 def normalize(value):
+    # numpy 2 repr includes the scalar's constructor. Convert only explicit
+    # numeric scalar types; arrays and arbitrary serialization hooks stay out.
+    if type(value).__module__ == 'numpy':
+        if type(value).__name__ in ('bool_', 'bool'):
+            value = bool(value)
+        elif isinstance(value, numbers.Integral):
+            value = int(value)
+        elif isinstance(value, numbers.Real):
+            value = float(value)
     if value is None or isinstance(value, (bool, int, str)):
         return _check_string(value) if isinstance(value, str) else value
     if isinstance(value, float):

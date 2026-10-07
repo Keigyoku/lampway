@@ -34,6 +34,8 @@ regenerated corrective golden preserves 120° roll and retains the existing fram
 and retarget falsifiers. The applied normalizer is verified on the corresponding
 binary shape, while actual owner-asset receipts are reported separately.
 
+Canon 08 distinguishes its accepted complete helmet table from still unspecified numerical rows for other kinds. The implementation uses named axes and retains sign falsifiers; the glove engine wiring does not infer mirror labels or substitute a pose model.
+
 ## Test
 
 ```bash
@@ -55,3 +57,5 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | 2026-10-06 | canon into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the canon lived on an off-tree shelf, so agents had no tracked page to load and nothing kept its goldens honest | the canon copied to docs/canon as the source of truth, its invariants stated, `check_canon.py` and its self-test in CI | captain ruling, 2026-10-06 |
 
 | 2026-10-07 | native topology and corrective-root canon | issue 2 G2/G4 | closed-only intake and continuation-only normalization rejected native shapes | document analytical winding intake and authored corrective frames with regenerated R02 evidence | issue 2 acceptance receipts |
+
+| 2026-10-07 | accepted helmet table | captain requested canon-recommended typed defaults | complete proposal remained stubbed while other numeric rows were absent | record the complete helmet proposal as accepted and keep other absent numerical rows explicit | issue 2 |

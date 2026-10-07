@@ -305,6 +305,7 @@ def _auto(kind: str, asset: dict, target) -> str:
     return {"image": "reference_image", "texture_set": "assign_maps", "hdri": "set_world", "video": "add_clip", "animation": "apply_animation", "rig": "attach_rig"}[kind]
 
 
+@canon_io.rollback_imports
 def asset_place(asset: dict, mode: str = "auto", target: dict = None, options: dict = None) -> dict:
     from . import asset_place_media as M
     from . import asset_place_shading as SH

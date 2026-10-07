@@ -103,20 +103,15 @@ def _convention(ob):
 
 def _import(path):
     from .. import canon_io
+    before = canon_io.snapshot_ids()
     rec = canon_io.import_raw(str(path), **RAW_IMPORT)
+    rec["_ids_before"] = before
     return rec
 
 
 def _discard(rec):
-    for n in rec["objects"]:
-        o = bpy.data.objects.get(n)
-        if o is not None:
-            bpy.data.objects.remove(o)
-    for kind in ("armatures", "meshes", "actions", "materials", "images"):
-        for n in rec.get(kind, []):
-            d = getattr(bpy.data, kind).get(n)
-            if d is not None and d.users == 0:
-                getattr(bpy.data, kind).remove(d)
+    from .. import canon_io
+    canon_io.remove_new_ids(rec["_ids_before"])
     bpy.context.view_layer.update()
 
 

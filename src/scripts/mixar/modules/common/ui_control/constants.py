@@ -18,4 +18,9 @@ class UIError(Exception):
         self.code = code
 
     def result(self):
-        return {"error_type": self.code, "error": str(self)}
+        result = {"error_type": self.code, "error": str(self)}
+        if self.code == "modal_active":
+            result["next_step"] = (
+                "Use lampway_ui_observe, then lampway_ui_act(action=press, key=ESC, context=<observed context>, target=<observed popup control or editor region>) to cancel the popup or modal; "
+                "observe again and retry the scene tool after it closes.")
+        return result

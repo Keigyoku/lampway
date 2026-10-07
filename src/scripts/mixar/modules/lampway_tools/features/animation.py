@@ -131,6 +131,7 @@ def _angle(m1, m2):
     return math.degrees(m1.to_quaternion().rotation_difference(m2.to_quaternion()).angle)
 
 
+@canon_io.rollback_imports
 def retarget(source, target, action=None, mapping="auto", method="matrix", root_motion="keep", scale="auto", frame_range=None, fps=None, check_objects=None,
              sample_frames=8, name=None, dry_run=False, root="", keep_source=False):
     if method not in ("matrix", "constraints"):

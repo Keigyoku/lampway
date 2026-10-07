@@ -162,5 +162,5 @@ def format_tool_result(result) -> tuple[str, bool]:
     """(text for the model, is_error) from the client's execution envelope."""
     if not isinstance(result, dict):
         return json.dumps({"success": False, "error": "no result from Blender"}), True
-    is_error = not result.get("success", False)
+    is_error = not result.get("success", False) or result.get("ok") is False
     return json.dumps(result, default=str), is_error

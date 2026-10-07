@@ -63,7 +63,7 @@ class McpServer:
         payload = []
         for t in offered_tools():
             row = {"name": t.name, "description": t.description, "inputSchema": t.parameters,
-                   "_meta": {"spend": False, "spend_policy": SPEND_POLICY}}
+                   "_meta": {"spend": False, "spend_policy": "No spend; only the user confirms in the Client."}}
             if t.name in ENVELOPE.NAMES:
                 row["outputSchema"] = ENVELOPE.output_schema(t.name)
             payload.append(row)
@@ -105,7 +105,7 @@ class McpServer:
     def _call_status(self, request_id, call_id):
         rec = self.journal.get(str(call_id))
         if rec is None:
-            return self._result(request_id, f"no call {call_id!r} in the journal (it keeps the last {JOURNAL_MAX})", True)
+            return self._result(request_id, f"no call {call_id!r} in the journal (it keeps the last {JOURNAL_MAX})\nNext call: lampway_call_status call_id=<call_id>", True)
         return self._result(request_id, json.dumps({"call_id": call_id, **rec}), False)
 
     def _remember(self, call_id, rec):
@@ -180,7 +180,7 @@ class McpServer:
             data = rec.get("data")
             if rec["is_error"]:
                 raw = data if isinstance(data, dict) else {}
-                data = ENVELOPE.refusal(raw.get("error_type") or "execution_failed", raw.get("error") or rec["text"],
+                data = ENVELOPE.refusal(raw.get("error_type") or raw.get("code") or "execution_failed", raw.get("error") or rec["text"],
                     ["lampway_call_status call_id=<call_id>"])
             res = ENVELOPE.result(request_id, data, name=name, full=arguments.get("full", False),
                                   max_bytes=arguments.get("max_bytes", 750000))

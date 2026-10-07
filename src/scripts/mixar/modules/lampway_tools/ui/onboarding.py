@@ -69,10 +69,7 @@ def draw_rail(layout, walk):
         icon = 'LAMPWAY_NODE_LIT' if i < walk.step else 'LAMPWAY_NODE_HALF' if i == walk.step else 'LAMPWAY_NODE'
         col.label(text=name, icon=icon)
     col.separator()
-    if walk.step > 2:    # Back lives under the steps, never on the bottom row where the step before had Continue (audit F23)
-        col.operator("lampway.onboarding_back", text="Back")
-    else:
-        col.label(text="")
+    col.label(text="")
 
 
 def wrapped(layout, text, icon='NONE'):
@@ -141,7 +138,9 @@ def _draw_body(body, walk, rows) -> int:
 
 
 def _redraw_all(context):
-    """The step before's dialog must not stay painted behind this one (audit F23)."""
+    """Refresh surrounding editors after setup content changes."""
+    if getattr(context, "window", None) is None:
+        return
     for area in [*context.window.screen.areas, *context.window.global_areas]:
         area.tag_redraw()
 
@@ -198,13 +197,20 @@ class LAMPWAY_OT_onboarding(Operator):
         elif (event.mouse_x, event.mouse_y) != WALK["anchor"]:
             context.window.cursor_warp(*WALK["anchor"])
         _redraw_all(context)
-        text = walk.continue_label() if walk.step == len(ob.STEPS) and walk.online else "Continue"
-        return context.window_manager.invoke_props_dialog(self, width=640, title=ob.STEPS[walk.step - 1], confirm_text=text)
+        return context.window_manager.invoke_popup(self, width=640)
 
     def draw(self, context):
         walk = WALK["walk"]
         if walk is not None:
+            self.layout.label(text=ob.STEPS[walk.step - 1])
             draw_step(self.layout, walk, context.window_manager.lampway_onboarding_routes)
+            self.layout.separator()
+            footer = self.layout.row(align=True)
+            back = footer.row()
+            back.enabled = walk.step > 2
+            back.operator("lampway.onboarding_back", text="Back")
+            text = walk.continue_label() if walk.step == len(ob.STEPS) and walk.online else "Continue"
+            footer.operator("lampway.onboarding_next", text=text)
 
     def execute(self, context):
         walk = WALK["walk"]
@@ -214,16 +220,35 @@ class LAMPWAY_OT_onboarding(Operator):
             why = walk.next()
             if why:
                 self.report({'ERROR'}, why)
-            return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+            _refresh_step(context)
+            return {'FINISHED'}
         try:
             saved = walk.finish(_door() if walk.online else None)
         except Exception as exc:  # noqa: BLE001  (the server refused or went away: say so, keep the walk to try again)
             self.report({'ERROR'}, f"Lampway's server did not take the setup: {exc}")
-            return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+            _refresh_step(context)
+            return {'FINISHED'}
         bpy.ops.wm.save_userpref()
         WALK.update(walk=None, anchor=None)
         self.report({'INFO'}, "Saved: " + ", ".join(saved))
         return {'FINISHED'}
+
+
+def _refresh_step(context):
+    """Reuse one popup region: no previous-step popup can remain behind it."""
+    region = getattr(context, "region", None)
+    if region is not None:
+        region.tag_redraw()
+    _redraw_all(context)
+
+
+class LAMPWAY_OT_onboarding_next(Operator):
+    """Continue to the next setup step"""
+    bl_idname = "lampway.onboarding_next"
+    bl_label = "Continue"
+
+    def execute(self, context):
+        return LAMPWAY_OT_onboarding.execute(self, context)
 
 
 class LAMPWAY_OT_onboarding_back(Operator):
@@ -234,7 +259,8 @@ class LAMPWAY_OT_onboarding_back(Operator):
     def execute(self, context):
         if WALK["walk"] is not None:
             WALK["walk"].back()
-        return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+        _refresh_step(context)
+        return {'FINISHED'}
 
 
 class LAMPWAY_OT_onboarding_policy(Operator):
@@ -255,7 +281,7 @@ class LAMPWAY_OT_onboarding_policy(Operator):
         return {'FINISHED'}
 
 
-classes = (LampwayOnboardingRoute, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_policy)
+classes = (LampwayOnboardingRoute, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_next, LAMPWAY_OT_onboarding_policy)
 _PROPS = ("lampway_onboarding_routes", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_day_cap",
           "lampway_onboarding_above")
 

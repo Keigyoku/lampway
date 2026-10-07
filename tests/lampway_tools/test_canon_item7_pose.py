@@ -218,10 +218,27 @@ for i, b in enumerate(REF):
 me2 = bpy.data.meshes.new("piece"); me2.from_pydata([(5, 5, 5), (5.1, 5, 5), (5, 5.1, 5)], [], [(0, 1, 2)]); me2.update()
 bpy.context.scene.collection.objects.link(bpy.data.objects.new("piece", me2))
 r = api.fit_pose(kind="chest", piece="piece", body="body", armature="rig", dofs="chest")
-res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})
+h = api.fit_pose(kind="helmet", piece="piece", body="body", armature="rig", apply=True)
+res({"helmet_schema": h.get("schema"), "helmet_sweeps": len(h.get("sweeps") or []), "helmet_applied": h.get("applied"), "ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})
 '''
     r = run_script(PRE + body, timeout=300)
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["ok"], d["error"]
     assert d["entries"] == [] and d["sweeps"] == 60 and d["sign"]["moved_cm"] > 2.0, d
+    assert d["helmet_schema"] == "lampway.fit-pose/1" and d["helmet_sweeps"] == 30 and d["helmet_applied"] == [], d
+
+
+def test_captain_accepted_helmet_table_keeps_all_six_dofs_and_sign_falsifier():
+    from mixar.modules.lampway_tools import posing as PO
+    t = PO.TABLES["helmet"]
+    rows = t["dofs"] + t["chain"]
+    assert [(r["bone"],r["axis"]) for r in rows] == [(b,a) for b in ("neck_01","neck_02","head") for a in ("lateral","forward")]
+    assert all(r["range"] == [-8,8] and r["step"] == 4 for r in rows)
+    ref = _a_pose_skeleton()
+    samples = [(tuple(np.add(ref["head"]["pos"],(0.01,0,0))), "head")]
+    far = (np.array([[5.,5,5],[5.1,5,5],[5,5.1,5]]),np.array([[0,1,2]]))
+    out = PS.solve(ref,FRAME,samples,far,t["dofs"],t["chain"],regions=t["regions"])
+    assert out["entries"] == [] and out["sign_check"]["moved_cm"] > 0
+    with pytest.raises(PS.PoseError,match="sign check"):
+        PS.solve(ref,FRAME,samples,far,[dict(t["dofs"][0],axis="-lateral")],t["chain"],regions=t["regions"])
