@@ -159,12 +159,10 @@ def provider_getter(agent):
     """The gateway's provider for a pane, decided from its token's session (spec S2 as superseded by A):
 
     * a unit's main pane: the current main provider (``agent.provider``, the ``agent.main`` choice), read at call time;
-    * a Mode 1 worker's pane (its token keyed by its swarm binding): the ``agent.worker`` choice, built by the hub's
-      ``swarm_provider_factory`` (``make_swarm_provider``: the worker chain in Choices, its fallback decided at spawn, HC23) at the
-      worker's FIRST call and kept for that worker's life, so a worker never changes provider mid-task. With no worker choice the
-      chain is ``follow:agent.main`` (the documented default), and with no factory at all the worker follows the current main
-      provider. A factory that cannot build the worker's provider raises: the gateway answers that pane with an OpenAI-style error
-      and never with another provider.
+    * a Mode 1 worker's pane (its token keyed by its swarm binding): the spawn-time ``agent.worker`` resolution,
+      built by the hub's ``swarm_provider_factory`` at its FIRST call and kept for that worker's life. No resolution (including a
+      surviving pane after a server restart) or an incompatible factory refuses the call; no worker label follows the current
+      main provider or reselects from changed Settings. The gateway reports the refusal as an OpenAI-style error.
 
     Callable with or without the session id (``models-dev.json`` asks without one: the main provider)."""
     import collections
@@ -177,7 +175,19 @@ def provider_getter(agent):
         provider = workers.get(key)
         if provider is None:
             factory = getattr(agent, "swarm_provider_factory", None)
-            provider = factory(key.rsplit(":", 1)[1]) if factory is not None else agent.provider
+            bindings = getattr(getattr(agent, "swarm", None), "bindings", None)
+            choice = bindings.choice_for(key) if bindings is not None else None
+            if choice is not None:
+                # The same choice that opened this pane must answer it. An old
+                # factory cannot silently choose another service from Settings.
+                import inspect
+                parameters = inspect.signature(factory).parameters if factory is not None else {}
+                if "resolution" not in parameters and not any(p.kind == p.VAR_KEYWORD for p in parameters.values()):
+                    raise ValueError("the worker provider factory does not support its saved Choices resolution")
+                provider = factory(key.rsplit(":", 1)[1], resolution=choice)
+            else:
+                raise ValueError("the pinned worker choice is unavailable after this server restart; "
+                                 "this pane cannot make model calls. Start a new swarm using your saved Choices")
             workers[key] = provider
             while len(workers) > WORKER_PROVIDERS_KEPT:
                 workers.popitem(last=False)

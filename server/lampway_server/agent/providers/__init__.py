@@ -87,9 +87,18 @@ def _openrouter(settings, model, label):
                               max_tokens=settings.openrouter_max_tokens, label=label)
 
 
-def make_swarm_provider(settings, label: str, chatgpt_auth=None):
-    """A provider for one swarm worker. When the configured one cannot be built (a CLI switch off, a missing key), the next option of the
+def make_swarm_provider(settings, label: str, chatgpt_auth=None, resolution=None):
+    """With a spawn-time ``resolution``, build exactly that service and params, with no reselection or hidden fallback.
+    Legacy calls without a resolution retain their configured-provider contract: when it cannot be built, the next option of the
     agent.worker chain in Choices is built instead, at spawn - never mid-turn - and the provider says so in ``choice`` (HC23)."""
+    if resolution is not None:
+        from ...choices.bridge import settings_for_option
+        if resolution.provider not in ("chatgpt_plan", "anthropic", "openrouter", "openai", "mock"):
+            raise ValueError(f"{resolution.option} cannot serve the Mode 1 worker gateway")
+        selected = settings_for_option(settings, resolution.option, resolution.params)
+        provider = (_openrouter(selected, selected.openrouter_model, label) if selected.provider == "openrouter"
+                    else _make_provider(selected, chatgpt_auth))
+        return ResolvedWorkerProvider(provider, resolution)
     try:
         return _make_swarm_provider(settings, label, chatgpt_auth)
     except (ValueError, RuntimeError) as exc:
@@ -110,6 +119,33 @@ def make_swarm_provider(settings, label: str, chatgpt_auth=None):
             pass
         return p
     raise first_error
+
+
+class ResolvedWorkerProvider:
+    """One pinned worker service, with its Choices privacy context on every transport step."""
+    def __init__(self, provider, resolution):
+        self.provider, self.resolution = provider, resolution
+        self.choice = resolution.record()
+
+    def __getattr__(self, name):
+        return getattr(self.provider, name)
+
+    async def stream(self, request):
+        from ... import egress as EG
+        events = self.provider.stream(request).__aiter__()
+        try:
+            while True:
+                with EG.context(**self.resolution.egress_context()):
+                    try:
+                        event = await events.__anext__()
+                    except StopAsyncIteration:
+                        break
+                yield event
+        finally:
+            close = getattr(events, "aclose", None)
+            if close is not None:
+                with EG.context(**self.resolution.egress_context()):
+                    await close()
 
 
 def _build_worker_option(settings, oid: str, label: str, chatgpt_auth=None):

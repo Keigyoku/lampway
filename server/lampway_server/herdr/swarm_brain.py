@@ -3,8 +3,8 @@
 """The pane brain: a swarm worker that thinks in a pane on Lampway's herdr server (docs/reports/agent-modes-spec.md S3).
 
 It is the ONE worker brain (spec S1 and A5, captain 2026-10-07: every agent is a process in a pane; no agent runs without one), in
-either mode. The unit's mode picks the adapter it opens its pane through (``harnesses.worker_adapter``): Mode 2 the parent pane's
-harness (Q10), Mode 1 Lampway's Hermes pane (``lampway_hermes``, A1; refused with help until it is built).
+either mode. Saved ``agent.worker`` Choices picks the worker's service independently of the parent's mode (Q10): a BYOA choice's
+harness, or Lampway's Hermes pane for an API service (``lampway_hermes``, A1; refused with help until it is built).
 
 The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the worker's own headless Lampway, then hands this brain a
 ``WorkerJob``. The brain:
@@ -144,19 +144,27 @@ class WorkerBindings:
         b = self._by_name.get(name or "")
         return b is not None and b.live
 
+    def choice_for(self, name: str):
+        """Trusted in-process gateway lookup, never an endpoint or bearer bypass."""
+        binding = self._by_name.get(name)
+        # Revocation closes the tools door. Its readable pane must still keep
+        # the same model selection until the gateway token is revoked too.
+        return binding.job.meta.get("choice") if binding is not None else None
+
 
 class PaneBrain:
-    """``WorkerBrain`` kind ``pane`` (spec S1, S3), the only one: the worker is a pane running ``harness``, the adapter its unit's
-    mode picked (``SwarmManager.worker_brain``)."""
+    """``WorkerBrain`` kind ``pane``, the only one: running the adapter resolved from saved worker Choices."""
     kind = "pane"
 
-    def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings, timeout_s=None):
+    def __init__(self, cockpit, harness: str, *, cwd: str, project_root: Optional[str], bindings: WorkerBindings, timeout_s=None,
+                 choice=None):
         self.cockpit = cockpit
         self.harness = harness
         self.cwd = cwd
         self.project_root = project_root
         self.bindings = bindings
         self.timeout_s = worker_timeout(timeout_s)
+        self.choice = choice
         self._panes: dict = {}               # worker id -> (cockpit session id, binding name)
         self._exited: dict = {}              # worker id -> why its pane is gone (nothing to close)
 
@@ -166,6 +174,8 @@ class PaneBrain:
 
     async def run(self, job) -> str:
         wid, name = job.worker.id, self.binding_name(job)
+        if self.choice is not None:
+            job.meta["choice"] = self.choice
         binding, token = self.bindings.issue(name, job)
         loop = asyncio.get_running_loop()
         opening = asyncio.ensure_future(asyncio.to_thread(

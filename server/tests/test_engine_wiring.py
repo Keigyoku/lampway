@@ -322,6 +322,23 @@ def _ask(http, token, text="hello"):
     return r.json()["choices"][0]["message"]["content"]
 
 
+def _pin_worker_choice(app, session_id):
+    """A spawned worker's trusted binding, resolved from the real saved Choices store."""
+    from lampway_server import choices as CH
+    selection = CH.resolve("agent.worker", CH.Job(origin="agent"))
+
+    async def bind():
+        app.state.agent.swarm.bindings.issue(session_id, SimpleNamespace(meta={"choice": selection}))
+    asyncio.run(bind())
+    return selection
+
+
+def _configured_worker_factory(settings):
+    """Configured-provider fixture with explicit spawn-time selection support."""
+    from lampway_server.agent.providers import make_swarm_provider
+    return lambda label, resolution=None: make_swarm_provider(settings, label, resolution=resolution)
+
+
 def test_a_mode1_workers_gateway_calls_are_answered_by_the_worker_choice_and_the_main_session_by_the_main_provider(settings):
     """Spec S2 (as superseded by A): a Mode 1 worker's pane thinks through the gateway on the ``agent.worker`` choice, not on the main
     agent's provider. The gateway tells them apart by the token's session: a worker pane's token is keyed by its swarm binding
@@ -331,9 +348,18 @@ def test_a_mode1_workers_gateway_calls_are_answered_by_the_worker_choice_and_the
     main = ScriptedProvider([[Text("main says hi")], [Text("main again")]])
     worker = ScriptedProvider([[Text("worker 1 says hi")], [Text("worker 1 again")], [Text("worker 2 says hi")]])
     built = []
-    app = create_app(settings, provider=main, swarm_provider_factory=lambda label: built.append(label) or worker)
+    resolved = []
+
+    def factory(label, *, resolution=None):
+        built.append(label)
+        resolved.append(resolution.record())
+        return worker
+
+    app = create_app(settings, provider=main, swarm_provider_factory=factory)
     with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
         reg = app.state.engine_tokens
+        for sid in ("swarm:sw1:worker-1", "swarm:sw1:worker-2"):
+            _pin_worker_choice(app, sid)
         unit, w1, w2 = reg.issue_token("scene-1"), reg.issue_token("swarm:sw1:worker-1"), reg.issue_token("swarm:sw1:worker-2")
         assert _ask(http, unit) == "main says hi"
         assert _ask(http, w1) == "worker 1 says hi"
@@ -342,21 +368,29 @@ def test_a_mode1_workers_gateway_calls_are_answered_by_the_worker_choice_and_the
         assert _ask(http, unit) == "main again"
     assert len(main.requests) == 2 and len(worker.requests) == 3, "each pane was answered by its own choice, never the other's"
     assert built == ["worker-1", "worker-2"], "one worker provider per worker pane, built at its first call"
+    assert all(row["purpose"] == "agent.worker" and row["followed"] == "agent.main" for row in resolved)
 
 
 def test_with_no_worker_choice_a_mode1_worker_follows_the_main_agent(settings):
     """The documented default (Choices registry and bridge): with no ``agent.worker`` choice and no swarm provider set, the chain is
-    ``follow:agent.main``: the worker is answered by a provider like the main one (``make_swarm_provider``); with a provider handed
-    to the app and no worker factory, by the current main provider itself."""
+    ``follow:agent.main`` is resolved at spawn and pinned to the worker's trusted binding. Scripted fixture providers explicitly
+    accept that resolution; unknown worker labels never borrow the main provider."""
     from lampway_server.agent.providers.mock import ScriptedProvider
     from lampway_server.choices.bridge import chains
     assert chains(settings)["agent.worker"]["preferred"] == "follow:agent.main"
-    app = create_app(settings)                                       # the configured providers: mock, no worker choice
+    app = create_app(settings, swarm_provider_factory=_configured_worker_factory(settings))
+    selected = _pin_worker_choice(app, "swarm:sw1:worker-1")
+    assert selected.followed == "agent.main" and selected.option == "mock"
     get = W.provider_getter(app.state.agent)
     assert get("swarm:sw1:worker-1").name == get("scene-1").name == "mock"
     main = ScriptedProvider([[Text("main answers the worker")]])
-    app = create_app(settings, provider=main)
+    def scripted_factory(label, *, resolution=None):
+        assert resolution.option == "mock" and resolution.followed == "agent.main"
+        return main
+
+    app = create_app(settings, provider=main, swarm_provider_factory=scripted_factory)
     with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
+        _pin_worker_choice(app, "swarm:sw1:worker-1")
         assert _ask(http, app.state.engine_tokens.issue_token("swarm:sw1:worker-1")) == "main answers the worker"
 
 
@@ -370,15 +404,20 @@ def test_the_providers_dialogs_swarm_model_is_the_answer_the_gateway_gives_a_mod
     for k in PP.ENV_VARS.values():
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-" "or-v1-" + "1f2e" * 16)
-    app = create_app(settings)
+    app = create_app(settings, swarm_provider_factory=_configured_worker_factory(settings))
     with TestClient(app, base_url=BASE) as http:
         fake = FakeMixarClient(http, password=settings.user_password)
         fake.login()
         get = W.provider_getter(app.state.agent)
+        _pin_worker_choice(app, "swarm:sw1:worker-1")
         assert get("swarm:sw1:worker-1").name == "mock", "before the choice: the worker follows the main agent"
         r = fake.put("/app/provider-settings", json={"values": {"swarm_provider": "openrouter",
                                                                 "openrouter_swarm_model": "deepseek/deepseek-v4.1-flash"}})
         assert r.status_code == 200, r.text
+        route = fake.post("/app/egress/route", json={"route": "openrouter", "enabled": True})
+        assert route.status_code == 200, route.text
+        selected = _pin_worker_choice(app, "swarm:sw2:worker-1")
+        assert selected.option == "openrouter:deepseek/deepseek-v4.1-flash"
         worker = get("swarm:sw2:worker-1")                                # a worker of the next swarm: built at its first call
         assert worker.name == "openrouter" and worker.model == "deepseek/deepseek-v4.1-flash"
         assert get("scene-1").name == "mock", "the main pane keeps the main provider"
@@ -391,11 +430,13 @@ def test_a_worker_choice_that_cannot_be_built_is_an_openai_error_not_the_main_pr
     from lampway_server.agent.providers.mock import ScriptedProvider
     main = ScriptedProvider([[Text("main is fine")]])
 
-    def factory(label):
+    def factory(label, *, resolution=None):
+        assert resolution.purpose == "agent.worker"
         raise ValueError("no OpenRouter key is connected for the swarm workers")
     app = create_app(settings, provider=main, swarm_provider_factory=factory)
     with TestClient(app, base_url=BASE, client=("127.0.0.1", 50000)) as http:
         reg = app.state.engine_tokens
+        _pin_worker_choice(app, "swarm:sw1:worker-1")
         r = http.post(CHAT, json={"messages": [{"role": "user", "content": "hi"}]},
                       headers={"Authorization": f"Bearer {reg.issue_token('swarm:sw1:worker-1')}"})
         assert r.status_code >= 400 and "OpenRouter key" in r.json()["error"]["message"]
