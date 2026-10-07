@@ -92,6 +92,39 @@ def claude_transcript(cwd: str, native_id: str, config_dir=None) -> str:
     return str(base / "projects" / folder / f"{native_id}.jsonl")
 
 
+def _meta_time(value) -> float:
+    from datetime import datetime
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return 0.0
+
+
+def codex_find_rollout(codex_home: str, cwd: str, since: float, native_id=None):
+    """The rollout of a Codex pane Lampway started (agent-modes spec B4): by its native id when one is recorded, else the one rollout
+    whose session_meta names this folder, source 'cli', and a start no earlier than the pane's. Exactly one match, or none (never
+    another chat in the folder). Read-only: only each file's first line is read."""
+    matches = []
+    base = Path(codex_home, "sessions")
+    if not base.is_dir():
+        return None
+    for f in base.rglob("*.jsonl"):
+        try:
+            with f.open(encoding="utf-8") as fh:
+                first = json.loads(fh.readline())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(first, dict) or first.get("type") != "session_meta":
+            continue
+        p = first.get("payload") if isinstance(first.get("payload"), dict) else {}
+        if native_id:
+            if p.get("id") == native_id:
+                matches.append(str(f))
+        elif p.get("cwd") == cwd and p.get("source") == "cli" and _meta_time(p.get("timestamp")) >= since - 2:
+            matches.append(str(f))
+    return matches[0] if len(matches) == 1 else None
+
+
 def codex_find_session(codex_home: str, originator: str, cwd: str):
     """The Codex rollout whose first record is a session_meta with OUR originator marker, source 'cli' and this folder: exactly one match, or none (never another recent chat in the folder)."""
     matches = []

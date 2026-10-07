@@ -55,6 +55,11 @@ class TurnTransport:
         if method in ('chat', 'input'):
             from .rules import rules_snapshot
             payload['rules'] = rules_snapshot(scene)
+        if method == 'chat':
+            # The tab's agent mode, Scene.lampway_agent_mode (agent-modes spec M0): the server refuses a Mode 1 turn into a
+            # Your agent tab (wrong_mode).
+            from .agent_mode import get_mode
+            payload['agent_mode'] = get_mode(scene)
         if method in ('chat', 'input'):
             # Answers can replace folders while a question is pending. Send
             # the complete snapshot (empty clears) on both entry points so

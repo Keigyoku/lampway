@@ -204,6 +204,16 @@ Backend contract: `mixar-backend/docs/api/frontend/wakeup-turns.md`. Client pins
 
 **Session start (`start_session(scene, user_request)`):** generates a new `session_id` only if none exists; otherwise continues. Sets state to `BUSY`. Returns the session_id.
 
+### Agent mode per tab: Lampway Agent or Your agent (agent-modes spec M0, B4)
+
+**Files:** `core/agent_mode.py` (mode, refusal, switch, picker rows), `ui/operators/agent_mode_ops.py` (the switch and the harness lookup), `core/byoa_view.py` (the island view and the composer's send). Pins: `tests/test_agent_mode_switch.py`, `tests/test_byoa_island_view.py`.
+
+- **Properties** — `scene.lampway_agent_mode` (`runtime` | `byoa`) and `scene.lampway_byoa_pane` (the cockpit session bound to the tab), both saved; the pane's harness is the ID property `lampway_byoa_harness`, the observed file offset `lampway_byoa_cursor`. Every `agent.chat` carries `agent_mode`; the server refuses a Mode 1 turn into a Your agent tab (`wrong_mode`).
+- **Switch** — the top rows of `MIXIE_CHAT_MT_agent_model` (the Model chip). Refused while BUSY / MODIFYING / AWAITING_INPUT, an open run or an MCP operation (`scene_busy`). The server binds or unbinds the pane on a worker thread (`POST /app/workbench/mode`); a timer applies the answer: a fresh chat session (the old chat to History) and a line saying the conversation does not carry across. New Chat in Your agent mode hands the pane to the new session.
+- **Observed turns** — `agent.turn.started` with `observed: true` is taken only by a tab in Your agent mode. Its payloads render through `slot_processor`, but an observed turn never touches `mixie_chat_state`, the run, the executor's undo turn or Mode 1's resume cursor: a harness's MCP operation (which needs IDLE and sets BUSY) is never lifted or blocked by it. `turn_end` settles the bubbles, upserts the archive and stores the offset.
+- **Screen view** — a pane without a readable session file is one code-block bubble (`byoa-screen:<pane>`), refreshed by a main-thread timer.
+- **Composer** — in Your agent mode Send types into the pane (`agent.byoa.send`): text only, no origin field (the server decides it from the socket), the user's bubble at once, its echo in the transcript skipped.
+
 ## Chat history archive
 
 **Files:** `core/chat_history.py` (store), `core/chat_serializer.py` (generic PropertyGroup↔dict snapshot/restore, shared with `export_ops.py`), `ui/operators/history_ops.py` (data + operators), and the **C++-drawn overlay** split across `editors/space_mixie_chat/mixie_chat_history_overlay.cc` (layout + drawing), `mixie_chat_history_events.cc` (clicks/keys/scroll/cursor), `mixie_chat_history_util.cc` (RNA readers + text/glyph helpers) and `mixie_chat_history_intern.hh` (shared constants/colors).

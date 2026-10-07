@@ -84,6 +84,11 @@ class MIXIE_CHAT_MT_agent_model(Menu):
     def draw(self, context):
         layout = self.layout
         layout.ui_units_x = 15
+        # The tab's agent mode first (agent-modes spec M0): Lampway Agent or Your agent. In Your agent mode the model is the
+        # harness's own, so the model rows give way to a note. Reads a cache only; a draw never reaches the server.
+        from mixar.modules.space_mixie_chat.core import agent_mode as AM
+        if AM.draw_rows(layout, context.scene):
+            return
         models, current = _current()
         # The key in use, named from the credential state at draw time so a
         # fetch that lands after the menu opened shows on the next draw.

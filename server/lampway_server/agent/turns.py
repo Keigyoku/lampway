@@ -103,6 +103,8 @@ class AgentHub:
         self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
         self.commands: dict[str, Command] = {}
+        from .byoa import ByoaView
+        self.byoa = ByoaView(self)      # spec M0 and B4: a tab in Your agent mode, and its pane shown in the island
         # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
         self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
                                   script_timeout_s=script_timeout_s)
@@ -132,6 +134,8 @@ class AgentHub:
             "agent.feedback": self._feedback,
             "agent.checkpoint.mark": self._checkpoint_mark,
             "agent.checkpoint.rewind": self._checkpoint_rewind,
+            "agent.byoa.observe": self.byoa.observe,
+            "agent.byoa.send": self.byoa.send,
         }.get(method)
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
@@ -172,6 +176,8 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
+        if (refused := self.byoa.refusal(session_id, payload)) is not None:     # spec M0: the tab is in Your agent mode
+            return refused
         if self.engine is not None and self.engine.is_running(session_id) and message.strip():
             # R4: a message during the engine's turn joins it (the client's queued bubble settles on this ok); no new turn.
             marks = marks_context.describe(payload.get("mark_context"))
@@ -188,6 +194,8 @@ class AgentHub:
         text = payload.get("text")
         if not session_id or not isinstance(text, str):
             raise InvalidParams("payload.session_id and payload.text are required")
+        if (refused := self.byoa.refusal(session_id, payload)) is not None:
+            return refused
         answers = payload.get("answers")
         session = self._session(session_id)
         pending = session.pending_question

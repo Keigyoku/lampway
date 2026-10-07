@@ -1002,6 +1002,82 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
         except CockpitError as exc:
             return _wb_err(exc)
 
+    async def wb_harnesses(request: Request):
+        """The island's "Your agent" list (agent-modes spec M0, B1): every harness adapter, installed or not, with how to install a
+        missing one, and whether the user's switch for their own agents is on. Read-only: only each found binary's version flag runs."""
+        if (r := _wb(request)) is not None:
+            return r
+        from .herdr import harnesses as _HN
+        rows = await asyncio.to_thread(_HN.listing)
+        return JSONResponse({"harnesses": rows, "enabled": _HN.enabled(settings.state_dir), "terms": _HN.TERMS_NOTE})
+
+    async def wb_mode(request: Request):
+        """One scene tab's agent mode, the server's half of the island's switch (agent-modes spec M0, B2). ``runtime`` unbinds every
+        pane from the tab (never touching a pane, law 5); ``byoa`` binds the tab's pane: the ``pane`` the user picked, or a live pane
+        of the picked ``harness`` already bound to the tab, or a new one started for it (the BYOA switch, the harness's egress route
+        and a running herdr server are the create route's own checks). ``previous_session_id`` hands a pane over from the tab's
+        previous chat session (a New Chat in Your agent mode). Only the user's Client switches a tab."""
+        if (r := _wb(request)) is not None:
+            return r
+        if _wb_origin(request) != "user":
+            return _wb_err("only your Client switches a scene tab's agent mode: an agent cannot", 403)
+        from .herdr import harnesses as _HN
+        body = await _json_body(request)
+        scene = str(body.get("scene_session_id") or "").strip()
+        mode = body.get("mode")
+        harness, pane = body.get("harness"), body.get("pane")
+        if not scene or mode not in ("runtime", "byoa"):
+            return _wb_err("scene_session_id and a mode (runtime or byoa) are required", 400)
+        if mode == "byoa" and not (harness or pane):
+            return _wb_err("Your agent needs the harness to start or the pane to bind", 400)
+
+        def unbind_all(sid, keep=None):
+            out = []
+            for rec in cockpit.find_by_scene(sid) if sid else []:
+                if rec["id"] != keep:
+                    cockpit.unbind(rec["id"])
+                    out.append(rec["id"])
+            return out
+
+        def switch():
+            prev = str(body.get("previous_session_id") or "").strip()
+            if mode == "runtime":
+                return {"mode": "runtime", "unbound": unbind_all(scene) + (unbind_all(prev) if prev and prev != scene else [])}
+            if pane:
+                rec = next((s for s in cockpit.list_sessions() if s["id"] == pane), None)
+                if rec is None or not rec.get("harness"):
+                    raise CockpitError("only a harness pane can be bound to a scene tab: a shell or a command has no Lampway tools")
+            else:
+                if harness not in _HN.ids():
+                    raise CockpitError(f"unknown harness {harness!r}: the harnesses are {', '.join(_HN.ids())}")
+                rec = next((s for s in cockpit.find_by_scene(scene) if s.get("harness") == harness and s.get("state") == "live"), None)
+            if prev and prev != scene:
+                unbind_all(prev)
+            if rec is None:
+                _HN.require_enabled(settings.state_dir)
+                ad = _HN.get(harness)
+                name = str(body.get("name") or "").strip()[:80] or f"{ad.label} for a scene tab"
+                rec = cockpit.create_session(harness, name if len(name) >= 2 else f"{ad.label} for a scene tab", str(_project_root()),
+                                             by="user", scene_session_id=scene)
+            else:
+                rec = cockpit.bind(rec["id"], scene)
+            unbind_all(scene, keep=rec["id"])
+            ad = _HN.ADAPTERS.get(rec.get("harness"))
+            obs = ad.observe(rec) if ad is not None else None
+            view = "transcript" if obs is not None and obs.kind in ("session_file", "rollout") else "screen"
+            return {"mode": "byoa", "pane": rec, "view": view}
+
+        try:
+            out = await asyncio.to_thread(switch)
+            agent.byoa.forget(scene, str(body.get("previous_session_id") or "").strip())   # a new watch starts on the next observe
+            return JSONResponse(out)
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+        except ValueError as exc:                                            # the BYOA switch is off
+            return _wb_err(f"the local CLI switch is off: {exc}", 403)
+        except PermissionError as exc:                                       # the harness's byoa route is off (spec B5)
+            return _wb_err(exc, 403)
+
     async def wb_agent_sends(request: Request):
         if (r := _wb(request)) is not None:
             return r
@@ -1019,7 +1095,8 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
                Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"]),
-               Route("/app/workbench/sessions/{sid}/binding", wb_binding, methods=["POST"])]
+               Route("/app/workbench/sessions/{sid}/binding", wb_binding, methods=["POST"]),
+               Route("/app/workbench/harnesses", wb_harnesses, methods=["GET"]), Route("/app/workbench/mode", wb_mode, methods=["POST"])]
     routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),

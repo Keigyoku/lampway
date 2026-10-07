@@ -160,6 +160,14 @@ def _on_load_post(*_args) -> None:
 
     _select_tab_for_mode(_bpy.context)
 
+    # A tab saved in Your agent mode asks for its pane's view again (agent-modes spec B4); nonblocking, and a socket that is
+    # not up yet asks on its reconnect instead.
+    try:
+        from .byoa_view import observe_all
+        observe_all()
+    except Exception as e:  # noqa: BLE001 — never break file load
+        logger.debug("BYOA view on load skipped: %s", e)
+
 
 def _select_tab_for_mode(context) -> None:
     """Select the island tab of the active scene's chat mode (see above)."""

@@ -30,6 +30,17 @@ class WorkbenchClient(StudioClient):
     def send(self, sid: str, text: str, submit: bool = True) -> dict:
         return self._call("POST", f"/app/workbench/sessions/{sid}/input", {"text": text, "submit": submit, "by": "user"})
 
+    # one agent mode per scene tab (agent-modes spec M0): the island's switch
+    def harnesses(self) -> dict:
+        """``{"harnesses": [row...], "enabled": bool}``: every harness adapter, installed or not (version probes only)."""
+        return self._call("GET", "/app/workbench/harnesses", timeout=20)
+
+    def set_mode(self, scene_session_id: str, mode: str, harness=None, pane=None, previous=None, name=None) -> dict:
+        """Bind the tab's pane (``byoa``: the picked harness, started if need be, or ``pane``) or unbind it (``runtime``)."""
+        body = {"scene_session_id": scene_session_id, "mode": mode, "harness": harness, "pane": pane,
+                "previous_session_id": previous, "name": name}
+        return self._call("POST", "/app/workbench/mode", {k: v for k, v in body.items() if v is not None}, timeout=150)
+
     def close(self, sid: str, confirm: bool) -> dict:
         return self._call("POST", f"/app/workbench/sessions/{sid}/close", {"confirm": bool(confirm)})
 
