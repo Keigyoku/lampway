@@ -8,8 +8,9 @@ model; a POST_PIXEL overlay per area draws the alias large and "name hidden" whi
 sidebar of every compare area) carries the mode bar, Sync / Spin / Blind, each view's strip, the pair table and the blind
 pick. Cameras follow one another on a 100 ms timer while Sync is on.
 
-Modes built here: Wire, Clay, Normals (Solid with the normal matcap), Textured (Material Preview). The data modes (Base
-colour, Normal map, ORM) need the replacement materials of section 6.5 and are drawn disabled with that said."""
+Modes: Wire, Clay, Normals (Solid with the normal matcap); Textured and the data modes (Base colour, Normal map, ORM) show a
+second copy of each model imported with its materials into the scratch scene, normalised the same way, with replacement
+emission materials for the data modes (section 6.5); a missing normal map shows flat, the finding."""
 
 import json
 from pathlib import Path
@@ -22,7 +23,7 @@ from mixar.modules.lampway_tools import compare_face
 
 STATE = {"manifest": None, "stats": [], "numbers": {}, "labels": {}, "revealed": False, "picked": None, "areas": {}, "mode": "1",
          "sync": True, "spin": False, "window": None, "last": None, "root": "", "set_dir": ""}
-DATA_MODES = {"5", "6", "7"}
+DATA_MODES = ("5", "6", "7")
 _HANDLE = []
 
 
@@ -101,6 +102,129 @@ def _sync():
     return 0.1
 
 
+# ---------------------------------------------------------------------------------------- Textured and the data modes
+_TEX = {"copies": {}, "originals": {}}      # model index -> [objects]; object name -> its original materials
+FLAT_NORMAL = (0.5, 0.5, 1.0)              # a missing normal map shown flat: the absence is the finding (mrmak/05 6.5)
+
+
+def ensure_textured() -> dict:
+    """Each model with a file imported once more WITH its materials into the scratch scene, normalised exactly as its plain
+    copy (yaw, scale the longest axis to 2, measure again, centre). Returns {index: [objects]}; a second call reuses them."""
+    import math
+    from mathutils import Matrix, Vector
+    from mixar.modules.lampway_tools.features import model_compare as MC
+    from mixar.modules.lampway_tools import canon_io
+    man = STATE["manifest"]
+    scratch = MC._scratch()
+    for i, m in enumerate(man["models"]):
+        if i in _TEX["copies"] and all(o.name in bpy.data.objects for o in _TEX["copies"][i]):
+            continue
+        if not m.get("file"):
+            _TEX["copies"][i] = []
+            continue
+        before = set(bpy.data.objects)
+        canon_io.import_raw(str(MC._resolve(m["file"], STATE["root"])))
+        new = [o for o in bpy.data.objects if o not in before]
+        meshes = [o for o in new if o.type == "MESH"]
+        for o in new:
+            if o.type != "MESH":
+                bpy.data.objects.remove(o)
+        yaw = Matrix.Rotation(math.radians(float(m.get("rotation_deg") or 0.0)), 4, "Z")
+        pts = [yaw @ (o.matrix_world @ v.co) for o in meshes for v in o.data.vertices]
+        lo = Vector(tuple(min(p[k] for p in pts) for k in range(3)))
+        hi = Vector(tuple(max(p[k] for p in pts) for k in range(3)))
+        scale = 2.0 / max(max(hi - lo), 1e-12)
+        centre = (lo + hi) * 0.5 * scale
+        place = Matrix.Translation(-centre) @ Matrix.Scale(scale, 4) @ yaw
+        for k, o in enumerate(meshes):
+            o.matrix_world = place @ o.matrix_world
+            o.name = f"LWC_{man['id']}_{i}_tex_{k}"
+            for coll in list(o.users_collection):
+                coll.objects.unlink(o)
+            scratch.collection.objects.link(o)
+            _TEX["originals"][o.name] = [slot.material for slot in o.material_slots]
+        _TEX["copies"][i] = meshes
+    return _TEX["copies"]
+
+
+def _linked_image(bsdf, socket_name):
+    """The image node feeding a Principled socket (through a Normal Map or a Separate Color), or None."""
+    sock = bsdf.inputs.get(socket_name)
+    seen = 0
+    node = sock.links[0].from_node if sock is not None and sock.links else None
+    while node is not None and seen < 6:
+        if node.type == "TEX_IMAGE":
+            return node
+        inp = next((i for i in node.inputs if i.links), None)
+        node = inp.links[0].from_node if inp is not None else None
+        seen += 1
+    return None
+
+
+def _mode_material(original, mode: str):
+    """A replacement material that shows one map of ``original`` through an emission (Material Preview)."""
+    name = f"LWC_mode{mode}_{original.name if original else 'none'}"
+    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    emit = nt.nodes.new("ShaderNodeEmission")
+    nt.links.new(emit.outputs["Emission"], out.inputs["Surface"])
+    bsdf = next((n for n in original.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None) if original and original.use_nodes else None
+    socket = {"5": "Base Color", "6": "Normal", "7": "Roughness"}[mode]
+    src = _linked_image(bsdf, socket) if bsdf is not None else None
+    if src is None and mode == "7" and bsdf is not None:
+        src = _linked_image(bsdf, "Metallic")
+    if src is None:
+        if mode == "6":
+            emit.inputs["Color"].default_value = (*FLAT_NORMAL, 1.0)
+        elif mode == "5" and bsdf is not None:
+            emit.inputs["Color"].default_value = bsdf.inputs["Base Color"].default_value
+        else:
+            emit.inputs["Color"].default_value = (0.0, 0.0, 0.0, 1.0)
+        return mat
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = src.image
+    if mode == "5":
+        nt.links.new(tex.outputs["Color"], emit.inputs["Color"])
+    elif mode == "6":
+        if tex.image is not None:
+            tex.image.colorspace_settings.name = "Non-Color"
+        nt.links.new(tex.outputs["Color"], emit.inputs["Color"])
+    else:   # ORM: glTF packs roughness in G and metalness in B in one image: show those two channels
+        sep = nt.nodes.new("ShaderNodeSeparateColor")
+        comb = nt.nodes.new("ShaderNodeCombineColor")
+        nt.links.new(tex.outputs["Color"], sep.inputs["Color"])
+        nt.links.new(sep.outputs["Green"], comb.inputs["Green"])
+        nt.links.new(sep.outputs["Blue"], comb.inputs["Blue"])
+        nt.links.new(comb.outputs["Color"], emit.inputs["Color"])
+    return mat
+
+
+def apply_materials(mode: str) -> None:
+    """Put the mode's replacement materials on the textured copies (the originals back for Textured)."""
+    for obs in _TEX["copies"].values():
+        for o in obs:
+            originals = _TEX["originals"].get(o.name, [])
+            for k, slot in enumerate(o.material_slots):
+                orig = originals[k] if k < len(originals) else None
+                slot.material = orig if mode == "4" else _mode_material(orig, mode)
+
+
+def _show_textured(on: bool) -> None:
+    """In each compare area, the textured copy replaces the plain one (and back) in that area's local view."""
+    man = STATE["manifest"]
+    for _w, area in _compare_areas():
+        i = STATE["areas"].get(area.as_pointer())
+        plain = bpy.data.objects.get(man["models"][i]["object"]) if i is not None else None
+        space = area.spaces.active
+        for o in _TEX["copies"].get(i, []):
+            o.local_view_set(space, on)
+        if plain is not None and _TEX["copies"].get(i):
+            plain.local_view_set(space, not on)
+
+
 def apply_mode(mode: str) -> None:
     STATE["mode"] = mode
     for _w, area in _compare_areas():
@@ -117,9 +241,15 @@ def apply_mode(mode: str) -> None:
         elif mode == "3":
             shading.type, shading.light = 'SOLID', 'MATCAP'
             shading.studio_light = "check_normal+y.exr"
-        elif mode == "4":
+        elif mode in ("4", *DATA_MODES):
             shading.type = 'MATERIAL'
         area.tag_redraw()
+    textured = mode in ("4", *DATA_MODES)
+    if textured:
+        ensure_textured()
+        apply_materials(mode)
+    if _TEX["copies"]:
+        _show_textured(textured)
 
 
 def open_window(context) -> int:
@@ -200,14 +330,9 @@ class LAMPWAY_OT_compare_mode(Operator):
 
     @classmethod
     def description(cls, context, properties):
-        if properties.mode in DATA_MODES:
-            return "Not built yet: the data modes need the replacement materials of the compare spec (section 6.5)"
         return dict(compare_face.MODES).get(properties.mode, "Mode")
 
     def execute(self, context):
-        if self.mode in DATA_MODES:
-            self.report({"WARNING"}, "not built yet: the data modes need their replacement materials")
-            return {"CANCELLED"}
         apply_mode(self.mode)
         return {"FINISHED"}
 
@@ -261,9 +386,7 @@ def draw_compare(layout, context):
     layout.label(text=f"{man['piece']}, {len(man['models'])} variants, normalised to a 2-unit box", icon='LAMPWAY_COMPARE')
     modes = layout.row(align=True)
     for key, word in compare_face.MODES:
-        col = modes.row(align=True)
-        col.enabled = key not in DATA_MODES
-        op = col.operator("lampway.compare_mode", text=f"{key} {word}", depress=STATE["mode"] == key)
+        op = modes.operator("lampway.compare_mode", text=f"{key} {word}", depress=STATE["mode"] == key)
         op.mode = key
     toggles = layout.row(align=True)
     for what, word in (("sync", "Sync"), ("spin", "Spin")):

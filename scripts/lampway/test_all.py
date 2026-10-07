@@ -62,7 +62,11 @@ def binary_gate(root, binary) -> tuple:
     built = Path(binary).resolve().parent.parent / "BUILT_FROM"
     if not built.is_file():
         return "ungated", f"UNGATED binary: {built} is absent, so the binary's native sources are unknown"
-    sha = built.read_text().split()[0]
+    stamp = built.read_text().strip()
+    if stamp.startswith("UNCLEAN "):           # build_linux.sh's mark for a tree that was not the commit (built_from.sh)
+        return "refused", f"the binary was built from an unclean tree: {stamp[:400]}"
+    words = stamp.split()
+    sha = words[1] if words[:1] == ["UNPUSHED"] and len(words) > 1 else words[0]
     paths = [p for p in NATIVE_PATHS if (Path(root) / p).exists()]
     known = subprocess.run(["git", "-C", str(root), "cat-file", "-e", sha + "^{commit}"], capture_output=True)
     if known.returncode != 0:

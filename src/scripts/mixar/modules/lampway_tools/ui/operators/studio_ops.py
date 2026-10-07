@@ -240,7 +240,10 @@ class LAMPWAY_OT_studio_confirm(_StudioOp):
         layout = self.layout
         if self.state:
             row = spend_face.state_row(self.state, ap, self.message)
-            layout.label(text=row["title"], icon="ERROR" if row["state"] != "spent" else "CHECKMARK")
+            if hasattr(layout, "mixar_spend"):
+                layout.row().mixar_spend(element="TITLE", text=row["title"], rule=spend_face.rule(row["state"]))
+            else:
+                layout.label(text=row["title"], icon="ERROR" if row["state"] != "spent" else "CHECKMARK")
             header, body = layout.panel(f"lampway_spend_state_{self.state}", default_closed=row["state"] != "price_changed")
             header.label(text="Why, and what you can do")
             if body is not None:
@@ -254,25 +257,38 @@ class LAMPWAY_OT_studio_confirm(_StudioOp):
                 op.approval_id, op.price, op.label, op.unit = ap["id"], float(row["price"]), ap.get("label") or "", self.unit
             return
         card = spend_face.card(ap, statusbar_state.STATE.get("spend") or {})
-        col = layout.column()
-        col.label(text=card["title"])
-        col.label(text=card["origin"], icon="USER" if card["origin"].startswith("planned by you") else "LIGHT")
-        price = col.row()
-        price.scale_y = 2.0
-        price.label(text=card["price"])
-        price.label(text=card["kind"])
-        col.label(text=card["source"])
-        for meter in card["meters"]:
-            col.label(text=meter["text"], icon_value=_meter_icon(meter))
         chip = privacy_face.chip(_route_of(ap), egress_state.STATE.get("routes")) if _route_of(ap) else privacy_face.chip("local", [])
-        col.label(text=f"{chip['text']}: {card['uploads']}")
+        card = dict(card, uploads=f"{chip['text']}: {card['uploads']}")
+        col = layout.column()
+        if hasattr(col, "mixar_spend"):
+            # The drawn card (contract 13, P1): Fraunces title and price, Plex Mono unit, meters with the pending amount hatched,
+            # one left rule in the state's colour. Each row is a label the C++ card painter claims.
+            card_col = col.column(align=True)
+            for element, text in spend_face.drawn_rows(card):
+                row = card_col.row(align=True)
+                row.scale_y = {"PRICE": 2.4, "METER": 1.6, "TITLE": 1.3}.get(element, 1.0)
+                row.mixar_spend(element=element, text=text, rule="WAITING")
+        else:   # a build without the card painter: the same words as native widgets
+            col.label(text=card["title"])
+            col.label(text=card["origin"], icon="USER" if card["origin"].startswith("planned by you") else "LIGHT")
+            price = col.row()
+            price.scale_y = 2.0
+            price.label(text=card["price"])
+            price.label(text=card["kind"])
+            col.label(text=card["source"])
+            for meter in card["meters"]:
+                col.label(text=meter["text"], icon_value=_meter_icon(meter))
+            col.label(text=card["uploads"])
         if card["expired"]:
             col.label(text="This quote expired: ask for the plan again", icon="ERROR")
             return
-        buttons = col.row(align=True)
+        # The Zen component scope: there the Spend button is painted by the Mixar component painter, which knows the accent fill
+        buttons = (col.mixar_surface(theme='ZEN', density='COMPACT') if hasattr(col, "mixar_surface") else col).row(align=True)
         buttons.operator_context = 'EXEC_DEFAULT'
-        op = buttons.operator(spend_face.OPERATOR, text=card["button"], depress=True)
+        op = buttons.operator(spend_face.OPERATOR, text=card["button"], depress=not hasattr(buttons, "mixar_spend"))
         op.approval_id, op.price, op.label, op.unit = ap["id"], float(ap.get("price") or 0.0), ap.get("label") or "", self.unit
+        if hasattr(buttons, "mixar_spend"):
+            buttons.mixar_style(component='ACTION', variant='ACCENT')   # Spend is the accent fill (contract 13)
         buttons.operator("lampway.spend_not_now", text="Not now")
         col.label(text=card["gate"])
 

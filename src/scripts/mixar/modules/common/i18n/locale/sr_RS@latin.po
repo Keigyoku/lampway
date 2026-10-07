@@ -6666,9 +6666,6 @@ msgstr ""
 msgid "Change every view at once"
 msgstr ""
 
-msgid "not built yet: the data modes need their replacement materials"
-msgstr ""
-
 msgid "Sync the cameras, spin, or keep the names blind"
 msgstr ""
 
@@ -6817,6 +6814,18 @@ msgstr ""
 msgid "Tab of the face"
 msgstr ""
 
+msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
+msgstr ""
+
+msgid "Every route is off until you switch it on"
+msgstr ""
+
+msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
+msgstr ""
+
+msgid "Continue saves your language and keys only"
+msgstr ""
+
 msgid "ChatGPT plan"
 msgstr ""
 
@@ -6863,18 +6872,6 @@ msgid "No agent"
 msgstr ""
 
 msgid "A stand-in that answers on this machine and thinks nothing"
-msgstr ""
-
-msgid "Continue saves your language and keys only"
-msgstr ""
-
-msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
-msgstr ""
-
-msgid "Every route is off until you switch it on"
-msgstr ""
-
-msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
 msgstr ""
 
 msgid "Click above"
@@ -6962,9 +6959,6 @@ msgid "Privacy in the viewport's Lampway sidebar."
 msgstr ""
 
 msgid "The pop-out the status bar's wire chip opens."
-msgstr ""
-
-msgid "spend unknown: server not running"
 msgstr ""
 
 msgid "egress unknown"
@@ -7513,6 +7507,12 @@ msgid "Open the Lampway terminal"
 msgstr ""
 
 msgid "Open the Lampway terminal beside Blender: one tab per agent of Lampway's herdr server (Ctrl Alt T)"
+msgstr ""
+
+msgid "Focus the Lampway terminal"
+msgstr ""
+
+msgid "Bring Lampway's agent tab forward in the Lampway terminal (never another WezTerm's pane)"
 msgstr ""
 
 msgid "Remove the Lampway terminal"
@@ -27233,6 +27233,21 @@ msgstr ""
 msgid "{n} tools called"
 msgstr ""
 
+msgid "{done} of {n} steps done, local"
+msgstr ""
+
+msgid "{n} step done"
+msgstr ""
+
+msgid "{n} steps done"
+msgstr ""
+
+msgid "{n} failed"
+msgstr ""
+
+msgid "local"
+msgstr ""
+
 msgid "Viewport render"
 msgstr ""
 
@@ -34993,6 +35008,9 @@ msgstr "Koraka"
 msgid "Thought for %ds"
 msgstr "Razmišljalo %ds"
 
+msgid "Lampway Agent"
+msgstr ""
+
 # derived
 msgid "Start Voice Input"
 msgstr "Pokreni glasovni unos"
@@ -36143,6 +36161,13 @@ msgid "Destructive action"
 msgstr "Razorna radnja"
 
 # derived
+msgid "Accent"
+msgstr "Akcent"
+
+msgid "The accent fill: a spend that waits for your click (Lampway)"
+msgstr ""
+
+# derived
 msgid "Option"
 msgstr "Opcija"
 
@@ -36163,6 +36188,42 @@ msgid "Non-interactive explanation"
 msgstr "Neinteraktivno objašnjenje"
 
 msgid "Action card with a title and supporting line"
+msgstr ""
+
+msgid "The action, in Fraunces"
+msgstr ""
+
+msgid "\"<number> <unit>\\x1f<kind>\": the price large, its unit and kind"
+msgstr ""
+
+msgid "Meter"
+msgstr ""
+
+msgid "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"
+msgstr ""
+
+msgid "A secondary line"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Accent: it waits for your click"
+msgstr ""
+
+msgid "Refused"
+msgstr ""
+
+msgid "Stop: refused before sending"
+msgstr ""
+
+msgid "An agent tried to confirm"
+msgstr ""
+
+msgid "Spent"
+msgstr ""
+
+msgid "Go: spent"
 msgstr ""
 
 # derived
@@ -36211,10 +36272,6 @@ msgstr "Tekst opasnosti"
 # derived
 msgid "Danger-tinted body text for inline errors"
 msgstr "Tekst tela u nijansi opasnosti za umetnute greške"
-
-# derived
-msgid "Accent"
-msgstr "Akcent"
 
 # derived
 msgid "Filled accent button, the one primary action"

@@ -138,3 +138,47 @@ def test_generate_prompts_carry_an_estimate():
     draw = src[src.index("void mixie_chat_draw_empty_state("):]
     assert 'STREQ(g_empty_prompt_modes[i], "GENERATE")' in draw and "empty_state_draw_chip(" in draw
     assert [m for m in re.findall(r'"(AGENT|GENERATE)"', src[src.index("g_empty_prompt_modes"):src.index("g_empty_prompt_generate_types")])].count("GENERATE") == 2
+
+
+def test_each_agent_turn_gets_its_who_line():
+    """Contract 04's who line: the first agent message after a user message is stamped with the time it arrived and the
+    route it came by (the sync stamps it when it first sees it, so the time is the arrival within a poll)."""
+    from types import SimpleNamespace
+
+    from mixar.modules.lampway_tools import chat_route as CR
+    msgs = [SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who=""),
+            SimpleNamespace(sender="AGENT", lampway_who=""), SimpleNamespace(sender="USER", lampway_who=""),
+            SimpleNamespace(sender="AGENT", lampway_who="09:00\x1fchatgpt.com")]
+    CR.stamp_who(msgs, "14:32", "chatgpt.com", "ChatGPT plan", busy=False)
+    assert [m.lampway_who for m in msgs] == ["", "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle", "", "",
+                                              "09:00\x1fchatgpt.com\x1f\x1fidle"], "a stamp keeps its time, route and plan"
+    assert CR.stamp_who([SimpleNamespace(sender="AGENT", lampway_who="")], "10:01", "", "")[0].lampway_who == "10:01\x1fthis machine\x1f\x1fidle"
+
+
+def test_the_who_line_spark_is_the_agents_state_and_the_chip_its_plan():
+    """Contract 04 line 29: "the Spark (20 px) in the agent's state, the name, a plan chip (agent outline: 'ChatGPT plan'),
+    time in mono". Only the latest turn's Spark follows the agent while it works; earlier turns are idle."""
+    from types import SimpleNamespace
+
+    from mixar.modules.lampway_tools import chat_route as CR
+    msgs = [SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who=""),
+            SimpleNamespace(sender="USER", lampway_who=""), SimpleNamespace(sender="AGENT", lampway_who="")]
+    CR.stamp_who(msgs, "14:32", "chatgpt.com", "ChatGPT plan", busy=True)
+    assert [m.lampway_who.split("\x1f")[3] for m in msgs if m.sender == "AGENT"] == ["idle", "working"]
+    CR.stamp_who(msgs, "14:40", "chatgpt.com", "ChatGPT plan", busy=False)
+    assert msgs[3].lampway_who == "14:32\x1fchatgpt.com\x1fChatGPT plan\x1fidle", "the turn ended: idle, its time unchanged"
+    assert CR.plan_label("codex_cli") == "ChatGPT plan" and CR.plan_label("claude_cli") == "Claude plan"
+    assert CR.plan_label("openrouter") == "OpenRouter key" and CR.plan_label("mock") == "no agent" and CR.plan_label("") == ""
+    native = (ROOT / "src/source/blender/editors/space_mixie_chat/mixie_chat_ui_widgets.cc").read_text()
+    who = native[native.index("void chat_ui_draw_who_line"):native.index("void chat_ui_draw_sender_label")]
+    assert "chat_ui_get_agent_color" in who and '"working"' in who, "the chip in the agent's outline; the Spark by state"
+
+
+def test_the_step_log_collapses_to_what_happened_and_where():
+    """Contract 04's calm pass: the collapsed step log says how many steps are done, any that failed, and where they ran (the
+    agent's tools are scripts in this Blender: local). Steps carry no timing, so no duration is claimed."""
+    from mixar.modules.space_mixie_chat.core import steps_format as SF
+    assert SF.format_steps_summary(["READ", "COMMAND", "TOOL"], statuses=["DONE", "DONE", "DONE"]) == "3 steps done, local"
+    assert SF.format_steps_summary(["READ", "COMMAND"], statuses=["DONE", "FAILED"]) == "1 step done, 1 failed, local"
+    assert SF.format_steps_summary(["READ", "COMMAND", "TOOL"], statuses=["DONE", "RUNNING", "PENDING"]) == "1 of 3 steps done, local"
+    assert SF.format_steps_summary(["READ"]) == "1 tool called", "a caller without statuses keeps the old words"

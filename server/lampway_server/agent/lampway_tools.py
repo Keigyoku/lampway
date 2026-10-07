@@ -737,6 +737,8 @@ from .orphan_tools import ORPHAN_DEFS  # noqa: E402  (the orphan tools, STATUS.m
 DEFS += ORPHAN_DEFS
 from .rig_defs import RIG_DEFS  # noqa: E402  (the rig tools, specs/canon/rig_tools: their own file)
 DEFS += RIG_DEFS
+from .batch_forms import BATCH_FORM_DEFS  # noqa: E402  (facelift 07: the batch tools that had no typed definition)
+DEFS += BATCH_FORM_DEFS
 
 for _d in DEFS:                                                 # 5.8: every engine Def names its purpose's options
     if _d.name in ENGINE_PURPOSES:

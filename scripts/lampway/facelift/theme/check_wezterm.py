@@ -31,7 +31,9 @@ local handlers, out = {}, {}
 package.preload['wezterm'] = function()
   return { config_builder = function() return {} end, on = function(n, f) handlers[n] = f end,
            font_with_fallback = function(t) return t end, json_parse = function(s) return JSON_DECODE(s) end,
-           format = function(t) return t end }
+           format = function(t) return t end, default_hyperlink_rules = function() return {} end,
+           json_encode = function(t) return '{"path":"' .. t.path .. '"}' end,
+           action = setmetatable({}, { __index = function(_, k) return k end }) }
 end
 -- a tiny JSON decoder for the planted state file (objects, strings only)
 function JSON_DECODE(s)
@@ -59,6 +61,12 @@ emit('check_for_updates', cfg.check_for_updates); emit('audible_bell', cfg.audib
 for _, st in ipairs({'idle', 'working', 'unread', 'blocked', 'paused', 'done', 'failed'}) do
   STATE_NOW = st
 end
+emit('links', #cfg.hyperlink_rules)
+local open_uri = handlers['open-uri']
+emit('openuri.lampway', tostring(open_uri and open_uri(nil, nil, 'lampway-image:/p/a.png')))
+emit('openuri.other', tostring(open_uri and open_uri(nil, nil, 'https://example.invalid/x')))
+local q = io.open(os.getenv('LAMPWAY_HOME') .. '/wezterm/show_in_blender.jsonl', 'r')
+emit('queue', q and q:read('*a'):gsub('\n', '|') or '')
 local f = handlers['format-tab-title']
 for pid, st in pairs({['1'] = 'idle', ['2'] = 'working', ['3'] = 'unread', ['4'] = 'blocked', ['5'] = 'paused', ['6'] = 'done', ['7'] = 'failed'}) do
   local r = f({ active_pane = { pane_id = tonumber(pid), title = 't' }, is_active = false })
@@ -103,8 +111,14 @@ def check(lua_path):
     if v.get("audible_bell") != "Disabled" or v.get("cursor_blink_rate") != "0":
         f.append("W2 bell or blinking cursor is on (calm by default)")
     opens = re.findall(r"io\.open\(([^,)]+)", src)
-    if opens != ["STATE_FILE"]:
-        f.append(f"W3 the config opens {opens}, only STATE_FILE is allowed")
+    if opens != ["STATE_FILE", "SHOW_QUEUE"]:
+        f.append(f"W3 the config opens {opens}, only STATE_FILE (read) and SHOW_QUEUE (append) are allowed")
+    if not re.search(r"local SHOW_QUEUE = home \.\. '/wezterm/show_in_blender\.jsonl'", src) or "io.open(SHOW_QUEUE, 'a')" not in src:
+        f.append("W3 the image queue is not Lampway's own append-only file under LAMPWAY_HOME")
+    # W5: the image fallback (contract 16, 6.7): a Lampway image link is queued for Blender and nothing else is taken
+    if v.get("openuri.lampway") != "false" or v.get("openuri.other") != "nil" or v.get("queue") != '{"path":"/p/a.png"}|':
+        f.append(f"W5 open-uri: lampway {v.get('openuri.lampway')}, other {v.get('openuri.other')}, queue {v.get('queue')!r} "
+                 "(want: the Lampway link queued once and swallowed, any other link left to WezTerm)")
     if re.search(r"\.wezterm\.lua|\.config/wezterm|WEZTERM_CONFIG", src):
         f.append("W3 the config names the user's own WezTerm configuration")
     if "LOADERR" not in run(lua_path, with_home=False):
@@ -128,6 +142,7 @@ def self_test():
         ("W2 update check on", src.replace("config.check_for_updates = false", "config.check_for_updates = true"), "W2"),
         ("W3 reads the user's config", src.replace("local STATE_FILE", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nlocal STATE_FILE"), "W3"),
         ("W4 two states share a glyph", src.replace("glyph = '✕'", "glyph = '✓'"), "W4"),
+        ("W5 every link taken", src.replace("  if not path then return end\n", "  if not path then return false end\n"), "W5"),
     ):
         p = os.path.join(tempfile.mkdtemp(), "mut.lua")
         open(p, "w", encoding="utf-8").write(mut)

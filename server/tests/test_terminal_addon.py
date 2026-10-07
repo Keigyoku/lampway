@@ -210,6 +210,42 @@ def test_the_routes_need_the_user(settings, provider, tmp_path, monkeypatch):
     E.set_active(None)
 
 
+def test_open_attaches_the_window_to_lampways_herdr_by_its_socket(settings, provider, tmp_path, monkeypatch):
+    """The window's first tab is plain `herdr`, which attaches to the server its HERDR_* environment names (Lampway's, under the
+    Lampway root). `herdr session attach <name>` would address a NAMED session in herdr's own state instead, never Lampway's."""
+    from starlette.testclient import TestClient
+
+    from lampway_server.app import create_app
+    from lampway_server.herdr import launcher as HL
+
+    from .fake_client import FakeMixarClient
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    herdr = tmp_path / "bin" / "herdr"
+    herdr.parent.mkdir()
+    herdr.write_text("#!/bin/sh\nexit 1\n")              # every herdr call answers "not running"
+    herdr.chmod(0o755)
+    monkeypatch.setenv("LAMPWAY_HERDR_BIN", str(herdr))
+    vdir = home / "addons" / "wezterm" / "v1"
+    vdir.mkdir(parents=True)
+    (vdir / "wezterm.AppImage").write_bytes(b"x")
+    (home / "addons" / "wezterm" / "current").write_text("v1")
+    seen = {}
+
+    def launch(home_, exe, herdr_root=None, position=None, detached=True, bootstrap=None):
+        seen.update(exe=exe, herdr_root=herdr_root, bootstrap=bootstrap)
+        return {"gui_pid": 1}
+    monkeypatch.setattr(W, "launch", launch)
+    app = create_app(settings, provider=provider, egress=E.Egress(tmp_path / "eg"))
+    with TestClient(app, base_url="http://127.0.0.1:8787") as http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        assert http.post("/app/terminal/open", headers=fake.rest_headers()).status_code == 200
+    E.set_active(None)
+    assert seen["bootstrap"] == [str(herdr)], seen
+    assert seen["herdr_root"] is not None and HL.bin_path() == str(herdr)
+
+
 def test_every_redirect_hop_is_logged_under_its_own_host(home, egress):
     """GitHub answers a release download with a redirect to its asset host: each hop goes through the gate and the log names it."""
     egress.set_route("github", True)
@@ -223,3 +259,136 @@ def test_every_redirect_hop_is_logged_under_its_own_host(home, egress):
     W.get(home, PIN, transport=httpx.MockTransport(handle))
     hosts = {r["provider"] for r in egress.log() if r.get("route") == "github"}
     assert {"github.com", "release-assets.githubusercontent.com"} <= hosts, hosts
+
+
+def test_the_terminal_gets_plex_mono_as_truetype(home):
+    """WezTerm 20240203 cannot read woff2 (measured live 2026-10-06: a Configuration Error pane): the add-on installs TTF."""
+    W.write_config(home)
+    fonts = home / "addons" / "wezterm" / "fonts"
+    ttfs = sorted(fonts.glob("*.ttf"))
+    assert ttfs and not list(fonts.glob("*.woff2")), sorted(p.name for p in fonts.iterdir())
+    for f in ttfs:
+        assert f.read_bytes()[:4] == b"\x00\x01\x00\x00", f.name     # an sfnt with TrueType outlines
+    assert (fonts / "OFL-IBM-Plex-Mono.txt").exists()
+
+
+def test_an_image_path_in_a_pane_is_a_link_that_shows_it_in_blender():
+    """Inline images do not cross herdr (measured live 2026-10-06, iTerm2 and kitty protocols: 0 pixels through herdr, 26 289
+    without it), so contract 16's fallback is the rule: an image path in a pane's output is a link, and a click appends it to a
+    queue under $LAMPWAY_HOME that Blender drains into its Image Editor. Nothing else is opened and nothing leaves the machine."""
+    lua = (Path(W.__file__).parent / "lampway.wezterm.lua").read_text(encoding="utf-8")
+    assert "config.hyperlink_rules = wezterm.default_hyperlink_rules()" in lua
+    assert "format = 'lampway-image:$1'" in lua and "png|jpe?g|exr|webp|tga|tiff?|bmp" in lua
+    assert "wezterm.on('open-uri'" in lua and "home .. '/wezterm/show_in_blender.jsonl'" in lua
+    assert "mods = 'CTRL', mouse_reporting = reporting" in lua and "action = wezterm.action.OpenLinkAtMouseCursor" in lua, \
+        ("herdr reports the mouse, so the link is Ctrl+click in both modes (measured live 2026-10-06 under herdr: a plain click "
+         "did not open it; Ctrl+click did, and did not without this binding)")
+    handler = lua[lua.index("wezterm.on('open-uri'"):]
+    assert "^lampway%-image:" in handler and "return false" in handler, "only Lampway's links are taken; every other link opens as before"
+
+
+# ---- the rest of contract 16's surface: the state file the tab bar reads, Focus, Update
+
+SESSIONS = [{"id": "s1", "name": "rig the lamp", "state": "live", "activity": "working"},
+            {"id": "s2", "name": "texture pass", "state": "live", "activity": "waiting"},
+            {"id": "s3", "name": "old task", "state": "ended"},
+            {"id": "s4", "name": "not in the window", "state": "live", "unread": True}]
+
+
+def test_the_state_doc_names_each_lampway_pane_by_its_agent():
+    """Section 5: {panes: {"<wezterm pane id>": {state, name}}, egress: {state, route, size}}; a cue per DESIGN.md 13."""
+    inst = {"panes": {"0": {}, "4": {"herdr_agent_id": "s1"}, "5": {"herdr_agent_id": "s2"}, "6": {"herdr_agent_id": "s3"},
+                      "7": {"herdr_agent_id": "gone"}}}
+    routes = [{"id": "openrouter", "label": "OpenRouter", "enabled": True}, {"id": "fal", "label": "fal.ai", "enabled": False}]
+    doc = W.state_doc(inst, SESSIONS, {"over_the_wire": False, "active": []}, routes)
+    assert doc["panes"] == {"4": {"state": "working", "name": "rig the lamp"}, "5": {"state": "blocked", "name": "texture pass"},
+                            "6": {"state": "done", "name": "old task"}}, "a pane with no agent, or an agent Lampway no longer has, is left out"
+    assert doc["egress"] == {"state": "open", "open": "1 route open"}
+    live = W.state_doc(inst, SESSIONS, {"over_the_wire": True, "active": ["openrouter"]}, routes)["egress"]
+    assert live == {"state": "live", "route": "OpenRouter", "size": ""}
+    assert W.state_doc({}, [], {"over_the_wire": False, "active": []}, [dict(routes[0], enabled=False)])["egress"] == {"state": "idle"}
+
+
+def test_the_state_file_is_written_whole_and_only_when_it_changes(home):
+    doc = {"panes": {"4": {"state": "working", "name": "a"}}, "egress": {"state": "idle"}}
+    assert W.write_state(home, doc) is True
+    assert json.loads((home / "wezterm" / "state.json").read_text()) == doc
+    mtime = (home / "wezterm" / "state.json").stat().st_mtime_ns
+    assert W.write_state(home, doc) is False and (home / "wezterm" / "state.json").stat().st_mtime_ns == mtime
+    assert not list((home / "wezterm").glob("*.tmp"))
+
+
+def _installed(home, version="20240203-110809-5046fc22"):
+    vdir = home / "addons" / "wezterm" / version
+    vdir.mkdir(parents=True)
+    (vdir / "wezterm.AppImage").write_bytes(b"x")
+    (home / "addons" / "wezterm" / "current").write_text(version)
+
+
+def _app(settings, provider, tmp_path, monkeypatch):
+    from starlette.testclient import TestClient
+
+    from lampway_server.app import create_app
+
+    from .fake_client import FakeMixarClient
+    herdr = tmp_path / "bin" / "herdr"
+    herdr.parent.mkdir(exist_ok=True)
+    herdr.write_text("#!/bin/sh\nexit 1\n")
+    herdr.chmod(0o755)
+    monkeypatch.setenv("LAMPWAY_HERDR_BIN", str(herdr))
+    app = create_app(settings, provider=provider, egress=E.Egress(tmp_path / "eg"))
+    http = TestClient(app, base_url="http://127.0.0.1:8787")
+    return http, FakeMixarClient
+
+
+def test_the_server_keeps_the_state_file_current(settings, provider, tmp_path, monkeypatch):
+    """The tab bar's cues and the egress status read state.json once a second; the server writes it while the terminal is
+    installed (and never creates the add-on tree when it is not)."""
+    import time as _t
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    _installed(home)
+    http, _F = _app(settings, provider, tmp_path, monkeypatch)
+    with http:
+        state = home / "wezterm" / "state.json"
+        end = _t.time() + 5
+        while _t.time() < end and not state.exists():
+            _t.sleep(0.1)
+        assert state.exists(), "no state.json within 5 s"
+        assert json.loads(state.read_text())["egress"] == {"state": "idle"}
+    E.set_active(None)
+
+
+def test_focus_activates_a_lampway_pane_and_refuses_any_other(settings, provider, tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    _installed(home)
+    W.save_instance(home, {"gui_pid": 1, "panes": {"4": {"herdr_agent_id": "s1"}}})
+    seen = []
+    monkeypatch.setattr(W, "cli", lambda home_, exe, args, timeout=20: seen.append(args) or "")
+    http, FakeMixarClient = _app(settings, provider, tmp_path, monkeypatch)
+    with http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        h = fake.rest_headers()
+        assert http.post("/app/terminal/focus", headers=h, json={"pane": "4"}).status_code == 200
+        r = http.post("/app/terminal/focus", headers=h, json={"pane": "12"})
+        assert r.status_code == 409 and r.json()["detail"] == "pane 12 is not a Lampway pane: nothing was focused"
+        assert http.post("/app/terminal/focus", headers={**h, "X-Lampway-Origin": "agent"}, json={"pane": "4"}).status_code == 403
+    E.set_active(None)
+    assert seen == [["activate-pane", "--pane-id", "4"]]
+
+
+def test_status_offers_update_when_the_pin_moved(settings, provider, tmp_path, monkeypatch):
+    """Section 6.1: Update fetches the new pinned version beside the old one. The status says which is installed and whether
+    the pin has moved past it."""
+    home = tmp_path / "home"
+    monkeypatch.setenv("LAMPWAY_HOME", str(home))
+    _installed(home, "20230712-072601-f4abf8fd")
+    http, FakeMixarClient = _app(settings, provider, tmp_path, monkeypatch)
+    with http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        st = http.get("/app/terminal", headers=fake.rest_headers()).json()
+    E.set_active(None)
+    assert st["version"] == "20230712-072601-f4abf8fd" and st["update"] is True and st["pin"]["version"] == "20240203-110809-5046fc22"

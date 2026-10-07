@@ -53,6 +53,18 @@ def test_generate_label_carries_the_number():
     assert "over" in spend["policy"] and "$0.25" in spend["policy"]
 
 
+def test_the_results_row_says_the_last_run_billed_against_its_estimate():
+    """Section 5: the last run's line, from the server's run log; none before the first run, and none while it is silent."""
+    line = "3 images, $0.20 billed against a $0.21 estimate, rated 4"
+    assert G.face("m", dict(answer(0.21), last_run=line), EGRESS_ON)["last_run"] == line
+    assert G.face("m", answer(0.21), EGRESS_ON)["last_run"] == ""
+    assert G.face("m", None, EGRESS_ON)["last_run"] == ""
+    pump = (ROOT / "src/scripts/mixar/modules/lampway_tools/ui/generate_pump.py").read_text()
+    assert '"last_run"' in pump.split("STRINGS = ")[1].split(")")[0], "the pump writes it to wm.lampway_gen_last_run"
+    native = (ROOT / "src/source/blender/editors/space_agent_bubble/agent_ui_tabmedia_estimate.cc").read_text()
+    assert '"lampway_gen_last_run"' in native and "face.last_run" in native, "the column draws it"
+
+
 def test_meters_say_the_job_against_its_cap_and_the_session_against_its_ceiling():
     face = G.face("m", answer(0.067), EGRESS_ON)
     assert face["cap_job"] == "≈ $0.07 of cap $1.00 per job" and face["cap_job_fill"] == pytest.approx(0.067)
@@ -213,3 +225,15 @@ def test_the_prompts_panel_leads_with_the_list_and_previews_whole(monkeypatch):
     lines = []
     panels.LAMPWAY_PT_prompt_preview.draw(SimpleNamespace(layout=L(lines)), SimpleNamespace(scene=SimpleNamespace(lampway_tools=p)))
     assert " ".join(e[1] for e in lines if e[0] == "label").split() == preview.split()
+
+
+def test_spend_opens_the_spend_card_for_the_approval_it_caused():
+    """Contract 08: Spend opens contract 13's card. The tab cannot know the approval id before the server makes it: Spend notes
+    the approvals already waiting, and the first new spend approval after it is the one whose card opens, once."""
+    before = [{"id": "old", "state": "pending", "settings": {"unit": "usd"}}]
+    G.await_card(before)
+    assert G.next_card(before) is None
+    later = before + [{"id": "q", "state": "pending", "settings": {"unit": "answer"}},
+                      {"id": "new", "state": "pending", "settings": {"unit": "usd"}, "price": 0.4, "label": "Video"}]
+    assert G.next_card(later)["id"] == "new"
+    assert G.next_card(later) is None, "once"

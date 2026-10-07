@@ -51,8 +51,9 @@ static void face_string(PointerRNA *wm_ptr, const char *name, char *out, const i
   out[0] = '\0';
   PropertyRNA *prop = RNA_struct_find_property(wm_ptr, name);
   if (prop && RNA_property_type(prop) == PROP_STRING) {
-    RNA_property_string_get(wm_ptr, prop, out);
-    out[out_len - 1] = '\0';
+    /* The pump's strings have no maxlen: copy with the buffer's bound (the char* getter writes the whole string). */
+    const std::string value = RNA_property_string_get(wm_ptr, prop);
+    BLI_strncpy(out, value.c_str(), size_t(out_len));
   }
 }
 
@@ -87,6 +88,7 @@ bool media_face_read(const bContext *C, const char *owner, MediaFace *r_face)
   face_string(&wm_ptr, "lampway_gen_button_kind", r_face->button_kind, sizeof(r_face->button_kind));
   face_string(&wm_ptr, "lampway_gen_policy", r_face->policy, sizeof(r_face->policy));
   face_string(&wm_ptr, "lampway_gen_refusal", r_face->refusal, sizeof(r_face->refusal));
+  face_string(&wm_ptr, "lampway_gen_last_run", r_face->last_run, sizeof(r_face->last_run));
   r_face->cap_job_fill = face_float(&wm_ptr, "lampway_gen_cap_job_fill");
   r_face->cap_session_fill = face_float(&wm_ptr, "lampway_gen_cap_session_fill");
   return r_face->button[0] != '\0';
@@ -274,6 +276,14 @@ rctf media_face_paint(const MediaFace &face, const rctf &column, const float u)
     STRNCPY(refusal, face.refusal);
     pane_fit_text(refusal, w, font_sub);
     face_text(refusal, x, y, font_sub, stop, false);
+  }
+  if (face.last_run[0]) {
+    /* The last run, billed against what was estimated before it was sent: the numbers in Plex Mono. */
+    y -= 1.8f * font;
+    char last_run[sizeof(face.last_run) + 4];
+    STRNCPY(last_run, face.last_run);
+    face_fit(last_run, sizeof(last_run), w, font_sub, true);
+    face_text(last_run, x, y, font_sub, muted, true);
   }
   GPU_blend(GPU_BLEND_NONE);
 

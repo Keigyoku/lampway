@@ -140,10 +140,13 @@ def observe(owner, args):
         win = candidates[0]
     found = [item for item in items if not item.get("secret") and matches(item, args.get("query", {}))]
     targets = []
-    for i, item in enumerate(found[:args.get("limit", 100)]):
-        handle = "t%d" % i
+    offset, limit = args.get("offset", 0), args.get("limit", 100)
+    for i, item in enumerate(found[offset:offset + limit], start=offset):
+        handle = "t%d" % i      # its position in the whole list: unique across pages
         entry["targets"][handle] = ("widget", fingerprint(item))
-        targets.append({**public(item), "target": handle, "window": window_ids[item["w"]]})
+        # most controls are icon-only (empty text): the tooltip names them (cloud audit F17)
+        targets.append({**public(item), "label": item.get("text") or item.get("tip") or "", "target": handle,
+                        "window": window_ids[item["w"]]})
     regions = []
     for window in all_windows:
         for area in window.screen.areas:
@@ -158,7 +161,8 @@ def observe(owner, args):
     _contexts[token] = entry
     result = {"context": token, "session_id": main_window().scene.mixie_session_id,
               "scene_name": main_window().scene.name, "targets": targets,
-              "total_targets": len(found), "regions": regions,
+              "total_targets": len(found), "offset": offset,
+              "next_offset": offset + limit if offset + limit < len(found) else None, "regions": regions,
               "windows": [{"window": window_ids[w.as_pointer()], **window_extent(w),
                            "scene_name": w.scene.name} for w in all_windows]}
     blocks = []

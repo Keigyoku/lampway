@@ -76,6 +76,7 @@ set(SRC
   interface_mixar_liquid_glass_tokens.cc
   interface_mixar_profile_card.cc
   interface_mixar_profile_card_draw.cc
+  interface_mixar_spend_card.cc
   interface_mixar_section.cc
   interface_mixar_tab_rects.cc
   interface_mixar_theme.cc
@@ -154,6 +155,7 @@ set(SRC
   interface_mixar_card_icons.hh
   interface_mixar_card_paint.hh
   interface_mixar_cinema_row.hh
+  interface_mixar_spend_card.hh
   interface_mixar_drag_query.hh
   interface_mixar_palette.hh
   interface_mixar_profile_card.hh

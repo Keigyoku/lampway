@@ -20,6 +20,8 @@ SHIELD = {"ok": "LAMPWAY_SHIELD", "conditional": "LAMPWAY_SHIELD_HALF", "retains
 EVENT_GLYPH = {"send": "LAMPWAY_WIRE", "refused": "LAMPWAY_GATE", "override": "LAMPWAY_HAND"}
 EVENT_BED = {"send": "wire_bed", "refused": "stop_bed"}
 PRIVATE_TITLE = "a private asset on a route that may keep it"
+# "Run it here instead" opens Choices on the job's kind, where an option that runs on this machine can be put first.
+KIND_GROUP = {"image": "images", "video": "video", "mesh": "3d", "text": "agents"}
 
 
 def _route(route_id: str, routes):
@@ -70,7 +72,8 @@ def last_refusal(log) -> dict:
     if "private" in reason:
         asset = (row.get("asset_ids") or [""])[0]
         ways = [{"label": "Use OpenRouter, zero retention", "action": "route_on", "route": "openrouter", "tone": "text"},
-                {"label": "Run it here instead", "action": "local", "route": "local", "tone": "text"},
+                {"label": "Run it here instead", "action": "local", "route": "local", "tone": "text", "op": "lampway.choices_open",
+                 "group": KIND_GROUP.get(str(row.get("kind") or ""), "")},
                 {"label": "Allow this asset once (logged)", "action": "override", "asset_id": asset, "route": route, "tone": "stop"}]
         return {"title": PRIVATE_TITLE, "tooltip": reason, "route": route, "ways": ways}
     if reason == "route off" or reason.startswith(f"{route} is off"):

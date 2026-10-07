@@ -71,3 +71,74 @@ print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log}))
     assert d["calls"].count("get") == 1 and "remove" not in d["calls"]
     opened = next(c for c in d["calls"] if isinstance(c, list) and c[0] == "open")
     assert d["res"]["open"] == ["FINISHED"] and opened[0] == "open"   # no window in a headless run: the placement is tested on the host
+
+
+DRAIN = '''
+import os
+from mixar.modules.lampway_tools import settings
+from mixar.modules.lampway_tools.ui import statusbar
+png = os.path.join(ROOT, "seen.png")
+img = bpy.data.images.new("seen_src", 4, 4); img.filepath_raw = png; img.file_format = "PNG"; img.save()
+bpy.data.images.remove(img)
+q = settings.lampway_home() / "wezterm" / "show_in_blender.jsonl"
+q.parent.mkdir(parents=True, exist_ok=True)
+lines = [json.dumps({"path": png}), json.dumps({"path": os.path.join(ROOT, "scene.blend")}),
+         json.dumps({"path": os.path.join(ROOT, "gone.png")}), "not json", json.dumps({"path": png})]
+q.write_text(chr(10).join(lines) + chr(10))
+first = statusbar._show_terminal_images()
+second = statusbar._show_terminal_images()
+print("RESULT", json.dumps({"first": first, "second": second, "queue_left": q.exists(),
+                            "images": sorted(i.filepath for i in bpy.data.images if i.filepath)}))
+'''
+
+
+def test_a_clicked_image_link_is_drained_into_blender(tmp_path):
+    """Contract 16's image fallback, Blender's half: the queue the terminal's link handler appends to is drained once; image
+    files that exist are loaded (a path twice, once), anything else (a .blend, a missing file, a line that is not JSON) is
+    skipped and said. Headless: there is no window, so nothing is shown (the visual state shows the Image Editor)."""
+    r = run(tmp_path, PRE + DRAIN.replace("ROOT", repr(str(tmp_path))))
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    png = str(tmp_path / "seen.png")
+    assert d["first"]["loaded"] == [png], d
+    assert sorted(d["first"]["skipped"]) == sorted([str(tmp_path / "scene.blend"), str(tmp_path / "gone.png"), "not json"]), d
+    assert d["second"] == {"loaded": [], "skipped": [], "shown_in": None}, "drained once"
+    assert not d["queue_left"] and png in d["images"]
+
+
+FOCUS = '''
+class Open(FakeClient):
+    def terminal(self):
+        self.calls.append("terminal")
+        return {"installed": True, "window": "re-adopted", "panes": ["4"], "version": "20230712-072601-f4abf8fd", "update": True,
+                "pin": {"version": "20240203-110809-5046fc22", "bytes": 49505472}}
+    def terminal_focus(self, pane): self.calls.append(["focus", pane]); return {"focused": pane}
+fake = Open()
+WO.CLIENT_FACTORY = lambda: fake
+WO.refresh_state()
+log = []
+panel = PANELS.LAMPWAY_PT_cockpit
+panel.layout = Rec(log)
+panel.draw(panel, bpy.context)
+res = {"focus": call(bpy.ops.lampway.terminal_focus)}
+with human_gate.scripting():
+    res["script_focus"] = call(bpy.ops.lampway.terminal_focus)
+kc = bpy.context.window_manager.keyconfigs.addon
+keys = [[km.name, k.idname, k.type, k.ctrl, k.alt, k.shift] for km in (kc.keymaps if kc else []) for k in km.keymap_items
+        if k.idname == "lampway.terminal_open"]
+print("RESULT", json.dumps({"res": res, "calls": fake.calls, "log": log, "keys": keys, "background": bpy.app.background}))
+'''
+
+
+def test_focus_update_and_the_shortcut(tmp_path):
+    """Section 6.6: Focus activates Lampway's pane (a user click, never a script), Update appears when the pin moved past the
+    installed version, and Ctrl Alt T opens the terminal from anywhere in the window."""
+    r = run(tmp_path, PRE + FOCUS)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    ops = [x for x in d["log"] if x.startswith("op:")]
+    assert "op:lampway.terminal_focus|Focus" in ops, ops
+    assert "op:lampway.terminal_get|Update to 20240203-110809-5046fc22" in ops, ops
+    assert d["res"]["focus"] == ["FINISHED"] and ["focus", "4"] in d["calls"]
+    assert d["res"]["script_focus"][0] == "REFUSED"
+    assert ["Window", "lampway.terminal_open", "T", True, True, False] in d["keys"], d["keys"]

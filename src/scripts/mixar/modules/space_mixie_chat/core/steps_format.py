@@ -27,7 +27,7 @@ _VALID_KINDS = {"READ", "WRITE", "COMMAND", "SEARCH", "TOOL"}
 _VALID_STATUS = {"PENDING", "RUNNING", "DONE", "FAILED"}
 
 
-def format_steps_summary(kinds: Iterable[str], image_count: int = 0) -> str:
+def format_steps_summary(kinds: Iterable[str], image_count: int = 0, statuses=None) -> str:
     """Build the collapsed header, e.g. "5 tools called".
 
     Deliberately NOT a per-kind breakdown ("Read 2 files · ran 1 command"):
@@ -45,10 +45,22 @@ def format_steps_summary(kinds: Iterable[str], image_count: int = 0) -> str:
         Summary string, or "" when there are no recognized kinds.
     """
     del image_count
+    kinds = list(kinds)
     n = sum(1 for kind in kinds if kind in _VALID_KINDS)
     if n <= 0:
         return ""
-    return (iface_("{n} tool called") if n == 1 else iface_("{n} tools called")).format(n=n)
+    if statuses is None:
+        return (iface_("{n} tool called") if n == 1 else iface_("{n} tools called")).format(n=n)
+    # Lampway (facelift contract 04, the calm pass): what happened and where. The agent's tools are scripts in this Blender:
+    # local. Steps carry no timing, so no duration is claimed.
+    st = [s for k, s in zip(kinds, statuses) if k in _VALID_KINDS]
+    done, failed = st.count("DONE"), st.count("FAILED")
+    if done + failed < len(st):
+        return iface_("{done} of {n} steps done, local").format(done=done, n=len(st))
+    words = (iface_("{n} step done") if done == 1 else iface_("{n} steps done")).format(n=done)
+    if failed:
+        words += ", " + iface_("{n} failed").format(n=failed)
+    return words + ", " + iface_("local")
 
 
 def normalize_step_item(item_data: dict) -> dict:
@@ -297,7 +309,7 @@ def _refresh_summary(bubble) -> None:
     images = getattr(bubble, "image_items", None)
     image_count = sum(1 for img in (images or ()) if getattr(img, "step_id", "")) if images is not None else 0
     bubble.steps_summary = format_steps_summary(
-        (row.kind for row in bubble.step_items), image_count
+        [row.kind for row in bubble.step_items], image_count, statuses=[getattr(row, "status", "DONE") for row in bubble.step_items]
     )
 
 

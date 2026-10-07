@@ -85,7 +85,8 @@ def face(model: str, answer, egress, references: int = 0) -> dict:
     route = (answer or {}).get("route") or route_of(model)
     row = _route_row(route, egress)
     out = {"route": (row.get("hosts") or [row.get("label") or route])[0] if row else "",
-           "route_ok": not route_off(route, egress), "content": _content(references), "refusal": ""}
+           "route_ok": not route_off(route, egress), "content": _content(references), "refusal": "",
+           "last_run": (answer or {}).get("last_run") or ""}      # the results row's line (section 5), from the run log
     price = (answer or {}).get("price")
     amount = None if not price else float(price.get("amount"))
     unit = (price or {}).get("unit") or "USD"
@@ -141,4 +142,24 @@ def refusal(context, owner_type: str):
     wm = getattr(context, "window_manager", None)
     if owner_type and getattr(wm, "lampway_gen_owner", "") == owner_type and getattr(wm, "lampway_gen_button_kind", "") == "refused":
         return getattr(wm, "lampway_gen_refusal", "") or "This generation is refused"
+    return None
+
+
+_AWAIT = {"known": None}
+
+
+def await_card(approvals) -> None:
+    """Spend was pressed: remember the approvals already waiting; the next new spend approval is the one it caused."""
+    _AWAIT["known"] = {a.get("id") for a in approvals or []}
+
+
+def next_card(approvals):
+    """The new spend approval Spend caused (once), or None."""
+    known = _AWAIT["known"]
+    if known is None:
+        return None
+    for a in approvals or []:
+        if a.get("id") not in known and a.get("state") == "pending" and (a.get("settings") or {}).get("unit") != "answer":
+            _AWAIT["known"] = None
+            return a
     return None

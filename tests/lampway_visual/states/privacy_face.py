@@ -45,6 +45,11 @@ def surfaces(bpy, dump):
         return {}
     x0, y0, x1, y1 = confirm["rect"]
     out = {"confirm_button": (x0 + 4, (y0 + y1) // 2)}
+    allow = next((w for w in dump["widgets"] if w.get("op") == "LAMPWAY_OT_egress_override"), None)
+    if allow:
+        ax0, ay0, ax1, ay1 = allow["rect"]
+        out["override_bed"] = (ax0 + 3, (ay0 + ay1) // 2)          # left of the words: the bed, if any
+        out["override_text"] = ((ax0 + ax1) // 2, (ay0 + ay1) // 2, 6)  # the words themselves (nearest pixel in a box)
     on = next((w for w in dump["widgets"] if w.get("op") == "LAMPWAY_OT_egress_route" and w.get("text") == "On"), None)
     if on:
         out["on_switch"] = (on["rect"][2] - 4, (on["rect"][1] + on["rect"][3]) // 2)
@@ -56,7 +61,8 @@ def regions(bpy):
 
 
 def facts(bpy, dump):
-    keep = ("LAMPWAY_OT_egress_route", "LAMPWAY_OT_egress_override", "LAMPWAY_OT_privacy_info", "LAMPWAY_OT_egress_route_cancel")
+    keep = ("LAMPWAY_OT_egress_route", "LAMPWAY_OT_egress_override", "LAMPWAY_OT_privacy_info", "LAMPWAY_OT_egress_route_cancel",
+            "LAMPWAY_OT_choices_open")
     return {"buttons": [(w.get("op"), w.get("text"), w.get("enabled"), bool(w.get("sel"))) for w in dump["widgets"] if w.get("op") in keep],
             "labels": [w.get("text") for w in dump["widgets"] if w.get("popup") and not w.get("op")],
 }

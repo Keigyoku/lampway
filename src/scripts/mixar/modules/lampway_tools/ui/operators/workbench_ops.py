@@ -287,6 +287,24 @@ class LAMPWAY_OT_terminal_open(_UserClick):
         return self._done(context, "the Lampway terminal is open")
 
 
+class LAMPWAY_OT_terminal_focus(_UserClick):
+    """Bring Lampway's agent tab forward in the Lampway terminal (never another WezTerm's pane)"""
+    bl_idname = "lampway.terminal_focus"
+    bl_label = "Focus the Lampway terminal"
+
+    def execute(self, context):
+        if (r := self._gate(context)) is not None:
+            return r
+        panes = (workbench_state.STATE.get("terminal") or {}).get("panes") or []
+        if not panes:
+            return self._done(context, "the Lampway terminal has no Lampway tab to focus: Open it first", ok=False)
+        try:
+            CLIENT_FACTORY().terminal_focus(panes[0])
+        except studio_client.StudioError as exc:
+            return self._done(context, str(exc), ok=False)
+        return self._done(context, "the Lampway terminal is in front")
+
+
 class LAMPWAY_OT_terminal_remove(_UserClick):
     """Remove the Lampway terminal: its window closes (never another WezTerm), the agents keep running"""
     bl_idname = "lampway.terminal_remove"
@@ -317,5 +335,36 @@ class LAMPWAY_OT_wb_page_open(_WbOp):
         return self._done(context, "the cockpit window is open in your browser")
 
 
-classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
+classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_focus, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
            LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout]
+
+
+_KEYMAP = []
+
+
+def _register_keymap():
+    """Ctrl Alt T opens the Lampway terminal from anywhere in the window (contract 16 section 3)."""
+    kc = bpy.context.window_manager.keyconfigs.addon if bpy.context.window_manager else None
+    if kc is None:
+        return 0.5   # the add-on keyconfig is not up yet
+    km = kc.keymaps.new(name="Window", space_type='EMPTY')
+    _KEYMAP.append((km, km.keymap_items.new("lampway.terminal_open", 'T', 'PRESS', ctrl=True, alt=True)))
+    return None
+
+
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    if _register_keymap() is not None:
+        bpy.app.timers.register(_register_keymap, first_interval=0.5)
+
+
+def unregister():
+    for km, kmi in _KEYMAP:
+        try:
+            km.keymap_items.remove(kmi)
+        except (ValueError, ReferenceError):
+            pass
+    _KEYMAP.clear()
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

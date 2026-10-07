@@ -69,14 +69,10 @@ def test_user_facing_backend_messages_are_shown():
     assert invites.error_message(ServerError("Traceback …", status_code=500), "f") != "Traceback …"
 
 
-def test_profile_card_offers_refer_a_friend_with_its_own_glyph():
+def test_the_profile_card_offers_no_refer_a_friend():
+    """Lampway has no referral programme (cloud audit F24, 2026-10-06): the profile card offers no Refer a Friend."""
     card = CARD_CC.read_text(encoding="utf-8")
-    assert '"MIXAR_OT_refer_friend", "Refer a Friend", MixarCardIcon::Gift' in card
-    assert "Gift," in TYPES_HH.read_text(encoding="utf-8")
-    assert "case MixarCardIcon::Gift:" in ICONS_CC.read_text(encoding="utf-8")
-    # The payload → icon clamp must include every glyph, including Gift.
-    assert "int(MixarCardIcon::Count) - 1" in STYLE_CC.read_text(encoding="utf-8")
-    assert '"mixar.refer_friend"' in TOPBAR_PY.read_text(encoding="utf-8")
+    assert "MIXAR_OT_refer_friend" not in card and "Refer a Friend" not in card
 
 
 def test_operator_ids_match_what_the_card_and_dialog_call():

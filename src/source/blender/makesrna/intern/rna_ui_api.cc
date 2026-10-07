@@ -71,6 +71,7 @@ enum class TextAlignAnchor : int {
 
 /* Mixar custom section widget. */
 #  include "../../editors/interface/interface_mixar_profile_card.hh"
+#  include "../../editors/interface/interface_mixar_spend_card.hh"
 #  include "../../editors/interface/interface_mixar_section.hh"
 #  include "UI_mixar.hh"
 
@@ -992,6 +993,12 @@ static void rna_uiLayoutMixarStyle(
   }
 }
 
+static void rna_uiLayoutMixarSpend(Layout *layout, int element, const char *text, int rule)
+{
+  /* Facelift contract 13 (P1): one row of the drawn spend card, a label the card painter claims. */
+  ui::UI_layout_mixar_spend_row(layout, element, text, rule);
+}
+
 static void rna_uiLayoutMixarTooltip(Layout *layout, const char *text)
 {
   ui::mixar_tooltip_layout(layout, text);
@@ -1798,6 +1805,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       {1, "SECONDARY", 0, "Secondary", "Secondary action"},
       {2, "GHOST", 0, "Ghost", "Borderless action"},
       {3, "DANGER", 0, "Danger", "Destructive action"},
+      {4, "ACCENT", 0, "Accent", "The accent fill: a spend that waits for your click (Lampway)"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   func = RNA_def_function(srna, "mixar_style", "rna_uiLayoutMixarStyle");
@@ -1814,6 +1822,27 @@ void RNA_api_ui_layout(StructRNA *srna)
       {7, "DESCRIPTION", 0, "Description", "Action card with a title and supporting line"},
       {0, nullptr, 0, nullptr, nullptr},
   };
+  static const EnumPropertyItem mixar_spend_items[] = {
+      {int(ui::MixarCardElement::SpendTitle), "TITLE", 0, "Title", "The action, in Fraunces"},
+      {int(ui::MixarCardElement::SpendPrice), "PRICE", 0, "Price", "\"<number> <unit>\\x1f<kind>\": the price large, its unit and kind"},
+      {int(ui::MixarCardElement::SpendMeter), "METER", 0, "Meter", "\"<words>\\x1f<used>\\x1f<pending>\\x1f<hot>\": a cap meter"},
+      {int(ui::MixarCardElement::SpendLine), "LINE", 0, "Line", "A secondary line"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  static const EnumPropertyItem mixar_spend_rule_items[] = {
+      {0, "WAITING", 0, "Waiting", "Accent: it waits for your click"},
+      {1, "REFUSED", 0, "Refused", "Stop: refused before sending"},
+      {2, "AGENT", 0, "Agent", "An agent tried to confirm"},
+      {3, "SPENT", 0, "Spent", "Go: spent"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  func = RNA_def_function(srna, "mixar_spend", "rna_uiLayoutMixarSpend");
+  RNA_def_function_ui_description(func, "One row of the Lampway spend card, drawn by the card painter (facelift contract 13)");
+  RNA_def_enum(func, "element", mixar_spend_items, int(ui::MixarCardElement::SpendLine), "Element", "Which row");
+  parm = RNA_def_string(func, "text", nullptr, 0, "Text", "The row's words (a price or meter packs its numbers after \\x1f)");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_enum(func, "rule", mixar_spend_rule_items, 0, "Rule", "The card's state: the colour of its left rule");
+
   func = RNA_def_function(srna, "mixar_tooltip", "rna_uiLayoutMixarTooltip");
   RNA_def_function_ui_description(
       func, "Replace the hover tooltip of every item already in this layout (Lampway)");

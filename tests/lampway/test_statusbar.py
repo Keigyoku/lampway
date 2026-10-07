@@ -163,3 +163,35 @@ def test_the_plug_beside_the_wire_chip_opens_connections(statusbar):
         statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
         ops = [e[1] for e in layout.log if e[0] == "op"]
         assert "lampway.connections_open" in ops, layout.log
+
+
+def test_signed_out_says_signed_out_not_server_down(statusbar, monkeypatch):
+    """Cloud audit F22 (2026-10-06): a server that answers 401 (/auth/me, or any read) is running; the user is signed out.
+    The bar says "signed out" for a 401 and for no token at all, and keeps "server not running" for a refused connection."""
+    import io
+    import urllib.error
+
+    from mixar.modules.lampway_tools import status_client
+
+    def answer_401(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, io.BytesIO(b'{"detail": "not authenticated"}'))
+    monkeypatch.setattr(statusbar, "_sync_route_line", lambda: None)
+    monkeypatch.setattr(statusbar, "_open_awaited_card", lambda: None)
+    monkeypatch.setattr(statusbar, "_show_terminal_images", lambda: None)
+    monkeypatch.setattr(statusbar, "_redraw_statusbar", lambda: None)
+    monkeypatch.setattr(statusbar, "sync_animation", lambda: None)
+    for token, opener in (("tok", answer_401), ("", answer_401)):
+        monkeypatch.setattr(urllib.request, "urlopen", opener)
+        monkeypatch.setattr(statusbar, "CLIENT_FACTORY", lambda: status_client.StatusClient("http://127.0.0.1:9", lambda: token))
+        S.update(egress=EGRESS_IDLE, spend=SPEND, studio=WAITING)
+        statusbar.refresh()
+        layout = Recorder()
+        statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
+        texts = layout.texts()
+        assert "signed out" in texts and not [t for t in texts if "not running" in t or "$0.31" in t], (token, texts)
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=None: (_ for _ in ()).throw(urllib.error.URLError("refused")))
+    monkeypatch.setattr(statusbar, "CLIENT_FACTORY", lambda: status_client.StatusClient("http://127.0.0.1:9", lambda: "tok"))
+    statusbar.refresh()
+    layout = Recorder()
+    statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
+    assert "spend unknown: server not running" in layout.texts()

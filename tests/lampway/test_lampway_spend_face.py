@@ -108,3 +108,15 @@ def test_one_card_for_every_source():
     assert F.OPERATOR == "lampway.studio_confirm"
     confirms = sorted({p.name for p in base.rglob("*.py") if "().confirm(" in p.read_text(encoding="utf-8") and p.name != "studio_client.py"})
     assert confirms == ["studio_ops.py"], confirms   # the card's Spend (studio_confirm.execute) and the answer button are the only confirms
+
+
+def test_the_drawn_card_rows():
+    """Contract 13 P1: the rows the C++ card painter draws (layout.mixar_spend), packed the way it reads them."""
+    rows = F.drawn_rows(F.card(approval(), SPEND, now=1e9))
+    assert rows[0] == ("TITLE", "Higgsfield video: a 5-second loop of the lantern, 720p")
+    assert ("PRICE", "18 credits\x1fquoted") in rows
+    meters = [r for r in rows if r[0] == "METER"]
+    assert meters[0] == ("METER", "this job 18 of 40\x1f0.0000\x1f0.4500\x1f0")
+    assert meters[1][1].startswith("session 31.5 + 18 of 200\x1f0.1575\x1f0.0900\x1f")
+    assert F.rule("waiting") == "WAITING" and F.rule("over_job_cap") == "REFUSED" and F.rule("agent_tried") == "AGENT"
+    assert F.rule("spent") == "SPENT" and F.rule("price_changed") == "WAITING"

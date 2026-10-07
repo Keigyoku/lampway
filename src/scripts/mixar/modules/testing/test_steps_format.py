@@ -128,7 +128,7 @@ def test_apply_steps_replaces_items_and_computes_summary():
     assert bubble.step_items[0].kind == "READ"
     assert bubble.step_items[1].kind == "COMMAND"
     assert bubble.step_items[1].detail == "3 passed"
-    assert bubble.steps_summary == "2 tools called"
+    assert bubble.steps_summary == "2 steps done, local"   # Lampway facelift 04: what happened and where
 
 
 def test_apply_steps_uses_explicit_summary_when_given():
@@ -175,7 +175,7 @@ def test_begin_step_adds_running_row_and_updates_summary():
     assert row.label == "Tool call"
     assert row.status == "RUNNING"
     assert row.detail == ""
-    assert bubble.steps_summary == "1 tool called"
+    assert bubble.steps_summary == "0 of 1 steps done, local"   # Lampway facelift 04
 
 
 def test_finish_step_marks_done_with_count_and_no_stdout():
@@ -273,7 +273,7 @@ def test_attach_step_images_tags_tiles_and_updates_summary():
     assert tile.width == 1024.0 and tile.height == 768.0
     assert tile.caption == "persp"
     assert steps_format.step_image_count(bubble, "r1") == 1
-    assert bubble.steps_summary == "1 tool called"
+    assert bubble.steps_summary == "0 of 1 steps done, local"   # Lampway facelift 04
     assert bubble.images_collapsed is False  # a new tile opens the gallery
 
 
@@ -369,7 +369,7 @@ def test_inspected_scene_stays_read_kind_for_execute_script():
         "objs=[o.name for o in bpy.data.objects]; print(objs)")
     assert bubble.step_items[0].label == "Inspected scene"
     assert bubble.step_items[0].kind == "READ"
-    assert bubble.steps_summary == "1 tool called"
+    assert bubble.steps_summary == "0 of 1 steps done, local"   # Lampway facelift 04
     steps_format.finish_step_on_bubble(bubble, "r1", {"success": True})
     assert bubble.step_items[0].kind == "READ"
     item = steps_format.normalize_step_item(
@@ -446,7 +446,7 @@ def test_activity_opens_row_for_a_tool_without_a_script():
     assert len(bubble.step_items) == 1
     assert bubble.step_items[0].status == "DONE"
     assert bubble.step_items[0].label == "Viewed 2 images"
-    assert bubble.steps_summary == "1 tool called"
+    assert bubble.steps_summary == "1 step done, local"   # Lampway facelift 04
 
 
 def test_script_row_adopts_backend_row_on_call_id_and_keeps_specific_label():

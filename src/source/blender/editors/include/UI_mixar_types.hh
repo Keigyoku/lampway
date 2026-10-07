@@ -92,6 +92,13 @@ enum class MixarCardElement : uint8_t {
    * otherwise, so a dropdown's list matches the value blocks it opens from.
    * Painted in `interface_mixar_cinema_row.cc`. */
   CinemaRow,
+  /** Lampway spend card (facelift contract 13, interface_mixar_spend_card.cc): the action in Fraunces; the
+   * price large with its unit and kind; a meter with the pending amount apart; a secondary line. Each draws the card's
+   * left rule; the payload is the rule's state (0 waiting, 1 refused, 2 an agent tried, 3 spent). */
+  SpendTitle,
+  SpendPrice,
+  SpendMeter,
+  SpendLine,
   /** Sentinel — keep last. #UI_mixar_card_element_get range-checks against
    * it, so a kind appended after it would silently read back as None. */
   Count,
