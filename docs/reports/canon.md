@@ -776,6 +776,47 @@ at fb27b3ea, reference environment ready, shelf mounted read-only: **GREEN, gate
 - The weights receipt's wording for rigid-only pieces (7108555c) was written before a test asserted it; the end-to-end test
   asserts it now and a mutant reverting it fails.
 
+## Pass 4 (2026-10-07): the cloud audit's F5 and F11, the normalization door
+
+Routed by the integrator from `specs/bugs/2026-10-06-cloud-audit-wave5.md`. `origin/lp/wave5` at 584f47aa (the gated batch
+`main` now points at) merged first: a fast-forward (it already held lp/canon). That batch changed native sources, so the lane
+binary at e6668a6 was REFUSED by the gate; I reflink-copied the integrator's stamped build (`blender-lanes/integration/Prod`,
+`BUILT_FROM 978793994b4f`, gated against this HEAD) to `blender-lanes/canon/Prod`.
+
+### F5: a refused import left its objects in the scene (ea4e73f5)
+RED reproduced the audit: three refused `normalize_mesh input=box.glb` calls (frame undecided) left `raw_box`, `raw_box.001`,
+`raw_box.002`, their meshes, materials `boxmat*` and images `boxtex*`. Now `normalize.run` snapshots every datablock (objects,
+meshes, materials, images, textures, node groups, collections, armatures, actions, cameras, lights, curves, worlds) before the
+import and on ANY refusal removes everything new (`bpy.data.batch_remove`); the scene's datablocks are then exactly what they were,
+and the accepted retry lands under the file's own names. The integrator's patch removed objects and their meshes only: a mutant
+of that scope leaves the materials and images and fails the test. The same class in `normalize_texture`: a refused image FILE was
+loaded and kept (and reused by the next call); a refusal now removes the image it loaded (RED: `mystery.png` left behind).
+**The test that pinned the opposite** was mine: `test_a_flat_shaded_box_exported_split_at_every_corner_is_refused_by_the_5_percent_guard`
+asserted the refused import stayed in the scene as `lw_raw`. Reconciled to the ruling: it now asserts nothing is left. The object
+form (a refused scene object is untouched) already held - it passed on its first run, a pin, not a RED. Not changed: the Studios
+landing, which lands a file raw ON PURPOSE when no turn is declared (it is a landing, not a refusal, and says so in `normalize`).
+
+### F11: moving a normalised object made it non-canonical (249a79f5)
+Decision, by the schema's own terms (SCHEMA.md `transform`, which already names `placed_instance` and a `body_frame_placed`
+pivot): the canonical document describes the asset's DATA; a PURE TRANSLATION of the object is its placement in a scene and the
+door accepts it. `canon_io.facts` measures the bounds and `geometry_sha256` in the mesh's own coordinates (identical to world for
+every existing stamp: a stamp requires the identity at normalization) and reports `placement_m`; `canon_asset.check` refuses only
+a rotation or a scale of the object, saying plainly: "Undo the rotation or the scale (a pure translation is a placement and is
+accepted), or normalize the raw source again with its turn". I did not choose "re-normalising is enough": re-normalising a
+rotated object with turn 0 would bake the wrong facing in as canonical. Measured (RED first): at (2.2, -0.4, 0.3) the door opens
+and reports the placement; re-normalizing the placed object is `unchanged` and leaves it where it stands; a 30 deg turn or a 1.1
+scale is refused; an edit of the data is refused as before. The door no longer offers the scale-STATE route ("scale_to_measure")
+for an object that is merely scaled. **A second test pinned the opposite:** `test_asset_place_says_canonical_or_raw...` asserted
+a canonical asset placed at the 3D cursor read "object matrix is not the identity"; it now asserts it stays canonical. Documented
+in `docs/canon/normalization/SCHEMA.md` (`transform`) and `DOOR.md` (the check). Mutations killed: world-space hash, world-space
+bounds, any matrix accepted, the old scale-route condition.
+
+### Gates at this push (249a79f5)
+The first full run was RED on the two i18n tests only: they read the LOCAL template `mixar.pot` (gitignored), stale after the
+merge. Regenerated with the repository's own steps (`make i18n_update`'s four scripts): no tracked file changed, both pass. The
+second full run: **GREEN, gated** (`BUILT_FROM 978793994b4f`), server 1753 passed, client 9135 passed, 107 failed + 15 errors =
+the 122 of the baseline, new failures none, no shelf writes, 57.8 minutes. Rail PASS; `check_canon.py` PASS.
+
 ## Status at the end of this pass (lp/canon)
 | plan item | state | what is not built |
 |---|---|---|
