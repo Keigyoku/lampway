@@ -250,3 +250,29 @@ def test_idle_children_are_reaped_on_the_tick(engine_app):
         rt.reap_idle = reap_idle
         asyncio.run(engine_app.state.engine_wiring.tick())
     assert reaped == [None]
+
+
+def test_the_engine_config_says_whether_the_model_sees_images(settings, provider):
+    """R3/R0a: Hermes sends images only to a model it knows sees them; Lampway says so per provider."""
+    from types import SimpleNamespace
+    from lampway_server.engine import hermes_config as HC
+    from lampway_server.engine.wiring import sees_images
+
+    class Store:
+        def __init__(self, byok):
+            self._b = byok
+
+        def byok(self):
+            return self._b
+
+    agent = lambda name, byok=None: SimpleNamespace(provider=SimpleNamespace(name=name), settings_store=Store(byok))  # noqa: E731
+    assert sees_images(agent("anthropic")) is True
+    assert sees_images(agent("chatgpt_plan")) is False                      # until the R0a vision probe is recorded
+    assert sees_images(agent("openai", {"supports_vision": False})) is False
+    assert sees_images(agent("openai", {"supports_vision": True})) is True
+    assert sees_images(agent("openrouter")) is None and sees_images(agent("openai", None)) is None
+    from lampway_server import capabilities as CAP
+    board = CAP.Store(settings.state_dir)
+    seen = HC.render(board, None, "http://127.0.0.1:8787/engine/v1", "tok", "m", supports_vision=True)
+    unknown = HC.render(board, None, "http://127.0.0.1:8787/engine/v1", "tok", "m")
+    assert seen["model"]["supports_vision"] is True and "supports_vision" not in unknown["model"]

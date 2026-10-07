@@ -377,6 +377,7 @@ nothing is sent anywhere but OpenAI. Image generation is not available on this r
     agent = AgentHub(provider if provider is not None else _main_provider(),
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault,
                      switch_dir=settings.state_dir)
+    agent.settings_store = store                              # the key dialog's choice (R3: whether the model sees images)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()

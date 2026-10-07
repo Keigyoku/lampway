@@ -180,7 +180,7 @@ class EngineWiring:
             raise HC.Refused("refused: the Capabilities board is not available, so the engine's config cannot be written")
         if worker:
             board = WorkerBoard(board)
-        path = HC.write(home, board, CAP.project(), gateway_url, token, model_id)
+        path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent))
         self._boards[GW.Registry._digest(token)] = board
         return path
 
@@ -196,6 +196,24 @@ class EngineWiring:
         return ("refused: the engine offered tools your Capabilities do not allow, so this session was stopped before the model "
                 "saw them: " + "; ".join(m.why for m in blocking) + ". Lampway's engine config and the pinned engine disagree "
                 "(spec E1.3, E1.8).")
+
+
+def sees_images(agent) -> Optional[bool]:
+    """Whether the main provider's model sees images (spec R3, R0a): Anthropic does; a key or endpoint saved in the dialog says so
+    itself (its supports_vision flag); Sign in with ChatGPT is held back until its vision probe is recorded; anything else is
+    unknown (None: Hermes decides from its own catalogue)."""
+    provider = getattr(agent, "provider", None)
+    name = getattr(provider, "name", "") or ""
+    if name == "anthropic":
+        return True
+    if name == "chatgpt_plan":
+        return False
+    if name in ("openai", "openai_compat"):
+        store = getattr(agent, "settings_store", None)
+        byok = store.byok() if store is not None else None
+        if isinstance(byok, dict) and "supports_vision" in byok:
+            return bool(byok["supports_vision"])
+    return None
 
 
 def wire(settings, agent, registry: GW.Registry, environ=None) -> Optional[EngineWiring]:

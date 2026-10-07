@@ -179,7 +179,8 @@ def _deep_merge(base, override):
 
 
 def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, context: Optional[dict] = None,
-           routes_on: Optional[Callable] = None, models_dev_url: Optional[str] = None) -> dict:
+           routes_on: Optional[Callable] = None, models_dev_url: Optional[str] = None,
+           supports_vision: Optional[bool] = None) -> dict:
     """The engine child's ``config.yaml`` as a dict. ``capabilities`` is the board (``capabilities.Store``), ``project`` the
     project whose choices apply, ``routes_on`` the egress routes' state (default: the active egress manager)."""
     base_url = _loopback_url(gateway_base_url, "model gateway")
@@ -197,7 +198,9 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
     cfg = {
         # hermes_cli/config_defaults.py:22-24; acp_adapter/session.py:472-510 reads model.default and model.provider and resolves
         # the custom endpoint from model.base_url / model.api_key (hermes_cli/runtime_provider.py).
-        "model": {"provider": "custom", "base_url": base_url, "api_key": str(gateway_token), "default": str(model_id)},
+        "model": {"provider": "custom", "base_url": base_url, "api_key": str(gateway_token), "default": str(model_id),
+                  # agent/image_routing.py:133: Hermes sends attached images only to a model it knows sees them (R3); unknown -> unset
+                  **({"supports_vision": bool(supports_vision)} if supports_vision is not None else {})},
         "providers": {},              # config_defaults.py:23: no named providers
         "fallback_providers": [],     # config_defaults.py:24: no fallback chain past the gateway
         # config_defaults.py:1718-1726: never borrow the Codex CLI or Claude Code logins (E1.10, B0).
