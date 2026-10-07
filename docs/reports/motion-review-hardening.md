@@ -71,6 +71,7 @@ The renderer remains sequential from frame zero. The determinism probe remains a
 - Exact-head full server at `91225a927a430958b011cff27f29341a11fa9515`: **1,828 passed, 35 skipped, zero failures** (196.94 seconds), including the fixture-race regression. Cloud skips remain skips; original-teaser cases have separate local evidence below.
 - Selected standalone client/rail gates: 59 pass after the parent-authorized official documentation host entries and lookalike refusal test.
 - Actual unpushed range `origin/lp/motion..HEAD`, own commit range `origin/main..HEAD`, and shipped docs media: zero prepublish findings after the scoped gate integration. REUSE v3.3 passes, with metadata on all 9,760 files.
+- Documentation handoff validation: docs tree/media scans have zero findings; generated tools are current; shipped-metadata and site-link modules total **8 passed**. The preceding documentation commit message incorrectly stated 14; this measured count corrects it.
 - Scoped gate, workflow, host and R04 regressions: 33 pass. Both BLAS kernels retain exact byte assertions and small-angle/falsifier checks.
 
 The public synthetic fixtures were rendered by real isolated Chromium. The original teaser has separate parent-managed real-browser evidence at its exact tested head below.
