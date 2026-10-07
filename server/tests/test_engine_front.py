@@ -80,10 +80,12 @@ def test_the_island_attaches_as_a_client_that_takes_questions_and_submits_the_us
     serve, units = run(stack, scenario)
     methods = [m for m, _ in serve.calls]
     assert units.opened == ["scene-1"], "the user's first chat opened the unit's pane, once"
+    # session.active_list before attaching: the session the pane shows now (a /new while Lampway was away is followed);
     # session.history before the prompt: the checkpoint bookmark of this turn (the user turns Hermes's session holds)
-    assert methods[:4] == ["client.capabilities", "session.resume", "session.history", "prompt.submit"], methods
+    assert methods[:5] == ["client.capabilities", "session.active_list", "session.resume", "session.history", "prompt.submit"], \
+        methods
     assert serve.calls[0][1] == {"server_requests": True}
-    assert serve.calls[3][1]["text"] == "Hello there"
+    assert serve.calls[4][1]["text"] == "Hello there"
 
 
 def test_r3_rules_and_an_image_reach_the_pane_as_an_attachment_then_the_prompt(stack):
@@ -445,7 +447,7 @@ def test_slash_new_in_the_pane_tells_the_tabs_client_once_so_the_island_starts_a
         return frame["params"], len(frames), front.links["scene-1"].live_id, new
 
     params, count, live, new = run(stack, scenario)
-    assert params == {"session_id": "scene-1", "origin": "pane"}
+    assert params == {"session_id": "scene-1", "origin": "pane", "conversation_id": new.stored_id}
     assert count == 1 and live == new.live_id
 
 
@@ -487,6 +489,69 @@ def test_after_slash_new_the_new_sessions_events_reach_the_island_however_long_t
 
     events = run(stack, scenario)
     assert final_text(events) == "Fresh start." and events[-1]["status"] == "completed"
+
+
+def test_a_client_that_reconnects_after_the_panes_new_learns_the_conversation_from_agent_status(stack):
+    """``/new`` while no Lampway window was connected: the frame reached nobody. ``agent.status`` names each Mode 1 tab's current
+    conversation (the Hermes session its pane shows), so the reconnecting client can file the old chat."""
+    async def scenario(serve, units, island, front):
+        for text in ("Hello", "Again"):
+            serve.scripts.append([("say", "Hi.")])
+            cid, _ = await chat(island, text, "scene-1")
+            await island.ended(cid)
+        old = serve.only()
+        rid = await island.send("agent.status", {"session_ids": ["scene-1", "no-pane-tab"]})
+        before = (await island.reply(rid))["result"]
+        await island.close()
+        new = await serve.pane_new(old)
+        for _ in range(100):
+            if front.links["scene-1"].live_id == new.live_id:
+                break
+            await asyncio.sleep(0.05)
+        again = await Island(stack.base, stack.settings).connect()
+        rid = await again.send("agent.status", {"session_ids": ["scene-1"]})
+        after = (await again.reply(rid))["result"]
+        started = [f["params"] for f in island.frames if f.get("method") == "agent.turn.started"]
+        await again.close()
+        return before, after, old, new, started
+
+    before, after, old, new, started = run(stack, scenario)
+    assert before["conversations"] == {"scene-1": old.stored_id}, "a tab with no pane names none"
+    assert after["conversations"] == {"scene-1": new.stored_id}
+    assert started[-1]["conversation_id"] == old.stored_id, "a turn's start names its conversation (once the pane is attached)"
+
+
+def test_a_server_that_comes_back_after_the_panes_new_follows_the_pane_to_its_new_session(stack):
+    """``/new`` while Lampway's server was down: the pane's record still names the old session. On re-adoption the island attaches
+    to the session the pane shows now (``session.active_list``), and the record follows, before any old session is resumed."""
+    from lampway_server.engine.front import HermesFront
+
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "Hi.")])
+        cid, _ = await chat(island, "Hello", "scene-1")
+        await island.ended(cid)
+        old = serve.only()
+        link = front.links["scene-1"]
+        link.closing = True                                              # this server goes away
+        await link.client.close()
+        new = await serve.pane_new(old)
+        hub = stack.app.state.agent
+        again = HermesFront(hub, units)                                  # the restarted server's front, the same record
+        hub.engine = again
+        await again.adopt([{"role": "main", "unit": "scene-1"}])
+        for _ in range(100):
+            if again.links["scene-1"].live_id:
+                break
+            await asyncio.sleep(0.05)
+        resumed = [p.get("session_id") for m, p in serve.calls if m == "session.resume"]
+        result = again.links["scene-1"].live_id, units.infos["scene-1"].stored_id, resumed[-1], old.closed
+        for lk in again.links.values():
+            lk.closing = True
+        return result, old, new
+
+    (live, stored, last_resumed, old_closed), old, new = run(stack, scenario)
+    assert live == new.live_id and stored == new.stored_id, "followed, and the record names the new session"
+    assert last_resumed == new.stored_id and old_closed, "the old conversation was not reopened"
 
 
 # ---------------------------------------------------------------------------------------------------- refusals before a turn

@@ -228,6 +228,14 @@ Further mapping rules:
 - **`/new`:** on `agent.pane.new_conversation` the old turns are fenced, their queued scripts answered, the old chat filed in
   History under a new id with its media and its checkpoint timeline, the island emptied for the same session id, and one line
   says the pane started a new conversation.
+- **`/new` while Lampway was away (built 2026-10-07):** the frame reaches only a connected client. The server names the pane's
+  conversation (the Hermes session id) in `agent.turn.started` and `agent.pane.new_conversation` (`conversation_id`) and, per
+  Mode 1 tab, in `agent.status`'s new `conversations` map; the client keeps the last one it saw as a scene ID property
+  (`mixie_pane_conversation`, saved with the file) and, on the reconnect's status, files the old chat when the pane shows another
+  (`mode1_pane.note_conversation`, the same filing as the frame; a turn's start only records). On the server, attaching to a pane
+  first asks serve's live sessions (`session.active_list`): a `/new` while Lampway's server was down left the record naming the
+  closed session, so the island and the record follow the live one instead of reopening the old conversation, and a connected
+  client is sent the frame. `[UNVERIFIED]` in a running app: a reopened `.blend` saved before the `/new`.
 - `[UNVERIFIED]` in a running app: the first-hand look of a pane turn in the island, Stop and an island steer during one, an undo
   after one, `/new` with images in the old chat, and a reopened filed chat.
 - **Built 2026-10-07 (server, loose ends):** a tool call that overtakes its pane turn (the turn still being opened, `Sink.pending`,

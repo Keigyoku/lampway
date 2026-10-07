@@ -27,6 +27,11 @@ Mode 1 runs Hermes's own TUI in a herdr pane, and Lampway's server is a second c
   new id (its transcript, ``chat_history.refile``, and its checkpoint timeline, ``checkpoint_store.refile``, so the new chat starts
   an empty timeline under the same id), empties the island and adds one line. Reopening the filed chat shows its transcript; its
   Hermes session is not followed back (a message from it opens a pane of its own, as after New Chat).
+- **``/new`` while Lampway was away** reaches no client. The tab keeps the conversation it last saw (the Hermes session id the
+  server names in ``agent.turn.started`` and ``agent.pane.new_conversation`` as ``conversation_id``, a scene ID property, so it is
+  saved with the file), and on reconnect ``agent.status`` names each Mode 1 tab's current one (``conversations``,
+  ``turn_resume.note_conversations``): another than the tab's last files the old chat exactly as the frame does
+  (``note_conversation``). A turn's start only records the id; it never files a chat.
 """
 import uuid
 
@@ -37,6 +42,7 @@ logger = get_logger(__name__)
 PANE_TURN_PREFIX = "pane_"          # front.py's pane turn ids (and its scratch id for a call no shown turn owns)
 NEW_CONVERSATION = "agent.pane.new_conversation"
 NEW_CONVERSATION_NOTICE = "Lampway Agent's pane started a new conversation (/new). The previous chat is in History."
+CONVERSATION_KEY = "mixie_pane_conversation"   # the Hermes session the tab last saw its pane show (a scene ID property)
 UNKNOWN_TURN = "unknown_turn"
 
 
@@ -149,9 +155,44 @@ def apply_new_conversation(params: dict) -> None:
     SessionManager.set_state(scene, SessionState.IDLE)
     from .message_helpers import add_agent_message
     add_agent_message(scene, NEW_CONVERSATION_NOTICE)
+    remember_conversation(scene, params)
     logger.info("Lampway Agent's pane started a new conversation for session %s; the old chat is filed as %s",
                 sid[:8], (filed or "nothing")[:8])
     processor._redraw_ui()
+
+
+def remember_conversation(scene, params) -> None:
+    """The conversation a frame names (``conversation_id``) is the tab's current one. Main thread."""
+    cid = str((params or {}).get("conversation_id") or "")
+    if cid and scene is not None:
+        try:
+            scene[CONVERSATION_KEY] = cid
+        except (TypeError, KeyError, AttributeError):
+            logger.debug("the tab's pane conversation could not be recorded", exc_info=True)
+
+
+def note_conversation(session_id: str, conversation_id: str) -> None:
+    """On reconnect (``agent.status``'s ``conversations``): the tab's pane shows ``conversation_id``. Another than the one the tab
+    last saw means the pane's ``/new`` happened while Lampway was away; the old chat is filed as the frame would have done. The
+    first one a tab learns is only recorded. Main thread."""
+    from . import turn_events as TE
+    sid, cid = str(session_id or ""), str(conversation_id or "")
+    if not sid or not cid or sid in TE._blocked:
+        return
+    scene = TE._resolve(sid)
+    if scene is None:
+        return
+    from .agent_mode import is_byoa
+    if is_byoa(scene):
+        return
+    try:
+        known = str(scene.get(CONVERSATION_KEY) or "")
+    except (TypeError, AttributeError):
+        known = ""
+    if known and known != cid:
+        logger.info("Lampway Agent's pane for session %s moved to a new conversation while Lampway was away", sid[:8])
+        apply_new_conversation({"session_id": sid, "origin": "pane"})
+    remember_conversation(scene, {"conversation_id": cid})
 
 
 def _file_old_chat(scene, sid: str) -> str:

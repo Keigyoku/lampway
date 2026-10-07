@@ -502,6 +502,8 @@ class HermesFront:
         link.client, link.epoch = client, client.epoch
         if not same_epoch:
             self._stale_question(link)                      # serve restarted: its waiting request died with it
+        moved = await self._moved_while_away(link, client)
+        info = link.info
         res = await client.call("session.resume", {"session_id": info.stored_id})
         link.live_id = str(res.get("session_id") or "")
         running = bool(res.get("running"))
@@ -510,6 +512,8 @@ class HermesFront:
         else:
             link.last_seq = -1
             await self._settle(link, running, res)
+        if moved:
+            await self._tell_new_conversation(link)
         if link.watcher is None or link.watcher.done():
             link.watcher = asyncio.ensure_future(self._watch(link, client))
 
@@ -625,13 +629,55 @@ class HermesFront:
             await self._end(link, sink, "cancelled", "The pane started a new conversation (/new); this one is in History.")
         link.running = bool(res.get("running"))
         log.info("Lampway Agent's pane for %s moved to a new session; the island follows it", link.unit)
-        # The tab's session id (the unit) stays: only this frame tells its client to start a new chat and file the old one.
+        await self._tell_new_conversation(link)
+
+    async def _tell_new_conversation(self, link: Link) -> None:
+        """The tab's session id (the unit) stays: only this frame tells its current client to start a new chat and file the old one.
+        A client that is not connected learns it from ``agent.status`` (``conversations``) when it comes back."""
         socket = self.hub.socket_for(link.unit)
-        if socket is not None:
-            try:
-                await socket.notify("agent.pane.new_conversation", {"session_id": link.unit, "origin": "pane"})
-            except Exception:  # noqa: BLE001 - the client went away: it shows the old chat until the next one
-                log.debug("the island could not be told of the pane's /new", exc_info=True)
+        if socket is None:
+            return
+        try:
+            await socket.notify("agent.pane.new_conversation", {"session_id": link.unit, "origin": "pane",
+                                                                "conversation_id": self.conversation_of(link.unit)})
+        except Exception:  # noqa: BLE001 - the client went away: agent.status tells it when it comes back
+            log.debug("the island could not be told of the pane's /new", exc_info=True)
+
+    async def _moved_while_away(self, link: Link, client: ServeClient) -> bool:
+        """Before attaching: the pane's ``/new`` while this server was away (or not connected) left the record naming the closed
+        session. serve's live sessions say which one the pane shows; the record follows it, and no closed session is reopened."""
+        info = link.info
+        try:
+            rows = (await client.call("session.active_list", {})).get("sessions") or []
+        except Exception:  # noqa: BLE001 - an older serve: attach to the recorded session
+            return False
+        rows = [r for r in rows if r.get("session_key")]
+        if info is None or not rows or info.stored_id in {str(r["session_key"]) for r in rows}:
+            return False
+        newest = str(max(rows, key=lambda r: float(r.get("started_at") or 0))["session_key"])
+        from .units import UnitInfo
+        link.info = UnitInfo(info.unit, info.record_id, info.home, info.port, info.token, newest)
+        await asyncio.to_thread(self.units.record_session, link.info, newest)
+        link.last_seq = -1
+        log.info("Lampway Agent's pane for %s moved to a new session while Lampway was away; the island follows it", link.unit)
+        return True
+
+    def conversation_of(self, unit: str) -> Optional[str]:
+        """The Hermes session the unit's pane shows, as this server knows it (its connection)."""
+        link = self.links.get(unit)
+        return str(link.info.stored_id) if link is not None and link.info is not None and link.info.stored_id else None
+
+    async def conversations(self, session_ids) -> dict:
+        """``agent.status``'s ``conversations``: each Mode 1 tab's current conversation, from the connection or the pane's record."""
+        out = {}
+        for sid in session_ids:
+            cid = self.conversation_of(sid)
+            if cid is None:
+                info = await asyncio.to_thread(self.units.known, sid)
+                cid = str(info.stored_id) if info is not None and info.stored_id else None
+            if cid:
+                out[sid] = cid
+        return out
 
     # ------------------------------------------------------------------------------------------------- serve's events
     async def _on_event(self, link: Link, params: dict) -> None:
@@ -853,7 +899,8 @@ class HermesFront:
             if socket is not None:
                 try:
                     await socket.notify("agent.turn.started", {"session_id": unit, "turn_id": tid, "run_id": turn.run_id,
-                                                               "origin": "pane", "user_text": user_text or ""})
+                                                               "origin": "pane", "user_text": user_text or "",
+                                                               "conversation_id": self.conversation_of(unit)})
                 except Exception:  # noqa: BLE001 - the client went away: the journal keeps the turn for attach
                     turn.detached = True
             await stream.emit_quietly({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})

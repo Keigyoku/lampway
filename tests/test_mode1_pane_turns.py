@@ -378,6 +378,55 @@ def test_slash_new_for_a_tab_in_your_agent_mode_is_ignored_with_a_log_line(world
     assert any("new_conversation" in r.getMessage() or "/new" in r.getMessage() for r in caplog.records), caplog.text
 
 
+# ------------------------------------------------------------------------------------------------ /new while Lampway was away
+CONV = "mixie_pane_conversation"
+
+
+def test_a_reconnect_that_learns_the_pane_moved_to_a_new_conversation_files_the_old_chat(world):
+    """The pane's /new happened while Lampway was closed: the frame reached nobody. On reconnect ``agent.status`` names the
+    conversation the pane shows (``conversations``); one other than the tab's last files the old chat, as the frame would have."""
+    from mixar.modules.space_mixie_chat.core import chat_history as CH
+    scene, seen = world
+    scene[CONV] = "20261007_100000_aaaaaa"
+    _old_chat(scene)
+    CH.archive_current(scene)
+    MP.note_conversation(SID, "20261007_110000_bbbbbb")
+    assert [(m.sender, m.text) for m in scene.mixie_chat_messages] == [("AGENT", MP.NEW_CONVERSATION_NOTICE)]
+    assert len(CH.list_sessions()) == 1 and CH.list_sessions()[0]["title"] == "Make a chair"
+    assert scene[CONV] == "20261007_110000_bbbbbb"
+    MP.note_conversation(SID, "20261007_110000_bbbbbb")
+    assert len(scene.mixie_chat_messages) == 1, "the same conversation again changes nothing"
+
+
+def test_the_first_conversation_a_tab_learns_is_only_recorded(world):
+    scene, seen = world
+    _old_chat(scene)
+    MP.note_conversation(SID, "20261007_100000_aaaaaa")
+    assert users(scene) == ["Make a chair"] and scene[CONV] == "20261007_100000_aaaaaa"
+
+
+def test_the_frames_that_carry_the_conversation_keep_the_tab_current(world):
+    """``agent.pane.new_conversation`` and ``agent.turn.started`` name the conversation; the tab keeps the last one, so a later
+    reconnect compares against it. A turn's start only records (it never files a chat)."""
+    from mixar.modules.space_mixie_chat.core import chat_history as CH
+    scene, seen = world
+    TE._consume("agent.turn.started", {**pane_started(), "conversation_id": "20261007_100000_aaaaaa"})
+    feed(pane_events())
+    assert scene[CONV] == "20261007_100000_aaaaaa"
+    TE._consume("agent.pane.new_conversation", {**NEW_CONVERSATION, "conversation_id": "20261007_110000_bbbbbb"})
+    assert scene[CONV] == "20261007_110000_bbbbbb" and len(CH.list_sessions()) == 1, "filed once, by the frame"
+
+
+def test_the_status_reply_on_reconnect_hands_each_tabs_conversation_to_the_pane_check(world, monkeypatch):
+    from mixar.modules.space_mixie_chat.core import main_thread_executor, turn_resume
+    scene, seen = world
+    scene[CONV] = "20261007_100000_aaaaaa"
+    _old_chat(scene)
+    monkeypatch.setattr(main_thread_executor, "run_on_main_thread", lambda fn: fn())
+    turn_resume.note_conversations({"turns": {}, "conversations": {SID: "20261007_110000_bbbbbb"}})
+    assert scene[CONV] == "20261007_110000_bbbbbb" and users(scene) == []
+
+
 def test_the_socket_hands_the_new_conversation_frame_to_the_turn_ingress():
     from mixar.modules.space_mixie_chat.core.socket_dispatch import SocketDispatch
     got = []

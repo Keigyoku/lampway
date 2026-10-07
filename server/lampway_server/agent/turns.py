@@ -287,7 +287,8 @@ class AgentHub:
 
     async def _status(self, socket, params):
         turns = {}
-        for session_id in list(params.get("session_ids") or [])[:32]:
+        asked = [str(s) for s in list(params.get("session_ids") or [])[:32] if isinstance(s, str) and s]
+        for session_id in asked:
             session = self.sessions.get(str(session_id))
             if session is None or session.last_turn_id is None:
                 continue
@@ -296,7 +297,10 @@ class AgentHub:
                 "turn_id": turn.turn_id, "run_id": turn.run_id, "replay_available": True,
                 "status": turn.status, "active": turn.status == "running", "last_seq": turn.last_seq,
             }
-        return {"turns": turns}
+        # The conversation each Mode 1 tab's pane shows (A2, Q15): a client that was away when the pane's /new was followed learns
+        # it here, and files the old chat.
+        conversations = await self.engine.conversations(asked) if self.engine is not None else {}
+        return {"turns": turns, "conversations": conversations}
 
     async def _attach(self, socket, params):
         session = self.sessions.get(str(params.get("session_id") or ""))
@@ -377,9 +381,11 @@ class AgentHub:
         steps: list[dict] = []
         status = "completed"
         try:
-            await socket.notify("agent.turn.started", {
-                "session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id,
-            })
+            started = {"session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id}
+            conversation = self.engine.conversation_of(session.session_id) if self.engine is not None else None
+            if conversation:
+                started["conversation_id"] = conversation        # the Hermes session the tab's pane shows (A2, Q15)
+            await socket.notify("agent.turn.started", started)
             command.state, command.result = "complete", {"ok": True}
             await socket.notify("agent.command.result", {
                 "session_id": session.session_id, "command_id": turn.turn_id, "ok": True,

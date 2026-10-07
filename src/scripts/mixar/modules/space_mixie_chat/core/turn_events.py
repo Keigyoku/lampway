@@ -254,6 +254,8 @@ def _consume(method, params):
         return
     turn = _turns.get(tid)
     if method == 'agent.turn.started':
+        from . import mode1_pane
+        mode1_pane.remember_conversation(scene, params)   # the Hermes session the tab's pane shows (agent-modes spec Q15)
         if turn is not None:
             turn.recovering = bool(params.get('replay'))
             return
