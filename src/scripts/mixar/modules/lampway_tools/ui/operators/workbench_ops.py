@@ -288,18 +288,17 @@ class LAMPWAY_OT_terminal_open(_UserClick):
 
 
 class LAMPWAY_OT_terminal_focus(_UserClick):
-    """Bring Lampway's agent tab forward in the Lampway terminal (never another WezTerm's pane)"""
+    """Bring the Lampway terminal forward: the one window onto Lampway's herdr (never another WezTerm)"""
     bl_idname = "lampway.terminal_focus"
     bl_label = "Focus the Lampway terminal"
 
     def execute(self, context):
         if (r := self._gate(context)) is not None:
             return r
-        panes = (workbench_state.STATE.get("terminal") or {}).get("panes") or []
-        if not panes:
-            return self._done(context, "the Lampway terminal has no Lampway tab to focus: Open it first", ok=False)
+        if (workbench_state.STATE.get("terminal") or {}).get("window") != "re-adopted":
+            return self._done(context, "the Lampway terminal is not open: Open it first", ok=False)
         try:
-            CLIENT_FACTORY().terminal_focus(panes[0])
+            CLIENT_FACTORY().terminal_focus()
         except studio_client.StudioError as exc:
             return self._done(context, str(exc), ok=False)
         return self._done(context, "the Lampway terminal is in front")

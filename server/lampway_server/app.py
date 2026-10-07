@@ -859,9 +859,6 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         except _HL.HerdrError:
             boot = None
         try:
-            inst = _WZ.load_instance(home)
-            inst["panes"] = {}                      # a new window: its tabs are new panes, given to the agents by the state tick
-            _WZ.save_instance(home, inst)
             return JSONResponse(await asyncio.to_thread(_WZ.launch, home, str(exe), cockpit.root, body.get("position"), True, boot))
         except _WZ.TerminalRefused as exc:
             return JSONResponse({"detail": str(exc)}, status_code=409)
@@ -874,12 +871,11 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         exe = _WZ.binary(home)
         if not exe:
             return JSONResponse({"detail": "the Lampway terminal is not installed: Get it first (about 49 MB from github.com)"}, status_code=409)
-        body = await _json_body(request)
         try:
-            await asyncio.to_thread(_WZ.focus, home, str(exe), str(body.get("pane", "")))
+            await asyncio.to_thread(_WZ.focus, home, str(exe))      # the one window, forward
         except _WZ.TerminalRefused as exc:
             return JSONResponse({"detail": str(exc)}, status_code=409)
-        return JSONResponse({"focused": str(body.get("pane", ""))})
+        return JSONResponse({"focused": True})
 
     async def terminal_remove(request: Request):
         if (r := _term_guard(request, True)) is not None:
@@ -890,18 +886,6 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     routes += [Route("/app/terminal", terminal_status, methods=["GET"]), Route("/app/terminal/get", terminal_get, methods=["POST"]),
                Route("/app/terminal/open", terminal_open, methods=["POST"]), Route("/app/terminal/remove", terminal_remove, methods=["POST"]),
                Route("/app/terminal/focus", terminal_focus, methods=["POST"])]
-
-    def terminal_state_tick():
-        """state.json for the terminal's tab bar (contract 16 section 5), while the terminal is installed."""
-        from .addons import wezterm as _WZ
-        home = _term_home()
-        if _WZ.binary(home) is None:
-            return
-        eg = _EG.ACTIVE
-        sessions = cockpit.list_sessions()
-        _WZ.agent_tabs(home, str(_WZ.binary(home)), sessions)        # one tab per live agent while the window runs
-        _WZ.write_state(home, _WZ.state_doc(_WZ.load_instance(home), sessions,
-                                            eg.indicator() if eg else {}, eg.routes_view() if eg else []))
 
     # ---- the cockpit window (facelift contract 10): a static page from this origin only; its data behind the bearer
     _WB_PAGE = Path(__file__).resolve().parent / "web" / "workbench"
@@ -1387,20 +1371,11 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                     await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
                 except Exception:  # noqa: BLE001
                     logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
-        async def terminal_tick():
-            while True:
-                try:
-                    await asyncio.to_thread(terminal_state_tick)
-                except Exception:  # noqa: BLE001
-                    logging.getLogger("lampway.terminal").debug("state.json not written", exc_info=True)
-                await asyncio.sleep(1)
         task = asyncio.get_running_loop().create_task(tick())
-        term_task = asyncio.get_running_loop().create_task(terminal_tick())
         try:
             yield
         finally:
             task.cancel()
-            term_task.cancel()
             render_stop.set()
             if render_thread is not None:
                 render_thread.join(10)                                # a preview in flight finishes before its library closes
