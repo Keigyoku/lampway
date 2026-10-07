@@ -177,7 +177,6 @@ def test_signed_out_says_signed_out_not_server_down(statusbar, monkeypatch):
         raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, io.BytesIO(b'{"detail": "not authenticated"}'))
     monkeypatch.setattr(statusbar, "_sync_route_line", lambda: None)
     monkeypatch.setattr(statusbar, "_open_awaited_card", lambda: None)
-    monkeypatch.setattr(statusbar, "_show_terminal_images", lambda: None)
     monkeypatch.setattr(statusbar, "_redraw_statusbar", lambda: None)
     monkeypatch.setattr(statusbar, "sync_animation", lambda: None)
     for token, opener in (("tok", answer_401), ("", answer_401)):
@@ -195,3 +194,8 @@ def test_signed_out_says_signed_out_not_server_down(statusbar, monkeypatch):
     layout = Recorder()
     statusbar.draw(SimpleNamespace(layout=layout), SimpleNamespace())
     assert "spend unknown: server not running" in layout.texts()
+
+
+def test_the_status_refresh_drains_no_terminal_queue(statusbar):
+    """The captain's ruling 11: WezTerm is a viewport only, so Blender reads nothing from it (no image queue)."""
+    assert not hasattr(statusbar, "_show_terminal_images") and not hasattr(statusbar, "_image_editor_show")

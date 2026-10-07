@@ -90,31 +90,6 @@ def solid_png(path: Path, rgb=(255, 0, 255), size=64) -> None:
                      + chunk(b"IDAT", zlib.compress(row * size)) + chunk(b"IEND", b""))
 
 
-def magenta_box(save=None):
-    """The bounding box of the pure-magenta pixels on the root window, or None."""
-    x = ctypes.CDLL("libX11.so.6")
-    x.XOpenDisplay.restype = ctypes.c_void_p
-    x.XDefaultRootWindow.restype = ctypes.c_ulong
-    x.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
-    x.XGetImage.restype = ctypes.c_void_p
-    x.XGetImage.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int, ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_ulong, ctypes.c_int]
-    x.XDisplayWidth.argtypes = x.XDisplayHeight.argtypes = [ctypes.c_void_p, ctypes.c_int]
-    d = x.XOpenDisplay(None)
-    w, h = x.XDisplayWidth(d, 0), x.XDisplayHeight(d, 0)
-    img = x.XGetImage(d, x.XDefaultRootWindow(d), 0, 0, w, h, 0xFFFFFFFF, 2)
-    data = ctypes.c_void_p.from_address(img + 16).value
-    bpl = ctypes.c_int.from_address(img + 44).value
-    raw = memoryview(ctypes.string_at(data, bpl * h)).cast("I")
-    xs, ys = [], []
-    for y in range(h):
-        row = raw[y * (bpl // 4):y * (bpl // 4) + w]
-        hits = [i for i, v in enumerate(row) if v & 0xFFFFFF == 0xFF00FF]
-        if hits:
-            xs += [hits[0], hits[-1]]
-            ys.append(y)
-    return (min(xs), min(ys), max(xs), max(ys)) if xs else None
-
-
 def magenta_on_screen(save=None) -> int:
     """Count the root window's pure-magenta pixels (XGetImage through Xlib; the box has no screenshot tool); `save` writes the
     screen as a PNG for the report."""
@@ -159,8 +134,6 @@ solid_png(png)
 show = Path(PROJECT) / "show_iterm2.sh"
 show.write_text("#!/bin/sh\nprintf '\\033]1337;File=inline=1;width=16;height=8;preserveAspectRatio=0:%s\\007\\n' "
                 f"\"$(base64 -w0 '{png}')\"\n")
-link = Path(PROJECT) / "show_link.sh"          # the path as text, on a truecolor magenta bed so the run can find it on screen
-link.write_text("#!/bin/sh\nclear\nprintf '\\033[48;2;255;0;255m%s\\033[0m\\n' " f"'{png}'\n")
 kitty = Path(PROJECT) / "show_kitty.sh"
 kitty.write_text("#!/bin/sh\nprintf '\\033_Ga=T,f=100,c=16,r=8;%s\\033\\\\\\n' " f"\"$(base64 -w0 '{png}')\"\n")
 cock = Cockpit(HERDR_ROOT, project_root=PROJECT)
@@ -223,37 +196,6 @@ for proto, script in (("iterm2", show), ("kitty", kitty)):
         cock.close_session(img["id"], confirmed=True)
     except Exception:  # noqa: BLE001
         pass
-# ---- the fallback (contract 16, 6.7): the image's path, printed by an agent pane inside herdr, is a link; a click on it queues
-# the image for Blender (the Blender half is tests/lampway_visual/test_terminal_image.py)
-queue = Path(HOME) / "wezterm" / "show_in_blender.jsonl"
-subprocess.run(["xdotool", "search", "--class", W.CLASS, "windowsize", "%@", "1600", "1000"], capture_output=True, timeout=20)
-time.sleep(2)
-lnk = cock.create_session("command", "live probe link", PROJECT, command=f"sh {link}")
-L.run(HERDR_ROOT, ["workspace", "focus", lnk["workspace_id"]])
-L.run(HERDR_ROOT, ["tab", "focus", lnk["tab_id"]])
-time.sleep(6)
-box = magenta_box()
-tried = []
-for mods in ([], ["ctrl"]):
-    if box is None or queue.exists():
-        break
-    cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
-    for wid in subprocess.run(["xdotool", "search", "--class", W.CLASS], capture_output=True, text=True, timeout=20).stdout.split()[:1]:
-        subprocess.run(["xdotool", "windowfocus", "--sync", wid], capture_output=True, timeout=20)   # no window manager: give it focus
-    cmd = ["xdotool", "mousemove", str(cx), str(cy), "sleep", "0.5"] + [a for m in mods for a in ("keydown", m)]
-    cmd += ["mousedown", "1", "sleep", "0.2", "mouseup", "1"] + [a for m in mods for a in ("keyup", m)]
-    subprocess.run(cmd, capture_output=True, timeout=20)
-    tried.append("+".join(mods) or "plain")
-    time.sleep(3)
-magenta_on_screen(Path(HOME).parent / "screen-herdr-link.png")
-queued = queue.read_text().splitlines() if queue.exists() else []
-checks["image_path_link_queues_for_blender"] = {
-    "ok": any(json.loads(q).get("path") == str(png) for q in queued), "text_box": box, "clicks": tried, "queued": queued}
-try:
-    cock.close_session(lnk["id"], confirmed=True)
-except Exception:  # noqa: BLE001
-    pass
-
 # the control: the same escape sequence straight into a WezTerm pane, no herdr in between
 if listed:
     for proto, script in (("iterm2", show), ("kitty", kitty)):

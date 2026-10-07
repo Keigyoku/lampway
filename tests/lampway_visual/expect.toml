@@ -50,10 +50,6 @@ theme = "dark"
 theme = "dark"
 [zen_shortcuts.surfaces]
 
-[terminal_image]
-theme = "dark"
-[terminal_image.surfaces]
-
 [observe_labels]
 theme = "dark"
 [observe_labels.surfaces]

@@ -9,10 +9,9 @@
 The config is executed under a stub `wezterm` module with LAMPWAY_HOME pointed at a temp dir, then inspected:
 W1  both colour schemes equal the tokens (foreground, background, cursor, selection), and ANSI never uses `wire`.
 W2  calm and private: check_for_updates is false (an update check is a network call nobody opted into), no bell, no blink.
-W3  isolation: the file opens nothing but the image queue under $LAMPWAY_HOME (append), never names the user's config,
-    refuses to load without LAMPWAY_HOME.
+W3  isolation: the file opens no file at all, never names the user's config, refuses to load without LAMPWAY_HOME.
 W4  a viewport only (the captain, 2026-10-06): the tab bar is off, and nothing renders a tab title or a status from state.
-W5  the image fallback: a Lampway image link is queued once and swallowed; any other link is left to WezTerm.
+W5  no link handling of its own (the captain's ruling 11): no hyperlink rules, no open-uri handler, no mouse bindings.
 """
 import json
 import os
@@ -56,12 +55,7 @@ for name, sc in pairs(cfg.color_schemes) do
   for i, c in ipairs(sc.brights) do emit(name .. '.brights.' .. i, c) end
 end
 emit('check_for_updates', cfg.check_for_updates); emit('audible_bell', cfg.audible_bell); emit('cursor_blink_rate', cfg.cursor_blink_rate)
-emit('links', #cfg.hyperlink_rules)
-local open_uri = handlers['open-uri']
-emit('openuri.lampway', tostring(open_uri and open_uri(nil, nil, 'lampway-image:/p/a.png')))
-emit('openuri.other', tostring(open_uri and open_uri(nil, nil, 'https://example.invalid/x')))
-local q = io.open(os.getenv('LAMPWAY_HOME') .. '/wezterm/show_in_blender.jsonl', 'r')
-emit('queue', q and q:read('*a'):gsub('\n', '|') or '')
+emit('links', tostring(cfg.hyperlink_rules ~= nil or cfg.mouse_bindings ~= nil or handlers['open-uri'] ~= nil))
 emit('tab_bar', tostring(cfg.enable_tab_bar))
 emit('handlers', (handlers['format-tab-title'] and 'format-tab-title ' or '') .. (handlers['update-status'] and 'update-status' or ''))
 """
@@ -100,14 +94,10 @@ def check(lua_path):
     if v.get("audible_bell") != "Disabled" or v.get("cursor_blink_rate") != "0":
         f.append("W2 bell or blinking cursor is on (calm by default)")
     opens = re.findall(r"io\.open\(([^,)]+)", src)
-    if opens != ["SHOW_QUEUE"]:
-        f.append(f"W3 the config opens {opens}, only SHOW_QUEUE (append) is allowed")
-    if not re.search(r"local SHOW_QUEUE = home \.\. '/wezterm/show_in_blender\.jsonl'", src) or "io.open(SHOW_QUEUE, 'a')" not in src:
-        f.append("W3 the image queue is not Lampway's own append-only file under LAMPWAY_HOME")
-    # W5: the image fallback (contract 16, 6.7): a Lampway image link is queued for Blender and nothing else is taken
-    if v.get("openuri.lampway") != "false" or v.get("openuri.other") != "nil" or v.get("queue") != '{"path":"/p/a.png"}|':
-        f.append(f"W5 open-uri: lampway {v.get('openuri.lampway')}, other {v.get('openuri.other')}, queue {v.get('queue')!r} "
-                 "(want: the Lampway link queued once and swallowed, any other link left to WezTerm)")
+    if opens:
+        f.append(f"W3 the config opens {opens}: it opens no file")
+    if v.get("links") != "false":
+        f.append("W5 the config handles links itself (hyperlink rules, open-uri or mouse bindings): a viewport handles none")
     if re.search(r"\.wezterm\.lua|\.config/wezterm|WEZTERM_CONFIG", src):
         f.append("W3 the config names the user's own WezTerm configuration")
     if "LOADERR" not in run(lua_path, with_home=False):
@@ -124,10 +114,10 @@ def self_test():
     for label, mut, tag in (
         ("W1 drifted background", src.replace("background = '#0E1016'", "background = '#000000'", 1), "W1"),
         ("W2 update check on", src.replace("config.check_for_updates = false", "config.check_for_updates = true"), "W2"),
-        ("W3 reads the user's config", src.replace("local SHOW_QUEUE", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nlocal SHOW_QUEUE"), "W3"),
+        ("W3 reads the user's config", src.replace("return config", "local _u = io.open(os.getenv('HOME') .. '/.wezterm.lua')\nreturn config"), "W3"),
         ("W4 a tab bar again", src.replace("config.enable_tab_bar = false", "config.enable_tab_bar = true"), "W4"),
         ("W4 a tab title from state", src.replace("return config", "wezterm.on('format-tab-title', function(tab) return 'x' end)\nreturn config"), "W4"),
-        ("W5 every link taken", src.replace("  if not path then return end\n", "  if not path then return false end\n"), "W5"),
+        ("W5 a link handler again", src.replace("return config", "wezterm.on('open-uri', function() return false end)\nreturn config"), "W5"),
     ):
         p = os.path.join(tempfile.mkdtemp(), "mut.lua")
         open(p, "w", encoding="utf-8").write(mut)
