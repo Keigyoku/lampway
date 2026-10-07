@@ -379,6 +379,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                      swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault,
                      switch_dir=settings.state_dir)
     agent.settings_store = store                              # the key dialog's choice (R3: whether the model sees images)
+    from .agent.swarm_island import SwarmIsland
+    agent.swarm.island = SwarmIsland(agent)                   # every swarm's Parallel Agents cards, in its unit's island (spec S1, S3)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()

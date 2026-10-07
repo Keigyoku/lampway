@@ -1132,7 +1132,10 @@ It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abi
   provider mid-task.
 - With no worker choice, the chain is `follow:agent.main` (the registry's and the bridge's default): the worker follows the main
   agent. A worker choice that cannot be built (no key) is an OpenAI-style error for that pane, never the main provider instead.
-- Tested with a scripted provider each (`tests/test_engine_wiring.py`).
+- One answer for the workers, in this order: the environment (`LAMPWAY_SWARM_PROVIDER` and its swarm models, a session scope),
+  then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's worker role both write, then
+  the default `follow:agent.main`. The dialog's swarm model is therefore what the gateway answers a worker with.
+- Tested with a scripted provider each, and the dialog's swarm model through the gateway (`tests/test_engine_wiring.py`).
 
 **Contract.**
 - Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
@@ -1175,6 +1178,30 @@ It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abi
   never get them (invariant 4). No swarm tool spends.
 - **Visibility:** worker panes show in the cockpit like any pane. Closing a worker pane cancels its task; it never kills a pane the
   swarm did not start (law 5).
+
+**Built 2026-10-07: the Parallel Agents cards and Retry for every swarm** (`agent/swarm_island.py`, `SwarmManager.retry`; the
+captain: nothing hidden, finish it). Before, the cards came only from a swarm started inside a built-in hub turn; a swarm started
+by a bound Mode 2 pane over MCP, or by Lampway Agent's Hermes pane over its engine endpoint, emitted none.
+- **Where the cards go:** every swarm reports its workers to the island of its unit's scene tab, in the client's own frames (the
+  `todo` slot the Parallel Agents panel mirrors, and the "Retry failed tasks" `actions` chip):
+  - a swarm started in a turn that handed it its stream: on that turn, as before;
+  - a Mode 1 swarm while Lampway Agent's island turn runs (the front's live sink): on that turn's own bubble;
+  - otherwise (a Mode 2 swarm; a Mode 1 swarm between island turns): on a card turn of its own, on the scene tab's current Client
+    socket: `agent.turn.started` with `observed: true`, the `swarm` id and the parent `pane`; `run_status`; the rows on one bubble;
+    at collect the Retry chip when a task failed, `turn_end` (no `offset`, so the pane's transcript cursor is untouched) and
+    `agent.turn.ended`. A Your agent tab renders it as it renders an observed turn. `[UNVERIFIED in the client]` **For the client
+    lane:** a Lampway Agent tab takes only its own turns and their wakeups, so it drops a card turn; it needs to accept a `swarm`
+    card turn too (the same gap as A2's `origin: pane` turns).
+- **Retry, under the same rules:** the chip sends the user's "continue" (`agent.chat` in a Lampway Agent tab, `agent.byoa.send`
+  in a Your agent tab). Only from the user's own Client socket, and only while failed tasks are on offer, it is a retry:
+  - the failed tasks run once more as one new swarm, in the mode, harness, folder and owner of the swarm they failed in, under
+    capability `swarm`, and are collected into the scene; a second click finds nothing left to retry;
+  - the unit's agent is told in one line (nothing is hidden from it): Lampway Agent's Hermes gets it with the user's "continue"
+    after the retry ran inside the island turn (its steps and cards on that bubble); a Your agent pane is typed the user's
+    "continue" with that line, as the user's click; `swarm_status` of the original names the new swarm (`retried_as`), which is
+    the pane's own swarm too;
+  - an agent's "continue" is never a retry.
+- **Tested** with the fake desktop receiving the frames (`tests/test_swarm_cards.py`, `tests/test_engine_front.py`).
 - **Egress:** the panes talk to their vendor under the user's account (B5). Lampway gates the start and logs it.
 
 ## S4. Choosing the brain

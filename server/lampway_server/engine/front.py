@@ -27,6 +27,11 @@ end. ``AgentHub.engine`` is a ``HermesFront``; the hub keeps the client protocol
 * **the island's socket closing** stops nothing in Hermes: the hub keeps the running turn as a survivor and ``agent.attach``
   replays its journal.
 
+**The swarm's cards and Retry.** A swarm the unit's Hermes starts shows its Parallel Agents cards on the island turn running when it
+reports (``agent/swarm_island.py`` reads the live ``Sink``); the chip's "continue" (the user's own socket, failed tasks on offer)
+runs those tasks again inside the island turn first (``_retry``: steps and cards on its bubble), and Hermes gets the user's
+"continue" with one line saying what ran (``swarm.retry_note``).
+
 **A3: tools reach the scene whoever started the turn.** ``/engine/mcp/<unit>`` (``mcp_endpoint.py``) calls ``call_tool``: the call
 runs through ``AgentHub._run_tool`` (Capabilities at call time, E2) on the scene tab's CURRENT client socket (``hub.socket_for``),
 with or without an island turn; with no client connected it is refused ("Lampway is not open"). Its step comes from serve's
@@ -176,6 +181,15 @@ class HermesFront:
         link = await self._ensure(session.session_id, open_pane=user_text is not None, label=(context or {}).get("scene_name"))
         sink = Sink(socket, session, turn, stream, bubble_id, steps, done=asyncio.get_running_loop().create_future(),
                     asked=asyncio.Event())
+        if user_text is not None and self._retry_click(socket, session.session_id, user_text):
+            link.sink = sink                                  # the retried swarm's cards and Retry chip land on this turn's bubble
+            try:
+                note = await self._retry(socket, session, turn, stream, bubble_id, steps)
+            except BaseException:
+                if link.sink is sink:
+                    link.sink = None
+                raise
+            user_text = f"{user_text}\n\n{note}" if note else user_text
         if user_text is None:
             held = link.sink
             if held is not None and held.pending:          # events after the island's answer, held for this turn
@@ -202,6 +216,43 @@ class HermesFront:
                     link.sink = None
                 raise
         return await self._wait(link, sink)
+
+    def _retry_click(self, socket, unit: str, text: str) -> bool:
+        """The cards' "Retry failed tasks" chip sends the user's "continue" (``agent.chat``): with failed tasks on offer and from the
+        user's own Client socket, it is the user's retry (the same rule the built-in turn had; ``agent/swarm_island.py``)."""
+        from ..agent import questions as Q
+        from ..agent.byoa import origin_of
+        swarm = getattr(self.hub, "swarm", None)
+        return (str(text).strip().lower() == Q.CONTINUE_MESSAGE and swarm is not None and swarm.retryable(unit)
+                and origin_of(socket) == "user")
+
+    async def _retry(self, socket, session, turn, stream, bubble_id, steps) -> str:
+        """Run the unit's failed tasks again inside this island turn (its steps and cards on this turn's bubble), and return the one
+        line the pane's Hermes gets with the user's "continue" (``swarm.retry_note``)."""
+        from ..agent.swarm import retry_note
+        rows = [{"id": f"retry_{uuid.uuid4().hex[:8]}", "kind": "tool", "label": name, "target": "", "detail": "retry failed tasks",
+                 "status": "running"} for name in ("swarm_start", "swarm_collect")]
+        steps.extend(rows)
+        await stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+
+        def progress(text: str):
+            rows[0]["detail"] = f"retry failed tasks: {text}"[:160]
+
+        async def emit_todo(todo):
+            await stream.emit_quietly({"bubble_id": bubble_id, "todo": todo})
+        try:
+            result = await self.hub.swarm.retry(session.session_id, socket, emit_todo=emit_todo, progress=progress,
+                                                turn_id=turn.turn_id, run_id=turn.run_id)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - told to the island and to Hermes, the turn goes on
+            log.warning("the user's retry of failed swarm tasks did not run: %s", exc)
+            result = {"tasks": [], "retried_from": [], "error": str(exc)}
+        failed_start = bool(result and result.get("error") and not result.get("swarm_id"))
+        rows[0]["status"] = "failed" if failed_start else "done"
+        rows[1]["status"] = "failed" if (not result or result.get("error")) else "done"
+        await stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
+        return retry_note(result)
 
     async def _wait(self, link: Link, sink: Sink) -> str:
         asked = asyncio.ensure_future(sink.asked.wait())

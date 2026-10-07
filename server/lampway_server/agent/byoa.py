@@ -23,6 +23,11 @@ client polls.
 decided from the socket, never from the body: a worker socket, an agent or MCP token, or a cross-origin socket is an agent, and an
 agent send passes the cockpit's checks (agent sends switched on for the pane, and the 2.5 s quiet window after the user's own
 last send from the island).
+
+**Retry from the swarm's cards.** A swarm the bound pane started shows its Parallel Agents cards on a card turn of its own
+(``swarm_island.py``). Its "Retry failed tasks" chip sends the user's "continue" here: from the user's own socket, with failed tasks
+on offer, the tasks run again (``SwarmManager.retry``, in the background; the reply says ``retry: true``), and then the pane is
+typed the user's "continue" with one line saying what ran (``swarm.retry_note``). Any other "continue" is typed as it is.
 """
 import asyncio
 import json
@@ -287,6 +292,12 @@ class ByoaView:
         if not session_id or not isinstance(text, str) or not text.strip():
             raise InvalidParams("payload.session_id and a non-empty payload.text are required")
         rec = self.pane_for(session_id)
+        if self._retry_click(socket, session_id, text):
+            # The cards' "Retry failed tasks" chip (agent/swarm_island.py): in a Your agent tab it sends the user's "continue" here.
+            # From the user's own Client socket only (B6); the failed tasks run again, then the pane's agent is told (one typed line).
+            spawn = getattr(socket, "spawn", None) or asyncio.ensure_future
+            spawn(self._retry(session_id, socket, rec["id"] if rec is not None and rec.get("state") == "live" else None))
+            return _result(True, pane=rec["id"] if rec is not None else None, retry=True)
         if rec is None or rec.get("state") != "live":
             return _result(False, code="not_bound", status_code=409, help=[BIND_HELP if rec is None else RESUME_HELP],
                            message="No running agent pane is bound to this scene tab, so nothing was typed.")
@@ -300,3 +311,29 @@ class ByoaView:
         if by == "user":
             self.user_sent[rec["id"]] = time.time()
         return _result(True, pane=rec["id"])
+
+    def _retry_click(self, socket, session_id: str, text: str) -> bool:
+        """The user's own "continue" while the tab's cards offer Retry failed tasks (the same rule as Lampway Agent's tab)."""
+        from . import questions as Q
+        swarm = getattr(self.hub, "swarm", None)
+        return (text.strip().lower() == Q.CONTINUE_MESSAGE and swarm is not None and swarm.retryable(session_id)
+                and origin_of(socket) == "user")
+
+    async def _retry(self, session_id: str, socket, pane_id) -> None:
+        """Run the failed tasks again (``SwarmManager.retry``: its cards show in the island), then tell the pane's agent: the user's
+        "continue" with what ran, as one line typed by the user's click."""
+        from .swarm import retry_note
+        try:
+            result = await self.hub.swarm.retry(session_id, socket)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - reported to the pane below
+            log.warning("the user's retry of failed swarm tasks did not run: %s", exc)
+            result = {"tasks": [], "retried_from": [], "error": str(exc)}
+        note = retry_note(result)
+        if not note or pane_id is None:
+            return
+        try:
+            await asyncio.to_thread(self._cockpit().send_input, pane_id, f"continue {note}", True, "user", None)
+        except Exception as exc:  # noqa: BLE001 - the pane ended or herdr is gone: the island's cards still show what ran
+            log.warning("the pane could not be told about the retry: %s", exc)

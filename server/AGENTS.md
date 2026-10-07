@@ -40,8 +40,8 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    line). A swarm worker's pane (session header `swarm:<swarm_id>:<worker_id>`, its `PaneBrain`'s token) is offered
    `worker_tools()` as Capabilities allow plus `lampway_worker_done`, every call through its `WorkerJob.call_tool` on its own
    headless Lampway, never the swarm, the studios, `ask_user` or the workbench. A pane bound to a scene tab (B2; its key) is offered only `swarm_start`, `swarm_status`,
-   `swarm_cancel` and `swarm_collect`, only with capability `swarm` in force and the BYOA switch on, for the swarms it started; its
-   swarm thinks in panes and lands in its bound tab. No swarm tool spends.
+   `swarm_cancel` and `swarm_collect`, only with capability `swarm` in force and the BYOA switch on, for the swarms it started
+   (`Swarm.owner`, a Retry of them included); its swarm thinks in panes and lands in its bound tab. No swarm tool spends.
 5. **A tool argument cannot change the script.** `agent/lampway_tools.py` `build_script` passes the arguments as one JSON string
    literal into `api.call`; unknown arguments are dropped and a missing required one is refused before Blender is asked.
 6. **Isolation and controlled decoupling (herdr).** Every herdr invocation goes through `herdr/launcher.py` with HOME, XDG and
@@ -90,6 +90,16 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    harness gone (a pane herdr cannot inspect stays). Never a main pane, another unit's, an ad-hoc or unknown pane, or a working
    worker's; the record ends with the reason, a Mode 1 worker's gateway key is revoked with it, and `swarm_start` returns what
    it closed (`closed_panes`).
+   Every swarm, whoever started it, shows its workers as the Parallel Agents cards in its unit's island, in the client's own frames
+   (`agent/swarm_island.py`, spec S1, S3): the `todo` rows on the turn that handed the swarm its stream; else, for a Mode 1 swarm, on
+   Lampway Agent's live island turn (the front's `Sink`); else on a card turn of its own on the scene tab's current Client socket
+   (an observed turn with the `swarm` id, its `turn_end` with no `offset`, journalled for `agent.attach`). A collected swarm with a
+   failed task offers "Retry failed tasks"; the chip's "continue" retries only from the user's own Client socket (`origin_of`) and
+   only while failed tasks are on offer (`agent.chat` in a Lampway Agent tab: `HermesFront.drive`; `agent.byoa.send` in a Your
+   agent tab: `ByoaView.send`): `SwarmManager.retry` runs exactly those tasks once as one new swarm in the original's mode, harness
+   and owner, under capability `swarm`, collects it, marks the original `retried_as`, and the unit's agent is told in one line
+   (`retry_note`: Hermes gets it with the user's "continue"; a Mode 2 pane is typed it as the user's click). An agent's
+   "continue" is never a retry. Nothing here spends.
    The herdr view (spec A4, `herdr/layout.py`): a unit is one scene tab's conversation (its scene session id). A pane bound to a
    tab (created bound, or bound later) is its unit's `main` agent and opens in a tab of its own labelled with the scene's name
    (the Client's `name` on the mode route), else a short id; a worker pane splits into its unit's tab, the first right of the
@@ -133,7 +143,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     adopted again by its digest after a restart, redacted by `logredact.py`); a unit's main pane is answered by the current main
     provider and a Mode 1 worker's pane (its token keyed by its swarm binding) by the `agent.worker` choice (`wiring.provider_getter`,
     spec S2: built by the hub's `swarm_provider_factory` at the worker's first call and kept for its life; with no worker choice the
-    chain's default `follow:agent.main`), never by another: a provider's failure, or a worker choice that cannot be built, is an
+    chain's default `follow:agent.main`; one answer for the workers, in this order: the environment's `LAMPWAY_SWARM_PROVIDER` and
+    swarm models (a session scope), then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's
+    worker role both write, then that default), never by another: a provider's failure, or a worker choice that cannot be built, is an
     OpenAI-style error, not a retry; serve's Ollama probe (`POST /api/show`) gets a harmless 404.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
@@ -182,7 +194,9 @@ option it does not know), and driven for real, where a herdr is found (`launcher
 build from `scripts/lampway/herdr_env.py`, then PATH or `~/.local/bin/herdr`), by `tests/test_herdr_cockpit.py`,
 `test_herdr_launcher.py`, `test_herdr_layout_live.py` (the unit's column, and Q13's closing of finished worker panes before the
 next run splits right of the main pane again) and the real-herdr case of `test_engine_pane_live.py`; without it those SKIP,
-and a skip is not a pass. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
+and a skip is not a pass. Every swarm's cards and its Retry are `tests/test_swarm_cards.py` (the Mode 2 rig of
+`test_swarm_panes.py` and Mode 1 through `HermesFront.call_tool`, the desktop the fake fleet receiving the frames) and the Mode 1
+Retry turn in `tests/test_engine_front.py`. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
 `lampway_hermes` adapter and `Mode1Units` over a stand-in engine build (`tests/mode1_support.py`), and play each worker pane over
 the pane endpoint its rendered config names.
 
@@ -217,3 +231,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | merge: Mode 1 in a pane (A1-A3) beside the verified herdr layout and the herdr pin | coordinator integration of the A1-A3 lane | both sides rewrote the Test section's herdr sentence and the host's placement; the lane's still called the layout's shapes `[UNVERIFIED]` | the Test section keeps the lane's Mode 1 tests and the verified, pinned herdr sentence (the real-herdr case of `test_engine_pane_live.py` named); the host keeps the lane's Mode 1 unit with the swarm's `planned` column | none |
 | 2026-10-07 | Mode 1 workers think on the worker choice (S2) | captain, 2026-10-07: "nothing hidden, finish it"; coordinator brief for the swarm lane (agent-modes spec S2 as superseded by A) | the gateway answered every pane, a Mode 1 worker's included, with the main agent's provider, so the `agent.worker` choice was never used and the A1-A3 lane left it `[UNVERIFIED decision]` | invariant 10: the main pane on the main provider, a worker's pane (its token's swarm binding) on the `agent.worker` choice built at its first call and kept, the `follow:agent.main` default, a choice that cannot be built an OpenAI-style error | captain ruling, 2026-10-07 |
 | 2026-10-07 | Q13 built: a unit's next swarm closes its ended worker panes | captain, 2026-10-07: "nothing hidden, finish it"; agent-modes spec A4, Q13 as recommended | a finished worker's pane stayed open with no end, so every further run of the unit went on down the old column, halving the last pane, beside panes that could no longer reach any scene | invariant 6: what "ended" means (record, binding, herdr's process info), what is never closed, the close before the first split, the fresh column, the revoked Mode 1 key, `closed_panes`; the Test section names the live case | captain ruling, 2026-10-07 |
+| 2026-10-07 | Parallel Agents cards and Retry for every swarm | captain, 2026-10-07: "nothing hidden, finish it"; agent-modes spec S1, S3 and the M0/B4 and S1 lane reports | the cards were emitted only by a swarm started inside a built-in hub turn: a swarm a bound Mode 2 pane started over MCP, or one Lampway Agent's Hermes pane started over its engine endpoint, emitted none, and Retry lived only in the built-in loop | invariant 6: where every swarm reports (the stream it was handed, the live Mode 1 island turn, else a card turn of its own), the user-only Retry and what the agent is told; invariant 4: a pane's swarms by `Swarm.owner`; invariant 10: which of the environment, the dialog and `agent.worker` wins for the workers (one answer); the Test section names the cards suite | captain ruling, 2026-10-07 |

@@ -154,6 +154,7 @@ def rig(settings, tmp_path, monkeypatch, strict):
         t.start()
         assert ready.wait(10)
         rig = Rig(http, fake, fleet, cockpit, herdr, strict)
+        rig.held, rig.app = held, app                    # the desktop's socket (the island's), and the server
         try:
             yield rig
         finally:

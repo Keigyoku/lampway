@@ -400,6 +400,45 @@ def test_slash_new_in_the_pane_is_followed_by_the_island(stack):
     assert final_text(events) == "Fresh start." and history[0]["text"] == "Again"
 
 
+# ---------------------------------------------------------------------------------------------------- Retry from the cards
+def test_retry_from_the_cards_reruns_the_failed_tasks_in_the_island_turn_then_tells_the_panes_hermes(stack):
+    """The cards' Retry chip in a Lampway Agent tab sends the user's "continue" (``agent.chat``). With failed tasks on offer, the
+    island turn runs them again first (``SwarmManager.retry``: its steps and cards on this turn's bubble), then the pane's Hermes gets
+    the user's "continue" with what ran, so it reports (nothing is hidden from the agent). The substrate's retry itself is held by
+    the Mode 2 rig (``test_swarm_cards.py``)."""
+    swarm = stack.app.state.agent.swarm
+    asked = []
+
+    async def retry(session_id, socket, *, emit_todo=None, progress=None, turn_id="", run_id=""):
+        asked.append((session_id, turn_id, run_id))
+        progress("1 workers starting")
+        await emit_todo([{"id": "sw2:worker-1", "text": "belt: Model the belt", "status": "DONE"}])
+        return {"swarm_id": "sw2", "retried_from": ["sw1"], "tasks": ["belt"],
+                "workers": [{"id": "worker-1", "name": "belt", "status": "done", "summary": "belt made", "created_objects": ["belt_part"]}]}
+    swarm.retryable = lambda sid: sid == "scene-1" and not asked
+    swarm.retry = retry
+
+    async def scenario(serve, units, island, front):
+        serve.scripts.append([("say", "The belt is in your scene now.")])
+        serve.scripts.append([("say", "Continuing.")])
+        cid, _ = await chat(island, "continue", "scene-1")
+        await island.ended(cid)
+        again, _ = await chat(island, "continue", "scene-1")              # nothing left to retry: Hermes gets the plain words
+        await island.ended(again)
+        return serve, island.events(cid), [p["text"] for m, p in serve.calls if m == "prompt.submit"]
+
+    serve, events, prompts = run(stack, scenario)
+    assert [a[0] for a in asked] == ["scene-1"] and asked[0][1], "the retry ran once, in the island's turn"
+    assert "continue" in prompts[0] and "Retry failed tasks" in prompts[0] and "sw2" in prompts[0] and "belt_part" in prompts[0]
+    assert "Retry failed tasks" not in prompts[1] and "continue" in prompts[1]
+    steps = [e for e in events if e.get("steps")][-1]["steps"]["items"]
+    assert [(s["label"], s["status"]) for s in steps[:2]] == [("swarm_start", "done"), ("swarm_collect", "done")]
+    assert all(s["detail"].startswith("retry failed tasks") or s["detail"] for s in steps[:2])
+    bubble = next(e["bubble_id"] for e in events if "todo" in e)
+    assert [e["todo"] for e in events if "todo" in e] == [[{"id": "sw2:worker-1", "text": "belt: Model the belt", "status": "DONE"}]]
+    assert final_text(events) == "The belt is in your scene now." and any(e.get("bubble_id") == bubble and "content" in e for e in events)
+
+
 # ---------------------------------------------------------------------------------------------------- refusals before a turn
 def test_a_tab_in_your_agent_mode_is_refused_first_and_nothing_opens(stack):
     async def scenario(serve, units, island, front):

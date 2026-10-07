@@ -80,7 +80,6 @@ class McpServer:
         swarm = getattr(agent, "swarm", None)
         self.workers = swarm.bindings if swarm is not None else WorkerBindings()
         self.byoa_enabled = byoa_enabled or (lambda: False)
-        self._pane_swarms: dict = {}                                         # swarm id -> the cockpit session that started it
 
     def tools_payload(self) -> list:
         return [{"name": t.name, "description": t.description, "inputSchema": t.parameters, "_meta": {"spend": False, "spend_policy": SPEND_POLICY}} for t in offered_tools()]
@@ -296,7 +295,8 @@ class McpServer:
                     "that tab)"), True
         if not self.byoa_enabled():
             return "refused: your own agents in Lampway's panes are off (the BYOA switch): the user switches them on", True
-        if name != "swarm_start" and self._pane_swarms.get(str(arguments.get("swarm_id") or "")) != rec["id"]:
+        owned = getattr(self.agent.swarm.swarms.get(str(arguments.get("swarm_id") or "")), "owner", None)
+        if name != "swarm_start" and owned != f"pane:{rec['id']}":           # its own swarms, and their Retry (the user's click)
             return f"refused: swarm {arguments.get('swarm_id')!r} was not started by this pane", True
         desktops = [s for s in self.hub.sockets.values() if getattr(s, "role", "") != "sandbox"]
         if name == "swarm_start" and len(desktops) != 1:
@@ -305,14 +305,8 @@ class McpServer:
         # Mode 2 (a bound pane): its workers run on the pane's own harness (S3, Q10), in its unit's tab (the bound scene tab, A4)
         ctx = SwarmContext(socket=desktops[0] if len(desktops) == 1 else None, session_id=rec["scene_session_id"], turn_id=f"pane:{rec['id']}",
                            call_id=str(uuid.uuid4()), mode="byoa", harness=rec.get("harness") or rec.get("agent"), cwd=rec.get("cwd"),
-                           project_root=rec.get("project_root"))
-        text, is_error = await self.agent.swarm.call(name, arguments, ctx)
-        if name == "swarm_start" and not is_error:
-            try:
-                self._pane_swarms[json.loads(text)["swarm_id"]] = rec["id"]
-            except (ValueError, KeyError, TypeError):
-                pass
-        return text, is_error
+                           project_root=rec.get("project_root"), owner=f"pane:{rec['id']}")
+        return await self.agent.swarm.call(name, arguments, ctx)
 
 
 def parse(body: bytes):

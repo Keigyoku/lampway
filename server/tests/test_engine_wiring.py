@@ -317,6 +317,31 @@ def test_with_no_worker_choice_a_mode1_worker_follows_the_main_agent(settings):
         assert _ask(http, app.state.engine_tokens.issue_token("swarm:sw1:worker-1")) == "main answers the worker"
 
 
+def test_the_providers_dialogs_swarm_model_is_the_answer_the_gateway_gives_a_mode1_worker(settings, monkeypatch):
+    """One answer for the workers: the Providers dialog's swarm choice is written to Choices' ``agent.worker`` (step 9), Choices
+    sets the settings ``make_swarm_provider`` reads, and that factory is what the gateway asks for a worker pane. Which wins: the
+    environment (``LAMPWAY_SWARM_PROVIDER`` and its models, a session scope), then ``agent.worker`` in Choices (the dialog and
+    the model picker both write it), then the default ``follow:agent.main``."""
+    from lampway_server import provider_prefs as PP
+    from .fake_client import FakeMixarClient
+    for k in PP.ENV_VARS.values():
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-" "or-v1-" + "1f2e" * 16)
+    app = create_app(settings)
+    with TestClient(app, base_url=BASE) as http:
+        fake = FakeMixarClient(http, password=settings.user_password)
+        fake.login()
+        get = W.provider_getter(app.state.agent)
+        assert get("swarm:sw1:worker-1").name == "mock", "before the choice: the worker follows the main agent"
+        r = fake.put("/app/provider-settings", json={"values": {"swarm_provider": "openrouter",
+                                                                "openrouter_swarm_model": "deepseek/deepseek-v4.1-flash"}})
+        assert r.status_code == 200, r.text
+        worker = get("swarm:sw2:worker-1")                                # a worker of the next swarm: built at its first call
+        assert worker.name == "openrouter" and worker.model == "deepseek/deepseek-v4.1-flash"
+        assert get("scene-1").name == "mock", "the main pane keeps the main provider"
+        assert get("swarm:sw1:worker-1").name == "mock", "a worker already answered keeps its provider for its life"
+
+
 def test_a_worker_choice_that_cannot_be_built_is_an_openai_error_not_the_main_provider(settings):
     """The gateway never answers a worker with another provider than its choice: a worker choice that cannot be built (no key) is an
     OpenAI-style error for that pane, and the main session is still answered."""
