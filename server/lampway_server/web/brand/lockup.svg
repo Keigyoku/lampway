@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- Lampway lockup, draft D: the crook-lantern mark (draft A) beside the monoline wordmark (draft C).
+     Clear space = the height of the flame on all four sides. Minimum width 96 px (mark alone below that). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" width="780" height="192" role="img" aria-labelledby="t">
+  <title id="t">Lampway</title>
+  <style>
+    .s { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .post { stroke: #1B1B22; stroke-width: 8; }
+    .flame { fill: #EDB944; }
+    .glow  { fill: #EDB944; opacity: .22; }
+    .w { stroke-width: 7; }
+    .lamp { stroke: #1B1B22; }
+    .way  { stroke: #8A5A00; }
+    @media (prefers-color-scheme: dark) { .post, .lamp { stroke: #ECE8DF; } .way { stroke: #EDB944; } }
+  </style>
+  <!-- mark -->
+  <circle class="glow" cx="76" cy="53" r="22"/>
+  <g class="s post">
+    <path d="M30 104 H100"/>
+    <path d="M44 104 V50 C44 34 56 26 76 26"/>
+    <path d="M76 26 V33" stroke-width="5"/>
+    <rect x="64" y="35" width="24" height="36" rx="8" stroke-width="5"/>
+  </g>
+  <path class="flame" d="M76 43 C70 50 69 57 76 64 C83 57 82 50 76 43 Z"/>
+  <!-- wordmark, scaled to 0.9 and set on the mark's baseline (y=104) -->
+  <g transform="translate(128 41) scale(.9)">
+    <g class="s w lamp">
+      <path d="M14 10 V70"/>
+      <circle cx="49" cy="52" r="18"/><path d="M67 34 V70"/>
+      <path d="M84 34 V70"/><path d="M84 50 C84 30 110 30 110 50 V70"/><path d="M110 50 C110 30 136 30 136 50 V70"/>
+      <path d="M152 34 V94"/><circle cx="170" cy="52" r="18"/>
+    </g>
+    <g class="s w way">
+      <path d="M200 34 L212 70 L224 40 L236 70 L248 34"/>
+      <circle cx="285" cy="52" r="18"/><path d="M303 34 V70"/>
+      <path d="M320 34 L336 68"/><path d="M352 34 L328 94"/>
+    </g>
+  </g>
+</svg>

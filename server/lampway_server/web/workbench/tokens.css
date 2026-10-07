@@ -32,3 +32,36 @@
   --lw-viewport_lo: #0b0d12;
   --lw-shadow: #05060a;
 }
+@media (prefers-color-scheme: light) {
+  :root {
+    --lw-canvas: #e4dccb;
+    --lw-well: #ffffff;
+    --lw-surface: #f7f3ea;
+    --lw-raised: #ffffff;
+    --lw-raised_hi: #efe8d9;
+    --lw-line: #ddd5c3;
+    --lw-line_hi: #c9bfa9;
+    --lw-text: #1b1b22;
+    --lw-text_hi: #0e1016;
+    --lw-text_dim: #3a3934;
+    --lw-muted: #5c5a55;
+    --lw-muted_dim: #8a877f;
+    --lw-accent: #edb944;
+    --lw-accent_hi: #e3ab2c;
+    --lw-accent_text: #8a5a00;
+    --lw-on_accent: #1b1b22;
+    --lw-accent_bed: #f6e7bf;
+    --lw-accent_bed_hi: #eed9a0;
+    --lw-agent: #4547b8;
+    --lw-agent_bed: #e3e3fa;
+    --lw-go: #1f7a4d;
+    --lw-go_bed: #dcefe4;
+    --lw-stop: #b3372c;
+    --lw-stop_bed: #f7deda;
+    --lw-wire: #9c1f7a;
+    --lw-wire_bed: #f6dceb;
+    --lw-viewport_hi: #d9d3c6;
+    --lw-viewport_lo: #c2bbad;
+    --lw-shadow: #3c2d0a;
+  }
+}

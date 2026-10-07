@@ -47,7 +47,7 @@ from ..utils.constants import (
 )
 from .auth import store_login_token_pair
 from .device import get_device_id
-from .sso_pages import SUCCESS_PAGE
+from .sso_pages import EXPIRED_PAGE, SUCCESS_PAGE
 
 logger = get_logger(__name__)
 
@@ -100,11 +100,11 @@ def _make_handler(state):
                     "SSO callback rejected: state mismatch (received=%r)",
                     bool(received_state),
                 )
-                self._reply(400, 'text/plain', b'state mismatch')
+                self._reply(400, 'text/html; charset=utf-8', EXPIRED_PAGE)
                 return
 
             state.accept(code)
-            self._reply(200, 'text/html', SUCCESS_PAGE)
+            self._reply(200, 'text/html; charset=utf-8', SUCCESS_PAGE)
             logger.info("SSO callback accepted: code received, state validated")
 
         def _reply(self, status, content_type, body):
