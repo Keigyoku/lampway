@@ -14,11 +14,13 @@ import uuid
 from collections import OrderedDict
 
 from .agent import choices_tools as CHT
+from .agent import blender_docs_tools as BDT
 from .agent import connections_tools as CNT
 from .agent import lampway_tools as lt
 from .agent import vault_tools as lib
 from .agent.providers.base import ToolSpec
 from .agent.tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
+from . import mcp_envelope as ENVELOPE
 
 JOURNAL_MAX = 200
 SPEND_POLICY = "Nothing offered here spends credits. Generation and studio actions are not offered over MCP; an external agent can plan, and the user confirms in the Client (no tool here confirms a spend)."
@@ -42,7 +44,7 @@ def _instructions() -> str:
 
 
 def offered_tools() -> list:
-    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME or t.name in lib.NAMES or t.name in CNT.NAMES or t.name in CHT.NAMES] + list(SERVER_TOOLS)
+    return [t for t in TOOLS if t.name in (RUN_BLENDER_PYTHON, SCENE_SUMMARY) or t.name in lt.BY_NAME or t.name in lib.NAMES or t.name in CNT.NAMES or t.name in CHT.NAMES or t.name in BDT.NAMES] + list(SERVER_TOOLS)
 
 
 def _error(request_id, code, message):
@@ -58,7 +60,14 @@ class McpServer:
         self.journal: "OrderedDict[str, dict]" = OrderedDict()               # call id -> recorded outcome (bounded)
 
     def tools_payload(self) -> list:
-        return [{"name": t.name, "description": t.description, "inputSchema": t.parameters, "_meta": {"spend": False, "spend_policy": SPEND_POLICY}} for t in offered_tools()]
+        payload = []
+        for t in offered_tools():
+            row = {"name": t.name, "description": t.description, "inputSchema": t.parameters,
+                   "_meta": {"spend": False, "spend_policy": SPEND_POLICY}}
+            if t.name in ENVELOPE.NAMES:
+                row["outputSchema"] = ENVELOPE.output_schema(t.name)
+            payload.append(row)
+        return payload
 
     async def handle(self, message, instance_id: str, session_id: str):
         """The JSON-RPC response for one request, or None for a notification."""
@@ -108,6 +117,15 @@ class McpServer:
         name = params.get("name")
         if name not in {t.name for t in offered_tools()}:
             return _error(request_id, INVALID_PARAMS, f"unknown or not offered tool {name!r}")
+        arguments = params.get("arguments", {})
+        if name in ENVELOPE.NAMES:
+            schema = next(t.parameters for t in offered_tools() if t.name == name)
+            bad = ENVELOPE.argument_error(name, arguments, schema)
+            if bad:
+                return ENVELOPE.result(request_id, bad, name=name)
+        if name in BDT.NAMES:
+            data, is_error = await BDT.call(name, arguments)
+            return ENVELOPE.result(request_id, data, name=name, full=arguments.get("full", False))
         if name == "lampway_credit_balance":
             return self._result(request_id, json.dumps(self._credit_balance()), False)
         if name in CNT.NAMES:                                       # the same read-only projection the main agent gets
@@ -123,10 +141,16 @@ class McpServer:
             return self._result(request_id, text, is_error)
         socket = self.hub.sockets.get(instance_id)
         if socket is None:
+            if name in ENVELOPE.NAMES:
+                return ENVELOPE.result(request_id, ENVELOPE.refusal("app_not_connected",
+                    "The desktop app is not connected to this server; open Lampway and sign in", []))
             return self._result(request_id, "the desktop app is not connected to this server (open Lampway and sign in)", True)
         try:
             script = script_for(name, params.get("arguments") or {})
         except (UnknownTool, lt.BadArguments) as exc:
+            if name in ENVELOPE.NAMES:
+                return ENVELOPE.result(request_id, ENVELOPE.refusal("bad_argument", str(exc),
+                    [f"{name} {'action' if name == 'lampway_view' else 'view'}=help"]))
             return self._result(request_id, str(exc), True)
         call_id = str(uuid.uuid4())
         self._remember(call_id, {"state": "running", "tool": name})
@@ -139,7 +163,10 @@ class McpServer:
                 self._remember(call_id, {"state": "complete", "tool": name, "is_error": True, "text": f"Blender could not run the tool: {type(t.exception()).__name__}: {t.exception()}"})
             else:
                 text, is_error = format_tool_result(t.result())
-                self._remember(call_id, {"state": "complete", "tool": name, "is_error": bool(is_error), "text": text})
+                rec = {"state": "complete", "tool": name, "is_error": bool(is_error), "text": text}
+                if name in ENVELOPE.NAMES:
+                    rec["data"] = t.result()
+                self._remember(call_id, rec)
 
         task.add_done_callback(record)
         try:
@@ -149,6 +176,16 @@ class McpServer:
         except Exception:  # noqa: BLE001 - recorded by the callback; the external app is told, the server stays up
             pass
         rec = self.journal[call_id]
+        if name in ENVELOPE.NAMES:
+            data = rec.get("data")
+            if rec["is_error"]:
+                raw = data if isinstance(data, dict) else {}
+                data = ENVELOPE.refusal(raw.get("error_type") or "execution_failed", raw.get("error") or rec["text"],
+                    ["lampway_call_status call_id=<call_id>"])
+            res = ENVELOPE.result(request_id, data, name=name, full=arguments.get("full", False),
+                                  max_bytes=arguments.get("max_bytes", 750000))
+            res["result"]["_meta"] = {"call_id": call_id}
+            return res
         res = self._result(request_id, f"{rec['text']}\n(call id: {call_id})", rec["is_error"])
         res["result"]["_meta"] = {"call_id": call_id}
         return res

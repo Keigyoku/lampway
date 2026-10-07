@@ -3,7 +3,10 @@
 """Official SDK stdio endpoint combining local UI and existing backend tools."""
 
 import asyncio
+from contextlib import asynccontextmanager
+import http.client
 import json
+import re
 import uuid
 
 from mcp import types
@@ -12,40 +15,9 @@ from mcp.server.stdio import stdio_server
 
 from mixar.modules.common.ui_control.core import schema
 from . import aliases, availability, presentation
+from .generated_guide import GUIDE, LOCAL_GUIDE
 from .connector import Connector, instances, signed_in, usable
 
-# Clients put server instructions in the model's system prompt, and Claude Code
-# keeps only their first 2,048 characters: core rules first, the full playbook
-# is the backend's free mixar_guide tool.
-GUIDE = """\
-Lampway is a 3D editor built on Blender 5.2. These tools act on the user's
-open, signed-in Lampway desktop.
-
-Each connection works in one scene tab; every tool result follows it. Start
-separate work in a new tab with lampway_scene_new (never
-bpy.data.scenes.new); lampway_scenes and lampway_scene_switch move between
-tabs; lampway_projects and lampway_project_open continue a saved project.
-
-1. Inspect: scene_summary, and lampway_status for what Lampway's tools are
-   set up to do here.
-2. Build in small steps with run_blender_python: one part per script, real
-   size in metres, exact names, print what you check.
-3. Verify every visible change (scene_summary, lampway_ui_observe); fix
-   problems first and never report what you have not seen.
-4. Lampway's own tools (lampway_*) do the measured work: normalize, retopo,
-   UV, rig, paint, bake, export. Read a tool's description before calling
-   it; a refusal says what to call next.
-5. Assets: lampway_vault_search, then lampway_vault_place.
-
-Nothing offered here spends credits: generation and studio actions are the
-user's, in the Client. Ask the user when an open choice matters (method,
-style, scale, detail); settle small details yourself.
-Native UI tools (lampway_ui_observe, lampway_ui_act and their siblings, if
-the user allows them) cover what no other tool does; never use OS-level
-computer use on Lampway.
-After an uncertain outcome, inspect and use lampway_call_status or
-lampway_ui_call_status with the same call id; never blindly repeat an edit.
-"""
 #: Domains of the tools this launcher serves locally (the backend never sees them).
 LOCAL_DOMAINS = tuple(dict.fromkeys(schema.DOMAINS.values()))
 
@@ -89,9 +61,51 @@ def create_server(connector):
             return [tool for tool in tools if tool["name"] not in schema.UI_INPUT]
         return tools
 
+    guide = {"text": GUIDE, "prepared": False, "catalog_pending": False, "backend": None}
+
+    async def prepare_guide():
+        if guide["prepared"]:
+            return
+        text = GUIDE
+        fetch = getattr(connector, "instructions", None)
+        if fetch:
+            try:
+                live = await asyncio.wait_for(asyncio.to_thread(fetch), availability.CATALOG_TIMEOUT_SECONDS)
+                if isinstance(live, str) and live.strip():
+                    text = live + "\n" + LOCAL_GUIDE
+            except (OSError, ValueError, KeyError, RuntimeError, TimeoutError, http.client.HTTPException):
+                pass
+        backend, status["readiness"] = await availability.fetch_tools(connector)
+        guide["backend"], guide["catalog_pending"] = backend, True
+        tools = aliases.expose(visible(schema.tools() + (backend or [])))
+        names = {tool["name"] for tool in tools}
+        # A saved guide may describe tools absent from an older backend or an
+        # empty snapshot. Drop those lines rather than advertise nonexistent tools.
+        lines = [line for line in text.splitlines()
+                 if set(re.findall(r"[a-z]+(?:_[a-z0-9]+)+", line)) <= names]
+        while len("\n".join(lines).encode()) > 2048:
+            lines.pop()
+        guide["text"] = "\n".join(lines)
+        guide["prepared"] = True
+
+    @asynccontextmanager
+    async def guide_lifespan(server):
+        await prepare_guide()
+        server.instructions = guide["text"]
+        yield {}
+
+    class GuidedServer(Server):
+        async def run(self, read_stream, write_stream, initialization_options, raise_exceptions=False):
+            await prepare_guide()
+            initialization_options.instructions = guide["text"]
+            await super().run(read_stream, write_stream, initialization_options, raise_exceptions)
+
     async def list_tools(ctx, params):
         # Every tool at once (live, or the copy saved while signed in); never wait.
-        backend, status["readiness"] = await availability.fetch_tools(connector)
+        if guide["catalog_pending"]:
+            backend, guide["catalog_pending"] = guide["backend"], False
+        else:
+            backend, status["readiness"] = await availability.fetch_tools(connector)
         tools = schema.tools() + (with_ui_domain(backend) if backend is not None else [])
         status["listed"] = backend is not None
         tools = presentation.tools_for_client(aliases.expose(visible(tools)), presentation.client_name(ctx))
@@ -187,7 +201,7 @@ def create_server(connector):
         if str(params.uri) not in ("lampway://guide", "mixar://guide"):  # the old URI stays readable for one release
             raise ValueError("Unknown Lampway resource")
         return types.ReadResourceResult(contents=[types.TextResourceContents(
-            uri=params.uri, mime_type="text/markdown", text=GUIDE)])
+            uri=params.uri, mime_type="text/markdown", text=guide["text"])])
 
     async def list_prompts(ctx, params):
         return types.ListPromptsResult(prompts=[types.Prompt(name="build-and-verify",
@@ -202,10 +216,10 @@ def create_server(connector):
             raise ValueError("Specify build-and-verify with a nonempty goal of at most 8000 characters")
         return types.GetPromptResult(messages=[types.PromptMessage(role="user",
             content=types.TextContent(type="text", text="Complete this task in Lampway: " + goal +
-                "\n\n" + GUIDE + "Inspect the scene with Lampway's tools (scene_summary, lampway_ui_observe) before and after editing. "
+                "\n\n" + guide["text"] + "\nInspect the scene before and after editing. "
                 "Report any unverified outcomes."))])
 
-    return Server("Lampway", version="1", instructions=GUIDE,
+    return GuidedServer("Lampway", version="1", instructions=GUIDE, lifespan=guide_lifespan,
                   on_list_tools=list_tools, on_call_tool=call_tool,
                   on_list_resources=list_resources, on_read_resource=read_resource,
                   on_list_prompts=list_prompts, on_get_prompt=get_prompt)
