@@ -5,6 +5,7 @@
 """The shelf's AXI/TOON output conventions (tools/AXI.md, TOON-SPEC.md v4.1) for anything that stays a CLI:
 structured output on stdout, refusals on stdout with exit 1, definitive empty states, next-step help[]."""
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -12,6 +13,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools import axi  # noqa: E402
+
+REPO = Path(__file__).resolve().parents[2]
 
 
 def out(capsys):
@@ -25,7 +28,7 @@ def test_table_prints_header_count_and_rows(capsys):
 
 def test_empty_table_is_a_definitive_zero(capsys):
     axi.table("seeds", [], ["id"])
-    assert out(capsys) == "seeds[0]:\n"
+    assert out(capsys) == "seeds: []\n"          # TOON 4's empty array (the legacy seeds[0]: MUST NOT be emitted)
 
 
 def test_table_with_a_total_says_so(capsys):
@@ -34,7 +37,7 @@ def test_table_with_a_total_says_so(capsys):
 
 
 @pytest.mark.parametrize("value,expected", [
-    (None, "null"), (True, "true"), (False, "false"), (3, "3"), (0.123456, "0.1235"),
+    (None, "null"), (True, "true"), (False, "false"), (3, "3"), (0.123456, "0.123456"),     # canonical, never rounded (audit F9: rounding lost values)
     ("plain", "plain"), ("", '""'), ("true", '"true"'), ("12", '"12"'), ("a:b", '"a:b"'),
     ("- x", '"- x"'), ("#x", '"#x"'), (" lead", '" lead"'), ("two\nlines", '"two\\nlines"'),
     ('say "hi"', '"say \\"hi\\""'),
@@ -72,3 +75,17 @@ def test_home_renders_the_home_directory_as_tilde(capsys, monkeypatch, tmp_path)
     f.write_text("")
     axi.home(str(f), "does a thing")
     assert out(capsys) == "bin: ~/tools/t.py\ndescription: does a thing\n"
+
+
+@pytest.mark.parametrize("path", ["src/scripts/mixar/modules/lampway_tools/axi.py", "server/lampway_server/studios/axi.py"])
+def test_numbers_are_canonical_and_empty_tables_use_the_toon_4_form(path, capsys):
+    """Audit F9: axi printed 1234567.0 as 1.235e+06 (four significant digits: the value is LOST on decode) and an empty table as
+    seeds[0]:, which TOON 4 forbids (an empty array is `key: []`). Both copies of the module are held to the same rules."""
+    spec = importlib.util.spec_from_file_location("axi_under_test", REPO / path)
+    ax = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ax)
+    assert [ax._s(v) for v in (1234567.0, 0.1, 2.5e-7, 1e21, -0.0, 3.0, 12)] == ["1234567", "0.1", "2.5e-7", "1e+21", "0", "3", "12"]
+    ax.table("seeds", [], ["id"])
+    ax.kv({"line\n": 1})
+    out = capsys.readouterr().out
+    assert "seeds: []" in out and "[0]:" not in out and '"line\\n": 1' in out, out

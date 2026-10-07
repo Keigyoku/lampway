@@ -254,3 +254,9 @@ path = "src/scripts/mixar/modules/lampway_tools/ue/profiles/*.json"
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["server/tests/fixtures/toon/encode/*.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "2025-PRESENT Johann Schopplich"
+SPDX-License-Identifier = "MIT"
