@@ -138,10 +138,10 @@ def test_two_real_mode1_workers_collect_into_real_parent_blender(tmp_path, monke
         return providers[label]
 
     original_getter = EW.provider_getter
-    def observed_getter(agent):
-        actual = original_getter(agent)
-        def get(session_id=None):
-            selected = actual(session_id)
+    def observed_getter(agent, *, settings=None, chatgpt_auth=None):
+        actual = original_getter(agent, settings=settings, chatgpt_auth=chatgpt_auth)
+        def get(session_id=None, requested_model=None):
+            selected = actual(session_id, requested_model)
             gateway.append({'session_id': session_id, 'provider': selected.name})
             return selected
         return get

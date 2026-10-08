@@ -118,10 +118,10 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
         return providers[label]
 
     original_getter = EW.provider_getter
-    def observed_getter(agent):
-        actual = original_getter(agent)
-        def get(session_id=None):
-            selected = actual(session_id)
+    def observed_getter(agent, *, settings=None, chatgpt_auth=None):
+        actual = original_getter(agent, settings=settings, chatgpt_auth=chatgpt_auth)
+        def get(session_id=None, requested_model=None):
+            selected = actual(session_id, requested_model)
             gateway.append({'session_id': session_id, 'provider': selected.name})
             return selected
         return get

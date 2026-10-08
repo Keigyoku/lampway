@@ -378,10 +378,20 @@ class SwarmManager:
             raise SwarmError(f"swarm {swarm.id} was already collected")
         if ctx.emit_todo is not None:
             swarm.emit_todo = ctx.emit_todo
+        joined = asyncio.gather(*(w.task for w in swarm.workers if w.task is not None), return_exceptions=True)
         try:
-            await asyncio.gather(*(w.task for w in swarm.workers if w.task is not None), return_exceptions=True)
+            # The collector owns cancellation: repeated Stop must not interrupt a worker's cleanup.
+            await asyncio.shield(joined)
         except asyncio.CancelledError:                          # the orchestrator's turn was stopped: stop the workers too
             self.cancel_all(swarm)
+            closing = asyncio.create_task(self._finish_cancelled_collect(swarm, joined))
+            while True:
+                try:
+                    await asyncio.shield(closing)
+                    break
+                except asyncio.CancelledError:
+                    if closing.cancelled():
+                        raise
             raise
         swarm.collected = True
         operations = {}
@@ -398,6 +408,13 @@ class SwarmManager:
         await self._finish(swarm)
         return {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers], "operations": operations,
                 "target_collection": AGENT_COLLECTION}
+
+    async def _finish_cancelled_collect(self, swarm: Swarm, joined) -> None:
+        """Join only this collector's workers, discard staged results and close the swarm for Retry."""
+        await joined
+        swarm.collected = True
+        await self._finish(swarm)
+        await self._todo(swarm, final=True)
 
     async def _commit(self, swarm: Swarm, worker: Worker) -> None:
         art = worker.handle.artifact or {}
