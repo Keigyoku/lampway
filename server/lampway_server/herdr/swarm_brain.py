@@ -168,6 +168,7 @@ class PaneBrain:
         self.mode_choice = mode_choice
         self._panes: dict = {}               # worker id -> (cockpit session id, binding name)
         self._exited: dict = {}              # worker id -> why its pane is gone (nothing to close)
+        self._closing: dict = {}             # worker id -> one owned closing task, joined across repeated cancellation
 
     @staticmethod
     def binding_name(job) -> str:
@@ -244,7 +245,21 @@ class PaneBrain:
         exited = self._exited.get(wid)
         why = f"its pane exited ({exited})" if exited else ("closed by its swarm: the task was cancelled" if job.worker.status == "cancelled"
                                                            else "closed by its swarm: the task failed")
+        closing = self._closing.get(wid)
+        if closing is None:
+            closing = asyncio.create_task(asyncio.to_thread(self.cockpit.end_swarm_pane, sid, name, why, exited is None))
+            self._closing[wid] = closing
+        cancelled = False
         try:
-            await asyncio.to_thread(self.cockpit.end_swarm_pane, sid, name, why, exited is None)
+            while True:
+                try:
+                    await asyncio.shield(closing)
+                    break
+                except asyncio.CancelledError:
+                    if closing.cancelled():
+                        raise
+                    cancelled = True
         except Exception:  # noqa: BLE001 - herdr gone: the record is reconciled at the next start
             log.debug("%s: could not end its pane %s", wid, sid, exc_info=True)
+        if cancelled:
+            raise asyncio.CancelledError

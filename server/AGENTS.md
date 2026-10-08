@@ -98,7 +98,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    gateway on loopback and every other host goes through the egress proxy. Opening a unit's pane is the user's own chat
    (`HermesFront.precheck` refuses an agent's socket and never starts herdr); a restart re-adopts every live Lampway pane, its
    tokens by their digests (`Mode1Units.adopt`), and the server's shutdown ends no pane. The swarm ends only a pane whose record names it and that worker (`Cockpit.end_swarm_pane`): on cancel, failure or
-   timeout; a finished worker's pane stays open for the user to read until its unit's next swarm (spec Q13): that swarm's start,
+   timeout. A cancelled worker joins its one owned pane-closing task before its task finishes, even when a cancelled
+   collector propagates a second cancellation; revocation precedes closing, and the durable record settles before Stop
+   acknowledges completion. A finished worker's pane stays open for the user to read until its unit's next swarm (spec Q13): that swarm's start,
    after its run is activated and before any worker splits, closes the unit's ENDED worker panes (`Cockpit.close_ended_workers`,
    serialized with the placements). Closed is only a pane whose record says Lampway opened it as a swarm worker of THAT unit and
    that herdr still shows for the record's terminal, and only once its worker has ended: the record is ended, or its binding is not
@@ -347,3 +349,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-08 | merge PR3 motion integrity with PR4 pane runtime | captain authorizes syncing PR4 with main | motion invariant 9 collided with PR4 capabilities, gateway and pane invariants 9–11 | retain PR4 invariants and their references; motion correctness becomes invariant 12, with its retained evidence and no inferred policy expansion; all inherited provenance remains | authorized main synchronization |
 | 2026-10-08 | main motion tools under pane-owned Stop | captain authorizes syncing PR4 with current main; real Front/MCP blocked-motion RED | a motion request outlived the stopped Hermes/island task and could render or file afterward | invariant 12: transient per-unit owned tool tasks, cancellation/join and admission fence, paired errors and other-unit isolation | five causal Stop/HTTP lifecycle checks; deterministic local motion worker |
+| 2026-10-08 | worker Stop joins pane-record cleanup across repeated cancellation | actual pinned-runtime worker Stop left one ended process recorded live; actual cancelled collector causal RED | a second cancellation abandoned the closing thread before its registry update | invariant 6: one owned closing task is shielded and joined before completion, with revocation first and cancellation preserved afterward | 32 focused checks; matching native rerun remains required |
