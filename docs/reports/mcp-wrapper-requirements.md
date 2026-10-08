@@ -4,11 +4,11 @@
 # MCP wrapper requirement review
 
 This review maps the complete C0–C2/T1–T3 specification to the completed original
-lane and its successor `lp/mcp-wrapper-migration-main-20261007`, replayed onto main
+lane and its successor `lp/mcp-wrapper-migration-main-20261007-v2`, replayed onto main
 `290ddd3a3a08ccc646ff4e3faa73326c09e1c154` on 2026-10-07. The original published
 checkpoint `bc0a721` is preserved. Live receipts below describe that original
 checkpoint; the reconciliation section distinguishes successor source checks
-from final exact-commit tests, which remain the coordinator's responsibility. The requirements source is the supplied
+from final exact-commit tests, which remain this crew's responsibility for its own branch. The requirements source is the supplied
 [artifact](https://claude.ai/artifact/72F22QoSzhaWMqNpRhJsnD), whose complete
 MCP section has SHA256 `2decc1a200d059fe1d1ff2f2afb022c17eaeb9d59fef5214c2364c670e8faa77`.
 The captain's decisions supersede the proposal: OBSERVE, one opt-in for all

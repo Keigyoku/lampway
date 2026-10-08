@@ -75,6 +75,28 @@ def unit_scale_factor(path):
     return None
 
 
+def _authored_table(path, exporter):
+    """Read declared pinned-writer node/pose/cluster binds, without inferred tails."""
+    from io_scene_fbx import export_fbx_bin, parse_fbx
+    from ..rig_tools import fbx_bind as FB
+    writer_sha = hashlib.sha256(Path(export_fbx_bin.__file__).read_bytes()).hexdigest()
+    if writer_sha != FB.WRITER_SHA256:
+        raise C.FeatureError("authored read-back requires the exact pinned Blender FBX writer")
+    try:
+        raw, _version = parse_fbx.parse(str(path))
+        record = FB.authored_bind(raw, exporter)
+        table = {}
+        for name, matrix in record["matrices"].items():
+            scale, frame = FB._rigid(matrix)
+            table[name] = {"translation": list(matrix[:3, 3]),
+                           "rotation": list(FB._quaternion(frame)), "scale": list(scale)}
+        return table, record["parents"], record["diagnostics"]
+    except FB.BindRefused as exc:
+        raise C.FeatureError("authored read-back refused: " + str(exc)) from None
+    except (ValueError, TypeError, KeyError, IndexError, OverflowError):
+        raise C.FeatureError("authored read-back refused: malformed pinned-writer FBX layout") from None
+
+
 def _deform_parents(ob):
     """{deform bone: nearest deform ancestor} - the hierarchy a deform-only export writes."""
     out = {}
@@ -132,7 +154,7 @@ def _corner_normals(ob):
     return N / np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-12)
 
 
-def _reference(reference, ob, convention, root):
+def _reference(reference, ob, convention, root, exporter=None):
     """(table, parents, name, sha256, imported record or None)."""
     if not reference:
         turn = ENGINE_FROM_BLENDER if convention == "blender" else None
@@ -143,13 +165,8 @@ def _reference(reference, ob, convention, root):
         p = Path(reference) if os.path.isabs(reference) else Path(root, reference)
         if not p.is_file():
             raise C.FeatureError(f"no reference FBX at {p}")
-        rec = _import(p)
-        arms = [bpy.data.objects[n] for n in rec["objects"] if bpy.data.objects[n].type == "ARMATURE"]
-        if len(arms) != 1:
-            _discard(rec)
-            raise C.FeatureError(f"the reference FBX holds {len(arms)} armatures: one is the reference")
-        par = {b.name: b.parent.name if b.parent else None for b in arms[0].data.bones}
-        return _table(arms[0]), par, p.name, rec["sha256"], rec
+        table, parents, _proof = _authored_table(p, exporter or {"axis_forward": "-Z", "axis_up": "Y"})
+        return table, parents, p.name, hashlib.sha256(p.read_bytes()).hexdigest(), None
     ref = RT._armature(reference)
     par = {b.name: b.parent.name if b.parent else None for b in ref.data.bones}
     return _table(ref), par, ref.name, RT._fingerprint(ref, RT.read(ref)), None
@@ -192,7 +209,7 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         raise C.FeatureError(f"out must be an .fbx path, not {target.name}")
     if target.exists():
         raise C.FeatureError(f"{target} exists: an export never overwrites a published file (an FBX carries its creation time); choose another out")
-    ref_table, ref_parents, ref_name, ref_sha, ref_rec = _reference(reference, ob, convention, root)
+    ref_table, ref_parents, ref_name, ref_sha, ref_rec = _reference(reference, ob, convention, root, doc["exporter"])
     try:
         deform = _deform_parents(ob)
         bones = set(ob.data.bones.keys())
@@ -220,7 +237,8 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
     keep_sel = [o for o in layer if o.select_get()]
     keep_active = bpy.context.view_layer.objects.active
     from . import rig_export_space as ES
-    carrier = ES.centimetre_copies(ob, mesh_obs, act, ex) if coordinates == "cm" else nullcontext(
+    carrier = ES.centimetre_copies(ob, mesh_obs, act, ex,
+                                  container_name=doc.get("ue_armature_container")) if coordinates == "cm" else nullcontext(
         {"armature": ob, "meshes": mesh_obs, "action": act, "exporter": ex, "receipt": None})
     space_receipt, effective_exporter, export_mesh_names = None, None, {}
     try:
@@ -251,6 +269,8 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
                                             if any(abs(v - 1.0) > 1e-4 for v in scale))
     rec = _import(writing)
     readback_units = None
+    authored_proof, authored_error, hierarchy_error = None, None, None
+    display_rows, display_roster_error = None, None
     try:
         arms = [bpy.data.objects[n] for n in rec["objects"] if bpy.data.objects[n].type == "ARMATURE"]
         if len(arms) != 1:
@@ -266,6 +286,17 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         if len(extra) == 1 and got_parents[extra[0]] is None and any(got_parents.get(r) == extra[0] for r, p in ref_parents.items() if p is None):
             container = extra[0]
             got.pop(container)
+        try:
+            display_rows = RC.readback_rows(ref_table, got)
+        except RC.RigRefused as exc:
+            display_roster_error = str(exc)
+        if coordinates == "cm" and readback_units is not None:
+            try:
+                got, authored_parents, authored_proof = _authored_table(writing, prepared["exporter"])
+                if authored_parents != ref_parents:
+                    hierarchy_error = "authored FBX hierarchy differs from the reference"
+            except C.FeatureError as exc:
+                authored_error = str(exc)
         try:
             rows = RC.readback_rows(ref_table, got)
         except RC.RigRefused as exc:
@@ -288,6 +319,10 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
         _discard(rec)
     expect = doc.get("expect", {}).get("unit_scale_factor")
     problems = []
+    if authored_error:
+        problems.append(authored_error)
+    if hierarchy_error:
+        problems.append(hierarchy_error)
     if container_scale_failures:
         problems.append("authored nonunit FBX Null ancestors: " + ", ".join(
             f"{r['ancestor']} -> {r['bone']} scale {r['scale']}" for r in container_scale_failures[:8]))
@@ -311,6 +346,9 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
                "engine_bind_acceptance": "unverified; requires actual native reference capture",
                "export_space": space_receipt, "effective_exporter": effective_exporter,
                "readback_representation": readback_units, "container_scale_failures": container_scale_failures,
+               "authored_bind_verification": authored_proof,
+               "display_reconstruction_errors": display_rows["over_tolerance"] if display_rows else [],
+               "display_reconstruction_roster_error": display_roster_error,
                "authored_bone_scale_failures": authored_bone_scale_failures,
                "normals": {"corner_max_deg": max((c for c in corner if c is not None), default=0.0), "unmatched_meshes": corner.count(None)},
                "sha256": {"fbx": fbx_sha, "reference": ref_sha, "armature_rest": RT._fingerprint(ob, RT.read(ob))}}

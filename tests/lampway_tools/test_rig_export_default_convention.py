@@ -108,3 +108,30 @@ print('RESULT',json.dumps(errors))
     assert 'ambiguous' in errors['parent']
     assert 'invalid' in errors['scale']
     assert 'duplicate' in errors['identity']
+
+
+def test_authored_long_bone_bind_passes_with_explicit_display_reconstruction_error(tmp_path):
+    r=run(tmp_path,CHAIN+r'''
+arm=chain('long_corrective_source','y')
+bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT')
+helper=arm.data.edit_bones.new('upperarm_correctiveRoot_l')
+helper.head=(.23,.63,1.53);helper.tail=helper.head+Vector((.3,.6,.7)).normalized()*.1;helper.roll=1.872;helper.parent=arm.data.edit_bones['b1']
+child=arm.data.edit_bones.new('coincident_corrective_child');child.head=helper.head
+child.tail=child.head+Vector((.4,.3,.7)).normalized()*.1;child.roll=.4;child.parent=helper
+bpy.ops.object.mode_set(mode='OBJECT');bpy.context.view_layer.update()
+call('rig_inspect',armature=arm.name)
+before={ob.name:ob.as_pointer() for ob in bpy.data.objects}
+first=call('rig_export_ue',armature=arm.name,out='export/authored_long.fbx')
+second=call('rig_export_ue',armature=arm.name,out='export/independent_long.fbx',reference='export/authored_long.fbx') if first['ok'] else None
+print('RESULT '+json.dumps({'first':first,'second':second,'source_ids_unchanged':before=={ob.name:ob.as_pointer() for ob in bpy.data.objects}}))
+''')
+    assert r.rc==0,r.out
+    result=r.results[0]
+    for label in ('first','second'):
+        row=result[label]
+        assert row and row['ok'],row
+        assert row['authored_bind_verification']['bones_compared']==7
+        assert row['authored_bind_verification']['bars']=={'position_cm':.01,'rotation_deg':.01,'scale':.0001}
+        assert row['readback']['over_tolerance']==[]
+        assert any(e['bone']=='upperarm_correctiveRoot_l' and e['rotation_deg']>.01 for e in row['display_reconstruction_errors'])
+    assert result['source_ids_unchanged']

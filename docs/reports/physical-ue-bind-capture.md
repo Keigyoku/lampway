@@ -87,13 +87,13 @@ Native-self342 still passes. Candidate343 has one extra container and one root p
 
 Sign-invariant quaternion dispersion rules out one common left or right rotation. Component angle-to-identity differences reach178.915789degrees, ruling out pure orthogonal basis conjugation. Among unchanged parent edges, local translation-norm differences reach9.021457cm. Component norm differences alone cannot rule out a global translation. The comparator therefore additionally reports signed component joint-distance differences for unchanged parent-child edges and four fixed pairs; these are diagnostic differences only, with no absolute positions/distances or new acceptance bars. Reprocessing the existing private capture requires no UE recollection.
 
-A native synthetic short-bone probe reproduces copy-time rotation error before the FBX writer: at a1.53m-height oblique head, lengths0.1mm and0.01mm yield approximately0.037degree and0.912degree error after armature-data scaling. The pinned armature transform reconstructs head/tail-relative rest orientation in float32. Assigning edit-bone matrices with the original scaled lengths also exceeds the bar, so that alternative was rejected. This is a synthetic mechanism, pending matching length and source-to-copy measurements on the actual eight twist rows; no owner frame or display length is altered to make it pass.
+A native synthetic short-bone probe reproduces copy-time rotation error before the FBX writer: at a1.53m-height oblique head, lengths0.1mm and0.01mm yield approximately0.037degree and0.912degree error after armature-data scaling. The pinned armature transform reconstructs head/tail-relative rest orientation in float32. Assigning edit-bone matrices with the original scaled lengths also exceeds the bar, so that alternative was rejected. This synthetic mechanism is excluded for the actual eight source bones by the subsequent measurements below; no owner frame or display length is altered to make it pass.
 
 The bounded next owner-local evidence is: exact map/conform/normalize arguments and reference schema/hash; same-space source-to-conformed-to-normalized position/rotation deltas; and, for the eight refused twist rows, original length, head magnitude, copied length and source-to-centimetre-copy position/rotation/scale errors with before/after scene fingerprints. Retain all absolute matrices, geometry and weights locally. Inspect the exact installed legacy importer root/container predicate with its source hash before selecting any container treatment. These controls distinguish pre-export reconstruction from export precision and importer hierarchy semantics; they do not select an arbitrary rotation, armature rename or changed tolerance.
 
 ## Public copy probe and exact bounded follow-up fields
 
-The nonprivate probe is [`scripts/lampway/capture_export_copy_deltas.py`](../../scripts/lampway/capture_export_copy_deltas.py). Load it with `runpy.run_path` inside the existing isolated Blender reconstruction, then call its `capture(actual_armature_name)`. It pins the two exporter modules to1368 and returns only eight named twist rows, unchanged bars, source hashes, lengths/head magnitudes and source-to-copy errors. It uses the existing disposable-copy context and requires source/scene fingerprints to match afterward. It performs no FBX import/export, scene save, egress or native build. Keep the caller-selected armature name and local paths in the private harness; they are not returned in the receipt. Use the existing exclusive0600 receipt writer, retaining the complete raw source locally.
+The nonprivate probe is [`scripts/lampway/capture_export_copy_deltas.py`](../../scripts/lampway/capture_export_copy_deltas.py). Load it with `runpy.run_path` inside the existing isolated Blender reconstruction, then call its `capture(actual_armature_name)`. The historical b1e300 version pins the two exporter modules to1368; the current probe pins the corrected modules by their exact SHA256 and returns only eight named twist rows, unchanged bars, source hashes, lengths/head magnitudes and source-to-copy errors. It uses the existing disposable-copy context and requires source/scene fingerprints to match afterward. It performs no FBX import/export, scene save, egress or native build. Keep the caller-selected armature name and local paths in the private harness; they are not returned in the receipt. Use the existing exclusive0600 receipt writer, retaining the complete raw source locally.
 
 For reconstruction, return these fields from the existing exact tool calls and receipts, using stable local object aliases instead of private names/paths:
 
@@ -113,4 +113,92 @@ rg -n -C 12 'Armature|armature|GetRootSkeleton|RecursiveBuildSkeleton|IsNodeSkel
   "$UE_FBX_SOURCE/FbxMainImport.cpp" "$UE_FBX_SOURCE/FbxSkeletalMeshImport.cpp"
 ```
 
-Return only `engine_version`, source-relative `source_file`, `source_sha256`, `symbol`, the bounded relevant predicate lines, and which node-name/type/parent/creator checks govern retaining or skipping an armature container. If those names moved, locate the corresponding legacy FbxFactory root-selection function and report its actual path/symbol; if installed source is absent, report unavailable. From the existing candidate header return only `creator_detected_as_blender` and the predicate's matching node type/name for the known extra container, without arbitrary Creator strings, credentials, settings-file dumps or geometry. A name-based exporter change remains unselected until this exact predicate is established.
+Return only `engine_version`, source-relative `source_file`, `source_sha256`, `symbol`, the bounded relevant predicate lines, and which node-name/type/parent/creator checks govern retaining or skipping an armature container. If those names moved, locate the corresponding legacy FbxFactory root-selection function and report its actual path/symbol; if installed source is absent, report unavailable. From the existing candidate header return only `creator_detected_as_blender` and the predicate's matching node type/name for the known extra container, without arbitrary Creator strings, credentials, settings-file dumps or geometry. A name-based exporter change remained unselected until the exact predicate was established below.
+
+
+## Actual reconstruction and installed importer evidence (2026-10-08)
+
+The complete bounded evidence archive is `b1e300-actual-diagnosis.zip`, SHA256
+`45d41249a44daac0959127e88f541345f3038d83c41d944e344eac0d6454ebcd`.
+It includes the actual source/copy probe, exact reconstruction arguments, prior
+reconstruction identity control, installed importer source predicates and derived
+native/candidate comparisons. Absolute transforms, geometry and weights remain
+owner-local. All16 original inputs remain unchanged; no new UE or Vulkan run was
+performed for these measurements.
+
+The eight actual source bones measure10.064–15.222cm. Maximum source-to-copy
+rotation is0.000086766degree, position0.0000269895cm and scale5.36442e-7: all pass
+the unchanged bars. The synthetic source-short-bone mechanism above does not
+explain the actual0.488degree imported readback refusal. A separate long-source,
+coincident-child writer/importer control tests imported display reconstruction;
+its synthetic result does not establish the actual eight-row cause without
+matching authored-file-to-imported-frame measurements.
+
+The prior default conform supplied no independent reference and loaded the
+shipped161-bone Manny profile (profile SHA256
+`aa495c6943c10ab1dc42f2233d1602744bfb9adfc4469d0d11803b620c6c2f09`, bones SHA256
+`93e7716dd3cd6865f51f489417e1b5ad9ff6fa6a4c3be738f12df057eced3e97`).
+Source-to-conform positions drift at most2.66977e-7m but rotations change up to
+179.869degree. Conform-to-normalize positions are unchanged. Native342 conform
+now requires an explicit reference. `reference="source_copy"` preserves the
+verified native graph and authored rest/skin on independent copies with identity
+mapping and matching measured convention; mixed/unknown conventions refuse.
+It reports preservation, not independent native UE acceptance.
+
+Installed UE5.8.2-56702186+++UE5+Release-5.8 source hashes:
+
+- `Source/Editor/UnrealEd/Private/Fbx/FbxMainImport.cpp`:
+  `1ee1b75fca964f270726eabd3f5982ecc8b6dd98d233092c2e2710a8d1678aa6`.
+- `Source/Editor/UnrealEd/Private/Fbx/FbxSkeletalMeshImport.cpp`:
+  `5eec28f77f77d787ca66c333eec763a85ba137abeaeb9479a63652930ee35824`.
+
+Creator detection at lines1123–1126 selects Blender for a Creator beginning with
+`Blender`. `FFbxImporter::GetRootSkeleton` lines2617–2632 stops ascent through a
+Null container only for the case-insensitive name `Armature` with a scene-root
+parent. The actual candidate's creator/type/parent qualify but its container
+name does not. The default convention recipes now declare the verified name
+for the disposable export copy only. An occupied exact object name refuses
+before allocation; originals are never renamed or modified. Native UE import
+must still confirm the resulting342-bone hierarchy.
+
+The existing supplied-data comparator finds21.8793cm signed distance difference
+between the hands and9.02143cm on an unchanged parent-child edge. These rule out
+any single global rigid correction for the supplied tables. They do not identify
+which native mesh or Skeleton pose should govern; direct native mesh-versus-
+Skeleton calibration remains unavailable. No common rotation or translation is
+selected, and no acceptance bar is changed.
+
+
+## Bounded next owner-local test
+
+Load the exact published Python overlay in the existing disposable reconstruction
+and inspect the untouched source with `api.rig_inspect(armature=SOURCE,
+profile="metahuman")`. Use only its measured `blender` or `ue_axes` convention.
+If it reports mixed/unknown, stop with that receipt: this correction does not
+invent a source conversion or independent native reference.
+
+Create a new map from that untouched source, then conform with the explicit
+`reference="source_copy"`, the measured convention and a fresh output object
+name. Record source-to-copy all342 position/rotation/scale deltas and original
+fingerprints. Run the existing normalizer on this private copy, retaining its
+complete native receipt, then export `recipe="auto"` to a fresh filename. Supply
+an independent reference only when its authored source/provenance is actually
+available; a self roundtrip must remain labelled self_roundtrip.
+
+Require raw Null `Armature` with identity scale, UnitScaleFactor1 and every authored
+node/BindPose/cluster bind under the unchanged0.01cm/0.01deg/1e-4 bars. Return the
+bounded authored-bind consistency and imported display-error receipts. For the
+eight historical refused rows, derive source→copy→authored-node/pose/cluster→RNA
+rotation errors and imported display lengths without sharing absolute matrices.
+This establishes whether the synthetic display reconstruction mechanism matches
+the actual source. Unsupported layouts, occupied Armature or any bind contradiction
+remain refusals, not acceptance.
+
+Only after that gate passes, import the fresh candidate through the previously
+recorded legacy settings into a new transient native UE skeleton. Reuse the
+unchanged342-row native self control; require exactly342 candidate rows with no
+extra container/parent changes and all original bars. Save no original asset.
+If distances or frames still differ, retain the derived comparison and measure
+native mesh-versus-Skeleton reference pose through verified local accessors;
+do not select a rigid correction or switch reference poses to obtain a pass.
+No combined cross-PR candidate or build is required for this owner-local test.

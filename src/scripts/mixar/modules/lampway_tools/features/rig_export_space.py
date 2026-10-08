@@ -45,7 +45,7 @@ def _centimetre_matrix(matrix):
 
 
 @contextmanager
-def centimetre_copies(armature, meshes, action, exporter):
+def centimetre_copies(armature, meshes, action, exporter, container_name=None):
     """Yield disposable centimetre coordinates plus their effective FBX settings.
 
     Location keys and their handles change representation together. Rotation,
@@ -55,6 +55,11 @@ def centimetre_copies(armature, meshes, action, exporter):
     """
     meshes = list(meshes)
     _preflight(armature, meshes, action)
+    if container_name is not None:
+        if container_name != 'Armature':
+            raise ValueError('The verified legacy UE container predicate requires the exact Armature export name')
+        if bpy.data.objects.get(container_name) is not None:
+            raise ValueError('The reserved Armature export-copy name is occupied; no original object is renamed')
     if (exporter.get('global_scale') != 1.0 or exporter.get('apply_unit_scale') is not True
             or exporter.get('apply_scale_options') != 'FBX_SCALE_NONE'):
         raise ValueError('Centimetre coordinates require the unscaled unit-aware FBX_SCALE_NONE template')
@@ -73,6 +78,10 @@ def centimetre_copies(armature, meshes, action, exporter):
     shape_keys = set(bpy.data.shape_keys)
     try:
         copied_arm = armature.copy()
+        if container_name is not None:
+            copied_arm.name = container_name
+            if copied_arm.name != container_name:
+                raise ValueError('The reserved Armature export-copy name could not be assigned exactly')
         copied_arm.data = armature.data.copy()
         bpy.context.scene.collection.objects.link(copied_arm)
         copied_arm.animation_data_clear()
@@ -116,7 +125,8 @@ def centimetre_copies(armature, meshes, action, exporter):
                                                'scene_scale_length': unit,
                                                'scene_unit_system': bpy.context.scene.unit_settings.system,
                                                'blender_to_fbx_factor': scene_factor,
-                                               'effective_global_scale': settings['global_scale']}}
+                                               'effective_global_scale': settings['global_scale'],
+                                               'ue_armature_container': container_name}}
     finally:
         canon_io.remove_new_ids(before)
         for key in list(bpy.data.shape_keys):

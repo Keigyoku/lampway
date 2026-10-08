@@ -38,8 +38,12 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    is pinned). The explicit recipe `titan_cm_native` (Z / X) is refused by the read-back on canon-17 rigs. Issue2's default-chain requirement supersedes leaving it as the default: `auto` selects X/-Y for measured normalized `blender` frames and Y/X for `ue_axes`, records the choice and keeps every readback bar. Physical engine confirmation is still required (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
    native body in Unreal 5.8). Use the convention's own recipe and let the read-back decide.
    **Unit-carrier correction measured 2026-10-07:** the old metre-coordinate `FBX_SCALE_NONE` recipe writes a Null ancestor scale100 while UnitScaleFactor1 and direct bone scales pass. Actual legacy UE5.8 imports retain this factor in342 component scales; the native-self control passes. The convention recipes now explicitly make centimetre export copies and cancel only the pinned writer scene-unit factor, preserving dimensions, weights, frames and original data. Raw Null ancestry and direct bone scales are checked before publication. Blender's known uniform importer unit carrier is decoded without modifying rest/mesh data or changing the bars; physical native Unreal parity is still required. This corrects the earlier G21.3 assumption that direct LimbNode scale and UnitScaleFactor alone identify engine scale.
-3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone; its armature container imports as
-   one more top bone (`NewMetaHumanCharacter_FullBody`, parent of `root`, identity, scale 1 — accepted, recorded). GRT and MB
+3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone. The earlier accepted extra-container
+   description does not match the actual342-bone reference: the candidate's343rd container changes `root`'s parent and refuses.
+   Installed UE5.8.2 source verifies that Blender-created top-level Null `Armature` is skipped (case-insensitive name); the
+   actual differently named candidate does not meet that predicate. The two convention recipes declare
+   `ue_armature_container="Armature"` and name only the disposable export copy accordingly. An existing object occupying
+   that exact name or an unverified requested name refuses before copies; originals are never renamed. GRT and MB
    instead name the ARMATURE OBJECT `root` and have no `root` bone (GRT's Unreal armature: 88 bones, none named `root`, measured;
    MB `CreateRig.py:12536-12538`). The two are different skeletons to the engine: the root check (LT `export_checks.py:93-106`)
    refuses the mismatch; never mix them.
@@ -55,10 +59,23 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
 8. **The engine import is a receipt, not an assumption.** The import settings (Interchange) are recorded; Titan changed none
    (memory native-body-canonical-for-fit). LT `engine_import_check` records a hand-run import's receipt (`export_checks.py:127-172`).
 
+   **Authored-file readback (2026-10-08):** the actual eight source bones are10–15cm
+   and copy rotation passes; the earlier synthetic source-short-bone mechanism
+   does not explain their imported readback refusal. A long-source/coincident-child
+   synthetic control reproduces tiny inferred display tails and RNA frame drift
+   while authored node/BindPose/cluster rotations pass. For admitted centimetre
+   exports, the restricted pinned-writer reader verifies all three redundant
+   authored binds and hierarchy under unchanged shortest-quaternion bars. It
+   refuses unsupported transforms, axes/units, missing clusters and contradictions,
+   preserving imported display errors as explicit diagnostics. Source and imported
+   rest data remain untouched. Matching the actual eight file/import rows and
+   native mesh-versus-Skeleton calibration remain owner-local measurements;
+   authored-file verification does not establish native engine parity.
+
 ## C. Invariants
 
 - **INV-21.1** No export without a read-back that compares every bone's position, rotation and scale to the reference.
-- **INV-21.2** Root and hierarchy equal the reference's (the container top bone is the one accepted extra, named).
+- **INV-21.2** Root and hierarchy equal the reference's. A container is not an accepted extra for the verified342-bone native reference.
 - **INV-21.3** No leaf bones; no bone the reference lacks unless declared.
 - **INV-21.4** The convention-and-axes pair is recorded with the file's sha256.
 
@@ -105,4 +122,4 @@ worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance}, sha256: {fb
 3. The read-back's rotation tolerance inside Blender: 0.01 deg (Titan's `bind_mismatch`, measured in UNREAL) is below what a
    Blender edit bone holds for an arbitrary frame (max 0.112 deg, 17 % of 400 random frames over 0.01 deg, 2026-10-06, no FBX
    involved); the cause is not identified (the errors are not clustered at the roll singularity, the bone's Y near -Z). A Blender
-   read-back may need a measured bar of its own, or a comparison against frames that went through the same storage.
+   read-back may need a measured bar of its own, or a comparison against frames that went through the same storage. No tolerance change was ruled: the implemented authored node/pose/cluster readback keeps0.01deg, reports imported display errors separately and refuses unsupported layouts.

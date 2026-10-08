@@ -61,6 +61,8 @@ Native compile-definition regressions pin the target, option scope, creation ord
 
 Scanner regression fixtures remain self-contained when the security guard is shared across lanes. Preserve byte-exact reproductions with immutable source provenance, not dependencies on unrelated native tests; retain every planted security assertion.
 
+Native bind tests distinguish source-copy error, authored node/BindPose/cluster error and imported display reconstruction. Preserve the unchanged shortest-quaternion rotation bar, including a diagonal-axis near-bar falsifier. A synthetic display-tail mechanism does not establish an owner-source cause. Native source_copy and exact Armature container controls preserve originals and refuse unsupported graphs/conventions or occupied names before copies.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -80,3 +82,5 @@ Scanner regression fixtures remain self-contained when the security guard is sha
 | 2026-10-07 | target-owned fork compile definitions | captain: physical AC34 wrong native operators | source-only guarded strings passed while consumers compiled the upstream branch | test concrete target ownership and planted option/scope regressions; require build and physical receipts | editor macro compilation contracts |
 
 | 2026-10-07 | portable matrix scanner reproduction | PR4 publication dependency | scanner controls read an unrelated native-topology test absent from its lane | retain the exact reproduction as a local literal with immutable commit/blob provenance and unchanged security assertions | self-contained20scanner controls |
+
+| 2026-10-08 | actual native bind correction controls | measured long source bones, implicit Manny and verified UE predicate | synthetic source-short-bone diagnosis did not explain actual readback; independent authored binds were missing | Test source preservation, exact disposable container naming and redundant node/pose/cluster evidence separately, with unchanged quaternion bars and explicit physical proof limits. | default-reference/container RED and corrupt bind/near-bar plants |

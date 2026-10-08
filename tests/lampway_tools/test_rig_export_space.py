@@ -256,3 +256,52 @@ print('RESULT '+json.dumps({'clamped_null_falsifier':10,'representation':receipt
 ''')
     assert run.rc == 0, run.out
     assert run.results[0]['clamped_null_falsifier'] == 10
+
+
+def test_ue_recipe_writes_the_verified_blender_container_name_on_copies_only():
+    run = run_script(PRE + r'''
+doc=json.loads(recipe_path.read_text())
+kwargs={'container_name':doc['ue_armature_container']} if 'ue_armature_container' in doc else {}
+source=digest(snapshot(arm,mesh,original));ids=canon_io.snapshot_ids()
+path=Path(tempfile.gettempdir())/'named-container.fbx'
+with SPACE.centimetre_copies(arm,[mesh],None,recipe,**kwargs) as copied:
+    for ob in original.objects:ob.select_set(ob in [copied['armature'],*copied['meshes']])
+    bpy.context.view_layer.objects.active=copied['armature']
+    bpy.ops.export_scene.fbx(filepath=str(path),use_selection=True,bake_anim=False,**copied['exporter'])
+nulls=[m for m in fbx_metadata(path)['models'] if m['kind']=='Null']
+assert len(nulls)==1 and nulls[0]['name']=='Armature',nulls
+assert nulls[0]['properties'].get('Lcl Scaling',[1.,1.,1.])==[1.,1.,1.]
+assert digest(snapshot(arm,mesh,original))==source
+assert canon_io.snapshot_ids()==ids
+print('RESULT '+json.dumps({'container':'Armature','source_unchanged':True}))
+''')
+    assert run.rc == 0, run.out
+
+
+@pytest.mark.parametrize('invalid_name', ['Armature.001', 'root', 123])
+def test_ue_container_name_refuses_unverified_names_before_copies(invalid_name):
+    run = run_script(PRE + f'\ninvalid_name={invalid_name!r}\n' + r'''
+ids=canon_io.snapshot_ids();source=digest(snapshot(arm,mesh,original))
+try:
+    with SPACE.centimetre_copies(arm,[mesh],None,recipe,container_name=invalid_name):assert False
+except ValueError as exc:assert 'verified legacy UE container predicate' in str(exc)
+else:assert False
+assert canon_io.snapshot_ids()==ids and digest(snapshot(arm,mesh,original))==source
+print('RESULT '+json.dumps({'refused':True,'source_unchanged':True}))
+''')
+    assert run.rc == 0, run.out
+
+
+def test_ue_container_name_collision_preserves_the_existing_object():
+    run = run_script(PRE + r'''
+occupied=bpy.data.objects.new('Armature',None);original.collection.objects.link(occupied)
+ids=canon_io.snapshot_ids();source=digest(snapshot(arm,mesh,original))
+try:
+    with SPACE.centimetre_copies(arm,[mesh],None,recipe,container_name='Armature'):assert False
+except ValueError as exc:assert 'reserved Armature export-copy name is occupied' in str(exc)
+else:assert False
+assert occupied.name=='Armature' and bpy.data.objects.get('Armature') is occupied
+assert canon_io.snapshot_ids()==ids and digest(snapshot(arm,mesh,original))==source
+print('RESULT '+json.dumps({'refused':True,'source_unchanged':True}))
+''')
+    assert run.rc == 0, run.out

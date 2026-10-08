@@ -73,6 +73,8 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 
 Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration.
 
+The verified native342 conform path requires an explicit reference: source_copy preserves authored rest and skin with an identity map and matching measured convention, while mixed/unknown frames refuse. Default convention exports name only the disposable container Armature under the verified installed UE Blender predicate; occupied names refuse before allocation. For admitted pinned-writer centimetre files, cross-check authored node, BindPose and cluster binds under unchanged shortest-quaternion bars; refuse unsupported layouts without projecting matrices or falling back to inferred display tails. Keep imported display errors visible. Source preservation and authored-file verification never establish independent native UE parity.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -96,3 +98,5 @@ Canon21 now separates explicit centimetre export copies, raw identity Null/bone 
 | 2026-10-07 | nonempty descendant pose regions | actual9f90 vacuous arm receipt | native descendant samples were excluded by exact seed-name membership | document measured ancestry membership and empty-region refusal, retaining thresholds/rays and original-input rerun requirement | weighted descendants and malformed/empty ancestry falsifiers |
 
 | 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |
+
+| 2026-10-08 | actual native conform and container correction | actual source-copy and installed UE predicate evidence | a161-bone implicit reference rewrote native342 frames and a differently named Null became an extra root | Require explicit native reference or bounded source_copy, preserve authored data, and reserve Armature for disposable exports only under the verified predicate. Cross-check redundant authored binds under existing bars and retain display reconstruction errors. Keep native pose calibration and physical acceptance separate. | native default-reference/container RED, source-copy, bind corruption and near-bar controls |

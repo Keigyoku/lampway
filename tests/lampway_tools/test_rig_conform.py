@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from features_support import run  # noqa: E402
@@ -19,6 +20,95 @@ from test_rig_tools import MIXAMO  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src/scripts"))
 from mixar.modules.lampway_tools.rig_tools import core as RC  # noqa: E402
+
+
+def test_native_source_copy_preserves_authored_rest_and_refuses_implicit_manny(tmp_path):
+    from blender_run import run_script
+    from test_native_complete_topology import PRE, BUILD
+    r = run_script(PRE + BUILD + r'''
+from mixar.modules.lampway_tools.features import rig_conform as CF
+from mixar.modules.lampway_tools.features import rig_tools as RT
+piece=skinned(arm,'native_skin')
+arm.animation_data_create();action=bpy.data.actions.new('source_motion');arm.animation_data.action=action
+arm.pose.bones['upperarm_l'].rotation_mode='QUATERNION';arm.pose.bones['upperarm_l'].keyframe_insert('rotation_quaternion',frame=1)
+api.rig_inspect(armature=arm.name,profile='metahuman')
+mapped=api.rig_map(armature=arm.name,profile='metahuman',out='native.map.json')
+source_before={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones}
+parents_before={b.name:b.parent.name if b.parent else None for b in arm.data.bones}
+groups_before=[g.name for g in piece.vertex_groups]
+weights_before=[[(g.group,g.weight) for g in v.groups] for v in piece.data.vertices]
+rest_flags_before={b.name:(list(b.tail_local),b.use_connect,b.use_deform) for b in arm.data.bones}
+poses_before={b.name:[list(row) for row in b.matrix_basis] for b in arm.pose.bones}
+implicit=api.rig_conform(armature=arm.name,map='native.map.json',dry_run=False,out_name='implicit')
+mismatch=api.rig_conform(armature=arm.name,map='native.map.json',reference='source_copy',convention='ue_axes',dry_run=False,out_name='mismatch')
+merge=api.rig_conform(armature=arm.name,map='native.map.json',reference='source_copy',merge_weights={'head':'pelvis'},dry_run=False,out_name='merge')
+done=api.rig_conform(armature=arm.name,map='native.map.json',reference='source_copy',dry_run=False,out_name='preserved')
+out=bpy.data.objects.get('preserved')
+checks={}
+if out:
+    mesh=bpy.data.objects[done['meshes_out'][0]]
+    checks={'rest_same':source_before=={b.name:[list(row) for row in b.matrix_local] for b in out.data.bones},
+      'parents_same':parents_before=={b.name:b.parent.name if b.parent else None for b in out.data.bones},
+      'groups_same':groups_before==[g.name for g in mesh.vertex_groups],
+      'weights_same':weights_before==[[(g.group,g.weight) for g in v.groups] for v in mesh.data.vertices],
+      'rest_flags_same':rest_flags_before=={b.name:(list(b.tail_local),b.use_connect,b.use_deform) for b in out.data.bones},
+      'own_data':out.data is not arm.data and mesh.data is not piece.data,
+      'modifier_copy':any(m.type=='ARMATURE' and m.object is out for m in mesh.modifiers),
+      'source_same':source_before=={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones},
+      'source_pose_same':poses_before=={b.name:[list(row) for row in b.matrix_basis] for b in arm.pose.bones},
+      'source_action_same':arm.animation_data.action is action,
+      'copy_no_action':not out.animation_data,
+      'refused_copies_absent':'mismatch' not in bpy.data.objects and 'merge' not in bpy.data.objects,
+      'baseline_clean':not any('baseline' in o.name for o in bpy.data.objects)}
+key=next(iter(RT.convention_angles(RT.read(arm))))
+bpy.context.view_layer.objects.active=arm;bpy.ops.object.mode_set(mode='EDIT')
+e=arm.data.edit_bones[key]
+child=next(b for b in arm.data.edit_bones if b.parent and b.parent.name==key)
+direction=(child.head-e.head).normalized()
+axis=direction.cross(Vector((1,0,0)))
+if axis.length<.1:axis=direction.cross(Vector((0,1,0)))
+e.tail=e.head+axis.normalized()*.02
+bpy.ops.object.mode_set(mode='OBJECT')
+mixed_before={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones}
+api.rig_inspect(armature=arm.name,profile='metahuman')
+api.rig_map(armature=arm.name,profile='metahuman',out='mixed.map.json')
+mixed=api.rig_conform(armature=arm.name,map='mixed.map.json',reference='source_copy',dry_run=False,out_name='mixed_copy')
+checks['mixed_unchanged']=mixed_before=={b.name:[list(row) for row in b.matrix_local] for b in arm.data.bones} and 'mixed_copy' not in bpy.data.objects
+res({'implicit':implicit,'mismatch':mismatch,'merge':merge,'mixed':mixed,'done':done,'checks':checks})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2500:]
+    got = r.results[-1]
+    assert not got['implicit']['ok'] and 'explicit native reference' in got['implicit']['error'], got['implicit']
+    assert got['done']['ok'], got['done']
+    assert got['done']['reference_scope'] == 'source_preservation'
+    assert got['done']['engine_bind_acceptance'].startswith('unverified')
+    assert not got['mismatch']['ok'] and 'convention' in got['mismatch']['error']
+    assert not got['merge']['ok'] and 'merge weights' in got['merge']['error']
+    assert not got['mixed']['ok'] and 'convention is mixed' in got['mixed']['error'], got['mixed']
+    assert got['checks'] and all(got['checks'].values()), got['checks']
+
+
+@pytest.mark.parametrize('bad', ['partial', 'parent', 'mapping', 'synthesis', 'ik', 'offset', 'mixed', 'mismatch'])
+def test_source_copy_plan_refuses_changes_and_unverified_convention(bad):
+    import copy
+    from test_native_complete_topology import PARENTS
+    src = {'names':list(PARENTS),'parents':dict(PARENTS),
+           'heads':{n:(0.,0.,0.) for n in PARENTS}, 'frames':{n:np.eye(3) for n in PARENTS},
+           'lengths':{n:1. for n in PARENTS}}
+    mapping, synth, offsets, ik, measured = {'pelvis':'pelvis'}, {}, {}, False, 'blender'
+    if bad == 'partial': src['parents'].pop('pinky_03_in_l');src['names'].remove('pinky_03_in_l')
+    if bad == 'parent': src['parents']['pinky_03_in_l']='ring_03_half_l'
+    if bad == 'mapping': mapping={'pelvis':'head'}
+    if bad == 'synthesis': synth={'spine_03':.5}
+    if bad == 'ik': ik=True
+    if bad == 'offset': offsets={'head':{'roll_deg':1.}}
+    if bad == 'mixed': measured='mixed'
+    if bad == 'mismatch': measured='ue_axes'
+    before=copy.deepcopy(src)
+    with pytest.raises(RC.RigRefused):
+        RC.source_copy_plan(src,mapping,synth,'blender',measured,offsets,ik)
+    assert src['parents']==before['parents'] and src['names']==before['names']
+    assert all(np.array_equal(src['frames'][n],before['frames'][n]) for n in src['frames'])
 
 SKIN = '''
 def skinned(ob, roll=0.0):

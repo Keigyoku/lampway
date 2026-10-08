@@ -266,6 +266,26 @@ def _up(candidates, along):
     return None
 
 
+def source_copy_plan(src, mapping, synthesized, convention, measured_convention, offsets=None, ik_bones=False):
+    """An exact native rest copy, not reference fitting or engine calibration."""
+    from ..canon_geom import native_topology as NT
+    try:
+        roster = NT.audit(src["parents"])
+    except ValueError as error:
+        raise RigRefused(str(error)) from None
+    if not roster["complete"] or set(src["names"]) != set(NT.PARENTS):
+        raise RigRefused("source_copy requires the complete verified native topology")
+    if convention not in CONVENTIONS or measured_convention != convention:
+        raise RigRefused(f"source_copy input convention is {measured_convention}, requested {convention}: inspect the untouched source; no frame conversion is performed")
+    if (synthesized or offsets or ik_bones or any(slot != name or name not in src["parents"] for slot, name in mapping.items())):
+        raise RigRefused("source_copy requires identity mapping, no synthesis, IK or offsets")
+    bones = [{"name": name, "source": name, "kind": "mapped" if name in mapping else "unmapped",
+              "parent": src["parents"][name], "head": src["heads"][name],
+              "frame": src["frames"][name], "length": src["lengths"][name]} for name in src["names"]]
+    return {"bones": bones, "renamed": {}, "synthesized": {}, "reparented": [],
+            "frames": {}, "unreferenced": [], "convention": convention}
+
+
 def conform_plan(src, mapping, synthesized, ref, convention="blender", offsets=None, ik_bones=False):
     """The conformed skeleton as a plan (no Blender): {bones: [{name, source, kind, parent, head, frame, length}] parents first, renamed,
     synthesized, reparented, frames: {bone: angle to the reference re-expressed in the convention, deg}, unreferenced}.

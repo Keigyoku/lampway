@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Read-only owner-scene diagnosis: call capture(armature_name) on exact1368 tools.
+"""Read-only owner-scene diagnosis: call capture(armature_name) on source-hash-pinned tools.
 No imports, exports, saves, source geometry changes, or unbounded frame output.
 Disposable copies use the existing canonical context, restoring IDs/selection.
 """
@@ -13,7 +13,7 @@ from mixar.modules.lampway_tools.features import rig_export_space as SPACE
 from mixar.modules.lampway_tools.features import rig_tools as RT
 from mixar.modules.lampway_tools.rig_tools import core as RC
 
-EXPECTED = {'rig_export.py': '8d10141fed0d7ab1175b4a0db2e1d6398dd3c843e4a499af975b99e080abfac5', 'rig_export_space.py': '890148b54531306483a3843d0c52b357b5e07ddb519e3f7b3d3d55303eeb0349'}
+EXPECTED = {'rig_export.py': 'd713b22259557cf41897fa425fa42e5ef45c8fbcc991a142c4db7fae817d2324', 'rig_export_space.py': '6e59366fec473586b5fd073a008ca53e8e2f7f125ea61d365378cce14cd77ab5'}
 SELECTED = ('upperarm_twistCor_01_r','thigh_twistCor_01_l','thigh_twist_01_l',
             'upperarm_twist_01_r','calf_twistCor_02_r','calf_twist_02_r',
             'calf_twist_02_l','calf_twistCor_02_l')
@@ -59,7 +59,7 @@ def _capture(armature_name):
     for module in (RE,SPACE):
         filename=Path(module.__file__).name
         if hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()!=EXPECTED[filename]:
-            raise CaptureRefused('Capture requires the exact1368 exporter Python overlay')
+            raise CaptureRefused('Capture requires the source-hash-pinned exporter Python overlay')
     arm=bpy.data.objects.get(armature_name)
     if arm is None or arm.type!='ARMATURE':raise CaptureRefused('Pass the actual caller-selected armature name')
     missing=[name for name in SELECTED if name not in arm.data.bones]
@@ -83,7 +83,7 @@ def _capture(armature_name):
         after=_sha(_state(arm,meshes))
         if before!=after:
             raise CaptureRefused('Source or scene state changed during disposable-copy capture')
-    return {'schema_version':1,'diagnostic_only':True,'candidate':'1368c88253a1ed524bfa067ef0bb2660494b1e0d',
+    return {'schema_version':1,'diagnostic_only':True,'candidate':'source-hash-pinned',
             'scope':'Copy-time diagnosis only; no writer/import or engine acceptance',
             'tool_source_sha256':dict(EXPECTED),'source_scene_sha256_before':before,
             'source_scene_sha256_after':after,'source_scene_unchanged':True,

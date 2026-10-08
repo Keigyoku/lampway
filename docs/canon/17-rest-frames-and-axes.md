@@ -116,6 +116,14 @@ Refusals: `mixed` input without `convention`; a bone whose along-axis is undefin
 knuckle joint (the bend axis needs index_01 and pinky_01). Receipt: per bone `{angle_to_reference_deg, along_source, up_source}`,
 the detected input convention, the output convention.
 
+The exact verified342 native graph requires an explicit reference; defaulting to
+the shipped161-bone Manny profile is refused. Explicit `reference="source_copy"`
+preserves its existing authored rest data and skin on independent copies, with an
+identity map and matching measured convention. It refuses mixed/unknown frames,
+offsets, synthesis, IK additions and weight merging before mutation. It reports
+source preservation separately from still-unverified native UE parity. The
+reference-driven rule above remains the generic construction path.
+
 ## H. Decisions owed by the captain
 
 1. The finger up-axis table: take it from the native MetaHuman skeleton (recommended; measured once, sha-pinned) or from GRT's
