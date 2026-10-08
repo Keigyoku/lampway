@@ -24,6 +24,8 @@ from bpy.types import Operator
 
 from mixar.modules.lampway_tools import capabilities_client, capabilities_face as face, capabilities_state as state, human_gate, studio_client
 
+from . import context_settings
+
 CLIENT_FACTORY = lambda: capabilities_client.CapabilitiesClient()  # noqa: E731  (tests swap it)
 SCRIPT_REFUSAL = "this is the user's click: a script cannot press it"
 POLL_S = 30.0    # an agent's proposal shows up on the page without a click
@@ -56,6 +58,7 @@ def _tick():
 
 def request_refresh() -> None:
     """Read the listing off the main thread (a click or the poll: the network is allowed here, never in a draw)."""
+    context_settings.request_refresh()
     if state.request(CLIENT_FACTORY, state.STATE["project"]):
         _arm(_apply, APPLY_S)
     _arm(_tick, POLL_S)
@@ -319,6 +322,7 @@ def draw_capabilities(layout, context=None) -> None:
     if st["rows"]:
         top.label(text=face.summary(st["rows"]))
     top.operator("lampway.capabilities_refresh", text="Refresh", icon="FILE_REFRESH")
+    context_settings.draw_context(layout, context)
     if st["missing"]:
         layout.label(text="This Lampway server has no Capabilities yet: update it, then Refresh")
         return

@@ -24,7 +24,12 @@ CLIENT_FACTORY = lambda: choices_client.ChoicesClient()  # noqa: E731  (tests sw
 SCRIPT_REFUSAL = "this is the user's click: a script cannot press it"
 POLL_S = 60.0
 SPENDING = "spending"
+CONTEXT = "__context__"
 CAPABILITIES = capabilities_face.PAGE_ID   # not a purpose: the Capabilities page (ui/capabilities.py) has its own server door and its own row
+
+
+def _context_page():
+    return importlib.import_module("mixar.modules.lampway_tools.ui.context_settings")
 
 
 def _capabilities_page():
@@ -64,7 +69,10 @@ REFRESH = refresh   # tests swap it
 def select(pid: str) -> None:
     """Choose a purpose and read its view (a click: the network is allowed here, never in draw)."""
     choices_state.STATE["selected"] = pid
-    if pid == CAPABILITIES:
+    if pid == CONTEXT:
+        capabilities_state.STATE["project"] = choices_state.STATE["project"]
+        _context_page().request_refresh()
+    elif pid == CAPABILITIES:
         _capabilities_page().request_refresh()   # off the main thread; its timer applies the answer
     elif pid and pid != SPENDING:
         try:
@@ -295,6 +303,9 @@ def _list(layout):
             op.purpose = s["id"]
             op.hover = f"{c['word']}; {choices_face.now_line(s)}; scope: {(s.get('now') or {}).get('scope') or 'none'}"
             row.label(text=((s.get("now") or {}).get("label") or "")[:22])
+    op = layout.operator("lampway.choices_select", text="Context", icon="PREFERENCES", emboss=st["selected"] == CONTEXT)
+    op.purpose = CONTEXT
+    op.hover = "Hermes runtime context settings for this project"
     op = layout.operator("lampway.choices_select", text="Spending", icon="LAMPWAY_COIN", emboss=st["selected"] == SPENDING)
     op.purpose = SPENDING
     asked = bool(capabilities_state.cards())   # the one glow of this row: an agent's proposal waits for you
@@ -320,6 +331,9 @@ def _detail(layout):
     pid = st["selected"]
     if pid == SPENDING:
         _spending(layout)
+        return
+    if pid == CONTEXT:
+        _context_page().draw_context(layout)
         return
     if pid == CAPABILITIES:
         _capabilities_page().draw_capabilities(layout)

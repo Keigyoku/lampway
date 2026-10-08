@@ -102,6 +102,7 @@ class Link:
     info: object = None               # units.UnitInfo
     client: Optional[ServeClient] = None
     live_id: str = ""
+    context_max: Optional[int] = None     # observed native compressor budget, never a provider fallback
     epoch: str = ""
     last_seq: int = -1
     running: bool = False
@@ -624,6 +625,11 @@ class HermesFront:
         info = link.info
         res = await client.call("session.resume", {"session_id": info.stored_id})
         link.live_id = str(res.get("session_id") or "")
+        if not same_epoch:
+            link.context_max = None
+        usage = (res.get("info") or {}).get("usage") or {}
+        if type(usage.get("context_max")) is int and usage["context_max"] > 0:
+            link.context_max = usage["context_max"]
         running = bool(res.get("running"))
         if same_epoch and link.last_seq >= 0:
             await self._catch_up(link, running)
@@ -733,6 +739,7 @@ class HermesFront:
         if link.live_id != old:
             return                                           # serve says sessions.changed twice: another check followed it
         link.live_id = str(res.get("session_id") or newest["id"])
+        link.context_max = None
         link.last_seq = -1                                   # serve numbers each session's events from 1
         info = link.info
         if info is not None:
@@ -812,6 +819,10 @@ class HermesFront:
                 return
             link.last_seq = seq
         payload = params.get("payload") or {}
+        usage = payload.get("usage") or (payload.get("info") or {}).get("usage") or {}
+        window = usage.get("context_max")
+        if type(window) is int and window > 0:
+            link.context_max = window
         if kind == "message.start":
             link.running = True
             self._stale_question(link)                      # a new Hermes turn: a question still open belongs to an earlier one

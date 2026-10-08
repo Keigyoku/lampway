@@ -29,6 +29,18 @@ The Hermes config keys and tool names are those of the pinned release (``PINNED_
 source tree. A pin bump re-reads them; the live tests in ``tests/test_engine_hermes_config.py`` run the built engine against them.
 """
 
+import threading
+from functools import wraps
+
+CONFIG_WRITER_LOCK = threading.RLock()
+
+def serialized_config(fn):
+    @wraps(fn)
+    def guarded(*args, **kwargs):
+        with CONFIG_WRITER_LOCK:
+            return fn(*args, **kwargs)
+    return guarded
+
 import ipaddress
 import json
 import math
@@ -163,7 +175,30 @@ def _loopback_url(url, what: str) -> str:
 
 
 def _merge_context(cfg: dict, context: Optional[dict]) -> None:
+    if context is not None and not isinstance(context, dict):
+        raise Refused("refused: context must be a mapping")
+    from .context_settings import validate
+    fields = {}
+    for root, nested, field in (("compression", "threshold", "compression_threshold"),
+                                ("compression", "protect_last_n", "protected_recent_turns"),
+                                ("context", "engine", "context_engine")):
+        if root in (context or {}):
+            branch = context[root]
+            if not isinstance(branch, dict):
+                raise Refused(f"refused: context {root} must be a mapping")
+            if nested in branch:
+                fields[field] = branch[nested]
+    validate(fields)
     for key, value in (context or {}).items():
+        if key == "auxiliary":
+            if not isinstance(value, dict) or set(value) != {"compression"}:
+                raise Refused("refused: context auxiliary may edit only compression.model")
+            compression = value["compression"]
+            if not isinstance(compression, dict) or set(compression) != {"model"}:
+                raise Refused("refused: context auxiliary may edit only compression.model")
+            validate({"summarizing_model": compression["model"]}, allow_wire_alias=True)
+            cfg.setdefault("auxiliary", {}).setdefault("compression", {})["model"] = compression["model"]
+            continue
         branch = value if isinstance(value, dict) else None
         paths = [p for p in CONTEXT_PATHS if p[0] == key]
         if not paths:
@@ -430,6 +465,7 @@ def serve_toolsets(config: dict) -> list:
     return list(config["platform_toolsets"][PLATFORM]) + sorted(config.get("mcp_servers") or {})
 
 
+@serialized_config
 def write(home_dir, capabilities, project, gateway_base_url, gateway_token, model_id, *, rendered: Optional[dict] = None, **kw) -> Path:
     """Write ``<home_dir>/config.yaml`` (0600) in a 0700 home and return its path. Never the user's own Hermes (E1.10).
     ``rendered``, when given, receives the config as a dict (``serve_toolsets`` reads it)."""

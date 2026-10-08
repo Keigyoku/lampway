@@ -1501,6 +1501,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
     routes += capabilities_routes(_bearer_ok)
+    from .engine.context_settings import Store as ContextStore, routes as context_routes
+    context_store = ContextStore(settings.state_dir)
+    routes += context_routes(context_store, _bearer_ok, agent, _wb_origin)
     from .engine.mcp_endpoint import engine_mcp_routes
     routes += engine_mcp_routes(lambda: agent.engine)                        # spec E1.6: the engine's own MCP endpoint
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
@@ -1508,7 +1511,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     ENG.set_active(engine_tokens)
     from .engine import wiring as ENGW                                          # spec E1, A5: Hermes in Mode 1's seat whenever it is built
     engine_wiring = ENGW.wire(settings, agent, engine_tokens)
-    routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent))
+    routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent, settings=settings, chatgpt_auth=chatgpt))
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager

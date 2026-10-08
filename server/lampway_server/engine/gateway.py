@@ -502,16 +502,20 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
     import inspect
     try:
         takes_session = len(inspect.signature(provider_getter).parameters) >= 1
+        takes_model = "requested_model" in inspect.signature(provider_getter).parameters
     except (TypeError, ValueError):
         takes_session = False
+        takes_model = False
 
-    def provider_for(session_id):
+    def provider_for(session_id, requested_model=None):
+        if takes_model:
+            return provider_getter(session_id, requested_model=requested_model)
         return provider_getter(session_id) if takes_session else provider_getter()
 
-    def provider_or_error(session_id):
+    def provider_or_error(session_id, requested_model=None):
         """(provider, None) or (None, the OpenAI-style error response): a pane whose choice cannot be built is told so."""
         try:
-            return provider_for(session_id), None
+            return provider_for(session_id, requested_model), None
         except Exception as exc:  # noqa: BLE001 - a missing key, a retired option: reported, never answered by another provider
             status, err = _provider_error(None, exc)
             return None, JSONResponse(err, status_code=status)
@@ -564,7 +568,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         refusal = registry.check_first(_bearer(request), session_id, body.get("tools"))
         if refusal is not None:                                        # E1.3: the engine offered what the choices do not allow
             return JSONResponse(error_body(refusal, type="invalid_request_error", code="engine_tools_mismatch"), status_code=400)
-        provider, refused = provider_or_error(session_id)
+        provider, refused = provider_or_error(session_id, body.get("model"))
         if refused is not None:
             return refused
         for observer in list(registry.observers):                      # e.g. the island's one-time "Using your ChatGPT plan" notice

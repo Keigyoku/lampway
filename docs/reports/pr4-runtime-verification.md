@@ -164,22 +164,24 @@ not passing acceptance; a skipped default opt-in does not erase the separately o
   persistent dedicated symbolic stdio connector/helper. These source-interface gaps are not repaired by account approval.
   Neither persistent installation nor the working-directory/auth-file exception has been accepted. A terminal opening or
   offline probe is not account acceptance.
-* The final contract audit found unused R3/Q3 Context configuration and native internal-helper interpretation gaps. A separate
-  PR4-only candidate has typed project overrides, displayed pinned defaults, no default writes, user-only routes and guarded
-  client controls; 154 client checks and 179 combined server/adapter checks passed, with four live-engine checks not run in that
-  candidate focus. It refuses live saves because the pinned runtime lacks a guarded reload of these fields. Independent
-  summarizer routing is implemented in that separate candidate against the existing guarded provider factory; 133 focused
-  tests passed, with four native-live checks not run, and the final nineteen owned cases passed. The complete exported patch
-  is retained with SHA256 `6776dc71e9eee98d6b1b2964275c573778daccf1f6bb1d1dc2410d906bfc9fac`.
-  The candidate is not published or accepted. The captain's ruling is pending
-  on next-user-reopen application versus retaining the live-reload requirement, and on whether Hermes's native internal helpers
+* R3/Q3 Context now has typed explicit project overrides, exact pinned defaults, user-only guarded client controls, no default
+  writes, and model-window provenance. The native pin synchronizes compression settings before the next normal turn and
+  rereads auxiliary compression routing per call; the earlier blanket live-reload blocker was incorrect. Context writes are
+  serialized with capability refresh, preserving capability changes and coherent config. Explicit selected-service summaries
+  use existing Choices, auth, privacy, spend and gateway lifetime checks for main and live owned worker bindings; the normal
+  worker service remains pinned. Candidate checks passed 172 with four native checks not run; root server focus passed 149
+  without skips and client focus passed 22. Pinned-source causal tests execute actual synchronization function bodies with
+  loader/provider/runtime edges stubbed; they are not actual native-process or account proof. Matching full/native verification
+  remains owed. `/model --once` defers adoption, and manual `/compress` before a normal turn can retain earlier threshold/recent
+  settings. No next-reopen-only contract was substituted. The captain's ruling remains pending on whether native internal helpers
   may remain inside the existing pane under A0/A1/Q14. A proposed delegation restriction alone does not fence native `/bg` or
   `/btw`; no complete internal-helper isolation is claimed.
 
-* Q2 retains approved 30-day/200-session values, but its older physical archive/live-store terms need mapping to Hermes-owned
-  sessions. The pin defaults to pruning ended history at 90 days, optional soft archive at three days, and a soft in-memory
-  detached-session LRU of 16; these are not proof of the approved archive policy. No second Lampway conversation store or
-  silent native pruning policy was introduced. R5 explicitly supersedes parked turns, so the old 24-hour parked TTL is not
+* The captain settled Q2: soft-hide native ended sessions after 30 days, cap visible ended history at 200, and preserve resumable
+  records. This is a global visibility cap across recorded owned native homes; a two-home native control caught and corrected
+  the initial per-home interpretation. The native wrapper and final maintenance proof are being integrated separately.
+  The pin's default destructive pruning and unended automatic archive are not this policy. No second Lampway conversation
+  store is introduced. R5 explicitly supersedes parked turns, so the old 24-hour parked TTL is not
   a separate acceptance requirement under this pane architecture.
 
 No force push, pull-request merge, deployment, paid provider call, account credential transfer, user desktop operation or private asset

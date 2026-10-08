@@ -32,9 +32,9 @@ def fake_engine(root: Path) -> dict:
 
 def units_for(cockpit, state_dir, registry, *, engine: dict, base="http://127.0.0.1:8787", start_sessions=False) -> Mode1Units:
     """The real Mode 1 hook on a stand-in engine; ``start_sessions`` False: nothing connects to a serve (none runs)."""
-    def write_config(home, gateway_url, token, model_id, worker=False, mcp_url=None, mcp_headers=None, rendered=None):
+    def write_config(home, gateway_url, token, model_id, worker=False, mcp_url=None, mcp_headers=None, rendered=None, project=None):
         board = CAP.ACTIVE
-        return HC.write(home, board, CAP.project(), gateway_url, token, model_id, mcp_url=mcp_url, mcp_headers=mcp_headers, rendered=rendered,
+        return HC.write(home, board, project or CAP.project(), gateway_url, token, model_id, mcp_url=mcp_url, mcp_headers=mcp_headers, rendered=rendered,
                         asks_user=not worker)
     units = Mode1Units(cockpit=cockpit, engine=engine, state_dir=state_dir, server_base=base, registry=registry,
                        write_config=write_config, model_id="lampway", proxy_vars={"NO_PROXY": "127.0.0.1"},

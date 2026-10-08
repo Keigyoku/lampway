@@ -155,7 +155,7 @@ def is_worker_session(session_id) -> bool:
     return len(parts) == 3 and parts[0] == "swarm" and all(parts)
 
 
-def provider_getter(agent):
+def provider_getter(agent, *, settings=None, chatgpt_auth=None):
     """The gateway's provider for a pane, decided from its token's session (spec S2 as superseded by A):
 
     * a unit's main pane: the current main provider (``agent.provider``, the ``agent.main`` choice), read at call time;
@@ -168,7 +168,27 @@ def provider_getter(agent):
     import collections
     workers: "collections.OrderedDict" = collections.OrderedDict()
 
-    def get(session_id: Optional[str] = None):
+    def get(session_id: Optional[str] = None, requested_model=None):
+        from .context_settings import SUMMARY_PREFIX, Store as ContextStore, selected_summary
+        if isinstance(requested_model, str) and requested_model.startswith(SUMMARY_PREFIX):
+            if settings is None:
+                raise ValueError("The Context settings are unavailable")
+            from ..herdr import harnesses as HN
+            recs = agent.cockpit.list_sessions()
+            if is_worker_session(session_id):
+                bindings = getattr(getattr(agent, "swarm", None), "bindings", None)
+                if bindings is None or not bindings.is_live(session_id) or bindings.choice_for(session_id) is None:
+                    raise ValueError("The summary alias requires a live owned worker job binding")
+                matched = [r for r in recs if r.get("swarm_binding") == session_id
+                           and r.get("role") == "worker" and r.get("created_by") == "swarm"]
+            else:
+                matched = [r for r in recs if r.get("unit") == session_id and not r.get("swarm_binding")]
+            projects = {r.get("project_root") for r in matched if r.get("state") == "live"
+                        and HN.is_lampway(r.get("agent")) and r.get("project_root")}
+            if len(projects) != 1:
+                raise ValueError("The summarizer alias requires exactly one live project-bound pane")
+            resolution = selected_summary(ContextStore(settings.state_dir), projects.pop(), settings, requested_model)
+            return _SummaryProvider(settings, agent, resolution, chatgpt_auth)
         if not is_worker_session(session_id):
             return agent.provider
         key = str(session_id)
@@ -273,16 +293,20 @@ class EngineWiring:
         return None
 
     # -- the panes' hooks
-    def write_config(self, home, gateway_url, token, model_id, worker: bool = False, mcp_url=None, mcp_headers=None, rendered=None):
+    @HC.serialized_config
+    def write_config(self, home, gateway_url, token, model_id, worker: bool = False, mcp_url=None, mcp_headers=None, rendered=None, project=None):
         board = CAP.ACTIVE
         if board is None:
             raise HC.Refused("refused: the Capabilities board is not available, so the engine's config cannot be written")
         if worker:
             board = WorkerBoard(board)
         from ..agent.prompt import SYSTEM_PROMPT
-        path = HC.write(home, board, CAP.project(), gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
+        from .context_settings import Store as ContextStore
+        project = project or CAP.project()
+        path = HC.write(home, board, project, gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
                         mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker,
-                        instructions=None if worker else SYSTEM_PROMPT)     # a worker's prompt comes with its task (S3)
+                        instructions=None if worker else SYSTEM_PROMPT,
+                        context=ContextStore(self.settings.state_dir).config(project))     # a worker's prompt comes with its task (S3)
         self._boards[GW.Registry.digest(token)] = (board, not worker)
         return path
 
@@ -333,3 +357,33 @@ def wire(settings, agent, registry: GW.Registry, environ=None) -> Optional[Engin
         return None
     log.info("engine: selected %s", why)
     return EngineWiring(engine, settings=settings, agent=agent, registry=registry)
+
+
+class _SummaryProvider:
+    """One call to the explicit resolved model, through existing provider and egress guards."""
+    def __init__(self, settings, agent, resolution, chatgpt_auth=None):
+        self.chatgpt_auth = chatgpt_auth
+        self.settings, self.agent, self.resolution = settings, agent, resolution
+        self.name = resolution.provider
+        self.model = resolution.params.get("model") if resolution.provider == "openai" else resolution.model
+
+    async def stream(self, request):
+        from ..agent.providers import make_provider, ResolvedWorkerProvider
+        # Reuse the app-owned ChatGPT auth instance; no credentials or grants copied.
+        auth = self.chatgpt_auth if self.chatgpt_auth is not None else getattr(self.agent.provider, 'auth', None)
+        if self.resolution.provider == 'chatgpt_plan' and auth is None:
+            raise ValueError('The app-owned ChatGPT authentication is unavailable')
+        provider = make_provider(self.settings, chatgpt_auth=auth, resolution=self.resolution)
+        guarded = ResolvedWorkerProvider(provider, self.resolution)
+        try:
+            async for event in guarded.stream(request):
+                yield event
+        finally:
+            # These clients were made for this call, never the main pane's shared client.
+            import inspect
+            client = getattr(provider, 'client', None)
+            close = getattr(client, 'aclose', None) or getattr(client, 'close', None)
+            if close is not None:
+                result = close()
+                if inspect.isawaitable(result):
+                    await result

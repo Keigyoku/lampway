@@ -164,7 +164,20 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    pinned again by `HERMES_TUI_TOOLSETS`) are exactly those of the capabilities in force plus `clarify` for a main agent (never a
    worker's), Lampway's one MCP server is declared with its bearer, every outbound check Hermes lets config switch off is off
    (the Nous guest bootstrap and lazy installs included), approvals are `manual` (the user's, never a guardian model's), context
-   stays Hermes's unless given, and it is never written into the user's own `~/.hermes` (E1.10). A main pane's config carries
+   stays Hermes's unless given, and it is never written into the user's own `~/.hermes` (E1.10).
+   The user's Context endpoint (`/app/agent/context`, `engine/context_settings.py`) persists only explicit project overrides:
+   compression threshold, protected recent **messages** (`protect_last_n`), installed built-in context engine and the summarizer's
+   gateway model alias. The defaults are v2026.9.24's own; the model window is an observed native compressor budget, a declared provider window or unknown.
+   Agent/MCP claims, declared agent headers and cross-origin callers cannot edit it. Each pane's project root selects its own
+   overrides at preparation and config refresh; reset omits the fields. Observed busy project panes refuse Context saves before writing. Idle saves atomically replace each owned config;
+   Hermes synchronizes threshold/recent-message changes on the same agent before the next normal turn. The status check
+   is a snapshot, not a turn lock. `/model --once` defers synchronization and manual `/compress` does not synchronize it.
+   An explicit named summarizer model is resolved on the service selected at save, through the existing `agent.main` Choices
+   checks and provider factory without a new purpose, grant or fallback. The exact project-bound summary alias alone selects it;
+   a changed selected-service endpoint requires reselection; changing the parent service does not move the saved model. A worker summary alias additionally requires its live owned job binding and matching worker pane project;
+   its normal model calls retain the worker's pinned service.
+   Summary calls retain gateway admission/revocation, privacy/egress context and the existing spend ledger and app-owned auth.
+   Context never restarts, closes or resumes a pane automatically. A main pane's config carries
    Lampway's guidance on its tools (`agent/prompt.py` `SYSTEM_PROMPT`) as Hermes's own `agent.system_prompt`, which Hermes
    appends to its system message (its identity kept; nothing written into the user's project); a worker's prompt comes with its
    task. The client's turn policy (Plan Mode, Auto mode, the asset-match threshold) rides in the prompt's "This turn" section
@@ -260,6 +273,9 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
 .venv/bin/python -m pytest -q tests                            # the whole suite: no Blender, no network, no model
 ```
 
+`tests/test_engine_context_settings.py` holds user-only Context edits, project persistence/reset, exact pinned field mapping,
+no default writes, unknown windows, retained corrupt state and unchanged state on observed-busy or unavailable-runtime refusal.
+
 Mode 1 without an engine: the hub's client-protocol tests (`test_engine_front.py`, `test_agent_turn.py`, `test_agent_control.py`,
 `test_questions_checkpoints.py`, `test_modes_m0.py`, the swarm's and the tools' turns) drive Mode 1 against `tests/serve_support.py`
 `FakeServe`, a scripted `/api/ws` peer speaking the contract measured on the pinned serve, with the client's own frames: the real
@@ -350,3 +366,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | merge PR3 motion integrity with PR4 pane runtime | captain authorizes syncing PR4 with main | motion invariant 9 collided with PR4 capabilities, gateway and pane invariants 9–11 | retain PR4 invariants and their references; motion correctness becomes invariant 12, with its retained evidence and no inferred policy expansion; all inherited provenance remains | authorized main synchronization |
 | 2026-10-08 | main motion tools under pane-owned Stop | captain authorizes syncing PR4 with current main; real Front/MCP blocked-motion RED | a motion request outlived the stopped Hermes/island task and could render or file afterward | invariant 12: transient per-unit owned tool tasks, cancellation/join and admission fence, paired errors and other-unit isolation | five causal Stop/HTTP lifecycle checks; deterministic local motion worker |
 | 2026-10-08 | worker Stop joins pane-record cleanup across repeated cancellation | actual pinned-runtime worker Stop left one ended process recorded live; actual cancelled collector causal RED | a second cancellation abandoned the closing thread before its registry update | invariant 6: one owned closing task is shielded and joined before completion, with revocation first and cancellation preserved afterward | 32 focused checks; matching native rerun remains required |
+| 2026-10-08 | explicit project Context adopts through native live boundaries | R3/Q3 missing endpoint, dropped model alias and concurrent writer RED controls | Context edits were unused, summary selection could not reach another approved model, and competing writers could overwrite capability changes | invariant 9: explicit typed user edits, exact defaults, native next-turn synchronization, serialized config writers, guarded selected-service main/worker summaries and observed window provenance | 172 focused candidate passes, four native checks not run; final root proof required |

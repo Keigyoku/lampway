@@ -194,7 +194,7 @@ class Mode1Units:
         rendered: dict = {}
         try:
             self.write_config(home, self.gateway_url, gw_token, self.model_id, worker=worker, mcp_url=mcp_url, mcp_headers=headers,
-                              rendered=rendered)
+                              rendered=rendered, project=project_root or cwd)
         except Exception:
             self.registry.revoke(gw_token)
             raise
@@ -347,6 +347,7 @@ class Mode1Units:
             except asyncio.TimeoutError:
                 log.warning("Mode 1: a Capabilities refresh is still running after %.0fs; the turn goes on", timeout)
 
+    @HC.serialized_config
     def rerender(self, rec: dict) -> bool:
         """Write the pane's config again from the board now in force, with the keys it already holds (read back from its own
         0600 config: the server keeps only their digests), its toolset pin (``.env``) and ``pane.json``'s toolsets. False when the
@@ -362,7 +363,7 @@ class Mode1Units:
         rendered: dict = {}
         self.write_config(home, model.get("base_url") or self.gateway_url, model.get("api_key"), model.get("default") or self.model_id,
                           worker=rec.get("role") == LY.WORKER, mcp_url=server.get("url"), mcp_headers=server.get("headers"),
-                          rendered=rendered)
+                          rendered=rendered, project=rec.get("project_root") or rec.get("cwd"))
         spec_path = home / SPEC_FILE
         try:
             spec = json.loads(spec_path.read_text(encoding="utf-8"))
