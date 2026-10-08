@@ -34,6 +34,11 @@ has its own suite under `server/tests/`.
 Expiring synthetic credentials are minted when a test executes, not at collection: the native suite can outlast a fixture
 credential's lifetime. Expiry/rotation controls keep their explicit clocks and production refusals.
 
+After interface message changes, run the canonical `make i18n_update` before publication and full client verification.
+Keep the ignored generated `mixar.pot` available for currentness checks, synchronize tracked language catalogs with the
+canonical extractor/updater, preserve retained translations and placeholders, and leave new messages with their documented
+English fallback until translated. Removing the generated template to turn a required check into a skip is not verification.
+
 The site-link gate admits the offline Blender corpus's exact recorded attribution URLs only in its packaged manifest and
 NOTICE. It preserves the global host list and rejects runtime reuse, changed pins/versions/queries, lookalike hosts and extra
 URLs on an allowed line. These static references grant no runtime retrieval or egress route.
@@ -62,3 +67,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the test discipline lived in the gates' docstrings and the lanes' reports | seven invariants (RED first, plants, shrinking allow-lists, skips, no live spend, no weakening, no shipped tests) and the suite commands | captain ruling, 2026-10-05 |
 | 2026-10-08 | exact static corpus attribution | parent approved bounded PR4 provenance compatibility | ten official packaged attribution references failed the shipped-host gate | admit exact manifest/NOTICE URL literals while preserving runtime host refusals and planted path/pin/query/lookalike/extra-link controls | actual ten-reference RED and focused gate controls |
 | 2026-10-08 | voice fixture lifetime follows execution | whole native client run lasted longer than the one-hour collection credential | three late voice tests failed before handshake because the valid fixture had expired | execution-time credentials; keep expiry, rotation, handshake-count and two-second controls | controlled full-run delay: three RED failures, all thirteen GREEN |
+| 2026-10-08 | language catalogs follow the current interface | full-client template currentness RED; canonical fresh template found 22 new messages and 48 stale catalogs | tracked catalogs and the ignored template stayed behind the Context and profile UI strings | canonical extraction/update before publication and full client proof; retained translations and placeholders unchanged, new strings use English fallback | original template RED, 48 fresh-template catalog RED errors, canonical external GREEN; matching final full suite required |

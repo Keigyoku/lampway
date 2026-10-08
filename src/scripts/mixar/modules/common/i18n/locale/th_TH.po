@@ -5318,6 +5318,9 @@ msgstr ""
 msgid "Providers are Choices now: the main agent, the workers, images, video and spending"
 msgstr ""
 
+msgid "Context"
+msgstr ""
+
 msgid "Spending"
 msgstr ""
 
@@ -5487,6 +5490,66 @@ msgid "Used by, other sources, history"
 msgstr ""
 
 msgid "The NAME of an environment variable (never its value)"
+msgstr ""
+
+msgid "Refresh Context"
+msgstr ""
+
+msgid "Read this project's Hermes context settings without blocking the UI"
+msgstr ""
+
+msgid "Edit Context setting"
+msgstr ""
+
+msgid "Explicitly change one Hermes setting for this project at the native runtime boundary"
+msgstr ""
+
+msgid "Value"
+msgstr "ค่า"
+
+msgid "this is the user's click: a script cannot press it"
+msgstr ""
+
+msgid "Unknown Context setting"
+msgstr ""
+
+msgid "Hermes counts recent messages, including tool messages"
+msgstr ""
+
+msgid "Save changes only this setting for this project"
+msgstr ""
+
+msgid "The project changed: close this edit and Refresh Context"
+msgstr ""
+
+msgid "Use Hermes default"
+msgstr ""
+
+msgid "Remove an explicit project override and return to the displayed Hermes default"
+msgstr ""
+
+msgid "Hermes runtime settings for this project"
+msgstr ""
+
+msgid "Saving Context..."
+msgstr ""
+
+msgid "Reading Context..."
+msgstr ""
+
+msgid "Open a Lampway project and Refresh Context to read its defaults"
+msgstr ""
+
+msgid "Agent busy: wait for the turn to finish"
+msgstr ""
+
+msgid "Project override"
+msgstr ""
+
+msgid "Hermes default"
+msgstr ""
+
+msgid "Edit"
 msgstr ""
 
 msgid "LOADING"
@@ -8663,9 +8726,6 @@ msgstr "ต่ำสุด"
 
 msgid "Maximum"
 msgstr "สูงสุด"
-
-msgid "Value"
-msgstr "ค่า"
 
 msgid "Value Label"
 msgstr "ป้ายชื่อค่า"
@@ -21845,6 +21905,12 @@ msgstr "เซสชันหมดอายุ {reason}"
 
 msgid "Browser login did not complete. Please try again."
 msgstr "การเข้าสู่ระบบผ่านเบราว์เซอร์ไม่เสร็จสมบูรณ์ โปรดลองอีกครั้ง"
+
+msgid "Open the documentation served by this Lampway installation"
+msgstr ""
+
+msgid "Open Lampway's local bug report instructions"
+msgstr ""
 
 msgid "Login failed"
 msgstr "เข้าสู่ระบบไม่สำเร็จ"
