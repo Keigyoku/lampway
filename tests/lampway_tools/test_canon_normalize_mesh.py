@@ -84,14 +84,38 @@ res({"ok": out.get("ok"), "err": out.get("error")})
     assert not d["ok"] and "frame undecided" in d["err"] and "turn_deg" in d["err"]
 
 
-def test_a_plate_needs_the_facing_margin_nobody_has_set_yet():
+def test_an_empty_plate_is_refused_with_the_adopted_facing_margin_and_no_import_leaks():
     d = run('''
+from mixar.modules.lampway_tools import canon_asset as CA
 src = nosed(); export_glb(src, "box.glb"); bpy.data.objects.remove(src)
 im = bpy.data.images.new("plate", 8, 8); im.filepath_raw = os.path.join(root, "front.png"); im.file_format = "PNG"; im.save()
+before = canon_io.snapshot_ids()
 out = api.normalize_mesh(input="box.glb", plate="front.png")
-res({"ok": out.get("ok"), "err": out.get("error")})
+res({"ok": out.get("ok"), "err": out.get("error"), "margin": CA.SETTINGS["facing_margin"]["value"],
+     "unchanged": canon_io.snapshot_ids() == before})
 ''')
-    assert not d["ok"] and "facing_margin" in d["err"]
+    assert d["margin"] == .05
+    assert not d["ok"] and "Front plate has no silhouette" in d["err"]
+    assert d["unchanged"]
+
+
+def test_an_approved_plate_uses_the_adopted_margin_without_an_override():
+    from test_canon_normalize_facing import FACING
+
+    r = run_script(PRE + FACING + '''
+result = api.normalize_mesh(input="raw", plate=plate, generator="captain_authored", weld="never")
+assert result.get("ok"), result
+doc = json.loads(raw["lw_canon"])
+res({"turn": doc["conventions"]["turn_deg"], "decision": doc["conventions"]["frame_decision"]})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[-1]
+    assert d["turn"] == -90.0
+    assert d["decision"]["kind"] == "measured"
+    evidence = d["decision"]["evidence"]
+    assert evidence["margin"] == .05
+    assert evidence["value"] > .99
+    assert evidence["value"] - evidence["second_best"] >= evidence["margin"]
 
 
 def test_the_turn_is_recorded_and_reversible_to_the_raw_positions():

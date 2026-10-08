@@ -170,7 +170,7 @@ def run(object, armature, out_dir, body, textures, validation, bind_check, note,
     g = gates(ob, body, textures, validation, bind_check, allow_unverified, root)
     joints, counts, roles, mesh_sha, tex_paths, val = g["joints"], g["counts"], g["roles"], g["mesh_sha256"], g["textures"], g["validation"]
     fbx = out / f"{ob.name}.fbx"
-    from . import rig_export_space as ES
+    from . import rig_export as RE, rig_export_space as ES
     settings, convention, recipe = export_settings(arm, {
         "use_selection": True, "object_types": {"ARMATURE", "MESH"}, "add_leaf_bones": False,
         "bake_anim": False, "path_mode": "COPY", "embed_textures": False, "mesh_smooth_type": "FACE"}, bone_axis)
@@ -178,10 +178,11 @@ def run(object, armature, out_dir, body, textures, validation, bind_check, note,
     with ES.centimetre_copies(arm, [ob], None, settings, container_name=recipe["ue_armature_container"]) as prepared:
         export_space = prepared["receipt"]
         effective = prepared["exporter"]
-        for obj in bpy.context.view_layer.objects:
-            obj.select_set(obj is prepared["armature"] or obj in prepared["meshes"])
-        bpy.context.view_layer.objects.active = prepared["armature"]
-        bpy.ops.export_scene.fbx(filepath=str(fbx), **effective)
+        with RE._export_visibility([prepared["armature"], *prepared["meshes"]]):
+            for obj in bpy.context.view_layer.objects:
+                obj.select_set(obj is prepared["armature"] or obj in prepared["meshes"])
+            bpy.context.view_layer.objects.active = prepared["armature"]
+            bpy.ops.export_scene.fbx(filepath=str(fbx), **effective)
     (out / "Textures").mkdir()
     files = {fbx.name: hashlib.sha256(fbx.read_bytes()).hexdigest()}
     for t in tex_paths:

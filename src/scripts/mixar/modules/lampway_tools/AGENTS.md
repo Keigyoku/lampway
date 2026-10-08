@@ -32,6 +32,14 @@ Pose region membership follows actual skeleton ancestry to the nearest configure
 
 ## Invariants
 
+Onboarding Continue and Back rebuild the existing temporary popup with
+`context.region_popup.tag_refresh_ui()` and redraw it. Button operator
+`context.region` is the surrounding editor; its redraw alone does not rebuild
+popup content. Retain one popup, padded step height and a shared Back/Continue
+footer. Verify both transitions in the standalone onboarding suite and the
+isolated native GUI fixture; native receipt claims remain limited to the
+measured binary and sampled widget/pixel observations.
+
 Weight transfer warns below the documented majority-match diagnostic threshold and names `lampway_fit_place`. Validate overrides before creating an output; compare the unrounded fraction and keep this warning separate from export acceptance.
 
 1. **One door.** The agent's scripts reach a tool only through `api.call(name, payload)`, and only names registered by `@tool`
@@ -106,6 +114,10 @@ The verified native342 conform path requires an explicit reference: source_copy 
 
 Refresh the public copy diagnostic source pins whenever its verified exporter/helper dependency changes. Keep the wrong-overlay refusal and sanitized state-restoration controls; a refreshed hash is diagnostic admission, never engine acceptance.
 
+The captain admitted the ARAP-with-clearance candidate under canon03-H2 on2026-10-08 and delegated solver-default judgment. Composite conform requires canonical real-scale mesh admission, immutable source identities, persisted cloth/leather selections, a verified native sidecar and current sampled fit pose. Clearance/seam targets are caller-explicit. Solve creates a disposable candidate with numerical diagnostics and physical_status untested; only unchanged candidate/source/body/pose hashes plus genuine output-render review permit an accepted stage. Bind/weights must use that accepted candidate. Keep rigid metal/ornaments unchanged and refuse nonconvergence, unsafe opening-band signs and stale inputs before admission.
+
+Procedural material probe baking uses one EEVEE frame for three equal-resolution emission tiles only when its reachable coordinate graph is independent of world/camera/external-object state. Each tile retains identical local/object coordinates and the previous linear pixels. Unknown or coordinate-sensitive graphs keep isolated three-frame rendering. Preserve all55 preset tests, the existing240-second per-process limit, caller scene state and owned camera/world cleanup. Resource-profile passes remain distinct from matching-native aggregate acceptance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -156,3 +168,7 @@ Refresh the public copy diagnostic source pins whenever its verified exporter/he
 | 2026-10-08 | executable judgment defaults and fit contracts | captain: choose defaults and label untested | missing defaults and disconnected public routes stopped required paths; pose receipts lacked verified source maps | Adopt documented AC65 judgment defaults with physical_status untested, retain explicit alternatives and strict metadata admission. Use measured centimetre export recipes and authored joint gates for both public fit export routes. Animation copies resolve the requested original-owner action slot before allocation, retain exact baked key times and raw units/topology, and preserve all source action/pose/frame state; skeleton-only clips cannot claim skin-bind or native engine acceptance. | default routing, source-hash/inverse-blocker and raw-unit native regressions |
 
 | 2026-10-08 | diagnostic dependency pin refresh | exact-head aggregate after requested-action slot fix | the read-only copy probe correctly refused the changed helper under its prior source hash | refresh the verified helper pin together with retained wrong-overlay and source-state controls | exact native capture regression |
+
+| 2026-10-08 | onboarding popup content refresh | private AC51 timing-sensitive audit | button context redraw targeted the editor while popup layout required its own refresh flag | rebuild and redraw the existing temporary popup for Continue and Back; preserve shared footer and isolated native evidence boundaries | two behavioral RED controls and standalone/native transition receipts |
+| 2026-10-08 | admitted soft conform candidate | captain admits03-H2 and delegates untested solver defaults | unconditional unbuilt refusal prevented the soft fit chain; a numerical solve could be mistaken for approved output | canonical mesh/native body admission, explicit limits and immutable identities; disposable pending candidate then reviewed acceptance; rigid/source preservation and accepted-candidate downstream routing | pure ARAP/order falsifiers and native candidate/stale/cleanup controls; original physical fit remains untested |
+| 2026-10-08 | bounded procedural probe render cost | private audit240s timeouts for two55-preset material checks | rendering three separate frames per preset exceeded constrained software-render budgets | render three independent coordinate-safe emission tiles in one frame, conservatively retain isolated fallback and caller/owned-data cleanup | byte-exact independent linear pixels, coordinate fallback plants and12 fullfile passes on oneCPU under unchanged deadlines |

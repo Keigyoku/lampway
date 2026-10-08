@@ -79,6 +79,8 @@ The verified native342 conform path requires an explicit reference: source_copy 
 
 The motion_graphics/ group contains normative method, scene and agent/receipt contracts and is indexed beside rig_tools/. Its acceptance and measured history live in ../reports/motion-graphics-acceptance.md. Preserve existing open decisions and refusal/threshold falsifiers; the 3D goldens do not certify motion behavior.
 
+Canon03-H2 candidate admission is ruled on2026-10-08: implement and measure ARAP with delegated, documented solver defaults. Those defaults and original-piece fit remain physically untested. Numerical clearance/seam targets remain caller-explicit; candidate convergence never substitutes for unchanged rigid/source ledgers, output-render review or native motion acceptance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -107,3 +109,4 @@ The motion_graphics/ group contains normative method, scene and agent/receipt co
 
 | 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07, using supplied body/gear references | prerequisites-only doctrine blocked an explicitly authorized choice; arbitrary defaults could be mistaken for measurement | record chosen defaults and complete pose/curl tables with untested provenance, explicit overrides and falsifiers; keep physical acceptance separate | default-path RED/GREEN and documentary hashes; no original gear validation |
 | 2026-10-08 | motion contracts in canon | captain: write specifications like the other canon and reports | formal motion requirements lived outside the canonical documentation layout | keep normative inputs, invariants, methods and gaps here and measurements in reports | canon index and linked motion acceptance report |
+| 2026-10-08 | admitted ARAP candidate | captain explicitly admits03-H2 and delegates untested solver defaults | the open decision kept item14 unimplemented and could be confused with per-piece visual admission | date the ruling, document solver choices as physically untested and retain explicit limits/rigid/source/render-review gates | generated soft seam/shape/anchor/nonconvergence controls and disposable native candidate checks |

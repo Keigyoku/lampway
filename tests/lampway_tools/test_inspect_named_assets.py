@@ -90,14 +90,21 @@ if asset=='DamagedHelmet':
             assert decode(encode(out))==out,view
 if asset=='StanfordBunny':
     inspected=call('mesh',{'view':'mesh','name':mesh.name,'fields':['*'],'limit':1000,'budget_ms':60000})
-    scanned=api.call('mesh_defect_scan',json.dumps({'object':mesh.name,'kinds':['open_loop'],'max_candidates':500}))
+    scan_args={'object':mesh.name,'kinds':['open_loop'],'max_candidates':500}
+    compact=api.call('mesh_defect_scan',json.dumps(scan_args))
+    scanned=api.call('mesh_defect_scan',json.dumps(dict(scan_args,full=True)))
     if not scanned.get('ok'):failures.append('defect tool refusal '+str(scanned))
     else:
+        if not compact.get('ok'):failures.append('compact defect tool refusal '+str(compact))
+        elif compact['counts']!=scanned['counts'] or compact['total']!=scanned['total'] or [row['id'] for row in compact['candidates']]!=[row['id'] for row in scanned['candidates']]:
+            failures.append('compact/full candidate identities or totals differ')
+        elif any('descriptor' in row for row in compact['candidates']):failures.append('compact candidates unexpectedly include detailed descriptors')
         a=sorted((row['edges'],row['rim_length_m']) for row in inspected['data']['holes'])
-        b=sorted((row.get('edges',row.get('descriptor',{}).get('edges')), row.get('descriptor',row)['rim_length_m']) for row in scanned['candidates'])
+        b=sorted((row['descriptor']['edges'],row['descriptor']['rim_length_m']) for row in scanned['candidates'])
         expected=[(22,0.0302),(39,0.0598),(40,0.0636),(42,0.0722),(80,0.1137)]
         if a!=expected:failures.append('bunny rim golden differs: '+str(a))
         if a!=b:failures.append('open-loop candidates differ: '+str((a,b)))
     outputs['defect_scan']=scanned
+    outputs['defect_scan_compact']=compact
 print('NAMED_RESULT '+json.dumps({'asset':asset,'mesh':mesh.name,'mesh_faces':len(mesh.data.polygons),'timings_ms':timings,'outputs':outputs,'failures':failures}))
 '''

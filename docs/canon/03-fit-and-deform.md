@@ -3,8 +3,9 @@
 
 # Canon 03 — Fit and deform: one genned armour piece onto the MetaHuman
 
-Status: **CANONICAL for the order, the laws and the rigid path; DRAFT for soft-part deformation** (no soft-part deformer has
-passed the captain's eye on a real piece; every one tried so far is listed in D).
+Status: **CANONICAL for the order, the laws and the rigid path; admitted ARAP candidate with physically untested solver defaults
+for soft-part deformation** (captain, 2026-10-08). No soft-part deformer has passed the captain's eye on a real piece;
+candidate admission does not establish that acceptance.
 Implemented by (today, in pieces): LT `pipeline/fit_place.py`, `posing.py`, `features/opening.py`, `features/fit_bind.py`,
 `pipeline/validate.py` + `features/validate_pose.py`, `features/fit_export.py`, `pipeline/fit_glove.py`; Titan
 `tools/equipment_fitpose.py`, `equipment_cage.py`, `equipment_match.py`, `weight_profile.py`, `hand_pose.py`,
@@ -82,11 +83,66 @@ refuse. Signed measurements near openings retain canon 15's declared-band rule.
 | **Wrap** (mutual-nearest skin claims, Gaussian field, guard push) | per-vertex displacement field | 287 edges past 2x on the cuirass vs the cage's 0; rim peeled until `guard_spread`; superseded by the cage | GENERATED-EQUIPMENT §7c |
 | **Outward radial push** (`equipment_cage.shift_field`, outward only) | per-vertex push | **REFUSED by the captain**: "pretty much every spot got worse and exponentially more distorted" (2026-09-28) | memory pose-not-push |
 | Surface Deform to a body cage | barycentric binding | sheared up to 45x | GENERATED-EQUIPMENT §7c |
-| **ARAP with clearance constraints** (Sorkine & Alexa 2007, "As-Rigid-As-Possible Surface Modeling", SGP) | local rotations, global Laplace solve; handles = clearance targets | **not yet measured** — the canonical next candidate for cloth/leather: keeps local shape (what the eye judges) where a smooth field shears | proposal |
+| **ARAP with clearance constraints** (Sorkine & Alexa 2007, "As-Rigid-As-Possible Surface Modeling", SGP) | local rotations, global Laplace solve; handles = clearance targets | **admitted candidate, physically untested** (2026-10-08); pure C03 and synthetic native-sidecar controls do not establish original-piece approval | `pipeline/soft_conform.py`, `features/fit_conform.py` |
 | **Collision-aware relaxation** (incremental potential contact, Li et al. 2020, "Incremental Potential Contact", SIGGRAPH; garment self-collision, Santesteban et al. 2021, CVPR) | barrier energy, intersection-free | not measured; the Chaos Cloth path in UE already does this for the cloak | reference |
 
 Canon rule for the draft: **a soft-part deformer is admitted per piece only after (a) its receipt shows no metal vertex moved
 non-rigidly, (b) seams per the source ledger stay within the seam limit, (c) a render beside V3 passes the captain's eye.**
+
+### Admitted ARAP candidate interface (2026-10-08; physically untested)
+
+The captain ruled **"Admit ARAP candidate; delegate untested solver defaults"**.
+`pipeline/soft_conform.py` implements local proper rotations by SVD and a global
+constrained solve by edge-based preconditioned conjugate gradient. Positive
+uniform weights on unique mesh edges are a delegated candidate choice, avoiding
+negative cotangent weights on imperfect generated meshes. All unselected,
+metal and ornament vertices remain fixed. Analytical generated-vertex welding
+at 1e-5 m shares displacement; original ids and topology are retained. Frozen
+source seam pairs also share displacement, with rigid anchors winning by exact
+constraints; contradictory targets refuse rather than moving metal.
+
+`features/fit_conform.py` is the internal engine of the existing composite
+`conform` stage. Its geometry door requires a canonical real-scale mesh in the
+working body frame; unstamped, stale or wrong-frame candidates refuse. The
+immutable source is read for original vertex ids, part membership and exact
+source-coordinate seam ledger, and may be raw. Source/current topology and
+membership must agree; remapping after a topology-changing opening is explicit
+input work, never inferred by proximity. The native package is verified against
+intake and its sidecar is sampled at the current armature pose. Inputs, body,
+weights, armature and original meshes are not changed.
+
+Caller inputs are `args {action: "solve", object, source, armature, parts,
+clearance_m, seam_limit_m, body_open_band_m?, solver?}`. Only persisted intake
+cloth/leather roles may be selected. Clearance and seam limits are explicit
+operational targets; no new physical acceptance limit is adopted. Violating
+soft vertices receive hard nearest-surface clearance handles, and ARAP
+propagates them. All vertices of independently clear components stay fixed.
+Closed-body signs use canon15 pseudonormals; native openings use winding and
+require the explicit opening-band refusal. The candidate is rechecked on every
+selected soft vertex and again after float32 serialization. Full triangle
+crossings, self-collision, innermost-layer gap and hideable-skin clauses are
+not certified by this instrument.
+
+| Delegated solver setting | Default | Rationale and status |
+|---|---|---|
+| Local/global iterations | 30 | Bounded candidate solve; nonconvergence refuses. Physically untested. |
+| Maximum coordinate update | 1e-7 m | Numerical convergence criterion, not acceptance bar. Physically untested. |
+| CG iterations / relative residual | 300 / 1e-10 | Bounded global solve, checked residual. Physically untested. |
+| Generated analytical weld | 1e-5 m | Existing canon01 identity tolerance; no authored rig weld. |
+| Clearance handle updates | 5 | Bounded nearest-target refresh, then explicit clearance refusal. Physically untested. |
+| Clearance target padding | 2e-6 m | Numerical allowance for float32 candidate storage; the caller target/bar is unchanged. Physically untested. |
+
+Every setting is overridable in `solver` and recorded with dated provenance;
+invalid settings and unknown keys refuse. Solve writes a disposable candidate
+and hash-bound receipt, returning `candidate_pending_review` without appending
+a completed fit stage. `args {action: "accept", candidate_sha256,
+captain_seen: true, render_sha256}` requires authentic review of this candidate
+beside V3. It verifies the receipt, original/current/candidate geometry and
+part ids, package and pose again. Only then is conform recorded. Bind and
+weights must consume that accepted candidate; validate and export must consume
+the weights-return object's recorded identity. Texture is regenerated after
+conform. Original-piece visual approval and native engine motion acceptance
+remain untested.
 
 ## C. Invariants
 
@@ -141,6 +197,7 @@ non-rigidly, (b) seams per the source ledger stay within the seam limit, (c) a r
 | 2026-10-01 | "No back plate" claimed for the fifth time from part labels | list parts by geometry before "missing" | memory measure-the-mesh-not-the-render |
 | 2026-10-06 | MetaTailor MT-1 (synthetic glove, known geometry): its 21-keypoint warp moved the glove non-rigidly. Whole-piece residual was 18.1 mm RMS; caps scaled 0.94–1.71; 46 garment vertices ended up inside the hand (min -23.1 mm) | a landmark warp is not a fit for hard parts; metal moves by one similarity per part (INV-03.2), soft parts after it | `goldens/metatailor` MT-1 |
 | 2026-10-04 | Chest audit clipping inflated by A-pose vs the piece's implied pose | pose the body to the piece | memory pose-body-to-the-piece |
+| 2026-10-08 | Soft-part conform was an unconditional not-built refusal despite the missing implementation criterion | captain: "Admit ARAP candidate; delegate untested solver defaults"; implement a bounded candidate with explicit clearance/seam targets, immutable rigid vertices and mandatory candidate-output review; retain physical_status untested | canon03-H2 ruling and candidate controls |
 | 2026-09-25..29 | Every automatic glove sizing failed (skin-to-shell shrink, caps too wide, PCA off-axis, angle clustering mixed fingers); per-finger girth needed 1.5–2.25 and bloated the glove | plate labels are a TYPED decision; girth is an open captain decision | memory fit-tool-direction; §7k |
 
 ## E. Golden tests (pipeline level; the step goldens live in their canons)
@@ -166,8 +223,10 @@ placed, clear piece passed through unchanged.
 2. `pipeline/fit_place.py` applies rigid gauntlet axis correction, pinned by
    `test_canon_item5_place.py`. General per-segment `pose_correct` remains a
    measured caller-supplied receipt, rather than a separate correction engine.
-3. Soft-part conform remains unbuilt. The composite skips it for all-rigid
-   roles; soft parts require the still-open deformer decision.
+3. Soft-part conform executes the admitted, physically untested ARAP candidate
+   through the existing composite stage. Solve does not complete the stage;
+   reviewed accept does. All-rigid roles skip it. Pure C03 controls and native
+   synthetic-sidecar checks are distinct from original-piece physical approval.
 4. `posing.py` has complete chest and accepted helmet tables. Waist, boots and
    gauntlets execute the complete bounded judgment defaults (canon08),
    explicitly physically untested; supplied DOFs remain available.
@@ -204,7 +263,9 @@ placed, clear piece passed through unchanged.
 1. Is the fitted example still an input after the native-body ruling? **Recommendation:** yes, as the source of the
    armour-to-body RELATIONSHIP (placement, closest pose, plate labels) under INV-03.6, with weights always from the native body;
    no row of this canon needs the example's own weights.
-2. Soft-part deformer for cloth/leather: admit ARAP-with-clearance as the next measured candidate (B table)?
+2. **Ruled 2026-10-08:** "Admit ARAP candidate; delegate untested solver defaults".
+   The candidate and defaults are specified above; original-piece measurement,
+   authentic output-render review and full native motion acceptance remain open.
 3. Glove girth (the genned glove is thinner than the stock hand; 1.5–2.25 to envelope): regenerate in proportion, or accept a
    scaled glove leather?
 4. The boots' scale anchor (width | knee height | foot length) — still unruled (LT `fit_place.py:192-193` refuses without it).

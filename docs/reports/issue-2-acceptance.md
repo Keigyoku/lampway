@@ -3,19 +3,11 @@
 
 # Issue 2 strict acceptance audit
 
-Audited published commit: [308a1f00](https://github.com/Keigyoku/lampway/commit/308a1f00071ceefbcf5ee079db094f61aa3dac8e), including numerical frame fix [f13fa7d9](https://github.com/Keigyoku/lampway/commit/f13fa7d9de627bc9e47efa5d3b7c25083ffb8edd). The original65 acceptance statements preserve issue2 revision2026-10-07T15:32:59Z. Eight appended criteria from G23 and G24–G26 bring the current inventory to73; original identities and statements remain unchanged. The separate ledger refresh retains its own source pin and historical reviews; it is not a full-contract acceptance claim.
+Current audit: [Issue2](https://github.com/Keigyoku/lampway/issues/2),2026-10-08, assesses PR1 head `0da106ec0d0a2d75a740147f84a8f830b6d5e43a`: **64 verified complete, six failed, three unverified** of the original73 criteria. The nine unchecked identities are AC01, AC02, AC03, AC04, AC05, AC12, AC15, AC24 and AC51. G27/G28 and the explicit live-verification checklist are additional obligations. See the [current follow-up](issue-2-audit-follow-up-20261008.md) for reproduced corrections, covering-case receipts and exact remaining dependencies. The earlier blanket code-completion wording is superseded; these outstanding criteria cannot all be classified as merely unperformed verification.
 
-Code-completion update: the2026-10-07 judgment ruling closes the six formerly absent AC65 default implementations. The table below tracks literal acceptance, including historical RED-first chronology, original-asset and hardware/reference-environment clauses; those evidence clauses are not additional missing implementation. AC01 remains the literal conjunction rather than a claim that unperformed acceptance has passed.
+## Historical308a1f00 reconciliation
 
-Verification applies to the complete literal criterion. Original owner inputs, hardware-GPU screenshots and PR attachments are not replaced by readiness or different fixtures. Earlier retained proofs remain attributed to their actual implementation commits.
-
-| Status | Count |
-|---|---:|
-| implemented-and-verified | 63 |
-| implemented-not-yet-verified | 10 |
-| notimplemented | 0 |
-| blocked | 0 |
-| Total | 73 |
+The following table and its cited receipts preserve the earlier308a1f00/AC65 reconciliation. Its63/10 classification is historical and **does not represent the current audit**. Current Issue2 status and the follow-up above take precedence. Earlier measured proofs retain their actual source commits; no historical receipt is relabeled to the new head.
 
 | AC | Acceptance statement | Status | Owner | Commit, test and retained evidence / exact remaining work | Next action |
 |---|---|---|---|---|---|

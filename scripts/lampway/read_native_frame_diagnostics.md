@@ -28,6 +28,23 @@ and maximum Gram errors for raw world matrices, column-normalized matrices,
 six- and twelve-decimal serializations, and the actual `rig_tools.read` result.
 It includes all failing variants and the three previously reported native bones.
 
+The private receipt also records every rest head, parent and unmodified frame,
+the rest fingerprint, the installed classifier source/hash and its exact
+single-child samples. Each sample names its child and measures X/Y/Z against
+that joint line. Outlier names use the installed classifier's existing 10°
+default bar; unsampled bones remain explicit. No sample, axis or tolerance is
+substituted. These measurements distinguish a skewed anatomical joint line
+from a different authored frame; median/max Y angles alone cannot do that.
+
+For the original342-bone normalization refusal, return only source hashes,
+fingerprint, sample/outlier names and X/Y/Z angle rows for initially offending
+bones, along with the measured parent/child identities. Keep absolute heads and
+matrices owner-only. If a native anatomical reference is needed, capture its
+equivalent rows locally with explicit source/importer provenance. A classifier
+change or frame conversion requires those measurements and unchanged mixed-rig
+falsifiers; this capture does not admit the original rig or prove physical UE
+parity.
+
 The output is created exclusively with mode0600. An existing path refuses without
 overwriting it. Stdout contains only an aggregate schema/count marker or a
 generic refusal with the exception class; private paths and object names are

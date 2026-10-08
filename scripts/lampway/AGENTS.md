@@ -54,7 +54,7 @@ python3 scripts/lampway/prepublish_gate.py --self-test
 scripts/lampway/build_linux.sh --plan
 ```
 
-Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices.
+Native frame diagnostics read loaded modules and authored matrices without projection or scene mutation. Capture the installed classifier source/hash, exact sampled child identities and X/Y/Z joint-line angles with the unchanged rest fingerprint; median/max angles alone cannot authorize conversion or a wider convention bar. Write the complete owner-only receipt exclusively with restrictive permissions; print aggregate errors and source identities, never owner matrices.
 
 Run the read-only supplemental UE surface probe before full cube capture. Missing LDR/material/neutral-grading APIs refuse; surface availability is not shader or pixel proof.
 
@@ -81,6 +81,8 @@ Derived bind diagnostics include left-relative and right-relative quaternion del
 The bounded export-copy probe identifies its overlay by exact source hashes. Preserve immutable historical probes; update current pins when the owned exporter changes, without claiming a commit identity from an arbitrary checkout or native engine acceptance.
 
 Generic email scanning consumes the complete host and bounds every domain exemption. Legacy example placeholders retain only exact reserved hosts; other known-fake hosts/addresses cannot exempt suffix lookalikes or another address on the line.
+
+The UE bind comparator also evaluates all48 signed permutation conjugacy bases and every matched pair's relative-angle invariant locally. Publish residual/count summaries only; normalize captured quaternions solely for comparison, select no corrective basis and preserve every existing pass metric and bind bar. Repin the current export-copy probe when the owned exporter changes; historical probes remain immutable.
 
 ## Anneal log
 
@@ -112,3 +114,5 @@ Generic email scanning consumes the complete host and bounds every domain exempt
 
 | 2026-10-08 | current export-copy probe source pins | scoped native conform/export correction | historical1368 pins refused the corrected Python modules | Keep the historical probe immutable and pin current exporter bytes with a source-hash identity; no engine acceptance claim. | bounded numeric, wrong-source, missing-row and sanitized cleanup controls |
 | 2026-10-08 | email scanner exact exemptions | PR3 finding4213654799 assigned to MCP owner | regex and allowlist prefixes hid suffix lookalikes | retain full-host matches, per-address exemptions and redaction | suffix, exact-domain, mixed-line, versioned-filename and self-test controls |
+| 2026-10-08 | original mixed-frame diagnostic gap | current private audit rejected MetaHuman with median89.999448/max103.97325 | aggregate Y angles omitted child choices and X alignment, permitting unsupported convention guesses | capture installed classifier and sampled X/Y/Z rows under unchanged fingerprint; keep original heads/frames private and strict mixed refusal | two missing-interface REDs,34 pure GREEN tests and native unchanged-scene control |
+| 2026-10-08 | runnable native rotation diagnosis | current calibrated mesh-reference audit omits per-bone deltas | aggregate near180-degree errors cannot identify a writer or basis change | compute all48 proper/improper basis residual summaries and all-pair angle invariants without raw tables, correction selection or altered verdicts; update current exporter pin | five missing-interface RED controls;56 pure GREEN cases and synthetic342-row bound |

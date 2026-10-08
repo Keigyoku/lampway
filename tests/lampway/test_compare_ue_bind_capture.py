@@ -6,6 +6,7 @@ import importlib.util
 import hashlib
 import json
 import math
+import random
 import os
 import subprocess
 import sys
@@ -122,6 +123,96 @@ def rotate_vector(q, vector):
     return multiply(multiply(q, [*vector, 0.]), inverse(q))[:3]
 
 
+@pytest.mark.parametrize("basis_rotation,determinant,basis", [
+    (rotation(2, 90), 1, [[0, -1, 0], [1, 0, 0], [0, 0, 1]]),
+    (rotation(1, 180), -1, [[1, 0, 0], [0, -1, 0], [0, 0, 1]]),
+])
+def test_signed_basis_diagnostics_use_proper_and_improper_conjugation_without_acceptance(
+        basis_rotation, determinant, basis):
+    data = capture()
+    for index, q in enumerate((rotation(0, 75), rotation(1, 40))):
+        got = multiply(multiply(basis_rotation, q), inverse(basis_rotation))
+        for space in ("local", "component"):
+            data["tables"]["native"][index][space]["quaternion_xyzw"] = q
+            data["tables"]["candidate"][index][space]["quaternion_xyzw"] = [-7 * v for v in got]
+    before = copy.deepcopy(data)
+    report = COMPARE.compare_capture(data)
+    assert data == before and not report["pass"]
+    for space in ("local", "component"):
+        diagnostic = report["rotation_basis_diagnostics"][space]
+        assert len(diagnostic["signed_permutation_bases"]) == 48
+        assert len({tuple(tuple(r) for r in row["basis"]) for row in diagnostic["signed_permutation_bases"]}) == 48
+        assert sum(row["determinant"] == 1 for row in diagnostic["signed_permutation_bases"]) == 24
+        row = next(r for r in diagnostic["signed_permutation_bases"] if r["basis"] == basis)
+        assert set(row) == {"basis", "determinant", "compared_count", "over_limit_count", "worst_rotation_deg"}
+        assert row["determinant"] == determinant and row["compared_count"] == 2
+        assert row["over_limit_count"] == 0 and row["worst_rotation_deg"] < .01
+        identity = next(r for r in diagnostic["signed_permutation_bases"] if r["basis"] == [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        assert identity["over_limit_count"] > 0
+        invariant = diagnostic["all_pair_relative_angle_invariant"]
+        assert invariant["compared_pair_count"] == 1
+        assert invariant["max_absolute_delta_deg"] == pytest.approx(0., abs=1e-10)
+        assert invariant["over_limit_count"] == 0
+
+
+def test_independent_random_perbone_frames_refute_all_bases_and_pairwise_invariant():
+    data = capture()
+    rng = random.Random(27182)
+    rows = [bone("root"), *[bone("b" + str(i), "root") for i in range(7)]]
+    data["tables"] = {"native": rows, "candidate": copy.deepcopy(rows)}
+    for table in data["tables"].values():
+        for row in table:
+            for space in ("local", "component"):
+                row[space]["quaternion_xyzw"] = [rng.uniform(-1, 1) for _ in range(4)]
+    before = copy.deepcopy(data)
+    report = COMPARE.compare_capture(data)
+    assert data == before and not report["pass"]
+    for space in ("local", "component"):
+        diagnostic = report["rotation_basis_diagnostics"][space]
+        assert all(row["over_limit_count"] == 8 for row in diagnostic["signed_permutation_bases"])
+        invariant = diagnostic["all_pair_relative_angle_invariant"]
+        assert invariant["compared_pair_count"] == 28 and invariant["over_limit_count"] == 28
+        expected = []
+        for i in range(8):
+            for j in range(i):
+                angles = []
+                for table in (data["tables"]["native"], data["tables"]["candidate"]):
+                    a = table[i][space]["quaternion_xyzw"]; b = table[j][space]["quaternion_xyzw"]
+                    dot = sum(x * y for x, y in zip(a, b)) / math.hypot(*a) / math.hypot(*b)
+                    angles.append(math.degrees(2 * math.acos(min(1., abs(dot)))))
+                expected.append(abs(angles[1] - angles[0]))
+        assert invariant["max_absolute_delta_deg"] == pytest.approx(max(expected))
+
+
+def test_pairwise_invariant_detects_perbone_axis_rewrite_even_when_identity_angles_match():
+    data = capture()
+    for space in ("local", "component"):
+        data["tables"]["native"][0][space]["quaternion_xyzw"] = rotation(0, 40)
+        data["tables"]["native"][1][space]["quaternion_xyzw"] = rotation(0, 60)
+        data["tables"]["candidate"][0][space]["quaternion_xyzw"] = rotation(0, 40)
+        data["tables"]["candidate"][1][space]["quaternion_xyzw"] = rotation(1, 60)
+    report = COMPARE.compare_capture(data)
+    assert all(abs(row["rotation_angle_identity_delta_deg"]) < 1e-10 for row in report["component"])
+    for space in ("local", "component"):
+        invariant = report["rotation_basis_diagnostics"][space]["all_pair_relative_angle_invariant"]
+        assert invariant["over_limit_count"] == 1 and invariant["max_absolute_delta_deg"] > 40
+        assert all(row["over_limit_count"] > 0 for row in report["rotation_basis_diagnostics"][space]["signed_permutation_bases"])
+    assert not report["pass"]
+
+
+def test_basis_diagnostics_bound_empty_and_single_shared_rosters():
+    for count in (0, 1):
+        data = capture()
+        data["tables"] = ({"native": [bone("native_root")], "candidate": [bone("candidate_root")]} if count == 0
+                          else {"native": [bone("root")], "candidate": [bone("root")]})
+        report = COMPARE.compare_capture(data)
+        for space in ("local", "component"):
+            diagnostic = report["rotation_basis_diagnostics"][space]
+            assert diagnostic["all_pair_relative_angle_invariant"] == {
+                "compared_pair_count": 0, "max_absolute_delta_deg": None, "over_limit_count": 0}
+            assert all(row["compared_count"] == count for row in diagnostic["signed_permutation_bases"])
+
+
 @pytest.mark.parametrize("side", ["left", "right"])
 def test_noncommuting_common_left_and_right_rotations_have_distinct_relative_deltas(side):
     data = capture()
@@ -158,6 +249,12 @@ def test_common_basis_conjugation_preserves_angle_and_translation_norm_without_b
         assert row["translation_norm_delta_cm"] == pytest.approx(0., abs=1e-10)
         assert row["over_limit"]
     assert report["component_summary"]["over_limit_count"] == 2 and not report["pass"]
+    diagnostic = report["rotation_basis_diagnostics"]["component"]
+    # A common35deg basis preserves every relative angle but is not one of the
+    # discrete signed permutation bases. Do not infer or select a continuous fit.
+    assert all(row["over_limit_count"] > 0 for row in diagnostic["signed_permutation_bases"])
+    assert diagnostic["all_pair_relative_angle_invariant"] == {
+        "compared_pair_count": 1, "max_absolute_delta_deg": pytest.approx(0., abs=1e-10), "over_limit_count": 0}
 
 
 def test_perbone_changed_rest_violates_conjugation_invariants():

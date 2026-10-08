@@ -1665,7 +1665,7 @@ def fit_source_check(piece, source, rigid_groups=None):
     return _SC.run(piece, source, rigid_groups)
 
 
-@tool(consumes=NONE("an orchestrator: each stage's tool passes its own door with the stage's arguments"))
+@tool(consumes=NONE("an orchestrator: delegated stages pass their doors; internal conform checks its mesh Need before mutation"))
 def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decider="agent", texture_discard_ack=False):
     """The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md B, G): intake -> proportion -> match -> place ->
     pose_correct -> pose -> openings -> conform -> bind -> weights -> validate -> export, each arrow a refusal. Each stage
@@ -1675,7 +1675,7 @@ def fit(stage="status", piece="", kind="", roles=None, args=None, body="", decid
     every part in args.parts: the captain's or the recipe's, never the render's colour), verifies `body` (a fit_body package,
     refused unless its head is included by measured generalized winding; verified native openings are accepted) and runs the source-part check against args.source before normalizing; match is the
     captain's sign-off (args {captain_seen: true, render_sha256}); pose_correct records the measured rigid correction per segment
-    (args {segments}); pose is applied (the fit pose); conform refuses metal and is not built (decision 03-H2); bind is fit_bind
+    (args {segments}); pose is applied (the fit pose); conform solves ARAP only on explicit cloth/leather parts (args object/source/armature/parts, required clearance_m/seam_limit_m, optional body_open_band_m/solver); action=solve returns a disposable candidate pending review. action=accept requires its candidate hash and genuine captain_seen/render_sha256 before the stage is appended. Solver defaults are physically untested (canon03-H2); metal remains fixed. bind is fit_bind
     plan; weights is fit_bind weights from the package's native sidecar, then return; validate writes <piece>/fit/validation.json,
     which export reads. The roles, kind and package are the intake's record. A geometry stage after a recorded texture needs
     texture_discard_ack. status: stages done, the next one, and why each later one is refused."""

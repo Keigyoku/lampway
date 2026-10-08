@@ -46,7 +46,9 @@ def tree(tmp_path):
     exe(t / "build/Prod/bin/mixar", f'echo "APP argv: $@" > {tmp_path}/app.txt; env | sort >> {tmp_path}/app.txt; '
                                     f'[ -f "$LAMPWAY_SERVER_PID_FILE" ] && echo "server_alive_at_start=yes" >> {tmp_path}/app.txt; sleep "${{APP_SLEEP:-0}}"')
     (t / "build/Prod/bin/mixar.desktop").write_text("[Desktop Entry]\nName=Lampway\nExec=mixar %f\nIcon=mixar\nType=Application\n")
-    (t / "build/Prod/bin/mixar.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+    (t / "build/Prod/bin/mixar.svg").write_text(
+        "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'>"
+        "<rect width='32' height='32'/></svg>")
     return t
 
 

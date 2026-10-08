@@ -516,16 +516,16 @@ DEFS = [
         "reports each part's rotation relative to the group's first part (a glove turned 22 deg off its bracer says so). Changes nothing.",
         [P("piece", required=True, desc="the fitted piece (a mesh object)"), P("source", required=True, desc="the same mesh before any weld or fit"), P("rigid_groups", "array", "[[part, ...], ...] (default: all parts one group)")],
         api="fit_source_check"),
-    Def("lampway_fit", "The fit of one piece in canon 03's ORDER (specs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
+    Def("lampway_fit", "The fit of one piece in canon 03's ORDER (docs/canon/03-fit-and-deform.md): intake -> proportion -> match -> place -> pose_correct -> pose -> openings -> conform -> "
         "bind -> weights -> validate -> export, each arrow a refusal that names the next command. Each stage runs its tool with `args` (that tool's own arguments) and appends {stage, tool, inputs "
         "sha256, receipt sha256, decider} to <piece>/fit/fit.json. intake: `roles` for every part in args.parts (the captain's or the recipe's, never a render's colour), `body` (a fit_body package: "
         "verified with its head included by measured generalized winding; native openings are accepted and raw plus position-welded boundary/non-manifold counts are reported), and args.source for the source-part check (the detached-glove guard) before normalize_mesh; match: the captain's sign-off, args {captain_seen: true, "
-        "render_sha256}; pose_correct: args {segments}; pose: fit_pose applied (the fit pose); conform: metal refused, soft parts wait on decision 03-H2; bind: fit_bind plan; weights: fit_bind weights "
+        "render_sha256}; pose_correct: args {segments}; pose: fit_pose applied (the fit pose); conform: ARAP on explicit cloth/leather parts with clearance_m and seam_limit_m, physically untested solver defaults. action=solve returns a disposable candidate pending review; action=accept requires its candidate hash and genuine captain_seen/render_sha256 before recording success. Metal stays fixed; bind: fit_bind plan; weights: fit_bind weights "
         "from the package's native sidecar, then return; validate: fit_validate measure, written to <piece>/fit/validation.json; export: fit_export with it. The roles, kind and package are the "
         "intake's record. A geometry stage after a recorded texture needs texture_discard_ack. status: done, next, and why each later stage is refused.",
         [P("stage", desc="status (default) | intake | proportion | match | place | pose_correct | pose | openings | conform | bind | weights | validate | export"),
          P("piece", required=True, desc="the piece's folder under the project root"), P("kind", desc="chest | helmet | waist | boots | gauntlets | cloak | skirt"),
-         P("roles", "object", "{part: metal | leather | cloth | embroidery} (intake)"), P("args", "object", "the stage tool's own arguments"),
+         P("roles", "object", "{part: metal | leather | cloth | embroidery} (intake)"), P("args", "object", "the stage tool's own arguments; conform solve: object, source, armature, parts, explicit clearance_m/seam_limit_m, optional body_open_band_m/solver; accept: candidate_sha256/captain_seen/render_sha256"),
          P("body", desc="intake: the fit_body package dir"), P("decider", desc="agent (default) | captain"),
          P("texture_discard_ack", "boolean", "a geometry stage after a recorded texture discards it")], api="fit"),
     Def("lampway_fit_validate", "Measure a bound piece through poses against its ORIGINAL shell and judge it (canon: specs/canon/05-fit-validation.md). measure: `bound` (an Armature-modified piece), `original` "

@@ -3,6 +3,8 @@
 
 # Local QA handoff
 
+Current audit and requested reruns: [2026-10-08 follow-up](issue-2-audit-follow-up-20261008.md). The candidate and receipts below are historical6331e542 evidence, not the current PR head. Original MetaHuman full-chain, normalization, native export/readback and hardware onboarding remain open in the current audit.
+
 Pushed candidate: 6331e542727e52d9a67a42a4bb3c12e0cac63e3e
 Branch: lp/mcp-wrapper-migration-main-20261007-v2
 Base: 290ddd3a3a08ccc646ff4e3faa73326c09e1c154
@@ -20,7 +22,7 @@ PYTHONHASHSEED=0 LAMPWAY_BIN=/absolute/path/to/disposable/bin/mixar python -m py
 
 Then repeat on the staged original MetaHuman copy, using its verified engine sidecar and actual armature/body names. normalize_rigged(armature=<name>, meshes=[<full-body>], profile="metahuman", turn_deg=0.0, dry_run=False). fit_body(verb="build", armature=<name>, mesh=<full-body>, sidecar=<engine JSON>, out="fit/body"). The sidecar must retain native centimeter units, original vertex IDs, triangles, bone parents and weights; do not substitute GLB weights. Retain every corrective-root authored roll/frame and downstream weight-plan result. Test both default titan_cm_native and explicit cm_native_blender_convention FBX recipes; the default remains unproven.
 
-Repeat Tripo/chest normalization-versus-proportion scores with the SAME declared raw turn and canonical residual turn0. Do not assume a universal -90 turn. Approved plate matching accepts an explicit supplied IoU-gap margin; the canonical default remains unset. The synthetic 0.1 test threshold is not an owner ruling.
+Repeat Tripo/chest normalization-versus-proportion scores with the SAME declared raw turn and canonical residual turn0. Do not assume a universal -90 turn. Approved plate matching accepts an explicit supplied IoU-gap margin; the current judgment default is0.05 and remains physically untested. The explicit synthetic0.1 test threshold remains an override, not an owner measurement.
 
 ## GUI priorities
 

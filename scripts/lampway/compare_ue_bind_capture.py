@@ -9,6 +9,7 @@ No basis conversion is inferred. Output contains derived deltas only.
 """
 import argparse
 import hashlib
+import itertools
 import json
 import math
 import os
@@ -147,6 +148,45 @@ def _summary(rows):
             "worst": {key: max((row["metrics"][key] for row in rows), default=None) for key in BARS}}
 
 
+def _rotation_distance(a, b):
+    """Shortest angle between already normalized captured rotations."""
+    return math.degrees(2 * math.acos(min(1.0, abs(math.fsum(x * y for x, y in zip(a, b))))))
+
+
+def _rotation_basis_diagnostics(native, candidate, shared, space):
+    """Derived residuals for every discrete basis; no correction is selected.
+
+    Orthogonal B conjugates rotation matrices as B R B^T. Its quaternion
+    equivalent is (det(B) B v, w), including improper bases. Normalize only
+    the captured quaternions, exactly as for existing comparison metrics.
+    """
+    reference = [_unit(native[name][space]["quaternion_xyzw"]) for name in shared]
+    got = [_unit(candidate[name][space]["quaternion_xyzw"]) for name in shared]
+    bases = []
+    for permutation in itertools.permutations(range(3)):
+        inversions = sum(permutation[i] > permutation[j] for i in range(3) for j in range(i + 1, 3))
+        for signs in itertools.product((-1, 1), repeat=3):
+            determinant = (-1 if inversions % 2 else 1) * math.prod(signs)
+            basis = [[signs[i] if j == permutation[i] else 0 for j in range(3)] for i in range(3)]
+            residuals = [_rotation_distance(
+                [*(determinant * signs[i] * q[permutation[i]] for i in range(3)), q[3]], candidate_q)
+                for q, candidate_q in zip(reference, got)]
+            bases.append({"basis": basis, "determinant": determinant, "compared_count": len(shared),
+                          "over_limit_count": sum(value > BARS["rotation_deg"] for value in residuals),
+                          "worst_rotation_deg": max(residuals, default=None)})
+    # angle(inverse(q_i) q_j) equals the shortest angle between q_i and q_j.
+    # Return bounded aggregate differences, never absolute pair rotations.
+    maximum, over_limit, compared = None, 0, 0
+    for i, j in itertools.combinations(range(len(shared)), 2):
+        delta = abs(_rotation_distance(got[i], got[j]) - _rotation_distance(reference[i], reference[j]))
+        maximum = delta if maximum is None else max(maximum, delta)
+        over_limit += delta > BARS["rotation_deg"]
+        compared += 1
+    return {"signed_permutation_bases": bases,
+            "all_pair_relative_angle_invariant": {"compared_pair_count": compared,
+                "max_absolute_delta_deg": maximum, "over_limit_count": over_limit}}
+
+
 def _joint_distance_diagnostics(native, candidate, shared, parent_changes):
     """Only signed distance differences; no absolute lengths or frame inference."""
     def difference(a, b):
@@ -227,6 +267,9 @@ def compare_capture(capture):
             ("candidate_fbx_sha256", "native_reference_sha256", "capture_code_sha256")},
         "missing": missing, "extra": extra, "parent_changes": parent_changes, **tables, **summaries,
         "component_joint_distance_diagnostics": _joint_distance_diagnostics(native, candidate, shared, parent_changes),
+        "rotation_basis_diagnostics": {
+            "convention": "candidate versus B native B^T for all48 signed permutation bases; quaternion vector det(B)*B*v and scalar w; all-pair shortest relative-angle differences; normalized captures only; diagnostic counts use the unchanged rotation bar; no correction or acceptance selected",
+            **{space: _rotation_basis_diagnostics(native, candidate, shared, space) for space in ("local", "component")}},
         "counts": {"native": len(native), "candidate": len(candidate), "compared": len(shared),
                    "missing": len(missing), "extra": len(extra), "parent_changes": len(parent_changes)},
         "pass": bool(shared) and not missing and not extra and not parent_changes and

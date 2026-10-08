@@ -79,6 +79,8 @@ Main merges retain both the offline MCP wrappers and motion tool dispatch; gener
 
 Motion contract links resolve to ../docs/canon/motion_graphics/; measured acceptance is kept in ../docs/reports/motion-graphics-acceptance.md. Documentation relocation leaves production motion behavior and policy unchanged.
 
+Composite `lampway_fit stage=conform` documents the admitted ARAP candidate, caller-explicit clearance/seam limits and physically untested solver defaults. Solving returns a disposable candidate; a successful stage requires its unchanged hash and genuine output render review. Keep canonical mesh admission, rigid-metal/source preservation and downstream candidate identity checks. No new MCP route or spend capability is introduced.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -101,3 +103,4 @@ Motion contract links resolve to ../docs/canon/motion_graphics/; measured accept
 | 2026-10-08 | original MCP empty states and view reference | complete C0-C2/T1-T3 re-audit | non-mesh detail omitted layers, area schemas were unrestricted and view help omitted explicit defaults | require definitive non-mesh layers, byte-identical finite editor schemas and separate default disclosure while preserving no_area and pixel opt-in | three reproduced RED controls; 753 client/TOON, 78 server and post-edit native controls |
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
 | 2026-10-08 | motion documentation links | captain: relocate and write up motion specs | server contracts cited the root specs folder | link normative canon and separate measured report | combined registry/dispatch and documentation link checks |
+| 2026-10-08 | admitted soft conform stage contract | captain admits ARAP candidate and delegates untested solver defaults | public descriptions still claimed the stage was unbuilt, while a solve could be mistaken for reviewed acceptance | document explicit limits, pending candidate versus accepted stage, untested defaults and unchanged identity/review gates | composite/native solver regressions and generated registry check |

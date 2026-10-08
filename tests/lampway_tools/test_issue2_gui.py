@@ -27,6 +27,7 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
     checkout = Path(__file__).resolve().parents[2]
     measured_sources = [
         'tests/lampway_tools/issue2_gui_fixture.py',
+        'tests/lampway_tools/issue2_onboarding_probe.py',
         'src/scripts/mixar/modules/common/ui_control/core/observe.py',
         'src/scripts/mixar/modules/mcp_bridge/core/availability.py',
         'src/scripts/mixar/modules/mcp_bridge/core/connector.py',
@@ -135,6 +136,15 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
             assert connected['scene_tools'] == 'available' and connected['next_step'] == ''
             assert receipt['browser_opens'] == []
             assert len(receipt['steps']) == 4
+            frames = receipt['onboarding_frames']
+            assert len(frames) >= 4
+            footer = (frames[0]['back'], frames[0]['continue'])
+            assert all((f['back'], f['continue']) == footer and len(f['shown']) == 1 for f in frames)
+            assert {draw['step'] for draw in receipt['onboarding_draws']} == {2, 3, 4}
+            transitions = receipt['transitions']
+            assert [t['step'] for t in transitions] == [3, 4, 3]
+            assert all(t['popup_region'] == 'TEMPORARY' and t['popup_pointer'] for t in transitions)
+            assert len({t['popup_pointer'] for t in transitions}) == 1
             assert all(t['label'].strip() for t in receipt['observed']['targets'])
             facts = receipt['covering_label_facts']
             assert facts['empty_label'] == 0 and facts['shown'] == facts['total']
@@ -146,3 +156,39 @@ def test_issue2_onboarding_and_native_target_labels(tmp_path, request):
             os.close(read_fd)
             server.terminate()
             server.wait(timeout=10)
+
+
+def _probe_widgets(step):
+    from issue2_onboarding_probe import WORDS
+    return [{'text': WORDS[step], 'rect': [0, 40, 100, 60]},
+            {'text': 'Back', 'rect': [0, 0, 50, 20]},
+            {'text': 'Continue', 'rect': [50, 0, 100, 20]}]
+
+
+def test_onboarding_probe_waits_for_handled_input_and_render():
+    from issue2_onboarding_probe import OnboardingProbe
+    probe = OnboardingProbe(3, 2, 0)
+    assert not probe.observe(_probe_widgets(2), 2, 1)[0]
+    assert not probe.observe(_probe_widgets(2), 3, 2)[0]
+    assert probe.observe(_probe_widgets(3), 3, 3)[0]
+
+
+@pytest.mark.parametrize('model_step,reason', [(2, 'input not handled'), (3, 'stale rendered panel')])
+def test_onboarding_probe_refuses_persistent_staleness(model_step, reason):
+    from issue2_onboarding_probe import OnboardingProbe
+    with pytest.raises(AssertionError, match=reason):
+        OnboardingProbe(3, 2, 0).observe(_probe_widgets(2), model_step, 10)
+
+
+def test_onboarding_probe_refuses_overlap_and_footer_movement():
+    from issue2_onboarding_probe import OnboardingProbe
+    probe = OnboardingProbe(3, 2, 0)
+    probe.observe(_probe_widgets(2), 2, 1)
+    with pytest.raises(AssertionError, match='overlapping'):
+        probe.observe(_probe_widgets(2) + _probe_widgets(3), 3, 2)
+    moved = _probe_widgets(3)
+    moved[-1]['rect'] = [51, 0, 101, 20]
+    with pytest.raises(AssertionError, match='footer moved'):
+        probe.observe(moved, 3, 2)
+    with pytest.raises(AssertionError, match='missing onboarding footer'):
+        probe.observe(_probe_widgets(3)[:-1], 3, 2)

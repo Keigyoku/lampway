@@ -17,6 +17,7 @@ ROOT = Path(os.environ['LAMPWAY_PROJECT_ROOT'])
 OVERLAY = os.environ['LAMPWAY_VIEW_OVERLAY']
 sys.path.insert(0, str(Path(__file__).parent))
 from issue2_graphics import validate_renderer
+from issue2_onboarding_probe import OnboardingProbe
 sys.path.insert(0, OVERLAY)
 import mixar, mixar.modules
 mixar.__path__.insert(0, OVERLAY + '/mixar')
@@ -47,7 +48,7 @@ webbrowser.open = lambda url, *args, **kw: browser_opens.append(url) or False
 add_config('mcp_enabled', True)
 add_config('mcp_ui_control', True)
 state = {'phase': 0, 'steps': [], 'deadline': time.monotonic() + 95, 'browser_opens': browser_opens,
-         'source': json.loads(os.environ['LAMPWAY_GUI_SOURCE'])}
+         'source': json.loads(os.environ['LAMPWAY_GUI_SOURCE']), 'onboarding_frames': [], 'onboarding_draws': []}
 OWNER = str(uuid.uuid4())
 pending = {}
 
@@ -124,7 +125,7 @@ def click(rect):
             return None
         bpy.app.timers.register(release, first_interval=0.025)
         return None
-    bpy.app.timers.register(press, first_interval=0.05)
+    bpy.app.timers.register(press, first_interval=float(os.environ.get('LAMPWAY_GUI_CLICK_DELAY', '0.05')))
 
 
 def capture(name):
@@ -181,13 +182,29 @@ def step():
             ui = sys.modules['mixar.modules.lampway_tools.ui.onboarding']
             ui.unregister()
             source(ui, 'lampway_tools/ui/onboarding.py', os.environ.get('LAMPWAY_ONBOARDING_BASELINE'))
+            original_draw = ui.LAMPWAY_OT_onboarding.draw
+            def track_draw(self, context):
+                walk = ui.WALK['walk']
+                state['onboarding_draws'].append({'step': walk.step, 'at': time.monotonic()})
+                # A persistent wrong-panel plant must fail the same native gate.
+                old_step = walk.step
+                if os.environ.get('LAMPWAY_GUI_STALE_PANEL') == '1' and old_step == 3:
+                    walk.step = 2
+                try:
+                    return original_draw(self, context)
+                finally:
+                    walk.step = old_step
+            ui.LAMPWAY_OT_onboarding.draw = track_draw
             ui.register()
             original_refresh = getattr(ui, '_refresh_step', None)
             if original_refresh:
                 def track_refresh(context):
                     state.setdefault('transitions', []).append({'step': ui.WALK['walk'].step,
                         'region': getattr(context.region, 'type', None),
-                        'region_pointer': context.region.as_pointer() if context.region else None})
+                        'region_pointer': context.region.as_pointer() if context.region else None,
+                        'popup_region': getattr(context.region_popup, 'type', None),
+                        'popup_pointer': context.region_popup.as_pointer() if context.region_popup else None,
+                        'at': time.monotonic()})
                     return original_refresh(context)
                 ui._refresh_step = track_refresh
             routes = json.loads((ROOT / 'routes.json').read_text())
@@ -212,12 +229,15 @@ def step():
             widgets = [w for w in observe.widgets() if w.get('popup')]
             (ROOT / f'widgets-{state["phase"]}.json').write_text(json.dumps([{k: v for k, v in w.items() if not k.startswith('_')} for w in widgets], indent=2))
             texts = [w.get('text', '') for w in widgets]
-            words = {2: 'Every route is off until', 3: 'The agent thinks with the provider', 4: 'OpenRouter, in dollars'}
-            shown = [n for n, word in words.items() if any(t.startswith(word) for t in texts)]
-            assert shown == [expected], ('stale onboarding panel', expected, shown)
-            cont = next(w['rect'] for w in widgets if w.get('text', '').startswith('Continue'))
-            back = next((w['rect'] for w in widgets if w.get('text') == 'Back'), None)
-            assert back and abs((back[1]+back[3]) - (cont[1]+cont[3])) <= 2, ('Back must share Continue footer', back, cont)
+            from mixar.modules.lampway_tools.ui import onboarding as ui
+            if 'probe' not in globals():
+                globals()['probe'] = OnboardingProbe(expected, expected, time.monotonic())
+            ready, texts, footer = probe.observe(widgets, ui.WALK['walk'].step, time.monotonic())
+            state['onboarding_frames'].append({'phase': state['phase'], **probe.samples[-1]})
+            if not ready:
+                return 0.05
+            shown = [expected]
+            back, cont = footer
             state['steps'].append({'step': expected, 'shown': shown, 'continue': cont, 'back': back,
                                    'texts': texts, 'frame': capture(f'step-{expected}-{state["phase"]}.png')})
             if state['phase'] == 5:
@@ -229,7 +249,9 @@ def step():
                 return 1
             click(back if expected == 4 else cont)
             state['phase'] += 1
-            return 1
+            next_step = {3: 3, 4: 4, 5: 3}[state['phase']]
+            globals()['probe'] = OnboardingProbe(next_step, expected, time.monotonic(), footer=footer)
+            return 0.05
         if state['phase'] >= 6:
             assert time.monotonic() < state['deadline'], ('UI integration deadline', state['phase'], pending)
         if state['phase'] == 6:

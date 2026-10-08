@@ -48,6 +48,16 @@ The inspection integration fixture also verifies main-owned canonical translatio
 
 The isolated onboarding GUI fixture defaults to software GL. `LAMPWAY_VIEW_SOFTWARE_GL=0` requests hardware: it removes inherited desktop display/software flags, creates a fresh display, records the requested mode and actual renderer, and refuses software fallback. Hardware acceptance requires a measured hardware renderer; a cloud llvmpipe refusal is a negative control, not a GPU pass.
 
+Onboarding GUI transitions await both the handled walk step and the native
+current-panel widgets with a bounded timeout. Every sampled popup must contain
+one panel and one stable Back/Continue footer, including observations before
+input handling and layout refresh. Record draw callbacks and actual popup
+identity. Keep delayed-input, persistent stale-panel, overlap and moved-footer
+controls; sampled telemetry is not proof of every frame rendered between polls.
+`LAMPWAY_GUI_CLICK_DELAY` and `LAMPWAY_GUI_STALE_PANEL` inject isolated timing
+and content falsifiers without changing product defaults. Historical half-CPU
+failures and current measured binary provenance remain explicit.
+
 Checkpoint tests measure full document writes across an armed read turn: certified complete scene-summary/OBSERVE wrappers write zero copies; forged read names, arbitrary scripts and admitted typed commits capture once before mutation. Keep pre-turn transcript/new-session/bookmark restoration, scene-renaming, reverted-branch pruning and existing tip/safety/undo regressions. Typed commit admission failures and idempotent replays must not capture. Every file load clears pending metadata before the restore branch while retaining the restored session. Source-structure and fake-`bpy` proofs are reported separately from an isolated GUI mock-provider lifecycle.
 
 Prepublish tests plant both content identifiers and invalid authored commit identities: findings must block and must not echo personal values or email domains.
@@ -91,3 +101,5 @@ Privacy regression coverage includes suffix lookalikes for every exempt email ho
 
 | 2026-10-08 | original MCP contract boundary controls | complete C0-C2/T1-T3 re-audit | omitted non-mesh summaries and unrestricted editor strings passed existing tests while defaults remained implicit | preserve missing-summary, invented-editor and explicit-default RED controls plus native empty-state and no_area checks | 753 standalone, 78 server and two post-enum isolated native checks; aggregate acceptance remains separate |
 | 2026-10-08 | email exemption falsifiers | PR3 finding4213654799 | domain prefix exceptions and line-wide email allowlisting hid planted offenders | test complete hosts and independent addresses while retaining exact fake controls | initial21 and allowlist RED receipts plus privacy suite |
+
+| 2026-10-08 | bounded onboarding GUI observations | private AC51 half-CPU stale panel audit | a one-second assertion ran before queued input was handled and editor redraw did not explicitly refresh popup layout | distinguish model/input acknowledgement from native convergence; preserve persistent stale, overlap, footer and single-popup controls with sampled evidence | delayed-input RED, popup-refresh REDs and software native receipts |

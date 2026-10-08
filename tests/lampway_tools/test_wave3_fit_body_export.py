@@ -175,7 +175,8 @@ res({"clean": clean, "partial_clean": all(set(getattr(bpy.data, k)) == before[k]
 
 @pytest.mark.parametrize("route", ["fit_export", "ue_export"])
 @pytest.mark.parametrize("convention", ["blender", "ue_axes"])
-def test_fit_routes_export_corrective_frames_with_identity_carriers_and_preserve_sources(route, convention):
+@pytest.mark.parametrize("hidden_source", [False, True])
+def test_fit_routes_export_corrective_frames_with_identity_carriers_and_preserve_sources(route, convention, hidden_source):
     r = run('''
 from mixar.modules.lampway_tools import canon_io
 from mixar.modules.lampway_tools.features import rig_export as RE, export_checks as EC
@@ -195,13 +196,20 @@ pkg = api.fit_body("build", armature="body_rig", mesh="body_mesh", out="fit/body
 p = piece_fit(arm); p.data.uv_layers.new(name="UVMap")
 write_json(os.path.join(root, "validation.json"), GOOD_VALIDATION)
 write_json(os.path.join(root, "bind_check.json"), {"ok": True})
+if ''' + repr(hidden_source) + ''':
+    for ob in (arm, p):
+        ob.select_set(False)
+        ob.hide_viewport = ob.hide_render = ob.hide_select = True
+        ob.hide_set(True)
 before = canon_io.snapshot_ids()
 def source():
     return {"bones": [[b.name, [list(row) for row in b.matrix_local]] for b in arm.data.bones],
             "vertices": [list(v.co) for v in p.data.vertices],
             "weights": [[[g.group, g.weight] for g in v.groups] for v in p.data.vertices],
             "units": bpy.context.scene.unit_settings.scale_length,
-            "arm_name": arm.name, "mesh_name": p.name}
+            "arm_name": arm.name, "mesh_name": p.name,
+            "visibility": [[o.hide_viewport, o.hide_render, o.hide_select, o.hide_get()]
+                           for o in (arm, p)]}
 original = source()
 route = ''' + repr(route) + '''
 if route == "fit_export":
@@ -228,6 +236,7 @@ for mutation in ("position", "rotation", "scale", "hierarchy", "empty"):
     else: changed = []
     refusals[mutation] = FE._readback(path, changed, convention)
 res({"result": result, "raw_null_failures": EC.fbx_container_scale_failures(path),
+     "raw_bone_count": len(EC.fbx_bone_scale(path)),
      "unit": RE.unit_scale_factor(path), "unchanged": original == source(),
      "ids_unchanged": before == canon_io.snapshot_ids(),
      "refusals": refusals,
@@ -236,6 +245,7 @@ res({"result": result, "raw_null_failures": EC.fbx_container_scale_failures(path
     assert r.rc == 0, r.out[-3000:]
     d = r.results[-1]
     assert d["raw_null_failures"] == [], d
+    assert d["raw_bone_count"] == 3
     assert d["result"]["ok"], d
     assert d["unit"] == 1 and d["unchanged"] and d["ids_unchanged"], d
     rb = d["result"]["readback"]

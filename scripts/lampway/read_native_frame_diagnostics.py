@@ -46,11 +46,38 @@ def module_evidence(module):
     return {"loaded_file": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
+def convention_diagnostics(rt, rig):
+    """Explain the installed detector's samples without changing its verdict.
+
+    Orthogonality of Y to a joint line does not establish alignment of X; record
+    all three axes so geometry and frame disagreement remain distinguishable.
+    """
+    sampled = rt.convention_angles(rig)
+    children = rt._single_child(rig)
+    parameter = inspect.signature(rt.RC.classify_convention).parameters.get("tol")
+    tolerance = float(parameter.default) if parameter is not None else 10.0
+    rows = []
+    for name, measured_y in sorted(sampled.items()):
+        child = children[name]
+        angles = {axis: rt.RC.along_axis_angle(rig["frames"][name], rig["heads"][name],
+                                             rig["heads"][child], axis)
+                  for axis in "xyz"}
+        if not np.isclose(angles["y"], measured_y, atol=1e-9, rtol=0):
+            raise ValueError("installed convention sample disagrees with its axis measurement")
+        rows.append({"bone": name, "child": child, "angles_deg": angles})
+    return {"class": rt.RC.classify_convention(list(sampled.values())),
+            "tolerance_deg": tolerance, "rows": rows,
+            "outside_blender_y_bar": [r["bone"] for r in rows if r["angles_deg"]["y"] > tolerance],
+            "outside_ue_y_bar": [r["bone"] for r in rows if abs(r["angles_deg"]["y"] - 90) > tolerance],
+            "unsampled": sorted(set(rig["names"]) - set(sampled))}
+
+
 def collect(bpy, rt, nr, armature):
     ob = bpy.data.objects.get(armature)
     if ob is None or ob.type != "ARMATURE":
         raise ValueError("explicit armature must exist and have ARMATURE type")
-    read_frames = rt.read(ob)["frames"]
+    rig = rt.read(ob)
+    read_frames = rig["frames"]
     rows, invalid = {}, {}
     for bone in ob.data.bones:
         raw = np.asarray((ob.matrix_world @ bone.matrix_local).to_3x3(), dtype=float)
@@ -68,7 +95,14 @@ def collect(bpy, rt, nr, armature):
     return {"schema": SCHEMA, "read_only": True, "armature": ob.name,
             "bone_count": len(ob.data.bones), "object_matrix": [list(r) for r in ob.matrix_world],
             "blender_version": bpy.app.version_string, "frames": rows, "invalid_by_variant": invalid,
-            "loaded_modules": {"rig_tools": module_evidence(rt), "normalize_rigged": module_evidence(nr)},
+            "convention": convention_diagnostics(rt, rig),
+            "rest_fingerprint": rt._fingerprint(ob, rig),
+            "rest_input": {"names": rig["names"], "parents": rig["parents"], "heads_m": rig["heads"],
+                           "frames": {name: np.asarray(frame).tolist() for name, frame in read_frames.items()}},
+            "loaded_modules": {"rig_tools": module_evidence(rt), "normalize_rigged": module_evidence(nr),
+                               "rig_core": module_evidence(rt.RC)},
+            "convention_function_source": inspect.getsource(rt.convention_angles),
+            "classifier_function_source": inspect.getsource(rt.RC.classify_convention),
             "bones_function_source": inspect.getsource(nr._bones)}
 
 

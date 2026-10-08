@@ -158,16 +158,18 @@ def _ue_import(type_, hero, frame_rate, textures):
 
 
 def _write_fbx(path, settings, select, active):
+    from ..features import rig_export as RE
     vl = bpy.context.view_layer
     sel = [o for o in vl.objects if o.select_get()]
     act = vl.objects.active
     try:
-        for o in vl.objects:
-            o.select_set(False)
-        for o in select:
-            o.select_set(True)
-        vl.objects.active = active
-        bpy.ops.export_scene.fbx(filepath=str(path), **settings)
+        with RE._export_visibility(select):
+            for o in vl.objects:
+                o.select_set(False)
+            for o in select:
+                o.select_set(True)
+            vl.objects.active = active
+            bpy.ops.export_scene.fbx(filepath=str(path), **settings)
     finally:
         for o in vl.objects:
             o.select_set(o in sel)

@@ -118,13 +118,13 @@ def test_a_failing_stage_tool_is_not_recorded_and_the_order_holds(tmp_path):
     assert s["next"] == ["lampway_fit stage=place"], s
 
 
-def test_conform_is_skipped_without_soft_parts_refused_for_metal_and_unbuilt_otherwise(tmp_path):
+def test_conform_is_skipped_without_soft_parts_refused_for_metal_and_needs_explicit_targets(tmp_path):
     call = Fake()
     _through(tmp_path, call, "openings")
     r = _run(tmp_path, "conform", call, args={"parts": ["plate"]})
     assert r["ok"] is False and "metal" in r["error"], r                 # canon 03 INV-03.2: a metal part never conforms
     r = _run(tmp_path, "conform", call, args={"parts": ["skirt"]})
-    assert r["ok"] is False and "03-H2" in r["error"], r                  # the soft-part deformer waits on the captain's decision
+    assert r["ok"] is False and "clearance_m" in r["error"], r          # admitted candidate still requires caller targets
     t = tmp_path / "metal_only"
     t.mkdir()
     for st in FO.STAGES[: FO.STAGES.index("openings") + 1]:

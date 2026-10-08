@@ -235,7 +235,14 @@ class LAMPWAY_OT_onboarding(Operator):
 
 
 def _refresh_step(context):
-    """Reuse one popup region: no previous-step popup can remain behind it."""
+    """Rebuild the existing popup's layout, then redraw it and its editor."""
+    # Button operators retain the editor as context.region. Its redraw does
+    # not set the temporary popup's RGN_REFRESH_UI flag; request that rebuild
+    # explicitly rather than relying on the next unrelated UI event.
+    popup = getattr(context, "region_popup", None)
+    if popup is not None and popup.type == 'TEMPORARY':
+        popup.tag_refresh_ui()
+        popup.tag_redraw()
     region = getattr(context, "region", None)
     if region is not None:
         region.tag_redraw()
