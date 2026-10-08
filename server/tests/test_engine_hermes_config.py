@@ -47,6 +47,14 @@ def _render(board, **kw):
     return HC.render(board, None, GATEWAY, TOKEN, MODEL, **kw)
 
 
+@pytest.mark.parametrize("asks_user", [True, False])
+def test_owned_panes_preserve_resumable_sessions_and_do_not_archive_open_ones(board, asks_user):
+    # Native auto_prune deletes transcripts; auto_archive can hide unended sessions. Q2 permits neither.
+    cfg = _render(board, asks_user=asks_user)
+    assert cfg["sessions"]["auto_prune"] is False
+    assert cfg["sessions"]["auto_archive"] is False
+
+
 def _acp(cfg):
     """The toolsets of the platform the engine runs on: ``cli``, the one ``hermes serve`` and its TUI read (spec A1;
     tui_gateway/server.py:1939 at the pin). The ACP platform is gone with the ACP child (A5)."""

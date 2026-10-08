@@ -179,7 +179,10 @@ not passing acceptance; a skipped default opt-in does not erase the separately o
 
 * The captain settled Q2: soft-hide native ended sessions after 30 days, cap visible ended history at 200, and preserve resumable
   records. This is a global visibility cap across recorded owned native homes; a two-home native control caught and corrected
-  the initial per-home interpretation. The native wrapper and final maintenance proof are being integrated separately.
+  the initial per-home interpretation. Startup and periodic maintenance now call pinned native SessionDB helpers over recorded
+  owned homes, without a second conversation store. Config preservation shares the Context/capabilities lock. The candidate's
+  47 focused and four actual native controls passed without skips; final root qualification is still required. Selection is a
+  native ended-tip snapshot, so a concurrent resume can change visibility without ending its process or deleting messages.
   The pin's default destructive pruning and unended automatic archive are not this policy. No second Lampway conversation
   store is introduced. R5 explicitly supersedes parked turns, so the old 24-hour parked TTL is not
   a separate acceptance requirement under this pane architecture.

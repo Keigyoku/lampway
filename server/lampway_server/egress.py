@@ -97,6 +97,7 @@ LAUNCHES: dict = {
     "engine/hermes_pane.py:Pane.run_tui": ("local", "Hermes's own prebuilt TUI in Mode 1's pane, a client of the pane's serve on loopback; "
                                                     "HERMES_SKIP_NODE_BOOTSTRAP and HERMES_NODE keep it from fetching or building anything (A1)"),
     "engine/hermes_pane.py:node_problem": ("local", "`node --version` of the Node the server found for Mode 1's TUI: a local version probe"),
+    "engine/units.py:Mode1Units.maintain_sessions": ("local", "pinned Hermes SessionDB ended-history archive helpers in a recorded Lampway home; no model or network call"),
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
                                           "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session, "
                                           "and one that starts Lampway's own Mode 1 pane starts the local wrapper above (route None, A1)"),

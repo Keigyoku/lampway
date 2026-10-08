@@ -82,6 +82,22 @@ def write_private(path: Path, text: str) -> None:
     os.chmod(path, 0o600)
 
 
+@HC.serialized_config
+def preserve_session_config(home: Path) -> None:
+    """Pin preservation in an existing owned config, retaining all context and authentication settings."""
+    import yaml
+    config = home / "config.yaml"
+    if not config.is_file():
+        return
+    cfg = yaml.safe_load(config.read_text())
+    if not isinstance(cfg, dict):
+        raise ValueError("pane config is not a mapping")
+    policy = cfg.setdefault("sessions", {})
+    if policy.get("auto_prune") is not False or policy.get("auto_archive") is not False:
+        policy.update(auto_prune=False, auto_archive=False)
+        write_private(config, HC.to_yaml(cfg))
+
+
 def free_port() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
@@ -420,6 +436,52 @@ class Mode1Units:
                 self.mcp_digests[rec["unit"]] = rec["mcp_token_sha256"]
             out.append(rec)
         return out
+
+    async def maintain_sessions(self) -> None:
+        """Native age30 hiding and a global 200 visible-ended cap across recorded owned homes (Q2)."""
+        from ..connections import env_for
+        from . import session_retention
+
+        interpreter = self.hermes_bin().parent / "python"
+        homes = set()
+        for rec in await asyncio.to_thread(self.cockpit.list_sessions):
+            if not HN.is_lampway(rec.get("agent")) or not rec.get("home"):
+                continue
+            home = Path(rec["home"])
+            try:
+                if not home.is_absolute() or not home.resolve().is_relative_to(self.root().resolve()):
+                    raise ValueError("pane home is outside Lampway's engine root")
+                if home.resolve() != home or any(p.is_symlink() for p in (home, home / "state.db", home / "config.yaml")):
+                    raise ValueError("pane home or native state path is a symlink")
+                if home in homes:
+                    continue
+                await asyncio.to_thread(preserve_session_config, home)
+                if (home / "state.db").is_file():
+                    homes.add(home)
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                log.warning("owned native session visibility home unavailable", exc_info=True)
+        if not homes:
+            return
+        if not interpreter.is_file():
+            raise RuntimeError("the pinned Hermes interpreter is unavailable for session visibility maintenance")
+        ordered = sorted(homes)
+        env = env_for([])
+        env.update(HERMES_HOME=str(ordered[0]), HOME=str(ordered[0] / "home"), PYTHONDONTWRITEBYTECODE="1")
+        child = await asyncio.create_subprocess_exec(str(interpreter), str(Path(session_retention.__file__)),
+            env=env, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        try:
+            payload = json.dumps([str(home) for home in ordered]).encode()
+            stdout, stderr = await asyncio.wait_for(child.communicate(payload), 60)
+            if child.returncode:
+                raise RuntimeError("native session visibility maintenance failed")
+            result = json.loads(stdout)
+            log.info("native session visibility: %d aged, %d global overflow", result["aged"], result["overflow"])
+        finally:
+            if child.returncode is None:
+                child.kill()
+                await child.wait()
 
 
 def read_session(home: Path) -> str:

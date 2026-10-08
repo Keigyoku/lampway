@@ -1477,7 +1477,10 @@ still supplies the owning unit and scene binding, not the worker's mode or servi
    Before shipping, still to settle:
    - a reading of OpenAI's Sign in with ChatGPT terms page, which the research could not fetch;
    - the vision probe (R0a).
-2. **Q2 retention — approved 2026-10-06:** 30 days, 200 live sessions, older ones archived; parked turns expire after 24 h.
+2. **Q2 retention — approved 2026-10-06, clarified 2026-10-08:** "Soft-hide native ended sessions after 30 days; cap visible ended history at 200; preserve resumable records."
+   The visibility cap applies across recorded Lampway-owned native homes, without a second conversation store or destructive
+   pruning. Native ended-tip selection is a snapshot; archiving changes visibility and preserves resumability. The older
+   24-hour parked-turn value is superseded by R5 under the pane architecture.
 3. **Q3 context — decided 2026-10-06:** left to the Hermes runtime's settings, editable in the Agent Panel (R3).
 4. **Q4 typing into panes — decided 2026-10-06:** yes, only panes on Lampway's own herdr server, behind `panes.drive` (B0, E2).
 5. **Q5 harnesses — decided 2026-10-06:** all through the adapter interface. Starting adapters: Claude Code, Codex CLI, Hermes Agent,

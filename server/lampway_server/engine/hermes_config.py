@@ -259,6 +259,9 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
         "fallback_providers": [],     # config_defaults.py:24: no fallback chain past the gateway
         # config_defaults.py:1718-1726: never borrow the Codex CLI or Claude Code logins (E1.10, B0).
         "auth": {"adopt_external_logins": False},
+        # Q2: native ended history remains resumable. Hermes's default prune deletes it, and its automatic archive
+        # can hide unended sessions. Lampway uses native ended-tip snapshot archive helpers for Q2 visibility.
+        "sessions": {"auto_prune": False, "auto_archive": False},
         # tools_config.py:576-633 ``_get_platform_tools``: an explicit list of configurable keys is the whole set
         # (``_explicit_toolsets``, :506-521); serve reads the ``cli`` platform (tui_gateway/server.py:1939) with the
         # config-declared MCP servers included, so no ``no_mcp`` (:685-686): Lampway's own server is declared below.

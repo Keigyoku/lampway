@@ -1554,9 +1554,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 expiry_task = None
                 if engine_wiring is not None:
                     try:
-                        await engine_wiring.tick()                 # nothing to reap: every agent is a pane (A0)
+                        await engine_wiring.tick()                 # native history visibility only; no pane reap (A0, Q2)
                     except Exception:  # noqa: BLE001
-                        logging.getLogger("lampway.engine").warning("the engine reap failed", exc_info=True)
+                        logging.getLogger("lampway.engine").warning("native session visibility maintenance failed", exc_info=True)
                 try:
                     await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
                 except Exception:  # noqa: BLE001

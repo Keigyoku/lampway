@@ -269,6 +269,10 @@ class EngineWiring:
             if digest:
                 self._boards[digest] = (WorkerBoard(CAP.ACTIVE) if rec.get("role") == "worker" else None, rec.get("role") != "worker")
         await self.front.adopt(adopted)
+        try:
+            await self.units.maintain_sessions()
+        except Exception:
+            log.warning("native session visibility maintenance failed at restart", exc_info=True)
         log.info("engine: Hermes %s runs Mode 1 in panes (gateway %s/engine/v1, egress proxy on 127.0.0.1:%s, %d pane(s) re-adopted)",
                  self.engine.get("tag", "?"), self.base, proxy_port, len(adopted))
 
@@ -289,8 +293,9 @@ class EngineWiring:
         await PX.stop()
 
     async def tick(self) -> None:
-        """The server's 60 s tick. Nothing to reap: every agent is a pane, and a pane ends only by the user (A0, law 5)."""
-        return None
+        """The server's 60 s tick: native ended-history visibility only; panes are never reaped (A0, law 5, Q2)."""
+        if self.units is not None:
+            await self.units.maintain_sessions()
 
     # -- the panes' hooks
     @HC.serialized_config
