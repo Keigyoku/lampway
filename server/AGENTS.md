@@ -271,7 +271,9 @@ build from `scripts/lampway/herdr_env.py`, then PATH or `~/.local/bin/herdr`), b
 `test_herdr_launcher.py`, `test_herdr_layout_live.py` (the unit's column, and Q13's closing of finished worker panes before the
 next run splits right of the main pane again) and the real-herdr case of `test_engine_pane_live.py`; without it those SKIP,
 and a skip is not a pass. `tests/test_byoa_pi_live.py` runs Lampway's Pi extension on a real Pi (`LAMPWAY_PI_BIN`, else `pi` on
-PATH; throwaway HOME, no provider, offline); without one it SKIPS. The island's controls for a Your agent tab (Stop, images,
+PATH; throwaway HOME, no provider, offline); without one it SKIPS. The Pi fixture sends EOF after its six-second status window,
+detaches the deliberately closed stdin pipe before the bounded `communicate`, and kills and waits only for its own process
+if teardown finds it still running. The island's controls for a Your agent tab (Stop, images,
 Resume, Unbind) are `tests/test_byoa_island_controls.py`. Every swarm's cards and its Retry are `tests/test_swarm_cards.py` (the
 Mode 2 rig of `test_swarm_panes.py` and Mode 1 through `HermesFront.call_tool`, the desktop the fake fleet receiving the frames)
 and the Mode 1 Retry turn in `tests/test_engine_front.py`. The swarm's substrate tests (`tests/test_swarm_v3.py`) start the swarm in Mode 1 on the real
@@ -329,3 +331,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-08 | implicit parent service until explicit worker choice | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | parent-only provider scope selected a cheap/low-effort worker model and a parent dialog save overwrote an explicit worker choice | invariant 10: full implicit parent choice, explicit worker scopes only from worker fields, saved overrides preserved and resolutions pinned | direct captain ruling |
 | 2026-10-08 | exact Grok primary overlay observations | valid sequence-shaped primary-agent fixture on installed 1.0.46 | invalid mapping-shaped probes falsely suggested primary activation was unsupported; global MCP exclusion still fails | invariant 6 and adapter FACTS distinguish proven activation/name replacement from unproved worker isolation and account execution | network-denied synthetic native probes |
+| 2026-10-08 | Pi offline fixture owns its closed stdin and child | real Pi 1.0.4 offline extension check | deliberate EOF left a closed stdin attached, so communicate flushed it and raised before the MCP assertions; teardown killed without waiting | Test section records detached closed stdin and bounded owned-child cleanup, preserving the six-second window and thirty-second communicate limit | actual network-denied Pi fixture RED and GREEN |

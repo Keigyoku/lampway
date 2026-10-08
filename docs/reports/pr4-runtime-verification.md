@@ -51,6 +51,29 @@ was weakened. Matching Mesa's renderer pool to the cloud CPU quota (`LP_NUM_THRE
 material test at 240 seconds, with source, generated overlay and installed script bytes held. The second calibration was not
 run. Both original full-run render failures remain unverified and need the requested built-app hardware validation.
 
+## Published `ad15ad77` checkpoint
+
+Published `ad15ad7761e16decd1e7da32e0b7c9feadeed51f` has clean source and a bare matching `BUILT_FROM` from the normal build.
+Its binary SHA-256 is `30a6f831d90767e8b4e4607bbbbfecb06f3eef26b2cb40dead925afb85bf8d1e`.
+The physical Mode-chip mouse check, five fitter/RNA checks and eleven native consumer ON/OFF checks passed. These consumer
+checks are not a full OFF build. Actual physical Docs and Report clicks each produced HTTP 200 after correcting the fixture
+to use physical XTest clicks without `--enable-event-simulate`, which suppresses operating-system input. Five retained palette PNGs carry
+causal measurements and were visually inspected by the coordinator.
+
+All four real Blender/Hermes/herdr cases passed without skips: the integrated main conversation, two-worker collection,
+worker Stop after streaming and worker Stop before the first token. Their retained `pr4-ad15ad77-real-runtime` receipt
+compares all 5,441 compiled source files, the binary, build cache, compile commands and clean source before and after; all
+fingerprints match. The guarded full pinned-server receipt reports 2,345 passed, zero failed and thirteen skipped in
+809.937 seconds against that same matching build. The seven exact repaired client regressions also passed. All five CI
+workflows succeeded on this published head; there were no review-thread or review-submission findings.
+
+The newly available Pi 1.0.4 offline test exposed a real fixture failure: `communicate` flushed stdin after the fixture had
+deliberately closed it. The bounded fix detaches that closed pipe and waits after killing only its owned child, preserving
+the six-second window, thirty-second communication limit and both MCP assertions. The exact original case passed once
+without skips in 6.119 seconds. Inherited seccomp denied IPv4 and IPv6 socket creation with `EACCES`; a separate Unix-socket
+control succeeded. This fixture fix is not yet a matching-build or final-head native receipt. A new full client run has not
+been performed: the two known 240-second material failures and account/owner acceptance blocks remain unresolved.
+
 ## Scoped completion repairs
 
 PR4 now owns the production configured-app wiring. The app factory forwards the pinned worker resolution with its existing
@@ -82,16 +105,22 @@ all five passed under the reloadable file launcher.
   service ruling is settled: it follows the parent implicitly until explicitly changed, after which the worker override stays
   pinned. The compatibility mapping now preserves explicit worker choices through parent-only preference, environment and
   dialog updates, with 165 focused Choices/provider/wiring checks passing and 20 pre-fix mapping failures retained.
-* Complete the full client/server suites and exact final published-head CI; build and retain a matching receipt after these
-  scoped repairs, then rerun actual Stop, profile Docs/Report, native Mode and palette checks against that same candidate.
+* The published `ad15ad77` checkpoint has the matching native/runtime, profile, palette, full pinned-server and CI evidence
+  above. After the Pi fixture repair, complete the full client/server suites and exact final published-head CI; retain a new
+  matching build and rerun the required native/runtime checks against that candidate. No result from `ad15ad77` is silently
+  relabelled as proof of the later source head.
 * All seven adapters still require real account-backed scene-tool, interrupt, image and session-record acceptance. No provider,
   paid-call, credential or persistent-grant authorization has been supplied. Correct sequence-shaped `mcpServers` activated
   Grok 1.0.46's primary custom-agent body and inline MCP in a network-denied synthetic first turn. Earlier mapping-shaped
   fixtures were invalid, so no primary-activation vendor defect is claimed. Primary overlays still retain unrelated global
   MCP entries, and `enabled: false` does not remove inherited entries. Symbolic variables were proven in doctor/disk config;
-  inline environment placeholders arrived literally. Worker-only isolation remains unproved, separately from account approval.
-  User Hermes's compatible login-preserving pane route also remains unproved. A terminal opening or offline probe is not account
-  acceptance.
+  inline environment placeholders arrived literally. Grok's explicit `GROK_AUTH_PATH` works but can write its auth file, while
+  project MCP remains loaded: a primary-agent exclusive interface from the vendor, or the captain's B0 working-directory
+  exception and explicit auth-file-use decision, is still required. Native Hermes `--toolsets` can restrict a four-server
+  native/portable/project catalog to only the worker connector, but that route requires approval to install a
+  persistent dedicated symbolic stdio connector/helper. These source-interface gaps are not repaired by account approval.
+  Neither persistent installation nor the working-directory/auth-file exception has been accepted. A terminal opening or
+  offline probe is not account acceptance.
 * The final contract audit found unused R3/Q3 Context configuration and native internal-helper interpretation gaps. A separate
   PR4-only candidate has typed project overrides, displayed pinned defaults, no default writes, user-only routes and guarded
   client controls; 154 client checks and 179 combined server/adapter checks passed, with four live-engine checks not run in that

@@ -61,10 +61,12 @@ def test_a_bound_pi_pane_reaches_lampway_through_the_extension(tmp_path):
         p.stdin.flush()
         time.sleep(6)
         p.stdin.close()
+        p.stdin = None  # EOF was sent deliberately; communicate must not flush the closed pipe.
         out, err = p.communicate(timeout=30)
     finally:
         if p.poll() is None:
             p.kill()
+            p.wait(timeout=30)
     notes = [json.loads(line).get("message", "") for line in out.splitlines() if line.startswith("{")]
     assert any(n.startswith("lampway: connected") for n in notes), (notes, err[-2000:])
     assert json.loads(log.read_text().splitlines()[0]) == {"bound": "scene-pi"}
