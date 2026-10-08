@@ -81,6 +81,8 @@ Motion contract links resolve to ../docs/canon/motion_graphics/; measured accept
 
 Composite `lampway_fit stage=conform` documents the admitted ARAP candidate, caller-explicit clearance/seam limits and physically untested solver defaults. Solving returns a disposable candidate; a successful stage requires its unchanged hash and genuine output render review. Keep canonical mesh admission, rigid-metal/source preservation and downstream candidate identity checks. No new MCP route or spend capability is introduced.
 
+Keep composite stage guidance within the full MCP catalogue byte ceiling; link detailed arguments to canon03-H2 and preserve candidate next_args instead of increasing the measured limit.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -104,3 +106,5 @@ Composite `lampway_fit stage=conform` documents the admitted ARAP candidate, cal
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
 | 2026-10-08 | motion documentation links | captain: relocate and write up motion specs | server contracts cited the root specs folder | link normative canon and separate measured report | combined registry/dispatch and documentation link checks |
 | 2026-10-08 | admitted soft conform stage contract | captain admits ARAP candidate and delegates untested solver defaults | public descriptions still claimed the stage was unbuilt, while a solve could be mistaken for reviewed acceptance | document explicit limits, pending candidate versus accepted stage, untested defaults and unchanged identity/review gates | composite/native solver regressions and generated registry check |
+
+| 2026-10-08 | bounded conform catalogue | full standalone G15 check | expanded guidance crossed335000B catalogue ceiling | shorten redundant stage prose, preserve explicit inputs/review/untested labels and linked canon, retain ceiling | unchanged full catalogue regression |

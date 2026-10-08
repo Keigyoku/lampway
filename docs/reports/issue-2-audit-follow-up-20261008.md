@@ -56,6 +56,8 @@ Commands use the declared test interpreter and a disposable older native executa
 
 The covering inventory compares AST test identities against the original `290ddd3a` audit base and ties execution to XML receipts. All five literal files contain the missing input cases: numpy scalars; UV-split/open native-shaped intake; corrective fan-out apply; default Cube/import cleanup; hidden-armature conform. It records source hashes and exact executed case identities. This is available evidence for AC03, not independent certification of every original acceptance clause or authentic historical RED-first order.
 
+The final standalone repeat exposed one new full-catalogue ceiling regression in expanded conform guidance and three missing-rsync environment failures. The guidance was shortened with required inputs, candidate review and physically untested labels preserved, without increasing the335000B ceiling. Reruns use the existing isolated rsync binary and its libraries. Receipts distinguish this correction from the separately owned Agent Mode failures.
+
 ## Remaining interfaces and acceptance
 
 | Criterion | Remaining requirement / dependency |

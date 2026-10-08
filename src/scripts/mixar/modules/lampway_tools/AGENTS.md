@@ -118,6 +118,8 @@ The captain admitted the ARAP-with-clearance candidate under canon03-H2 on2026-1
 
 Procedural material probe baking uses one EEVEE frame for three equal-resolution emission tiles only when its reachable coordinate graph is independent of world/camera/external-object state. Each tile retains identical local/object coordinates and the previous linear pixels. Unknown or coordinate-sensitive graphs keep isolated three-frame rendering. Preserve all55 preset tests, the existing240-second per-process limit, caller scene state and owned camera/world cleanup. Resource-profile passes remain distinct from matching-native aggregate acceptance.
 
+Public stage descriptions keep detailed solver input contracts in the linked canon and pending candidate next_args; preserve the measured full MCP catalogue byte ceiling when adding stage guidance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -172,3 +174,5 @@ Procedural material probe baking uses one EEVEE frame for three equal-resolution
 | 2026-10-08 | onboarding popup content refresh | private AC51 timing-sensitive audit | button context redraw targeted the editor while popup layout required its own refresh flag | rebuild and redraw the existing temporary popup for Continue and Back; preserve shared footer and isolated native evidence boundaries | two behavioral RED controls and standalone/native transition receipts |
 | 2026-10-08 | admitted soft conform candidate | captain admits03-H2 and delegates untested solver defaults | unconditional unbuilt refusal prevented the soft fit chain; a numerical solve could be mistaken for approved output | canonical mesh/native body admission, explicit limits and immutable identities; disposable pending candidate then reviewed acceptance; rigid/source preservation and accepted-candidate downstream routing | pure ARAP/order falsifiers and native candidate/stale/cleanup controls; original physical fit remains untested |
 | 2026-10-08 | bounded procedural probe render cost | private audit240s timeouts for two55-preset material checks | rendering three separate frames per preset exceeded constrained software-render budgets | render three independent coordinate-safe emission tiles in one frame, conservatively retain isolated fallback and caller/owned-data cleanup | byte-exact independent linear pixels, coordinate fallback plants and12 fullfile passes on oneCPU under unchanged deadlines |
+
+| 2026-10-08 | bounded conform catalogue guidance | exact-source aggregate exposed335295B catalogue | expanded stage prose crossed335000B MCP catalogue ceiling | concise stage description links full canon inputs and preserves actionable candidate next_args without changing the limit | unchanged catalogue ceiling regression |
