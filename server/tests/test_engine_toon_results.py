@@ -2,12 +2,37 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The generic engine boundary uses PR1's shared codec, not its three-tool schema."""
 import json
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from lampway_server.compute.toon_out import SPEC_VERSION, decode, encode
 from lampway_server.engine.mcp_endpoint import format_result
+
+
+def test_pinned_hermes_receives_one_lossless_representation(tmp_path):
+    engine = Path(os.environ.get("LAMPWAY_HERMES_ENGINE", "/nonexistent"))
+    python = engine / "env/bin/python"
+    if not python.is_file():
+        pytest.skip("requires the pinned Hermes engine renderer")
+    value = {"success": True, "rows": [{"name": "quoted, colon: 雪", "count": 42}]}
+    result = format_result(json.dumps(value, ensure_ascii=False), False)
+    code = """
+import json, sys
+from types import SimpleNamespace
+from tools.mcp_tool_handlers import _render_call_tool_result
+data = json.loads(sys.stdin.read())
+data['content'] = [SimpleNamespace(**block) for block in data['content']]
+print(_render_call_tool_result(SimpleNamespace(**data), 'lampway'))
+"""
+    env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "HERMES_HOME": str(tmp_path / "hermes")}
+    run = subprocess.run([str(python), "-c", code], input=json.dumps(result), text=True,
+                         capture_output=True, env=env, timeout=30, check=True)
+    rendered = json.loads(run.stdout)
+    assert set(rendered) == {"result"}, "Hermes must not append a second JSON copy beside TOON"
+    assert decode(rendered["result"]) == value
 
 
 @pytest.mark.parametrize("value,is_error", [
@@ -22,8 +47,7 @@ def test_engine_json_results_are_lossless_toon_without_wrapper_schema(value, is_
     assert rendered == encode(value), "the engine must use the shared codec at its result seam"
     assert decode(rendered) == value
     assert result["isError"] is is_error
-    if isinstance(value, dict):
-        assert result["structuredContent"] == decode(rendered)
+    assert "structuredContent" not in result
 
 
 @pytest.mark.parametrize("text", ["pong", "refused: capability is off", "ordinary words\nwith another line", "{not JSON}"])

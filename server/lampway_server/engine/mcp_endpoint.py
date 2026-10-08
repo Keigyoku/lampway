@@ -9,8 +9,9 @@ answered with plain JSON, for the Hermes of one unit's Mode 1 pane (a unit is a 
   questions are Hermes's own ``clarify``, the island's question (A2); ``ask_user`` left the registry. ``tools/call`` runs through
   ``HermesFront.call_tool``, i.e. ``AgentHub._run_tool`` with its gates, on the scene tab's CURRENT client socket, whoever started
   the turn (the island or the pane); with no Lampway window connected the call is refused, saying so.
-* Generic tool results use the shared TOON 4.3 codec through ``format_result``. JSON objects also carry equivalent
-  ``structuredContent``; plain tool text is a TOON string. This is independent of the external wrapper tools' output schemas.
+* Generic tool results use the shared TOON 4.3 codec through ``format_result``, as one lossless text representation. This
+  endpoint advertises no output schema; optional structured content would duplicate the result in Hermes's model message.
+  Plain tool text is a TOON string. The external wrapper tools' output schemas are independent.
 """
 
 import json
@@ -19,7 +20,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-from ..compute.toon_out import decode, encode
+from ..compute.toon_out import encode
 
 PROTOCOL_VERSION = "2025-06-18"
 LOOPBACK = {"127.0.0.1", "::1", "localhost", "testclient"}
@@ -37,8 +38,6 @@ def format_result(text: str, is_error: bool) -> dict:
         value = {"error": "Tool result cannot be encoded as TOON", "code": "invalid_result"}
         rendered, is_error = encode(value), True
     result = {"content": [{"type": "text", "text": rendered}], "isError": bool(is_error)}
-    if isinstance(value, dict):
-        result["structuredContent"] = decode(rendered)
     return result
 
 

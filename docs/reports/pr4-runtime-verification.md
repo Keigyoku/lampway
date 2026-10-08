@@ -74,6 +74,29 @@ without skips in 6.119 seconds. Inherited seccomp denied IPv4 and IPv6 socket cr
 control succeeded. This fixture fix is not yet a matching-build or final-head native receipt. A new full client run has not
 been performed: the two known 240-second material failures and account/owner acceptance blocks remain unresolved.
 
+## Later matching checkpoint and E1.6 audit
+
+The published `78461063bd204e75957b3be9555417ab85fc321a` checkpoint has an actual clean matching native build
+(binary SHA256 `22eb6354194e84528c6b3ed02373eebeadeba8d840690d41008b07ac7dd800e3`). All 54 required checkpoint
+identities plus the seven exact repaired client cases passed together: 61 passed, no skips. Native fitter/RNA checks passed
+5 and native consumer syntax/preprocessor controls passed 11; this is not a full OFF binary build. Fresh physical Docs/Report
+clicks returned HTTP 200 from the actual local backend. Root inspected the new profile, Mode chip/menu and five palette
+screenshots. All four actual pinned Hermes/herdr native runtime cases passed without skips: integrated turn, two-worker
+collection and Stop after streaming/before the first token. Source, binary, CMake and compiled-source fingerprints stayed
+unchanged. GitHub returned no workflow runs or commit statuses for this checkpoint; CI remains unverified.
+
+The E1.6 paired deterministic task audit then found that optional `structuredContent` beside TOON text is copied into the
+pinned Hermes model message as JSON. Identical flat-row and escaped/nested tasks succeeded through the real pinned Hermes
+and its TUI in a played herdr PTY, with a scripted recording provider; this is semantic transport/calculation proof, not
+generative reasoning or account proof. Reference `cl100k_base` counts were JSON 855/559 versus duplicate TOON 1572/1159 for
+the complete model-visible tool message. Smaller TOON text alone did not establish a model-context saving. The generic
+engine endpoint advertises no output schema, so the scoped repair removes its optional duplicate while retaining lossless
+TOON text, error flags, the byte-identical shared codec and all external wrapper schemas. The native-renderer regression
+was RED before this repair and all 13 focused seam/library controls passed afterward. The six deterministic comparison turns
+all completed; corrected full model-message counts were 550/648 versus JSON 855/559, preserving identical answers and
+recording zero actual external sends. Fresh final-source/native/server proof after publication is required; earlier checkpoint results
+are not relabelled as later-head acceptance. Token results are workload-specific, not a promise of savings for every shape.
+
 ## Scoped completion repairs
 
 PR4 now owns the production configured-app wiring. The app factory forwards the pinned worker resolution with its existing
@@ -105,11 +128,11 @@ all five passed under the reloadable file launcher.
   service ruling is settled: it follows the parent implicitly until explicitly changed, after which the worker override stays
   pinned. The compatibility mapping now preserves explicit worker choices through parent-only preference, environment and
   dialog updates, with 165 focused Choices/provider/wiring checks passing and 20 pre-fix mapping failures retained.
-* The published `ad15ad77` checkpoint has the matching native/runtime, profile, palette, full pinned-server and CI evidence
-  above. After the Pi fixture repair, complete the full client/server suites and exact final published-head CI; retain a new
-  matching build and rerun the required native/runtime checks against that candidate. No result from `ad15ad77` is silently
-  relabelled as proof of the later source head.
-* All seven adapters still require real account-backed scene-tool, interrupt, image and session-record acceptance. No provider,
+* The historical checkpoints above retain their exact matching evidence. After the E1.6 seam/diagnostic correction, complete
+  the full client/server suites and exact final published-head CI; retain a new matching build and rerun the required native/
+  runtime checks against that candidate. No historical result is silently relabelled as proof of the later source head.
+* All seven adapters still require real account-backed scene-tool, interrupt, supported image behavior and session-record
+  acceptance; Cursor currently refuses image attachment explicitly, so its required image proof must verify that refusal. No provider,
   paid-call, credential or persistent-grant authorization has been supplied. Correct sequence-shaped `mcpServers` activated
   Grok 1.0.46's primary custom-agent body and inline MCP in a network-denied synthetic first turn. Earlier mapping-shaped
   fixtures were invalid, so no primary-activation vendor defect is claimed. Primary overlays still retain unrelated global
@@ -129,6 +152,12 @@ all five passed under the reloadable file launcher.
   on next-user-reopen application versus retaining the live-reload requirement, and on whether Hermes's native internal helpers
   may remain inside the existing pane under A0/A1/Q14. A proposed delegation restriction alone does not fence native `/bg` or
   `/btw`; no complete internal-helper isolation is claimed.
+
+* Q2 retains approved 30-day/200-session values, but its older physical archive/live-store terms need mapping to Hermes-owned
+  sessions. The pin defaults to pruning ended history at 90 days, optional soft archive at three days, and a soft in-memory
+  detached-session LRU of 16; these are not proof of the approved archive policy. No second Lampway conversation store or
+  silent native pruning policy was introduced. R5 explicitly supersedes parked turns, so the old 24-hour parked TTL is not
+  a separate acceptance requirement under this pane architecture.
 
 No force push, merge, deployment, paid provider call, account credential transfer, user desktop operation or private asset
 upload was performed by this cloud crew. User originals were not purged; image-expiry tests use their own temporary files.

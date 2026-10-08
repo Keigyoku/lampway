@@ -6,10 +6,11 @@ The two share nothing: the user's Hermes is whatever is on the user's PATH, with
 is the pinned release under `<install>/engines/hermes/<tag>/`. detect() skips any binary under an `engines/hermes` directory, and
 nothing here names, reads or writes the user's Hermes home.
 
-Resume: `--resume <id>`. Bypass (the user's tick only): `--yolo`. Lampway's tools: not reachable from this pane. Hermes reads its MCP
-servers only from `config.yaml` in its home (HERMES_HOME, else ~/.hermes): pointing a pane at another home would take the user's
-providers and logins away from it, and writing the user's home is what E1.10 forbids. A user who wants Lampway's tools in their
-own Hermes adds Lampway's connector themselves (`hermes mcp add`), unpinned to any tab. Observation: the screen (its `state.db` is
+Resume: `--resume <id>`. Bypass (the user's tick only): `--yolo`. Lampway's supported pane wiring remains unavailable. Hermes
+loads MCP servers from its home's `config.yaml` and enabled portable plugins. Native `--toolsets` can restrict discovery to a
+named connector, but a dedicated symbolic connector/helper requires explicit persistent setup. Another HERMES_HOME changes
+configuration and provider state; some profile OAuth state can fall back to the root profile, which does not establish a
+general login-preserving pane route. Lampway never writes the user's home (E1.10). Observation: the screen (its `state.db` is
 in the user's Hermes home). Checked on Hermes Agent v0.21.5 (2026.9.24) with a throwaway HOME and HERMES_HOME (see FACTS).
 """
 import os
@@ -35,17 +36,26 @@ class Hermes(Adapter):
     interrupt_keys = ("ctrl+c",)
     takes_image_paths = True
     tools_reachable = False
-    tools_note = ("Your own Hermes reads MCP servers only from config.yaml in its own home, which Lampway never writes (agent-modes "
-                  "spec E1.10), so this pane cannot reach Lampway's tools; add Lampway's connector yourself with `hermes mcp add` "
-                  "if you want them there (it is not pinned to a scene tab)")
+    tools_note = ("Your own Hermes loads configured MCP servers and enabled portable plugins. Lampway never writes your shared "
+                  "configuration (agent-modes spec E1.10). Its native --toolsets filter can select a dedicated connector, but "
+                  "that connector/helper needs explicit persistent setup; this adapter has no verified pane-scoped wiring "
+                  "preserving your existing provider and login configuration")
     FACTS = {
         "version": "Hermes Agent v0.21.5 (2026.9.24): Lampway's pinned build of the same release, run as a user's would be with a "
                    "throwaway HOME and HERMES_HOME (`hermes --version`)",
         "argv": "`hermes --help` (v0.21.5): `--resume, -r SESSION` (by id or title), `--yolo` (bypass approval prompts); no positional "
                 "prompt at the top level",
         "status": "`hermes status` prints every component and exits 0 signed out: no login status command is run",
-        "mcp": "MCP servers live only in HERMES_HOME's config.yaml (`hermes mcp --help`; the source reads no other config variable "
-               "than HERMES_HOME): no per-pane config without replacing the user's home",
+        "mcp": "config.yaml under HERMES_HOME supplies native servers; tools/mcp_tool_config.py also merges enabled portable "
+               "plugin servers. No separate per-process MCP config-path override was found in v0.21.5",
+        "mcp_filter": "on the pinned v2026.9.24 interpreter, network-denied discovery connected four synthetic servers without "
+                      "a filter (worker, unrelated native, user portable plugin, project portable plugin); the native --toolsets "
+                      "name filter connected only the worker. Its symbolic LAMPWAY_BOUND_SESSION arrived, and synthetic login-store "
+                      "and environment-file hashes stayed unchanged. This proves discovery filtering, not a user-TUI scene call "
+                      "or an installed connector/helper (scratch receipt native-mcp-scope-options-receipt.json)",
+        "profile_auth": "hermes_cli/auth.py _load_provider_state_with_source can fall back to the root profile's login store for "
+                        "some OAuth state; profile configuration and environment files remain separate. Native refresh can write "
+                        "the root login store (auth_xai.py). This is not a general login-preserving scoped-config route",
         "herdr": "herdr 0.9.3 knows the kind `hermes` (src/detect/mod.rs interactive_agent_executable)",
         "interrupt": "Ctrl+C: the TUI's hotkeys ('clear draft / interrupt / exit', ui-tui/src/content/hotkeys.ts) and its busy "
                      "placeholder 'Ctrl+C to interrupt'; a typed draft is cleared first",

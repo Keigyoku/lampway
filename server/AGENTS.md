@@ -36,6 +36,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    the registry), every call
    through `AgentHub._run_tool` on the scene tab's CURRENT client socket (`AgentHub.socket_for`), whoever started the turn; with no
    Lampway window connected the call is refused, saying so. It has no confirm path either (law 3).
+   Its generic results carry one lossless TOON text representation through the shared codec, with no optional
+   `structuredContent`: it advertises no output schema, and pinned Hermes otherwise adds a second JSON copy to the model
+   message. External wrapper output schemas remain independent. Measure full model messages, not just TOON text, and report
+   workload-specific token counts rather than promising savings for every shape.
    The pane endpoint (`/api/v1/mcp/pane`, spec S3) is not an external app either: loopback only, it answers only a pane Lampway
    started on its own herdr server, proven by that pane's own bearer, which lives only in the pane's own 0600 config or its
    environment, handed to herdr like a per-pane API key (never the registry, which keeps a hash, and never the harness's command
@@ -332,3 +336,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | implicit parent service until explicit worker choice | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | parent-only provider scope selected a cheap/low-effort worker model and a parent dialog save overwrote an explicit worker choice | invariant 10: full implicit parent choice, explicit worker scopes only from worker fields, saved overrides preserved and resolutions pinned | direct captain ruling |
 | 2026-10-08 | exact Grok primary overlay observations | valid sequence-shaped primary-agent fixture on installed 1.0.46 | invalid mapping-shaped probes falsely suggested primary activation was unsupported; global MCP exclusion still fails | invariant 6 and adapter FACTS distinguish proven activation/name replacement from unproved worker isolation and account execution | network-denied synthetic native probes |
 | 2026-10-08 | Pi offline fixture owns its closed stdin and child | real Pi 1.0.4 offline extension check | deliberate EOF left a closed stdin attached, so communicate flushed it and raised before the MCP assertions; teardown killed without waiting | Test section records detached closed stdin and bounded owned-child cleanup, preserving the six-second window and thirty-second communicate limit | actual network-denied Pi fixture RED and GREEN |
+| 2026-10-08 | one engine result in Hermes's model message (E1.6) | paired deterministic JSON/TOON tasks on pinned Hermes and reference cl100k_base tokenizer | optional structured content duplicated TOON as JSON in the native renderer, making full messages larger despite smaller flat-row text | invariant 4: generic endpoint emits only lossless TOON text; pinned-renderer RED/GREEN and existing semantic cases hold it, without changing external wrappers or the shared codec | isolated deterministic provider; reference tokens, not billed usage |
