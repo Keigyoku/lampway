@@ -292,10 +292,14 @@ class AgentHub:
             cancelled = True
         elif self.engine is not None and self.engine.is_running(session_id):
             cancelled = await self.engine.interrupt(session_id)     # spec A2: session.interrupt
-        if self.engine is not None:
-            # MCP tools run in separate requests: Stop joins this unit's work even when the island task or pane ended.
-            cancelled_tools = await self.engine.cancel_tool_calls(session_id)
-            cancelled = bool(cancelled_tools) or cancelled
+        try:
+            if self.engine is not None:
+                # MCP tools run in separate requests: Stop joins this unit's work even when the island task or pane ended.
+                cancelled_tools = await self.engine.cancel_tool_calls(session_id)
+                cancelled = bool(cancelled_tools) or cancelled
+        finally:
+            cancelled_workers = await self.swarm.join_cancelled_session(session_id)
+            cancelled = bool(cancelled_workers) or cancelled
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 

@@ -498,6 +498,26 @@ class SwarmManager:
             if swarm.parent_session == session_id and not swarm.collected:
                 self.cancel_all(swarm)
 
+    async def join_cancelled_session(self, session_id: str) -> int:
+        """Join this unit's already-cancelled workers, without stopping independent running work."""
+        tasks = {worker.task for swarm in self.swarms.values() if swarm.parent_session == session_id
+                 for worker in swarm.workers if worker.status == "cancelled" and worker.task is not None and not worker.task.done()}
+        if not tasks:
+            return 0
+        joined = asyncio.gather(*tasks, return_exceptions=True)
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(joined)
+                break
+            except asyncio.CancelledError:
+                if joined.cancelled():
+                    raise
+                cancelled = True
+        if cancelled:
+            raise asyncio.CancelledError
+        return len(tasks)
+
     # ------------------------------------------------------------ one worker
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain (its pane) think,
