@@ -31,6 +31,7 @@ local-embeddings = [
 test = [
     "pytest>=8",
     "pytest-timeout>=2",
+    "pyte>=0.8,<0.9",             # the real pane screen and transcript tests
     "websockets>=12",
 ]
 

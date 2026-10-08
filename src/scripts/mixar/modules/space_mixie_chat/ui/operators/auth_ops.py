@@ -473,6 +473,28 @@ def _release_stuck_login(attempt_id, thread):
     return None
 
 
+class MIXIE_CHAT_OT_open_docs(Operator):
+    """Open the documentation served by this Lampway installation"""
+    bl_idname = "mixie_chat.open_docs"
+    bl_label = "Documentation"
+
+    def execute(self, context):
+        from mixar.config.config import get_server_url
+        bpy.ops.wm.url_open(url=get_server_url().rstrip('/') + '/app/docs')
+        return {'FINISHED'}
+
+
+class MIXIE_CHAT_OT_report_bug(Operator):
+    """Open Lampway's local bug report instructions"""
+    bl_idname = "mixie_chat.report_bug"
+    bl_label = "Report a Bug"
+
+    def execute(self, context):
+        from mixar.config.config import get_server_url
+        bpy.ops.wm.url_open(url=get_server_url().rstrip('/') + '/app/bug-report')
+        return {'FINISHED'}
+
+
 class MIXIE_CHAT_OT_login(Operator):
     """Login to the agent via browser SSO"""
     bl_idname = "mixie_chat.login"
@@ -677,6 +699,8 @@ class MIXIE_CHAT_OT_refresh_credits(Operator):
 
 
 classes = (
+    MIXIE_CHAT_OT_open_docs,
+    MIXIE_CHAT_OT_report_bug,
     MIXIE_CHAT_OT_login,
     MIXIE_CHAT_OT_logout,
     MIXIE_CHAT_OT_open_dashboard,

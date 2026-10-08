@@ -52,6 +52,12 @@ nothing, but gain agent persistence".
 4. **What does not change:**
    - a worker builds in its own headless Blender scene, and the swarm substrate collects the result into the user's scene (S1);
    - the laws: egress opt-in and logged, spend only on the user's click, write-ahead receipts, controlled decoupling.
+5. **Worker selection is independent of the parent (captain clarification, confirmed 2026-10-08).** The initial and saved
+   worker mode and service are the user's worker choices, not inferred from the parent's mode, harness or current provider.
+   Choices `agent.worker_mode` selects Mode 1 (`local:lampway_hermes`) or Mode 2 (`byoa:<harness>`). In Mode 1, the separate
+   `agent.worker` choice selects the API service/model or Lampway's Sign in with ChatGPT; in Mode 2, the selected native harness
+   uses its own service and login. Lampway neither copies nor transfers credentials between them. This clarification supersedes
+   the older parent-harness default proposal in S1, S3, S4 and Q10; it does not rename either Choices purpose.
 
 ### A1. The Hermes pane (Mode 1: main agent and workers)
 
@@ -1280,9 +1286,11 @@ engine in Mode 1, the user's own harness in Mode 2. The parts that make a swarm 
 
 ## S1. One substrate, three brains
 
-*Superseded by A:* one brain. `PaneBrain` runs every worker in a pane. The adapter decides the mode: `lampway_hermes` for Mode 1
-(A1), the parent's harness for Mode 2. `builtin` and `engine` are removed (A5). The substrate and `WorkerJob.call_tool` stand
-as written.
+*Superseded by A:* one brain. `PaneBrain` runs every worker in a pane. The user's saved `agent.worker_mode` selects the adapter:
+`lampway_hermes` for Mode 1 (A1), the user's selected BYOA harness for Mode 2, independently of the parent (A0.5, S4, Q10).
+Mode 1 separately resolves `agent.worker`; Mode 2 keeps that harness's own service/login. `builtin` and `engine` are removed
+(A5). The substrate and `WorkerJob.call_tool` stand as written. The protocol and `builtin` paragraph below record the earlier
+design, not additional current brains.
 
 **Contract.** `SwarmManager` keeps the substrate and asks a **worker brain** to think:
 
@@ -1317,7 +1325,9 @@ class WorkerJob:
 
 It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abilities and limits below still apply.
 
-**Built 2026-10-07: the worker's model is the `agent.worker` choice** (`engine/wiring.py` `provider_getter`, `engine/gateway.py`):
+**Historical build description, 2026-10-07: the worker's model is the `agent.worker` choice** (`engine/wiring.py` `provider_getter`,
+`engine/gateway.py`). Its implicit follow-main default below is superseded by A0.5 and S4; the historical description is retained
+to distinguish the earlier build from the current requirement:
 - The gateway decides from the token's session. A worker pane's gateway token is keyed by its swarm binding
   (`swarm:<swarm>:<worker>`, `Mode1Units.prepare`), a main pane's by its unit, so the gateway answers a main pane with the current
   main provider and a worker's pane with the worker choice.
@@ -1330,6 +1340,18 @@ It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abi
   then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's worker role both write, then
   the default `follow:agent.main`. The dialog's swarm model is therefore what the gateway answers a worker with.
 - Tested with a scripted provider each, and the dialog's swarm model through the gateway (`tests/test_engine_wiring.py`).
+
+**Current Mode 1 service boundary:** the worker's own `agent.worker` resolution is captured when it starts, separately from
+`agent.worker_mode`, and its gateway uses that pinned resolution for the worker's life (`agent/swarm.py` `worker_brain`,
+`herdr/swarm_brain.py`, `engine/wiring.py` `provider_getter`). Missing resolution, an incompatible provider factory or a service
+that cannot be built refuses the call; it never switches to the current main provider. Selecting Mode 2 leaves this Mode 1
+service choice saved and does not pass its credentials to the BYOA harness.
+
+**Initial-default gap, not an acceptance claim:** `choices/bridge.py` `chains` still derives an unset swarm provider from the
+main settings (`kind = s.swarm_provider or prov`) and can produce `follow:agent.main`. These compatibility defaults and any
+user-selected follow choice are distinct from automatic parent-harness selection, but do not prove the initial service
+independence required by A0.5. That initial-default integration remains unresolved; it must not be reported as decided or
+verified merely because a saved worker service resolves independently.
 
 **Contract.**
 - Each worker is one engine session (E1.2) with `HERMES_HOME=<state>/agent/hermes/<session_id>/workers/<worker_id>`. That keeps
@@ -1349,8 +1371,10 @@ It finishes with `lampway_worker_done`, exactly as a Mode 2 worker does. The abi
 ## S3. Mode 2: pane workers
 
 **Contract.**
-- **Where:** each worker is a pane on Lampway's herdr server running the same harness as the parent pane, by default (**Q10**),
-  through its adapter (B1). It is started under that harness's `byoa:<harness>` route (B5) and the user's own login.
+- **Where:** each worker is a pane on Lampway's herdr server running the BYOA harness selected by the user's saved
+  `agent.worker_mode` choice (**Q10**, A0.5), independently of the parent's mode or harness, through its adapter (B1). It is
+  started under that harness's `byoa:<harness>` route (B5), using the harness's own service and login. Lampway never transfers
+  its Mode 1 API keys or ChatGPT login into that harness. The older same-harness-as-parent proposal is superseded.
 - **Its scene (as built, 2026-10-07):** the worker pane does not go through the client's MCP launcher. It talks straight to
   Lampway's loopback pane endpoint, `POST /api/v1/mcp/pane`. Its config has one server: header
   `X-Mixar-Session-Id: swarm:<swarm_id>:<worker_id>` and a per-worker bearer, kept by the server only as a digest and revoked when
@@ -1400,13 +1424,23 @@ by a bound Mode 2 pane over MCP, or by Lampway Agent's Hermes pane over its engi
 
 ## S4. Choosing the brain
 
-*Superseded by A:* there is one brain, `PaneBrain`. The unit's mode picks the adapter: `lampway_hermes` in Mode 1, the bound
-pane's harness in Mode 2.
+**Current contract (A0.5, Q10; captain clarification confirmed 2026-10-08).** There is one brain, `PaneBrain`, and the user's
+worker choices select its runtime and service independently of the parent:
 
-- The tab's mode decides: `runtime` (Mode 1) uses `engine` when the engine runs, else `builtin`; `byoa` (Mode 2) uses `pane`.
-- Until M0's tab property exists, the server decides from the caller: a swarm started by the in-app agent uses `engine` or
-  `builtin`; one started by a bound BYOA pane over MCP uses `pane`.
-- A swarm never mixes brains.
+- `agent.worker_mode` selects `local:lampway_hermes` for Mode 1 or `byoa:<harness>` for Mode 2. The shipped mode choice is
+  `local:lampway_hermes`; a saved user choice persists across restart and is not overwritten by the parent's mode or harness.
+- Mode 1 separately resolves the user's `agent.worker` API service/model or Lampway Sign in with ChatGPT. That resolution
+  is pinned at worker spawn and reaches the gateway unchanged; it is not reselected from the parent's live provider.
+- Mode 2 runs the selected first-party harness in herdr on that harness's own service/login. It does not resolve or consume the
+  Mode 1 worker service, and changing worker mode preserves that saved service. No Lampway credential transfer occurs.
+- Missing readiness, a disabled BYOA route, an unsupported worker endpoint or unavailable Mode 1 runtime refuses the start
+  with help. It never falls back to a different mode, parent harness or hidden worker.
+- The initial mode and service must obey the same independence requirement. The legacy initial-service settings/default gap
+  is recorded in S2; saved-choice tests alone do not close it.
+
+**Historical design, superseded:** the tab or caller previously selected `builtin`, `engine` or `pane`, with Mode 2 workers
+following the parent harness. A0/A5 removed those alternate brains; the later worker-selection clarification removes the parent
+inheritance rule. The caller still supplies the owning unit and scene binding, not the worker's mode or service.
 
 ## S5. Tests (RED first)
 
@@ -1460,8 +1494,12 @@ pane's harness in Mode 2.
    - **Lampway's pinned Hermes:** thinks only through Lampway's providers.
    - **A user's own Hermes:** runs under BYOA with whatever the user configured in it.
 
-10. **Q10 Mode 2 worker harness (proposed default).** A BYOA swarm's workers run the same harness as the parent pane. The other
-    choice is to let the parent name a harness per task. Built with the default; open for the captain.
+10. **Q10 worker mode and service — decided; captain clarification confirmed 2026-10-08.** The user's initial and saved worker
+    mode and service are independent of the parent's mode, harness and provider (A0.5, S4). `agent.worker_mode` selects
+    Lampway Hermes or the user's BYOA harness; Mode 1's separate `agent.worker` selects its service/model, while Mode 2 keeps the
+    selected harness's own service/login without Lampway credential transfer. These are existing purpose IDs, not an API rename.
+    **Historical proposal, superseded:** Mode 2 workers would default to the parent's harness, or the parent could name one per
+    task. That proposal is no longer open. The unresolved initial-service default is documented in S2, not a new captain policy.
 
 11. **Q11 Mode 2 swarm binding (built, open).** The pane bearers go on a direct loopback endpoint instead of the client launcher
     (S3, "as built"). Also open:

@@ -419,6 +419,8 @@ class Cockpit:
         if rec.get("created_by") != "swarm" or not binding or rec.get("swarm_binding") != binding:
             raise CockpitError(f"{sid} was not opened by the swarm for {binding}: the swarm never closes a pane it did not start")
         if close:
+            if HN.is_lampway(rec.get("agent")) and self.mode1 is not None:
+                self.mode1.forget(rec)                     # revoke before pane shutdown can race another model call
             try:
                 L.run(self.root, ["pane", "close", rec["pane_id"]])
             except L.HerdrError:
@@ -673,6 +675,8 @@ class Cockpit:
         if not confirmed:
             raise CockpitError("closing a session is an explicit user action: confirm it (its agent process ends; its history stays)")
         rec = self._get(sid)
+        if HN.is_lampway(rec.get("agent")) and self.mode1 is not None:
+            self.mode1.forget(rec)                         # revoke before pane shutdown can race another model call
         try:
             L.run(self.root, ["pane", "close", rec["pane_id"]])
         except L.HerdrError:

@@ -204,6 +204,20 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             return unauthorized("Incorrect username or password")
         return JSONResponse(auth.issue_pair())
 
+    async def local_docs(request: Request):
+        return html_page(BP.page(title="Lampway - Docs", headline="Getting started with Lampway",
+            line="Lampway runs locally. Provider calls use only the routes you enable.",
+            parts=(BP.status("Open setup to choose your language and keys, enable outbound routes, choose the agent provider and save per-job and per-day spending caps."),
+                   BP.status("To connect an AI app, open Connect AI Apps (MCP) in your profile. Enable MCP and explicitly allow interface control if you want screenshots or UI actions."),
+                   BP.status("Use Inspect to read scene and object information before editing. View can focus objects, capture editors and render a still using your current settings."),
+                   BP.status("Source, installation and reference documentation", link=("Lampway repository", "https://github.com/Keigyoku/lampway")))))
+
+    async def local_bug_report(request: Request):
+        return html_page(BP.page(title="Lampway - Report a Bug", headline="Report a Lampway bug",
+            line="For this local installation, include the app version, what you clicked, what you expected and the exact error.",
+            parts=(BP.status("Use a minimal synthetic scene when possible. Remove credentials, private file paths and personal content from any logs or screenshots before sharing."),
+                   BP.status("Public reports are tracked in the project repository", link=("Create an issue", "https://github.com/Keigyoku/lampway/issues/new")))))
+
     async def me(request: Request):
         token = bearer_token(request)
         if not token or auth.verify_access(token) is None:
@@ -315,6 +329,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return RedirectResponse("/app/chatgpt", status_code=303)
 
     routes = [
+        Route("/app/docs", local_docs, methods=["GET"]),
+        Route("/app/bug-report", local_bug_report, methods=["GET"]),
         Route("/app/chatgpt", chatgpt_home, methods=["GET"]),
         Route("/app/chatgpt/start", chatgpt_start, methods=["POST"]),
         Route("/auth/callback", chatgpt_callback, methods=["GET"]),
@@ -361,7 +377,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     choice_hook = []                                          # filled below, once the agent exists: a saved choice rebuilds what it decides
     routes += stub_routes(auth, store, settings, jobs, on_choice=lambda pid: [f(pid) for f in choice_hook])
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
-        swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
+        swarm_provider_factory = lambda label, resolution=None: make_swarm_provider(settings, label, chatgpt_auth=chatgpt, resolution=resolution)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
@@ -1516,13 +1532,23 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 agent.engine, agent.engine_problem = None, tuple(ENGW.start_failed(exc))
                 logging.getLogger("lampway.engine").warning("the engine could not start; Mode 1 chats are refused", exc_info=True)
 
+        expiry_task = None
+
         async def tick():
+            nonlocal expiry_task
             while True:
                 await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
                 try:
                     await jobs.recover()
                 except Exception:  # noqa: BLE001
                     pass
+                try:
+                    expiry_task = asyncio.create_task(asyncio.to_thread(cockpit.expire_pane_images),
+                                                      name="lampway-pane-image-expiry")
+                    await asyncio.shield(expiry_task)              # shutdown joins any in-flight filesystem cleanup
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.panes").warning("pane image expiry failed", exc_info=True)
+                expiry_task = None
                 if engine_wiring is not None:
                     try:
                         await engine_wiring.tick()                 # nothing to reap: every agent is a pane (A0)
@@ -1532,11 +1558,18 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                     await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
                 except Exception:  # noqa: BLE001
                     logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
-        task = asyncio.get_running_loop().create_task(tick())
+        task = asyncio.get_running_loop().create_task(tick(), name="lampway-maintenance")
         try:
             yield
         finally:
             task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+            if expiry_task is not None:
+                try:
+                    await expiry_task                             # cancelling to_thread never stops its filesystem worker
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.panes").warning("pane image expiry failed during shutdown", exc_info=True)
             if engine_wiring is not None:
                 await engine_wiring.stop()                         # this server's connections to the panes, then the proxy
             render_stop.set()

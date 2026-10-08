@@ -90,6 +90,16 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
+## Governing runtime contracts
+
+Before changing an agent mode, pane, swarm worker or its service selection, read
+[`docs/reports/agent-modes-spec.md`](docs/reports/agent-modes-spec.md): section A governs older sections, and the confirmed worker
+selection in S4 and Q10 is independent of the parent's mode and service. `agent.worker_mode` selects the worker's mode/harness;
+`agent.worker` selects its Mode 1 service. Mode 2 keeps the selected harness's own login; Lampway never transfers credentials.
+Read [`docs/render-job-contract.md`](docs/render-job-contract.md) before changing agent execution during native renders, and
+[`docs/enterprise-network.md`](docs/enterprise-network.md) before changing those agents' client network configuration. These
+contracts supplement the laws; a documented route or proxy is not an egress grant.
+
 ## Facts carried from the upstream guide (verified against this tree)
 
 The root `CLAUDE.md` used to be upstream's own guide, naming its closed backend. These facts from it still hold here:
@@ -159,3 +169,4 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-07 | the engine pinned | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.1) | a second pinned source tree had no row in the map | `third_party/hermes-agent` in the repository map, read-only like `upstream/` | captain ruling, 2026-10-06 |
 | 2026-10-07 | herdr pinned; both pins named by tag | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | herdr was whatever the user had installed, so the layout depended on an unknown version (a misspelled metadata option went unseen until a real herdr ran); the Hermes row named no tag | `third_party/herdr` at herdr's current release (v0.9.3) in the map beside Blender's and Hermes's rows, each with its tag; Hermes stays at its current release (v2026.9.24) | captain ruling, 2026-10-07 |
 | 2026-10-07 | the server's index row after the loop's removal | coordinator brief, Mode 1 loose end 10 | the Child DOX Index still said the server owns an "agent loop", which spec A5 removed: Mode 1 runs only on Hermes in its pane | the server row names what it owns now: the island's front end to the Hermes pane and the model gateway, no loop of its own | none |
+| 2026-10-08 | AgentModes governing contracts and independent worker selection indexed | captain's worker selection clarification, confirmed by the parent; PR4 governing-link closeout | the root guide omitted the render and enterprise contracts, and the agent spec still presented parent-harness inheritance as an open default | the governing runtime contracts link section A, S4 and Q10 and the render/network contracts; saved worker mode and Mode 1 service remain separate, with Mode 2 on its own login | captain clarification, confirmed 2026-10-08 |

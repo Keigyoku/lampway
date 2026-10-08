@@ -37,7 +37,7 @@ def _tree(tmp_path, with_launcher=True):
         exe.write_text('#!/bin/sh\necho "ARGS:$*"\nif [ "${WAYLAND_DISPLAY+set}" = set ]; then echo "WAYLAND_DISPLAY=[$WAYLAND_DISPLAY]"; else echo "WAYLAND_DISPLAY unset"; fi\n')
         exe.chmod(exe.stat().st_mode | stat.S_IEXEC)
         (bin_ / "mixar.desktop").write_text("[Desktop Entry]\nName=Lampway\nExec=mixar %f\nIcon=mixar\nType=Application\n")
-        (bin_ / "mixar.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg'/>")
+        (bin_ / "mixar.svg").write_text("<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'/>")
     return t
 
 

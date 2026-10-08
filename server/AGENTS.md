@@ -134,6 +134,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    by `Cockpit.write_pane_images` into `<project root>/.lampway/panes/<id>/images/`, the one place a pane's file lands outside the
    Lampway root, because the harness must read it inside its workspace (0600 in 0700 directories, the type decided from the bytes,
    the name Lampway's, every directory checked against the project root after symlinks); the paths go before the text. A harness
+   Owned copies expire after the established 30 days at reconciliation and the existing 60-second maintenance tick
+   (`Cockpit.expire_pane_images`); expiry failures are logged and do not stop later ticks. Originals, replacements and
+   unrecorded files are never removed by this policy. A harness
    that takes none is refused with its reason (`images_unsupported`). The island's Stop (`agent.byoa.interrupt`, and `agent.cancel`
    for a tab in Your agent mode) types the adapter's own interrupt keys into the tab's live pane, from the user's socket only. An
    ended pane is offered to the user: `agent.byoa.resume` starts the adapter's resume with the stored native id in a new pane bound
@@ -174,7 +177,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     chain's default `follow:agent.main`; one answer for the workers, in this order: the environment's `LAMPWAY_SWARM_PROVIDER` and
     swarm models (a session scope), then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's
     worker role both write, then that default), never by another: a provider's failure, or a worker choice that cannot be built, is an
-    OpenAI-style error, not a retry; serve's Ollama probe (`POST /api/show`) gets a harmless 404.
+    OpenAI-style error, not a retry. The configured app factory forwards the worker's pinned resolution and shares only its
+    existing app-owned authentication object. Revoking a pane key cancels every enrolled model call for that key even
+    while its TCP peer remains connected; it leaves other panes' calls running and admits no call after revocation.
+    Owned worker shutdown and confirmed user close of a Lampway Mode 1 worker forget its key before asking herdr to close its pane;
+    an unconfirmed close remains refused. Serve's Ollama probe (`POST /api/show`) gets a harmless 404.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
     connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
@@ -312,3 +319,6 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | `/new` while Lampway was away (A2, Q15) | coordinator brief, Mode 1 loose end 7: the frame reaches only a connected client | a client that was closed missed `agent.pane.new_conversation` and kept showing the old chat; a server restarted after the pane's `/new` resumed the closed session from the record, so the island and the pane showed different conversations | invariant 11: `agent.status` `conversations`, `conversation_id` in the turn start and the frame, the attach that follows the pane's live session and the record | none |
 | 2026-10-07 | the quick start's mock provider answers Hermes (A5) | coordinator brief, Mode 1 loose end 9: "make the quick start honest" | the mock was written for the removed loop: it called `scene_summary` and `run_blender_python` by names Hermes does not offer, and a tool call on Hermes's title request, so `--provider mock` only showed that the pane starts | the Test section: the mock behind the gateway, by Hermes's names (MCP prefix or the bridge), text only with no tools, live-tested | none |
 | 2026-10-07 | merge: Mode 1's loose ends beside the swarm and Mode 2 lanes | coordinator integration of the Mode 1 completion lane | both sides rewrote invariant 4's worker sentence (the swarm lane: a pane's swarms by `Swarm.owner`, Retry included; this lane: `ask_user` left the registry) | invariant 4 keeps both; `Mode1Units` keeps Q13's `forget` and the live Capabilities refresh; every anneal row kept | none |
+
+| 2026-10-08 | PR4 configured worker and owned-copy maintenance | configured app worker selection RED; idle maintenance RED with aged synthetic copies | production lambda dropped the resolved worker choice; idle server never expired copies until another action | invariant 6: existing 30-day owned-copy policy runs on the existing maintenance tick and keeps originals; invariant 10: production factory forwards the pinned resolution with app-owned auth | none |
+| 2026-10-08 | PR4 owned pane model-call lifetime | actual two-worker Stop left a provider held after pane close; TCP-held and multi-call RED controls | admission revocation left already-running calls alive and a worker could retry before key removal | invariant 10: enrolled calls end with their key, revocation precedes owned pane close, main calls survive, confirmation stays mandatory | none |

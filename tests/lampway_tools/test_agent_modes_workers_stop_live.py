@@ -40,18 +40,29 @@ class PausedWorkerProvider(WorkerProvider):
         self.pause_before_first = pause_before_first
         self.held = threading.Event()
         self.stream_closed = threading.Event()
+        self.request_seq = 0
+        self.active_requests = set()
+        self.finished_requests = set()
+        self.request_lifecycle = []
 
     async def stream(self, request):
         if request.tools and _called(request.messages, 'run_blender_python'):
             self.requests.append(request)
-            # Hold an established model stream. Waiting before its first event
-            # exercises a separate gateway disconnect-monitoring limitation.
-            if not self.pause_before_first:
-                yield Text(self.worker_name + ' waiting for the fixture user Stop.')
-            self.held.set()
+            # Every held call has its own identity: one closed call must never
+            # hide another pending call or a retry admitted during Stop.
+            self.request_seq += 1
+            request_id = f'{self.worker_name}:{self.request_seq}'
+            self.active_requests.add(request_id)
+            self.request_lifecycle.append({'request': request_id, 'event': 'held', 'at': time.monotonic()})
             try:
+                if not self.pause_before_first:
+                    yield Text(self.worker_name + ' waiting for the fixture user Stop.')
+                self.held.set()
                 await asyncio.Event().wait()
             finally:
+                self.active_requests.remove(request_id)
+                self.finished_requests.add(request_id)
+                self.request_lifecycle.append({'request': request_id, 'event': 'closed', 'at': time.monotonic()})
                 self.stream_closed.set()
             return
         async for event in super().stream(request):
@@ -98,6 +109,7 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
     strict = EG.Egress(tmp_path / 'strict-egress')
     cockpit = Cockpit(root, project_root=str(project))
     providers, gateway = {}, []
+    model_enrollments, key_revocations = [], []
     main = InterruptProvider()
 
     def worker_factory(label, *, resolution=None):
@@ -133,6 +145,24 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
         app = create_app(settings, provider=main, swarm_provider_factory=worker_factory,
                          egress=strict, cockpit=cockpit)
         assert app.state.engine_wiring is not None
+        tokens = app.state.engine_tokens
+        watch_call, revoke_session = tokens.watch_call, tokens.revoke_session
+
+        def observe_watch(token):
+            future = watch_call(token)
+            session = tokens.session_for(token)
+            if not future.done() and session is not None:
+                model_enrollments.append({'session': session, 'at': time.monotonic()})
+            return future
+
+        def observe_revoke(session):
+            count = revoke_session(session)
+            if count:
+                key_revocations.append({'session': session, 'at': time.monotonic()})
+            return count
+
+        monkeypatch.setattr(tokens, 'watch_call', observe_watch)
+        monkeypatch.setattr(tokens, 'revoke_session', observe_revoke)
         before = CAP.ACTIVE.setting('swarm')
         assert before['scope'] == 'default' and not before['enabled']
         refusal = CAP.check_tool('swarm_start', {'tasks': []}, origin='agent')
@@ -178,7 +208,7 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
             proof.update({'workers_after': [w.detail() for w in swarm.workers],
                           'panes_after': pane_records(cockpit),
                           'worker_processes_running_after_stop': {pid: process_running(pid) for pid in pids}})
-            wait_for(lambda: all(p.stream_closed.is_set() for p in providers.values()), timeout=15,
+            wait_for(lambda: all(p.stream_closed.is_set() and not p.active_requests for p in providers.values()), timeout=15,
                      failure='provider streams remain open after real Stop closed both worker panes and processes')
             after = client.status()
             sessions_after = pane_records(cockpit)
@@ -205,14 +235,23 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
             assert swarm.collected and all(w.status == 'cancelled' and not w.receipt for w in swarm.workers)
             sessions = {r['session_id'] for r in gateway if str(r['session_id']).startswith('swarm:')}
             assert sessions == {f'swarm:{swarm.id}:worker-1', f'swarm:{swarm.id}:worker-2'}, gateway
+            revoked_at = {r['session']: r['at'] for r in key_revocations if r['session'] in sessions}
+            assert set(revoked_at) == sessions, key_revocations
+            assert not [r for r in model_enrollments if r['session'] in revoked_at
+                        and r['at'] > revoked_at[r['session']]], model_enrollments
+            assert all(p.finished_requests == {f'{p.worker_name}:{n}' for n in range(1, p.request_seq + 1)}
+                       and not p.active_requests for p in providers.values())
             assert not [r for r in strict.log() if r.get('event') == 'send'], strict.log()
             proof.update({'recovered': recovered, 'gateway': gateway, 'binary_at_end': binary_fingerprint()})
             assert proof['binary_at_start'] == proof['binary_at_end'], 'binary changed during the worker proof'
             client.command('quit'); process.wait(timeout=60)
             assert process.returncode == 0
     finally:
-        proof.update({'gateway': gateway, 'provider_streams': {label: {'held': p.held.is_set(),
-                      'closed': p.stream_closed.is_set(), 'tool_results': [part for request in p.requests
+        proof.update({'gateway': gateway, 'model_enrollments': model_enrollments,
+                      'key_revocations': key_revocations,
+                      'provider_streams': {label: {'held': p.held.is_set(), 'closed': p.stream_closed.is_set(),
+                      'active_requests': sorted(p.active_requests), 'finished_requests': sorted(p.finished_requests),
+                      'request_lifecycle': p.request_lifecycle, 'tool_results': [part for request in p.requests
                        for m in request.messages for part in m.content if part.get('type') == 'tool_result']}
                       for label, p in providers.items()}})
         (client_root / 'worker-stop-proof.json').write_text(json.dumps(proof, indent=2, default=str))

@@ -63,6 +63,7 @@ class Registry:
         #: carries tools (the tool list the model is sent); its verdict stands for the token's life (engine/wiring.py sets it).
         self.first_check: Optional[Callable] = None
         self._checked: dict = {}                           # sha256 hex of the token -> None (passed) or the refusal text
+        self._calls: dict = {}                            # token digest -> enrolled loop/future pairs, never raw keys
         self._rechecks: set = set()                        # digests whose pane's tools changed live: checked again, never latched refused
 
     def __repr__(self) -> str:
@@ -94,16 +95,62 @@ class Registry:
         with self._lock:
             self._checked.pop(self._digest(token), None)
             self._rechecks.discard(self._digest(token))
-            return self._sessions.pop(self._digest(token), None) is not None
+            digest = self._digest(token)
+            removed = self._sessions.pop(digest, None) is not None
+            calls = self._calls.pop(digest, set())
+        self._signal_calls(calls)
+        return removed
 
     def revoke_session(self, session_id: str) -> int:
         with self._lock:
             gone = [d for d, s in self._sessions.items() if s == str(session_id)]
+            calls = set()
             for d in gone:
+                calls.update(self._calls.pop(d, set()))
                 del self._sessions[d]
                 self._checked.pop(d, None)
                 self._rechecks.discard(d)
+        self._signal_calls(calls)
         return len(gone)
+
+    @staticmethod
+    def _signal_calls(calls):
+        for loop, future in calls:
+            def signal(future=future):
+                if not future.done():
+                    future.set_result(None)
+            try:
+                loop.call_soon_threadsafe(signal)
+            except RuntimeError:                          # its owning server loop already ended
+                pass
+
+    def watch_call(self, token: str) -> asyncio.Future:
+        """Enroll under the admission lock: revocation cannot miss an admitted model call.
+
+        The future belongs to this request's loop. Revocation may run in the pane-close
+        thread; its notification is scheduled back onto that loop, never set cross-thread.
+        An already revoked key returns a completed future and starts no model call.
+        """
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+        digest = self._digest(token)
+        with self._lock:
+            if digest not in self._sessions:
+                future.set_result(None)
+            else:
+                self._calls.setdefault(digest, set()).add((loop, future))
+        return future
+
+    def unwatch_call(self, token: str, future: asyncio.Future) -> None:
+        digest = self._digest(token)
+        with self._lock:
+            calls = self._calls.get(digest)
+            if calls is not None:
+                calls.discard((future.get_loop(), future))
+                if not calls:
+                    self._calls.pop(digest, None)
+        if not future.done():
+            future.cancel()
 
     def check_first(self, token: str, session_id: str, tools) -> Optional[str]:
         """None when the request may go on; otherwise the refusal. Only a token's first request with tools is checked; a refused
@@ -173,7 +220,7 @@ class _Disconnected(Exception):
     pass
 
 
-async def _while_connected(request, operation):
+async def _while_connected(request, operation, revoked=None):
     """After the body is parsed, cancel a pending model call when its HTTP client leaves.
 
     The receive task is joined before StreamingResponse takes over disconnect monitoring.
@@ -187,8 +234,11 @@ async def _while_connected(request, operation):
     pending.set_name("lampway-gateway-provider")
     watcher = asyncio.create_task(disconnected(), name="lampway-gateway-disconnect")
     try:
-        finished, _ = await asyncio.wait((pending, watcher), return_when=asyncio.FIRST_COMPLETED)
-        if watcher in finished:
+        waiting = (pending, watcher) if revoked is None else (pending, watcher, revoked)
+        if revoked is not None and revoked.done():
+            raise _Disconnected
+        finished, _ = await asyncio.wait(waiting, return_when=asyncio.FIRST_COMPLETED)
+        if watcher in finished or revoked in finished:
             raise _Disconnected
         return await pending
     finally:
@@ -196,6 +246,23 @@ async def _while_connected(request, operation):
             if not task.done():
                 task.cancel()
         await asyncio.gather(pending, watcher, return_exceptions=True)
+
+
+async def _while_authorized(operation, revoked):
+    """After SSE handoff only watch authorization; StreamingResponse owns receive."""
+    pending = asyncio.ensure_future(operation)
+    pending.set_name("lampway-gateway-provider")
+    try:
+        if revoked.done():
+            raise _Disconnected
+        finished, _ = await asyncio.wait((pending, revoked), return_when=asyncio.FIRST_COMPLETED)
+        if revoked in finished:
+            raise _Disconnected
+        return await pending
+    finally:
+        if not pending.done():
+            pending.cancel()
+        await asyncio.gather(pending, return_exceptions=True)
 
 
 async def _close_events(events):
@@ -506,14 +573,27 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             except Exception:  # noqa: BLE001 - a listener must never stop a model call
                 log.debug("an engine gateway observer failed", exc_info=True)
         done = _Completion(_model_of(provider))
-        events = provider.stream(req).__aiter__()
+        token = _bearer(request)
+        revoked = registry.watch_call(token)
+        if revoked.done():
+            registry.unwatch_call(token, revoked)
+            return Response(status_code=499)
+        try:
+            events = provider.stream(req).__aiter__()
+        except asyncio.CancelledError:
+            registry.unwatch_call(token, revoked)
+            raise
+        except Exception as exc:  # noqa: BLE001 - setup has the same recovery/status contract as the first event
+            registry.unwatch_call(token, revoked)
+            status, err = _provider_error(provider, exc)
+            return JSONResponse(err, status_code=status)
         if not body.get("stream"):
             async def consume():
                 async for event in events:
                     done.take(event)
 
             try:
-                await _while_connected(request, consume())
+                await _while_connected(request, consume(), revoked)
             except _Disconnected:
                 return Response(status_code=499)                    # the client has left; no response is delivered
             except asyncio.CancelledError:
@@ -522,11 +602,12 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
                 status, err = _provider_error(provider, exc)
                 return JSONResponse(err, status_code=status)
             finally:
+                registry.unwatch_call(token, revoked)
                 await _close_events(events)
             return JSONResponse(done.full())
         handed_off = False
         try:                                                           # before the first event the HTTP status can still carry the failure
-            first = await _while_connected(request, events.__anext__())
+            first = await _while_connected(request, events.__anext__(), revoked)
             handed_off = True
         except StopAsyncIteration:
             first = None
@@ -540,18 +621,23 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             return JSONResponse(err, status_code=status)
         finally:
             if not handed_off:
+                registry.unwatch_call(token, revoked)
                 await _close_events(events)
 
         async def sse():
             try:
+                if revoked.done():
+                    return
                 yield done.chunk({"role": "assistant", "content": ""})
                 pending = [] if first is None else [first]
                 try:
                     while True:
-                        event = pending.pop(0) if pending else await events.__anext__()
+                        event = pending.pop(0) if pending else await _while_authorized(events.__anext__(), revoked)
                         delta = done.take(event)
                         if delta is not None:
                             yield done.chunk(delta)
+                except _Disconnected:
+                    return
                 except StopAsyncIteration:
                     yield done.chunk({}, done.finish_reason())
                 except asyncio.CancelledError:
@@ -561,6 +647,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
                     yield f"data: {json.dumps(err)}\n\n"
                 yield "data: [DONE]\n\n"
             finally:
+                registry.unwatch_call(token, revoked)
                 await _close_events(events)
 
         return StreamingResponse(sse(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
