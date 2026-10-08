@@ -274,3 +274,67 @@ def ray_cylinder(o, d, axis_p, axis_d, radius, s0, s1):
             if s0 <= s <= s1 and (best is None or t < best):
                 best = t
     return best
+
+
+# ------------------------------------------------------------------ AC65: independent policy/reference checks
+def ac65_default_errors(case):
+    """Return discrepancies from the authorized, explicitly untested judgment table.
+
+    Do not import the generator or production defaults: this independent compact
+    specification must detect a changed value, missing row or crossed side.
+    """
+    errors = []
+    def require(ok, name):
+        if not ok: errors.append(name)
+    require(case.get("physical_status") == "untested", "physical_status")
+    require(case.get("ruling_date") == "2026-10-07", "ruling_date")
+    require(case.get("settings") == {"facing_margin": .05, "pair_scale_group": "per_side", "collar_depth_mm": 20, "boots_scale_anchor": "width"}, "settings")
+    require(case.get("finger_curl_target_deg") == [80, 95, 60], "curl targets")
+    tables = case.get("tables", {})
+    require(set(tables) == {"waist", "boots", "gauntlets"}, "table kinds")
+    for kind in ("waist", "boots", "gauntlets"):
+        sides = tables.get(kind, {})
+        require(set(sides) == {"l", "r"}, kind + " sides")
+        for side in ("l", "r"):
+            table = sides.get(side, {})
+            if kind == "waist":
+                rows = [("pelvis", "lateral", -8, 8, 4), ("spine_01", "lateral", -8, 8, 4),
+                        ("thigh_l", "-lateral", -8, 8, 4), ("thigh_l", "forward", -8, 8, 4),
+                        ("thigh_r", "-lateral", -8, 8, 4), ("thigh_r", "forward", -8, 8, 4)]
+                expected = {"joint": "head", "along": "forward", "min_cm": 0}
+                bones = ["pelvis", "spine_01", "thigh_l", "thigh_r"]
+            elif kind == "boots":
+                rows = [(f"foot_{side}", "-lateral", -8, 8, 4), (f"foot_{side}", "forward", -8, 8, 4),
+                        (f"calf_{side}", "-lateral", 0, 8, 4)]
+                expected = {"joint": f"ball_{side}", "along": "up", "min_cm": 0}
+                bones = [f"calf_{side}", f"foot_{side}", f"ball_{side}"]
+            else:
+                rows = [(f"hand_{side}", {"line": [f"index_01_{side}", f"pinky_01_{side}"]}, -30, 30, 5),
+                        (f"lowerarm_{side}", {"line": [f"lowerarm_{side}", f"hand_{side}"]}, -15, 15, 5)]
+                expected = {"joint": f"middle_03_{side}", "along": "-forward" if side == "l" else "forward", "min_cm": 0}
+                bones = [f"lowerarm_{side}", f"hand_{side}"] + [f"{f}_{n:02d}_{side}" for f in ("index", "middle", "ring", "pinky", "thumb") for n in (1, 2, 3)]
+                require(table.get("curl_side") == side, f"{kind}/{side} curl side")
+                require(table.get("curl_fractions") == [0, 1/3, 1/2, 2/3, 1], f"{kind}/{side} curl fractions")
+            actual = table.get("dofs", []) + table.get("chain", [])
+            require(len(table.get("dofs", [])) == 1 and len(actual) == len(rows), f"{kind}/{side} complete rows")
+            if actual:
+                require(actual[0].get("expect") == expected, f"{kind}/{side} sign expectation")
+            for i, (row, spec) in enumerate(zip(actual, rows)):
+                bone, axis, lo, hi, step = spec
+                require((row.get("bone"), row.get("axis"), row.get("range"), row.get("step")) == (bone, axis, [lo, hi], step), f"{kind}/{side} DOF {i}")
+            require(table.get("regions") == {"piece": {"bones": bones, "threshold_m": .002}}, f"{kind}/{side} regions")
+            require(table.get("physical_status") == "untested", f"{kind}/{side} physical_status")
+    return errors
+
+
+def ac65_sign_probe(probe):
+    """Signed displacement for the synthetic +20deg straight-joint probe.
+
+    Rodrigues' cross-product form is independent of meshgen's rotation matrix.
+    A reversed axis/direction must produce a strictly negative displacement.
+    """
+    axis, point, along = (np.asarray(probe[k], float) for k in ("axis", "point", "along"))
+    axis = axis / np.linalg.norm(axis)
+    angle = math.radians(probe["deg"])
+    moved = point * math.cos(angle) + np.cross(axis, point) * math.sin(angle) + axis * (axis @ point) * (1-math.cos(angle))
+    return float((moved-point) @ along)

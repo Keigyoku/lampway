@@ -5,13 +5,13 @@
 """fit_export: the rigged export of a fitted piece, behind gates, with a read-back.
 
 Gates (each names its fix): a validation with FAIL, roles with no declared limits (unless allow_unverified, and then the README says so), a bind check that is not ok, textures whose recorded mesh hash is
-not this mesh (a geometry step discards the texture), vertex groups naming a bone the body does not have, an existing tag directory. The FBX is written with the contract's settings (primary bone axis Z,
-secondary X, leaf bones off, units applied) and READ BACK: every joint's position AND its axes against the body package (a position-only check passed exports whose frames were 90 degrees off, so it is
-never the gate)."""
+not this mesh (a geometry step discards the texture), vertex groups naming a bone the body does not have, an existing tag directory.
+Canon21 measured convention recipes write independent centimetre copies, then
+raw units/carriers and authored position/rotation/scale/hierarchy are verified
+against the body package. Imported display errors remain explicit diagnostics."""
 
 import hashlib
 import json
-import math
 import shutil
 from pathlib import Path
 
@@ -35,29 +35,97 @@ def _json(root, p, what):
     return json.loads(q.read_text())
 
 
-def _readback(fbx, joints):
+def export_settings(arm, settings, bone_axis=None):
+    """Use canon21's measured convention recipe for both fitted-piece routes."""
+    from . import rig_export as RE
+    convention = RE._convention(arm)
+    doc, _path = RE._recipe("auto", "", convention)
+    out = dict(settings)
+    for key in ("axis_forward", "axis_up", "primary_bone_axis", "secondary_bone_axis"):
+        out[key] = doc["exporter"][key]
+    if bone_axis is not None:  # retained wrong-pair falsifier, never the default
+        out["primary_bone_axis"] = bone_axis
+        out["secondary_bone_axis"] = "X"
+    out.update(apply_scale_options="FBX_SCALE_NONE", apply_unit_scale=True, global_scale=1.0)
+    return out, convention, {"selected": doc["name"], "measured_convention": convention,
+                            "requested": "auto" if bone_axis is None else "explicit_axis_override",
+                            "ue_armature_container": doc["ue_armature_container"]}
+
+
+def _joint_reference(joints, convention):
+    from . import rig_export as RE
+    from ..rig_tools import fbx_bind as BIND
+    if convention not in ("blender", "ue_axes") or not joints:
+        raise C.FeatureError("read-back needs a nonempty body skeleton and its measured convention")
+    table, parents = {}, {}
+    turn = RE.ENGINE_FROM_BLENDER if convention == "blender" else np.eye(3)
+    for j in joints:
+        if j["name"] in table:
+            raise C.FeatureError("body package has duplicate joint identities")
+        matrix = np.eye(4)
+        matrix[:3, :3] = np.array([j["axes"][a] for a in "xyz"]).T
+        matrix[:3, 3] = np.array(j["head"]) * 100.0
+        try:
+            scale, frame = BIND._rigid(matrix)
+        except BIND.BindRefused as exc:
+            raise C.FeatureError("body package rest frame refused: " + str(exc)) from None
+        table[j["name"]] = {"translation": list(matrix[:3, 3]),
+                            "rotation": list(BIND._quaternion(frame @ turn)), "scale": list(scale)}
+        parents[j["name"]] = j["parent"]
+    return table, parents
+
+
+def _readback(fbx, joints, convention="blender", exporter=None):
+    """Admit raw unit carriers, then compare authored binds under canon21 bars.
+
+    Import reconstruction errors stay visible; temporary IDs and selection are
+    restored on success and failure. No readback matrix or source data is changed.
+    """
+    from . import rig_export as RE, rig_export_space as ES, export_checks as EC
+    from ..rig_tools import core as RC
     before = canon_io.snapshot_ids()
+    result = {"ok": False, "bones_compared": 0,
+              "engine_bind_acceptance": "unverified; requires actual native Unreal reference capture"}
     try:
-        canon_io.import_raw(str(fbx), automatic_bone_orientation=False, primary_bone_axis="Z", secondary_bone_axis="X", ignore_leaf_bones=False)
-        arms = [o for o in bpy.data.objects if o not in before["objects"] and o.type == "ARMATURE"]
-        if not arms:
-            return {"ok": False, "error": "the exported FBX has no armature"}
-        arm = arms[0]
-        pos, ang, n = 0.0, 0.0, 0
-        for j in joints:
-            nm = j["name"]
-            b = arm.data.bones.get(nm)
-            if b is None:
-                return {"ok": False, "error": f"the exported FBX is missing bone {nm}"}
-            head = np.array((arm.matrix_world @ b.head_local)[:])
-            pos = max(pos, float(np.linalg.norm(head - np.array(j["head"]))))
-            rot = (arm.matrix_world @ b.matrix_local).to_3x3()
-            for k, axis in enumerate("xyz"):
-                got = np.array(rot.col[k][:])
-                want = np.array(j["axes"][axis])
-                ang = max(ang, math.degrees(math.acos(float(np.clip(got @ want, -1, 1)))))
-            n += 1
-        return {"ok": pos < POS_TOL_M and ang < AXIS_TOL_DEG, "position_max_m": pos, "axis_max_deg": ang, "bones_compared": n}
+        imported = canon_io.import_raw(str(fbx), **RE.RAW_IMPORT)
+        objects = [bpy.data.objects[n] for n in imported["objects"]]
+        arms = [o for o in objects if o.type == "ARMATURE"]
+        if len(arms) != 1:
+            return dict(result, error="the exported FBX needs exactly one armature")
+        if not joints:
+            return dict(result, error="the body package has no joints; no bind is proven")
+        unit = RE.unit_scale_factor(fbx)
+        carriers = EC.fbx_container_scale_failures(fbx)
+        scales = {n: s for n, s in EC.fbx_bone_scale(fbx).items()
+                  if any(abs(v - 1.0) > RC.BARS["scale"] for v in s)}
+        result.update(unit_scale_factor=unit, container_scale_failures=carriers,
+                      authored_bone_scale_failures=scales)
+        if unit != 1.0 or carriers or scales:
+            return dict(result, error="raw FBX units, Null ancestry or bone scales are not centimetre identity carriers")
+        units = ES.readback_representation(arms[0], objects, unit)
+        result["readback_representation"] = units
+        reference, parents = _joint_reference(joints, convention)
+        display = RE._table(arms[0], representation=units)
+        if "Armature" not in reference:
+            display.pop("Armature", None)
+        try:
+            diagnostics = RC.readback_rows(reference, display)
+            result["display_reconstruction_errors"] = diagnostics["over_tolerance"]
+        except RC.RigRefused as exc:
+            result["display_reconstruction_roster_error"] = str(exc)
+        got, got_parents, proof = RE._authored_table(fbx, exporter or {"axis_forward": "-Z", "axis_up": "Y"})
+        rows = RC.readback_rows(reference, got)
+        result.update(bones_compared=rows["bones_compared"], position_max_m=rows["worst_position_cm"] / 100.0,
+                      axis_max_deg=rows["worst_rotation_deg"], scale_max=rows["worst_scale"],
+                      over_tolerance=rows["over_tolerance"], bars=rows["bars"],
+                      authored_bind_verification=proof, hierarchy_matches=got_parents == parents)
+        result["ok"] = (not rows["over_tolerance"] and got_parents == parents
+                        and result["position_max_m"] < POS_TOL_M and result["axis_max_deg"] < AXIS_TOL_DEG)
+        if not result["ok"]:
+            result["error"] = "the exported bind axes, scales or hierarchy differ from the body package"
+        return result
+    except (C.FeatureError, RC.RigRefused, ValueError) as exc:
+        return dict(result, error=str(exc))
     finally:
         canon_io.remove_new_ids(before)
 
@@ -93,7 +161,7 @@ def gates(ob, body, textures, validation, bind_check, allow_unverified, root):
     return {"joints": joints, "counts": counts, "roles": roles, "mesh_sha256": mesh_sha, "textures": tex_paths, "validation": val}
 
 
-def run(object, armature, out_dir, body, textures, validation, bind_check, note, allow_unverified, root, bone_axis="Z"):
+def run(object, armature, out_dir, body, textures, validation, bind_check, note, allow_unverified, root, bone_axis=None):
     ob = C.need_object(object)
     arm = C.need_object(armature, "ARMATURE")
     out = Path(root) / out_dir
@@ -101,34 +169,31 @@ def run(object, armature, out_dir, body, textures, validation, bind_check, note,
         raise C.FeatureError(f"{out_dir} exists: a tag directory is never reused (pick a new one)")
     g = gates(ob, body, textures, validation, bind_check, allow_unverified, root)
     joints, counts, roles, mesh_sha, tex_paths, val = g["joints"], g["counts"], g["roles"], g["mesh_sha256"], g["textures"], g["validation"]
-    out.mkdir(parents=True)
     fbx = out / f"{ob.name}.fbx"
-    sel = [o for o in bpy.context.view_layer.objects if o.select_get()]
-    active = bpy.context.view_layer.objects.active
-    try:
-        bpy.ops.object.select_all(action="DESELECT")
-        ob.select_set(True)
-        arm.select_set(True)
-        bpy.context.view_layer.objects.active = arm
-        bpy.ops.export_scene.fbx(filepath=str(fbx), use_selection=True, object_types={"ARMATURE", "MESH"}, add_leaf_bones=False, primary_bone_axis=bone_axis, secondary_bone_axis="X",
-                                 global_scale=1.0, apply_unit_scale=True, bake_anim=False, path_mode="COPY", embed_textures=False, mesh_smooth_type="FACE")
-    finally:
-        bpy.ops.object.select_all(action="DESELECT")
-        for o in sel:
-            o.select_set(True)
-        bpy.context.view_layer.objects.active = active
+    from . import rig_export_space as ES
+    settings, convention, recipe = export_settings(arm, {
+        "use_selection": True, "object_types": {"ARMATURE", "MESH"}, "add_leaf_bones": False,
+        "bake_anim": False, "path_mode": "COPY", "embed_textures": False, "mesh_smooth_type": "FACE"}, bone_axis)
+    out.mkdir(parents=True)
+    with ES.centimetre_copies(arm, [ob], None, settings, container_name=recipe["ue_armature_container"]) as prepared:
+        export_space = prepared["receipt"]
+        effective = prepared["exporter"]
+        for obj in bpy.context.view_layer.objects:
+            obj.select_set(obj is prepared["armature"] or obj in prepared["meshes"])
+        bpy.context.view_layer.objects.active = prepared["armature"]
+        bpy.ops.export_scene.fbx(filepath=str(fbx), **effective)
     (out / "Textures").mkdir()
     files = {fbx.name: hashlib.sha256(fbx.read_bytes()).hexdigest()}
     for t in tex_paths:
         shutil.copy(t, out / "Textures" / t.name)
         files[f"Textures/{t.name}"] = hashlib.sha256(t.read_bytes()).hexdigest()
-    rb = _readback(fbx, joints)
+    rb = _readback(fbx, joints, convention, effective)
     limits_line = f"limits: {(val.get('summary') or {}).get('limits_status', 'proposed')}" + (f"; roles without limits: {', '.join(roles)}" if roles else "")
     readme = ["# " + ob.name, "", note or "", "", "## Files (sha256)"] + [f"- {k}: {v}" for k, v in files.items()] + [
-        "", "## Conventions", "UnitScaleFactor 1 (units applied), centimetres in the engine, primary bone axis Z, secondary X, no leaf bones.", "ORM: R occlusion, G roughness, B metallic (Unreal order), linear. Normal_DX has green flipped from Normal_GL.",
+        "", "## Conventions", f"UnitScaleFactor 1, independent centimetre copies, primary bone axis {effective['primary_bone_axis']}, secondary {effective['secondary_bone_axis']}, no leaf bones.", "ORM: R occlusion, G roughness, B metallic (Unreal order), linear. Normal_DX has green flipped from Normal_GL.",
         "", "## Validation", f"counts: {counts}", limits_line, "", "## Read-back", f"joints compared {rb.get('bones_compared')}, position max {rb.get('position_max_m')} m, axis max {rb.get('axis_max_deg')} degrees: {'ok' if rb.get('ok') else 'FAILED'}"]
     (out / "README.md").write_text("\n".join(readme))
-    (out / "export.json").write_text(json.dumps({"object": ob.name, "files": files, "validation_counts": counts, "limits": limits_line, "readback": rb, "mesh_sha256": mesh_sha, "unverified_roles": roles}, indent=1))
+    (out / "export.json").write_text(json.dumps({"object": ob.name, "files": files, "validation_counts": counts, "limits": limits_line, "readback": rb, "mesh_sha256": mesh_sha, "unverified_roles": roles, "recipe_selection": recipe, "export_space": export_space, "effective_exporter": {k: sorted(v) if isinstance(v, set) else v for k, v in effective.items()}}, indent=1))
     if not rb.get("ok"):
         return {"ok": False, "error": f"read-back failed: the exported bone axes or positions do not equal the body package's (position {rb.get('position_max_m')} m, axes {rb.get('axis_max_deg')} degrees): the export settings are wrong", "readback": rb, "out_dir": str(out)}
     return {"ok": True, "out_dir": str(out), "files": files, "readback": rb, "limits": limits_line}

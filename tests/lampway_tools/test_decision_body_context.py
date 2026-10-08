@@ -19,14 +19,15 @@ def test_body_context_placement_and_signed_limits_in_native_copy(tmp_path):
     script.write_text(f"import sys, importlib.util\nimport mixar.modules.lampway_tools as lt\nlt.__path__=[{str(ROOT/'src/scripts/mixar/modules/lampway_tools')!r}]\n"
                       "for name in ('canon_io','canon_geom'):\n sys.modules.pop('mixar.modules.lampway_tools.'+name,None)\n if hasattr(lt,name):delattr(lt,name)\n"
                       f"spec=importlib.util.spec_from_file_location('mixar.modules.lampway_tools.pipeline.decision_measure',{source!r})\nD=importlib.util.module_from_spec(spec);spec.loader.exec_module(D)\n"+r'''
-import json, numpy as np, bpy, os
+import json, hashlib, numpy as np, bpy, os
 from pathlib import Path
 root=Path(os.environ.get('LAMPWAY_DECISION_RECEIPT_DIR',bpy.app.tempdir));root.mkdir(parents=True,exist_ok=True)
 # Outward cube in an offset world frame: a render that recentres each object hides this test.
 V=np.array([[2,0,0],[3,0,0],[3,1,0],[2,1,0],[2,0,1],[3,0,1],[3,1,1],[2,1,1]],float)
 T=np.array([[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]])
 np.savez(root/'body.npz',V=V,T=T)
-context={'npz':'body.npz','views':['Front'],'bounds_m':[[1.5,-.5,-.5],[4,1.5,1.5]]}
+np.savez(root/'context-body.npz',V=V,T=T)
+context={'npz':'context-body.npz','views':['Front'],'bounds_m':[[1.5,-.5,-.5],[4,1.5,1.5]]}
 B,BT,identity=D._body_context(root,context)
 P=np.array([[3.1,.5,.5],[2.9,.5,.5]])
 limits={'min_signed_m':.05,'max_below_min_vertices':0}
@@ -85,6 +86,19 @@ try:
                     'turn':0,'clear_mm':0,'pair_scale_group':'common'}}]},root)
     job=pack['jobs'][0]
     assert job['ok'] and job['acceptance']['pass'] is False and job['acceptance']['full_fit_acceptance'] is None,job
+    assert job['placement_inputs']['body']=={'path':'body.npz','source_sha256':hashlib.sha256((root/'body.npz').read_bytes()).hexdigest()},job
+    assert job['placement_inputs']['piece']=={'path':'piece.npz','source_sha256':hashlib.sha256((root/'piece.npz').read_bytes()).hexdigest()},job
+    assert job['placement_inputs']['args']=={'kind':'gauntlets','turn':0,'clear_mm':0,'sides':'both','pair_scale_group':'common','scale_anchor':None},job
+    for c in job['candidates']:
+        assert c['body_relative_capture']['body_identity']['npz']=='context-body.npz',c
+        assert c['placed_sha256']==hashlib.sha256((root/c['placed']).read_bytes()).hexdigest(),c
+    # A changed source must not silently inherit the earlier receipt's identity.
+    def changed_source(*args,**kwargs):
+        np.savez(root/'piece.npz',V=PV+[1,0,0],T=T)
+        return PV,T,{},{}
+    fit_place.place=changed_source
+    changed=D.measure({'image_size':64,'max_samples':2,'jobs':[{'id':'changed','action':'pair','args':{'kind':'gauntlets','body':'body.npz','piece':'piece.npz'}}]},root)
+    assert not changed['jobs'][0]['ok'] and 'changed during measurement' in changed['jobs'][0]['error'],changed
 finally:fit_place.place=saved
 print('RESULT',json.dumps({'vertex_clearance':r,'body_pixels':int(body.sum()),'candidate_pixels':int(piece.sum()),'capture':receipt}))
 (root/'native-body-context-receipt.json').write_text(json.dumps({'vertex_clearance':r,'capture':receipt},indent=2))

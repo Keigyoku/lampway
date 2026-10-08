@@ -18,7 +18,7 @@ work.
 
 Issue2 supersedes the inevitably refused default export recipe with selection from measured normalized frames, retaining explicit Titan and mandatory physical M-RIG-01 confirmation. Keep native metacarpal fanout and120° corrective-roll default-export falsifiers.
 
-Unruled AC65 values need actual owner measurements before recommendation. Keep experimental tables distinct from defaults; canon08/09 cover proper per-side maps and curled-hand falsifiers.
+The captain authorized AC65 starting defaults by judgment on 2026-10-07 using supplied MetaHumanBase/gear documentary references. Record 0.05 facing margin, per_side pair scale, 20 mm collar, boot width and complete canon08 pose/curl tables with physical_status untested. Preserve explicit alternatives and experimental candidate provenance; original physical acceptance remains separate.
 
 ## Invariants
 
@@ -39,17 +39,19 @@ regenerated corrective golden preserves 120° roll and retains the existing fram
 and retarget falsifiers. The applied normalizer is verified on the corresponding
 binary shape, while actual owner-asset receipts are reported separately.
 
-Canon 08 distinguishes its accepted complete helmet table from still unspecified numerical rows for other kinds. The implementation uses named axes and retains sign falsifiers; the glove engine wiring does not infer mirror labels or substitute a pose model.
+Canon 08 distinguishes its accepted complete helmet table from the newly authorized, physically untested waist/boots/gauntlets starting tables. The implementation uses named axes and retains sign falsifiers; the glove engine wiring does not infer mirror labels or substitute a pose model.
 
-The normalize_mesh contract names the native cardinal-facing golden and symmetric tie falsifier. Canon 10 fixes native plate aspect and border-ring keying; the D6 default remains unset until a numeric ruling, while explicit margins exercise the implemented engine.
+The normalize_mesh contract names the native cardinal-facing golden and symmetric tie falsifier. Canon 10 fixes native plate aspect and border-ring keying; the authorized D6 default is 0.05 with untested physical provenance, while explicit margins and symmetric-tie refusals remain available.
 
 Current fit descriptions distinguish implemented composite order, independent
-glove engines, the accepted helmet pose table and exact bind-return from the
-still-unruled AC65 physical defaults. `AC65-DECISION-AUDIT.md` names all six
-measurement prerequisites without inventing a numerical ruling. Boot height
-anchors measure knee-to-sole length; body-only and both-input translation tests
-retain the original sole-at-zero result. Re-run earlier height candidates on the
-corrected source before using them to recommend an anchor.
+glove engines, accepted helmet and authorized starting pose tables, and exact
+bind-return from original-asset physical acceptance. `AC65-DECISION-AUDIT.md`
+records all six chosen defaults, their rationale, documentary provenance and
+untested limits. Do not delay these explicitly authorized defaults for new
+measurement permission or describe them as physically validated. Boot height
+anchors remain knee-to-sole, with translation controls; rerun earlier height
+candidates on corrected source before physical comparison. Width is the
+judgment-selected boot default, not a result inferred from those controls.
 
 Canon08 weighted region seeds admit actual anatomical descendants with nearest configured ancestry partitioning. Retain original weighted bone identities and nonempty admission before rays, plus unchanged pose thresholds, sign and golden metrics. Do not substitute a recorded distribution replay for the private original body rerun.
 
@@ -100,3 +102,5 @@ The verified native342 conform path requires an explicit reference: source_copy 
 | 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |
 
 | 2026-10-08 | actual native conform and container correction | actual source-copy and installed UE predicate evidence | a161-bone implicit reference rewrote native342 frames and a differently named Null became an extra root | Require explicit native reference or bounded source_copy, preserve authored data, and reserve Armature for disposable exports only under the verified predicate. Cross-check redundant authored binds under existing bars and retain display reconstruction errors. Keep native pose calibration and physical acceptance separate. | native default-reference/container RED, source-copy, bind corruption and near-bar controls |
+
+| 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07, using supplied body/gear references | prerequisites-only doctrine blocked an explicitly authorized choice; arbitrary defaults could be mistaken for measurement | record chosen defaults and complete pose/curl tables with untested provenance, explicit overrides and falsifiers; keep physical acceptance separate | default-path RED/GREEN and documentary hashes; no original gear validation |

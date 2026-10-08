@@ -49,7 +49,7 @@ close an open requirement. Prior run receipts are in
 | Read-only idempotence, unhide idempotence, no prompt | Inspect/view, canon door and API routing | Real GUI selection/active and all twelve inspect history checks are green; one unhide undo restores hidden state. No prompt or automatic confirmation path. |
 | No-arg live data plus tool/description; inspect first | Inspect dashboard, view runtime, docs handler, guide generation | Present. |
 | Help last; call templates retain fixed args and placeholders, quote spaces | Envelope and inspect template | Budget retry preserves supplied arguments and larger-budget placeholder. Successful metric paths no longer return the former owner-dependency skips. |
-| Per-view/action help returns arguments, defaults, fields and refusals | Inspect run(help), api_view(help), docs handler | Inspect field reference now derives from view schema using `reference_fields`; tests added. T2 help now includes action-specific output-field reference; targeted checks recorded in completion tests; acceptance implemented and checked, with exact-head aggregate receipt external. |
+| Per-view/action help returns arguments, defaults, fields and refusals | Inspect run(help), api_view(help), docs handler | Inspect field reference now derives from view schema using `reference_fields`; tests added. T2 help includes action-specific output fields and, after the 2026-10-08 RED/GREEN correction, a separate defaults object for unhide, area, shot, max_bytes, preset and out. Focused worktree checks are recorded below; final consolidated-head verification remains pending. |
 | Image jail, PNG validation, max_bytes 750,000 default, image after text, delete temp | Envelope `_image`, view capture; race/invalid PNG/cap tests | Present on descriptor-capable POSIX. Other platforms explicitly refuse; native GUI images/masks are green, while actual server transfer has separate bounded PNG/race tests. |
 | Existing tools stay legacy; in-app stays JSON | MCP new names; server dispatcher tests | Present. |
 
@@ -76,7 +76,7 @@ close an open requirement. Prior run receipts are in
 | Home file/unsaved/units/counts/tris_total/selection/active/warnings, O(objects) dashboard | [home](../../src/scripts/mixar/modules/lampway_tools/inspect/home.py) | Triangle count is now exactly `len(mesh.loops) - 2*len(mesh.polygons)` using O(1) RNA lengths; valid Blender polygons partition loops and contain at least three loops. A RED fixture forbids polygon iteration/bulk reads; GREEN 1 passed in 0.21s. Named chess acceptance measured 478ms RED then 109ms GREEN; final serial receipt `<evidence>/tests/named-final-precommit/ABeautifulGame.json` measured 80.01ms (<200ms), 49 objects and 1,498,828 triangles, no failures. Object traversal now meets O(objects), with no per-polygon read. |
 | Scene collection tree; camera lens/sensor/clip; light type/power/color/size; world, frames/render | home.scene_data and generic paging | All specified fields are computed and schema/help-disclosed. Per C1 default 3–4-column rule, scene rows return four fields; optional camera clip_end and light color/size are returned with named fields or `fields=["*"]`. This is the disclosed default projection, not a claim that default rows contain every optional column. |
 | Objects default name/type/tris/parent; all named optional fields | objects.row, schema projection | Present; computes every optional field before projection and before pagination, creating unmeasured scalability cost. |
-| Object detail all object fields + typed modifiers/constraints/materials/collections/children/layer count/top/canon | objects.detail, orchestrator layer summary | Present. |
+| Object detail all object fields + typed modifiers/constraints/materials/collections/children/layer count/top/canon | objects.detail, orchestrator layer summary | Present; the 2026-10-08 correction also returns layers count 0/top null for cameras and other non-mesh targets. The old omission failed the new regression; an isolated native Camera call verifies the definitive empty summary and unchanged scene/selection snapshot. |
 | Mesh counts, manifold, shells; reuse DS._shells/_open_loops/_descriptor; holes sorted rim descending | [mesh](../../src/scripts/mixar/modules/lampway_tools/inspect/mesh.py), measurement/binary tests | Present for counts/shells/open-loop facts, transformed rim/centroid. |
 | Cheap defects degenerate/isolated_tri/flipped_shells | Mesh | Present: cheap shell orientation uses caller-owned world-metre bmesh through `workflows.shell_orientation_bmesh`; new metric-bmesh binary tests. |
 | Deep intersections/thin_regions on evaluated world-metre mesh | Mesh and orchestrator | Present: `DS.scan_bmesh` accepts the evaluated/transformed world-metre bmesh, with budget; new deep/scaled/evaluated metric-bmesh tests. |
@@ -102,7 +102,7 @@ close an open requirement. Prior run receipts are in
 | Requirement | Code and tests | Review |
 |---|---|---|
 | Name/API/Def, action enum; no-arg live editors/camera/last capture | [Def](../../server/lampway_server/agent/view_tools.py), [API](../../src/scripts/mixar/modules/lampway_tools/api_view.py), [runtime](../../src/scripts/mixar/modules/lampway_tools/view/runtime.py) | Present. |
-| object xor data; unhide false; area VIEW_3D or AreaUIType/WINDOW; shot true | Def/API/runtime | Present for visible types; schema area is free string rather than vendored enum; nonexistent type returns no_area. |
+| object xor data; unhide false; area VIEW_3D or AreaUIType/WINDOW; shot true | Def/API/runtime | Closed in code: byte-identical client/server view schemas expose 28 pinned Blender Area.type/ui_type identifiers including WINDOW. The values derive from the authoritative Blender source pin and built-in node types. Invalid identifiers refuse bad_argument before runtime; a supported but absent editor retains no_area. Standalone/server RED controls and isolated native checks pass. |
 | max_bytes 50k..900k/default750k downscale; preset current/thumbnail; out relative unique still names | Def/API, [helpers](../../src/scripts/mixar/modules/lampway_tools/view/__init__.py), view contract tests | Present. |
 | Focus operator on bound scene/tab VIEW_3D; restore selection/active; return bounds/image | Runtime.focus; [binary test](../../tests/lampway_tools/test_view_binary.py), mocks | Real GUI focus with shot=true produced a bounded PNG, moved view center to (3,4,5) and restored Camera selection/active. Edit-mode behavior beyond specified fixture is not claimed. |
 | Hidden refusal before mutation; explicit unhide one named undo, idempotent | Runtime.focus, executor suppress auto-undo; mock test | Real GUI one undo restored Cube hidden state and retained Camera selection; repeated inspect history checks also passed. |
@@ -220,6 +220,54 @@ consolidation; these do not identify the eventual final head):
 Main alone owns standalone launcher bootstrap after reconciliation: the duplicate
 lane change was removed from the diff. These receipts strengthen scoped
 integration evidence but do not substitute for final consolidated-head verification.
+
+## Focused original-contract corrections, 2026-10-08
+
+A fresh comparison with the complete original MCP section found three concrete
+remaining gaps and closed them in the worktree based on `6c4ba085`: non-mesh
+object detail omitted its layers summary; T2 advertised an unrestricted area
+string; and T2 help omitted a separate defaults reference. Each correction has
+a reproduced failing test before the production change. The area values follow
+Blender source pin `fbe6228777e7d9afefcd61a413844e790ae75db7`, including
+`rna_space.cc` editor/subtype items and `rna_screen.cc` UI subtype expansion;
+the pinned Lab source download returned HTTP 403, so this is source-derived
+provenance rather than a claim to have fetched its enum. The client and server
+schema copies are byte-identical and tested. No pixel opt-in, visibility undo,
+absent-editor refusal or existing transport was weakened.
+
+These are focused worktree receipts, not final consolidated-head acceptance:
+
+| Check | Observed result |
+|---|---|
+| TOON and standalone inspection/view contracts | 753 passed, one warning, 5.22s |
+| Server inspection/view/envelope/lease/docs/inventory contracts | 78 tests passed, exit 0 |
+| Generated-guide/catalog/SDK/connector/startup and client lease contracts | 55 passed, one warning, 2.59s before the final T2 edits |
+| Post-edit view/inspection and generated-guide/catalog subset | 29 passed, one warning, 1.18s |
+| Isolated native inspection/original cases/budget/metrics/relations/focus | 20 passed, one warning, 22.34s after the layers correction and before the enum correction |
+| Post-enum isolated native inspection and view | 2 passed, one warning, 3.05s; real Camera empty layers, invalid-area early refusal and supported-but-absent ShaderNodeTree no_area |
+| Scoped authored whitespace check | git diff --check passed |
+
+Commands use the reference test interpreter; native commands additionally use
+the externally supplied isolated binary and library environment:
+
+```bash
+python -m pytest -q tests/lampway_tools/test_inspect_contract.py tests/lampway_tools/test_inspect_budget.py tests/lampway_tools/test_inspect_cache.py tests/lampway_tools/test_inspect_help_reference.py tests/lampway_tools/test_inspect_home_counts.py tests/lampway_tools/test_inspect_schema.py tests/lampway_tools/test_view_contract.py tests/lampway_tools/test_inspect_relations.py tests/toon --disable-warnings
+# C2 and client leases, before the final T2 edits:
+python -m pytest -q tests/mcp/test_generated_guide.py tests/mcp/test_stdio_catalog.py tests/mcp/test_ui_stdio.py tests/mcp/test_lampway_connector.py tests/mcp/test_runtime_startup.py tests/test_mcp_server_lease_contract.py tests/test_mcp_operation_leases.py --disable-warnings
+# Post-edit view, inspection and guide subset:
+python -m pytest -q tests/lampway_tools/test_view_contract.py tests/lampway_tools/test_inspect_contract.py tests/mcp/test_generated_guide.py tests/mcp/test_stdio_catalog.py --disable-warnings
+# From server/:
+python -m pytest -q tests/test_inspect_tools.py tests/test_view_tools.py tests/test_mcp_envelope.py tests/test_mcp_operation_lease.py tests/test_blender_docs.py tests/test_mcp_inventory.py --disable-warnings
+# From the repository root, with LAMPWAY_INSPECT_BIN and LAMPWAY_VIEW_BIN:
+python -m pytest -q tests/lampway_tools/test_inspect_binary.py tests/lampway_tools/test_inspect_original_binary_cases.py tests/lampway_tools/test_inspect_budget_binary.py tests/lampway_tools/test_inspect_measurements_binary.py tests/lampway_tools/test_inspect_relations_uv_binary.py tests/lampway_tools/test_view_binary.py --disable-warnings
+python -m pytest -q tests/lampway_tools/test_inspect_binary.py tests/lampway_tools/test_view_binary.py --disable-warnings
+```
+
+Registry-derived guide/document regeneration and final aggregate verification
+remain coordinator-owned. Named performance, GUI masking/history acceptance and
+packaging were not rerun in this focused correction pass; their earlier receipts
+remain historical evidence. This section claims neither a final exact-head
+aggregate nor a new package identity.
 
 ## Acceptance asset identity
 

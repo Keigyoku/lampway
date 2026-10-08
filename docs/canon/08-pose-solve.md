@@ -3,8 +3,7 @@
 
 # Canon 08 — Pose the body to the piece (the closest pose)
 
-Status: **CANONICAL for the chest** (measured, regression-pinned numbers); **ACCEPTED TABLE for helmet** (captain issue-2 instruction); **DRAFT for waist, boots and gauntlets** (their
-degrees of freedom and ranges are the captain's to rule; BUILD_ORDER decision 1). Implemented by: shelf
+Status: **CANONICAL for the chest** (measured, regression-pinned numbers); **ACCEPTED TABLE for helmet** (captain issue-2 instruction); **AUTHORIZED STARTING TABLES for waist, boots and gauntlets** (judgment ruling 2026-10-07; physically untested). Implemented by: shelf
 `proportion/pose_clearance.py` (ported byte-for-byte to LT `scripts/proportion/pose_clearance.py`, routed by LT `posing.py`);
 Titan `tools/equipment_fitpose.py` (`swing`, `pose_chain`, `fit_chain`), Titan `armour_validate.py` (`pose_cs`, `resolve_axis`,
 `expand_pose`, `check_expect`), Titan `proc_body.py` (`finger_axis`, `curl_delta`).
@@ -44,6 +43,16 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 7. **Optional limb initialiser (DRAFT):** lay each limb bone along the centreline of the armour tube round it by damped
    Gauss-Newton over swings (`equipment_fitpose.py:180 fit_chain`) — not yet measured against the sweep.
 
+8. **Authorized starting tables (2026-10-07; physically untested).** All angles are degrees; ranges include both endpoints. `s` is the explicitly recorded `l` or `r` side. Keep B.5 curl TO targets 80/95/60 for joints 01/02/03, including thumb, at fractions 0, 1/3, 1/2, 2/3, 1. These bounded ranges were judgment-adopted from measurement candidates, not measured on original gear.
+
+   | Kind | First DOF and sign expectation (minimum 0 cm) | Ordered chain | Region seeds |
+   |---|---|---|---|
+   | waist | pelvis `lateral` -8..8 step 4; head moves `forward` | spine_01 `lateral` -8..8 step 4; thigh_l then thigh_r, each `-lateral` and `forward` -8..8 step 4 | pelvis, spine_01, thigh_l, thigh_r |
+   | boots | foot_s `-lateral` -8..8 step 4; ball_s moves `up` | foot_s `forward` -8..8 step 4; calf_s `-lateral` 0..8 step 4 | calf_s, foot_s, ball_s |
+   | gauntlets | hand_s `{line:[index_01_s,pinky_01_s]}` -30..30 step 5; middle_03_s moves `-forward` left / `forward` right | lowerarm_s `{line:[lowerarm_s,hand_s]}` -15..15 step 5, then B.5 coupled curl TO | lowerarm_s, hand_s, all index/middle/ring/pinky/thumb joints 01/02/03 on side s |
+
+   Every new table has one `piece` region with threshold 0.002 m. This reuses the existing torso/neck diagnostic sensitivity; it is **not a physical acceptance bar**. Membership still follows actual weighted ancestry and must be nonempty. `test_ac65_defaults.py` retains both-side synthetic sweeps and reversed-sign controls; original natural pose, clearance and regional sensitivity remain untested.
+
 ## C. Invariants
 
 - **INV-08.1** Only clipping that survives the closest pose is a mesh defect; both numbers are reported.
@@ -60,6 +69,7 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 
 | Date | What | Lesson | Source |
 |---|---|---|---|
+| 2026-10-07 | AC65 complete pose defaults | adopt B.8 waist/boots/gauntlets tables and coupled curl TO; physical validation untested | captain explicitly authorized judgment using supplied body/gear references; AC65-DECISION-AUDIT.md |
 | 2026-10-07 | Actual9f90 chest pose returned success with zero arm samples, although recorded native descendant groups contain1302left/1299right samples | region membership follows actual ancestry to the nearest configured seed; keep weighted bone rays and refuse empty regions | owner-only receipt archiveSHA2565f6330e1ae4071905d1550c1afaa67dadb3c9ff389177ab256d72430cbedf3e4; updated private geometry rerun remains required |
 | 2026-10-04 | Chest audits counted A-pose arm clipping as defects; neck:chest / back:hips pitch "can vastly change the chest fit" | pose first; report both | memory pose-body-to-the-piece |
 | 2026-10-04 | A first version without view-layer updates left the elbow fixed for every pose | update the evaluated pose before every read | `pose_clearance.py:50-51` comment |
@@ -80,7 +90,7 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
 
 ## F. Implementation gap
 
-1. LT `posing.py` supplies chest and the accepted complete helmet table. `fit_pose` uses the helmet table by name or by default with scene inputs. Waist, boots and gauntlets still require the missing numerical rows; supplied DOFs run the shared engine. `pipeline/decision_tables.py` supplies complete bounded measurement candidates with an explicit caller sign expectation and positive region threshold, never canonical defaults. `curl_side` adds the B.5 coupled curl-TO sweep including thumb using shared `finger_axis`/`flex_axis` and `curl_delta`; authored existing curl is subtracted, rather than adding the target.
+1. LT `posing.py` supplies chest and the accepted complete helmet table. `fit_pose` uses the helmet table by name or by default with scene inputs. Waist, boots and gauntlets use the authorized B.8 starting tables when DOFs are omitted; supplied DOFs still run the shared engine. `pipeline/decision_tables.py` separates experimental measurement candidates from `adopted` defaults with explicit untested provenance. `curl_side` adds the B.5 coupled curl-TO sweep including thumb using shared `finger_axis`/`flex_axis` and `curl_delta`; authored existing curl is subtracted, rather than adding the target.
 2. LT/shelf `pose_clearance.py:73` and `:119` select torso and neck vertices by ABSOLUTE heights (z 1.15–1.52, 1.50–1.62 m) and
    |x| bands: body-specific constants that break on any other body or placement. Canon: regions from the body's joints.
 3. World axes `(0,1,0)` and `(1,0,0)` (`pose_clearance.py:111-113`) assume the body faces -Y in A-pose; the canon names axes from
@@ -97,13 +107,11 @@ with A-pose and posed penetration, pose cost, and the residual blocking surfaces
  "out_dir": "dir"}
 ```
 Refusals: empty requested anatomical region; missing/cyclic skeleton ancestry or ambiguous seeds; sign check fails; an `expect` fails; a range wider than 90 deg ("not 'closest': split the piece or ask"); no DOF table for
-the kind and none passed (`needs_decision` with the proposal); placed meta missing (blockers cannot map back).
+the kind and none passed (`needs_decision` with the proposal for an unsupported kind); placed meta missing (blockers cannot map back).
 Receipt `pose.json` (`lampway.fit-pose/1`): `{body_sha256, placed_sha256, kind, entries: [{bone, axis, deg}], a_pose: {...}, posed:
 {...}, pose_cost_deg, blocking: {side: {points, bbox_piece_frame, by_class}}, sweeps: [...]}`.
 
 ## H. Decisions owed by the captain
 
-1. Remaining DOF ranges for waist, boots and gauntlets (helmet neck_01/neck_02/head pitch & roll -8..8 step4 accepted on 2026-10-07; waist
-   spine_01/pelvis pitch -8..8 + thigh flexion/abduction; boots ankle pitch/roll + small knee; gauntlets forearm twist, wrist ±30,
-   finger curl fractions).
+1. Waist, boots and gauntlets: B.8 adopts the complete bounded tables by authorized judgment on 2026-10-07. Physical natural-pose and region-sensitivity validation remains untested; helmet acceptance is unchanged.
 2. Is a large required pose (pose_cost above some degrees) a REJECT signal for the seed?

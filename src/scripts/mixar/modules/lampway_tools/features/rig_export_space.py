@@ -44,6 +44,22 @@ def _centimetre_matrix(matrix):
     return result
 
 
+def _action_slot(armature, action):
+    """Resolve the requested clip on its original owner before naming a copy."""
+    if action is None or not action.slots:
+        return None
+    ad = armature.animation_data
+    if ad and ad.action == action and ad.action_slot:
+        return ad.action_slot.handle
+    slots = [slot for slot in action.slots if slot.target_id_type == 'OBJECT']
+    named = [slot for slot in slots if slot.identifier == 'OB' + armature.name]
+    if len(named) == 1:
+        return named[0].handle
+    if len(slots) == 1:
+        return slots[0].handle
+    raise ValueError('Requested action has ambiguous or incompatible slots; activate its armature slot before export')
+
+
 @contextmanager
 def centimetre_copies(armature, meshes, action, exporter, container_name=None):
     """Yield disposable centimetre coordinates plus their effective FBX settings.
@@ -55,6 +71,7 @@ def centimetre_copies(armature, meshes, action, exporter, container_name=None):
     """
     meshes = list(meshes)
     _preflight(armature, meshes, action)
+    action_slot = _action_slot(armature, action)
     if container_name is not None:
         if container_name != 'Armature':
             raise ValueError('The verified legacy UE container predicate requires the exact Armature export name')
@@ -98,11 +115,10 @@ def centimetre_copies(armature, meshes, action, exporter, container_name=None):
                         key.handle_left.y *= 100.0
                         key.handle_right.y *= 100.0
             copied_arm.animation_data_create().action = copied_action
-            source_ad = armature.animation_data
-            if source_ad and source_ad.action == action and source_ad.action_slot:
+            if action_slot is not None:
                 copied_arm.animation_data.action_slot = next(
                     slot for slot in copied_action.slots
-                    if slot.handle == source_ad.action_slot.handle)
+                    if slot.handle == action_slot)
         copied_meshes = []
         for mesh in meshes:
             copied = mesh.copy()

@@ -5,6 +5,7 @@
 """fit_body (shelf/fit_body_package.md) and fit_export (shelf/fit_export.md): the hashed body package and the gated rigged export, in the real binary."""
 
 import sys
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -170,3 +171,81 @@ res({"clean": clean, "partial_clean": all(set(getattr(bpy.data, k)) == before[k]
 ''')
     assert r.rc == 0, r.out[-1500:]
     assert r.results[-1] == {"clean": True, "partial_clean": True, "error": "partial import"}
+
+
+@pytest.mark.parametrize("route", ["fit_export", "ue_export"])
+@pytest.mark.parametrize("convention", ["blender", "ue_axes"])
+def test_fit_routes_export_corrective_frames_with_identity_carriers_and_preserve_sources(route, convention):
+    r = run('''
+from mixar.modules.lampway_tools import canon_io
+from mixar.modules.lampway_tools.features import rig_export as RE, export_checks as EC
+from mathutils import Matrix
+arm, body = body_package()
+bpy.context.view_layer.objects.active = arm
+bpy.ops.object.mode_set(mode="EDIT")
+arm.data.edit_bones["spine_01"].roll = math.radians(120)
+convention = ''' + repr(convention) + '''
+if convention == "ue_axes":
+    for bone in arm.data.edit_bones:
+        length = bone.length
+        bone.matrix = bone.matrix @ Matrix(RE.ENGINE_FROM_BLENDER.tolist()).to_4x4()
+        bone.length = length
+bpy.ops.object.mode_set(mode="OBJECT")
+pkg = api.fit_body("build", armature="body_rig", mesh="body_mesh", out="fit/body")["package"]
+p = piece_fit(arm); p.data.uv_layers.new(name="UVMap")
+write_json(os.path.join(root, "validation.json"), GOOD_VALIDATION)
+write_json(os.path.join(root, "bind_check.json"), {"ok": True})
+before = canon_io.snapshot_ids()
+def source():
+    return {"bones": [[b.name, [list(row) for row in b.matrix_local]] for b in arm.data.bones],
+            "vertices": [list(v.co) for v in p.data.vertices],
+            "weights": [[[g.group, g.weight] for g in v.groups] for v in p.data.vertices],
+            "units": bpy.context.scene.unit_settings.scale_length,
+            "arm_name": arm.name, "mesh_name": p.name}
+original = source()
+route = ''' + repr(route) + '''
+if route == "fit_export":
+    result = api.fit_export("piece_fit", "body_rig", "export/current", body=pkg,
+                            validation="validation.json", bind_check="bind_check.json")
+else:
+    result = api.ue_export(type="skinned_piece", object="piece_fit", armature="body_rig",
+                          out_dir="export/current", body=pkg,
+                          validation="validation.json", bind_check="bind_check.json")
+path = os.path.join(root, "export/current/piece_fit.fbx")
+from mixar.modules.lampway_tools.features import fit_export as FE
+from mathutils import Euler
+joints = json.load(open(os.path.join(pkg, "joints.json")))["joints"]
+refusals = {}
+for mutation in ("position", "rotation", "scale", "hierarchy", "empty"):
+    changed = json.loads(json.dumps(joints))
+    if mutation == "position": changed[1]["head"][0] += .001
+    elif mutation == "rotation":
+        rotation = Matrix([changed[1]["axes"][a] for a in "xyz"]).transposed()
+        rotation = Euler((0, 0, math.radians(.02))).to_matrix() @ rotation
+        changed[1]["axes"] = {a: list(rotation.col[k]) for k, a in enumerate("xyz")}
+    elif mutation == "scale": changed[1]["axes"]["x"] = [v * 1.001 for v in changed[1]["axes"]["x"]]
+    elif mutation == "hierarchy": changed[1]["parent"] = None
+    else: changed = []
+    refusals[mutation] = FE._readback(path, changed, convention)
+res({"result": result, "raw_null_failures": EC.fbx_container_scale_failures(path),
+     "unit": RE.unit_scale_factor(path), "unchanged": original == source(),
+     "ids_unchanged": before == canon_io.snapshot_ids(),
+     "refusals": refusals,
+     "receipt": json.load(open(os.path.join(root, "export/current/export.json")))})
+''')
+    assert r.rc == 0, r.out[-3000:]
+    d = r.results[-1]
+    assert d["raw_null_failures"] == [], d
+    assert d["result"]["ok"], d
+    assert d["unit"] == 1 and d["unchanged"] and d["ids_unchanged"], d
+    rb = d["result"]["readback"]
+    rb = rb["joints"] if route == "ue_export" else rb
+    assert rb["bones_compared"] == 3 and rb["scale_max"] < 1e-4, rb
+    assert rb["authored_bind_verification"]["bones_compared"] == 3, rb
+    assert rb["engine_bind_acceptance"].startswith("unverified"), rb
+    assert rb["axis_max_deg"] <= .01 and rb["position_max_m"] <= .0001, rb
+    assert rb["hierarchy_matches"] and rb["bars"]["scale"] == 1e-4, rb
+    assert all(not receipt["ok"] for receipt in d["refusals"].values()), d
+    receipt = d["receipt"]
+    assert receipt["recipe_selection"]["selected"] == "cm_native_" + (
+        "blender_convention" if convention == "blender" else "ue_axes"), receipt

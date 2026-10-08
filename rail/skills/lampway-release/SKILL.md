@@ -51,7 +51,7 @@ python3 rail/rail.py check                                 # the rail (also in C
 Every new file carries SPDX copyright and licence lines: an HTML comment in Markdown, a `#` comment in YAML frontmatter, code
 comments elsewhere; a file that cannot carry a comment gets a `REUSE.toml` entry. CI runs `reuse lint`
 (`.github/workflows/reuse-lint.yml`); locally `reuse --no-multiprocessing lint`. Upstream-original files keep their upstream
-copyright; Lampway's own are `Lampway contributors`.
+copyright; Lampway's own are `Lampway contributors`. Keep THIRD_PARTY.md and NOTICE.md licence links aligned with tracked licence texts and distinguish upstream/absent assets from shipped fonts. Anneal logs remain one contiguous Markdown table, including appended rows.
 
 ## 3. Never contact the upstream service, in release artefacts too
 
@@ -87,5 +87,5 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-07 | PII finding output redacted | captain: fix the PR privacy failure | the gate retained personal values and commit email domains in public diagnostics; GitHub also generated a personal-email PR merge | redact identifiers, distinguish the exact public provider identity with lookalike and secret controls, preserve merge checks, and resolve provider privacy at its source | planted text and commit identity regressions |
 | 2026-10-07 | native matrix operator classification | complete topology regression publication | executable matrix attributes matched the generic email pattern | prove structured matrix code and retain real-address/owner-pattern controls without allowlist changes or history rewrite | matrix and email planted regressions |
 | 2026-10-07 | explicit PR authored range | captain: issue2 G24 | GitHub synthetic merge committer caused false-positive branch privacy failures | scan event base/head endpoints, refuse unavailable head and retain real bad-email controls without account-setting changes | executed workflow good/bad branch, push and fallback controls |
-
 | 2026-10-07 | strict no-red completion | captain: inherited reds must be fixed | baseline-attributed failures could return GREEN | every known/new failure forces RED while exact PASS shrinking and attribution remain intact | known FAILED/ERROR controls for both suites with and without shrink |
+| 2026-10-08 | publication inventory and continuous anneal table | captain assigned PR3 review5450133925 two LOW findings | moved font licence left a stale inventory link/status and a blank line split the log table | verify tracked licence targets and upstream/absent status; keep anneal rows contiguous before regenerating skill copies | actual licence path and generated-copy/rail checks |

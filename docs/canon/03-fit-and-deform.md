@@ -169,11 +169,11 @@ placed, clear piece passed through unchanged.
 3. Soft-part conform remains unbuilt. The composite skips it for all-rigid
    roles; soft parts require the still-open deformer decision.
 4. `posing.py` has complete chest and accepted helmet tables. Waist, boots and
-   gauntlets run supplied DOFs or bounded measurement candidates; their default
-   numerical tables remain unruled (canon08).
+   gauntlets execute the complete bounded judgment defaults (canon08),
+   explicitly physically untested; supplied DOFs remain available.
 5. Independent labelled gloves use the shared pose and bind engines through
    `pipeline/fit_glove.py`, pinned by `test_wave3_glove_state.py`. Default
-   gauntlet DOFs remain unruled; automatic mirror relabelling is separate and
+   gauntlet DOFs and coupled curl targets execute with independent side labels; automatic mirror relabelling is separate and
    does not prevent an independently labelled glove from running.
 6. `features/fit_bind.py` samples the native sidecar at the fit pose when a body
    package is supplied. Its explicit scene-body alternative is reported as such;

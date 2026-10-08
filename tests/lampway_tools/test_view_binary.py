@@ -26,6 +26,14 @@ from mixar.modules.lampway_tools import api_view
 from mixar.modules.lampway_tools.view import runtime
 assert api_view.__file__.startswith(OVERLAY)
 assert runtime.__file__.startswith(OVERLAY)
+assert api_view.view(action='screenshot',area='INVENTED_EDITOR')['code']=='bad_argument'
+assert 'ShaderNodeTree' in api_view.view(action='help')['arguments']['area']
+try:
+    runtime.find_area(bpy.context.window,'ShaderNodeTree')
+except runtime.ViewError as exc:
+    assert exc.code=='no_area',exc.code
+else:
+    raise AssertionError('factory window unexpectedly has a shader editor')
 cube = bpy.data.objects['Cube']
 cube.location = (3, 4, 5)
 bpy.context.view_layer.update()

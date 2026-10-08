@@ -1,0 +1,555 @@
+{
+ "falsifiers": [
+  "missing_default",
+  "wrong_side",
+  "wrong_sign",
+  "physical_status_promoted"
+ ],
+ "finger_curl_target_deg": [
+  80,
+  95,
+  60
+ ],
+ "limits": "Synthetic policy and sign-path regression only; no original MetaHumanBase/gear physical acceptance",
+ "physical_status": "untested",
+ "ruling_date": "2026-10-07",
+ "settings": {
+  "boots_scale_anchor": "width",
+  "collar_depth_mm": 20.0,
+  "facing_margin": 0.05,
+  "pair_scale_group": "per_side"
+ },
+ "sign_probes": [
+  {
+   "along": [
+    0,
+    -1,
+    0
+   ],
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "waist",
+   "point": [
+    0,
+    0,
+    0.6
+   ],
+   "side": "l"
+  },
+  {
+   "along": [
+    0,
+    -1,
+    0
+   ],
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "waist",
+   "point": [
+    0,
+    0,
+    0.6
+   ],
+   "side": "r"
+  },
+  {
+   "along": [
+    0,
+    0,
+    1
+   ],
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "boots",
+   "point": [
+    0,
+    -0.15,
+    0
+   ],
+   "side": "l"
+  },
+  {
+   "along": [
+    0,
+    0,
+    1
+   ],
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "boots",
+   "point": [
+    0,
+    -0.15,
+    0
+   ],
+   "side": "r"
+  },
+  {
+   "along": [
+    0,
+    1,
+    0
+   ],
+   "axis": [
+    1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "gauntlets",
+   "point": [
+    0,
+    0,
+    -0.12
+   ],
+   "side": "l"
+  },
+  {
+   "along": [
+    0,
+    -1,
+    0
+   ],
+   "axis": [
+    -1,
+    0,
+    0
+   ],
+   "deg": 20,
+   "expected_positive": true,
+   "kind": "gauntlets",
+   "point": [
+    0,
+    0,
+    -0.12
+   ],
+   "side": "r"
+  }
+ ],
+ "source": "AC65 judgment authorization; canon06H1/canon08B3,B5,H1/canon09B3,H2 and bounded pose candidates",
+ "tables": {
+  "boots": {
+   "l": {
+    "chain": [
+     {
+      "axis": "forward",
+      "bone": "foot_l",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "calf_l",
+      "range": [
+       0,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "dofs": [
+     {
+      "axis": "-lateral",
+      "bone": "foot_l",
+      "expect": {
+       "along": "up",
+       "joint": "ball_l",
+       "min_cm": 0
+      },
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "calf_l",
+       "foot_l",
+       "ball_l"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   },
+   "r": {
+    "chain": [
+     {
+      "axis": "forward",
+      "bone": "foot_r",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "calf_r",
+      "range": [
+       0,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "dofs": [
+     {
+      "axis": "-lateral",
+      "bone": "foot_r",
+      "expect": {
+       "along": "up",
+       "joint": "ball_r",
+       "min_cm": 0
+      },
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "calf_r",
+       "foot_r",
+       "ball_r"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   }
+  },
+  "gauntlets": {
+   "l": {
+    "chain": [
+     {
+      "axis": {
+       "line": [
+        "lowerarm_l",
+        "hand_l"
+       ]
+      },
+      "bone": "lowerarm_l",
+      "range": [
+       -15,
+       15
+      ],
+      "step": 5
+     }
+    ],
+    "curl_fractions": [
+     0,
+     0.3333333333333333,
+     0.5,
+     0.6666666666666666,
+     1
+    ],
+    "curl_side": "l",
+    "dofs": [
+     {
+      "axis": {
+       "line": [
+        "index_01_l",
+        "pinky_01_l"
+       ]
+      },
+      "bone": "hand_l",
+      "expect": {
+       "along": "-forward",
+       "joint": "middle_03_l",
+       "min_cm": 0
+      },
+      "range": [
+       -30,
+       30
+      ],
+      "step": 5
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "lowerarm_l",
+       "hand_l",
+       "index_01_l",
+       "index_02_l",
+       "index_03_l",
+       "middle_01_l",
+       "middle_02_l",
+       "middle_03_l",
+       "ring_01_l",
+       "ring_02_l",
+       "ring_03_l",
+       "pinky_01_l",
+       "pinky_02_l",
+       "pinky_03_l",
+       "thumb_01_l",
+       "thumb_02_l",
+       "thumb_03_l"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   },
+   "r": {
+    "chain": [
+     {
+      "axis": {
+       "line": [
+        "lowerarm_r",
+        "hand_r"
+       ]
+      },
+      "bone": "lowerarm_r",
+      "range": [
+       -15,
+       15
+      ],
+      "step": 5
+     }
+    ],
+    "curl_fractions": [
+     0,
+     0.3333333333333333,
+     0.5,
+     0.6666666666666666,
+     1
+    ],
+    "curl_side": "r",
+    "dofs": [
+     {
+      "axis": {
+       "line": [
+        "index_01_r",
+        "pinky_01_r"
+       ]
+      },
+      "bone": "hand_r",
+      "expect": {
+       "along": "forward",
+       "joint": "middle_03_r",
+       "min_cm": 0
+      },
+      "range": [
+       -30,
+       30
+      ],
+      "step": 5
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "lowerarm_r",
+       "hand_r",
+       "index_01_r",
+       "index_02_r",
+       "index_03_r",
+       "middle_01_r",
+       "middle_02_r",
+       "middle_03_r",
+       "ring_01_r",
+       "ring_02_r",
+       "ring_03_r",
+       "pinky_01_r",
+       "pinky_02_r",
+       "pinky_03_r",
+       "thumb_01_r",
+       "thumb_02_r",
+       "thumb_03_r"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   }
+  },
+  "waist": {
+   "l": {
+    "chain": [
+     {
+      "axis": "lateral",
+      "bone": "spine_01",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "thigh_l",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "forward",
+      "bone": "thigh_l",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "thigh_r",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "forward",
+      "bone": "thigh_r",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "dofs": [
+     {
+      "axis": "lateral",
+      "bone": "pelvis",
+      "expect": {
+       "along": "forward",
+       "joint": "head",
+       "min_cm": 0
+      },
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "pelvis",
+       "spine_01",
+       "thigh_l",
+       "thigh_r"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   },
+   "r": {
+    "chain": [
+     {
+      "axis": "lateral",
+      "bone": "spine_01",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "thigh_l",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "forward",
+      "bone": "thigh_l",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "-lateral",
+      "bone": "thigh_r",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     },
+     {
+      "axis": "forward",
+      "bone": "thigh_r",
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "dofs": [
+     {
+      "axis": "lateral",
+      "bone": "pelvis",
+      "expect": {
+       "along": "forward",
+       "joint": "head",
+       "min_cm": 0
+      },
+      "range": [
+       -8,
+       8
+      ],
+      "step": 4
+     }
+    ],
+    "physical_status": "untested",
+    "regions": {
+     "piece": {
+      "bones": [
+       "pelvis",
+       "spine_01",
+       "thigh_l",
+       "thigh_r"
+      ],
+      "threshold_m": 0.002
+     }
+    }
+   }
+  }
+ }
+}

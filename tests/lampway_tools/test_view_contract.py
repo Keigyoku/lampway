@@ -223,3 +223,34 @@ def test_help_names_output_fields_for_every_action():
     assert {'object', 'framed_bounds', 'unhidden', 'undo', 'image_path', 'image'} <= set(fields['focus'])
     assert {'area', 'image_path', 'image'} <= set(fields['screenshot'])
     assert {'job', 'preset'} <= set(fields['render_still'])
+
+
+def test_area_enum_is_shared_and_invalid_types_refuse_before_runtime(monkeypatch):
+    api = importlib.import_module('mixar.modules.lampway_tools.api_view')
+    runtime = importlib.import_module('mixar.modules.lampway_tools.view.runtime')
+    def forbidden(*args):
+        raise AssertionError('invalid area must refuse before entering Blender')
+    monkeypatch.setattr(runtime, 'run', forbidden)
+    assert api.view(action='screenshot', area='INVENTED_EDITOR')['code'] == 'bad_argument'
+    root = Path(__file__).resolve().parents[2]
+    assert (root / 'src/scripts/mixar/modules/lampway_tools/view/schema.py').read_bytes() == (
+        root / 'server/lampway_server/mcp_view_schema.py').read_bytes()
+
+
+def test_known_but_absent_editor_keeps_no_area_refusal():
+    from types import SimpleNamespace
+    from mixar.modules.lampway_tools.view import runtime, ViewError
+    import pytest
+    window = SimpleNamespace(screen=SimpleNamespace(areas=[SimpleNamespace(
+        type='VIEW_3D', ui_type='VIEW_3D', width=400, height=300)]))
+    with pytest.raises(ViewError) as exc:
+        runtime.find_area(window, 'ShaderNodeTree')
+    assert exc.value.code == 'no_area'
+
+
+def test_view_help_discloses_defaults_separately_from_area_enum():
+    api = importlib.import_module('mixar.modules.lampway_tools.api_view')
+    reference = api.view(action='help')
+    assert reference.get('defaults') == {
+        'unhide': False, 'area': 'VIEW_3D', 'shot': True, 'max_bytes': 750000,
+        'preset': 'current', 'out': 'renders/still.png'}

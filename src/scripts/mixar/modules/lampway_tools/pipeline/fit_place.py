@@ -7,7 +7,7 @@
 Enclosure, not registration (memory armour-registration-bias): surface registration is biased toward the thick side (the fitted warrior sat 3-5 cm forward), so the piece is centred on its body
 segment's own slice centres and scaled to a landmark width; never a per-region push (pose-not-push): ONE similarity (scale + translation, plus the rotation a gauntlet's axis needs, reported).
 The body-side measures are the proportion scorer's (piece_ratios.py): helmet = the widest level above neck_02 (+2C), waist = the band at spine_01 + 3 cm, boots = shaft width / knee height /
-foot length by ``scale_anchor`` (REQUIRED: the user has not ruled which), gauntlets = the bracer's major axis at 35 % vs the forearm's middle. The chest keeps the audits' placement
+foot length by ``scale_anchor`` (default shaft width, physically untested), gauntlets = the bracer's major axis at 35 % vs the forearm's middle. The chest keeps the audits' placement
 (scripts/proportion/place_piece.py, byte for byte). Frame: Z up, -Y front, +X the wearer's left. Pure numpy."""
 
 import importlib.util
@@ -299,6 +299,15 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
     for f in (body_npz, piece_npz):
         if not Path(f).exists():
             raise PlaceError(f"{f} not found: run mesh_to_npz first")
+    from ..canon_asset import SETTINGS
+    from copy import deepcopy
+    defaults = {}
+    if pair_scale_group is None and kind in ("boots", "gauntlets"):
+        defaults["pair_scale_group"] = deepcopy(SETTINGS["pair_scale_group"])
+        pair_scale_group = defaults["pair_scale_group"]["value"]
+    if scale_anchor is None and kind == "boots":
+        defaults["boots_scale_anchor"] = deepcopy(SETTINGS["boots_scale_anchor"])
+        scale_anchor = defaults["boots_scale_anchor"]["value"]
     C = float(clear_mm) / 1000
     if kind == "chest":
         spec = importlib.util.spec_from_file_location("lw_place_piece", SCRIPTS / "place_piece.py")
@@ -310,12 +319,12 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
         return V, T, dict(meta, kind="chest", sides="both"), {"note": "the audits' chest placement, unchanged (chest width + 40 mm, axilla aligned)"}
     bV, bT, J = _body(body_npz)
     V, T = _piece(piece_npz, float(turn))
+    source_turned = V.copy()
     if pair_scale_group not in (None, "common", "per_side"):
-        raise PlaceError("pair_scale_group is common | per_side; the default remains an unruled D4 decision")
+        raise PlaceError("pair_scale_group is common | per_side")
     if kind == "boots" and scale_anchor not in ANCHORS:
-        raise PlaceError("boots have no ruled scale anchor: pick width (shaft), height (knee) or foot (foot length); the user has not ruled which")
+        raise PlaceError("boots scale_anchor is width (shaft) | height (knee) | foot (foot length)")
     if kind in ("boots", "gauntlets") and sides == "both" and pair_scale_group == "per_side":
-        from .. import canon_geom as G
         placed, transforms, reports = V.copy(), {}, {}
         masks = {side: V[:, 0]*sign > 0 for side, sign in (("l", 1), ("r", -1))}
         if any(not mask[T].all(1).any() for mask in masks.values()) or not (masks['l']|masks['r'])[T].all():
@@ -334,7 +343,7 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
             reports[side] = sr
         meta = {"kind": kind, "scale": None, "pair_scale_group": "per_side", "side_transforms": transforms,
                 "turn_deg": float(turn), "sides": sides, "clear_mm": float(clear_mm), "scale_anchor": scale_anchor,
-                "uniform_scale": True, "uniform_scale_scope": "per_side", "norm_lo": V.min(0).tolist(), "norm_hi": V.max(0).tolist()}
+                "uniform_scale": True, "uniform_scale_scope": "per_side", "defaults": defaults, "norm_lo": V.min(0).tolist(), "norm_hi": V.max(0).tolist()}
         recovered = undo_placement(placed, meta)
         return placed, T, meta, {"per_side": reports, "round_trip_m": float(np.abs(recovered-V).max())}
     if kind == "helmet":
@@ -350,8 +359,26 @@ def place(kind, body_npz, piece_npz, turn=0.0, clear_mm=15.0, scale_anchor=None,
     t = ab - s * ap
     meta = {"kind": kind, "scale": float(s), "translation": [float(x) for x in t], "anchor_shift": [float(x) for x in (ab - ap)], "tz": float(t[2]), "y_shift": float(t[1]), "x_shift": float(t[0]), "turn_deg": float(turn),
             "sides": sides, "clear_mm": float(clear_mm), "scale_anchor": scale_anchor, "uniform_scale": True,
-            "pair_scale_group": pair_scale_group, "pair_scale_needs_decision": pair_scale_group is None and kind in ("boots", "gauntlets") and sides == "both",
+            "pair_scale_group": pair_scale_group, "pair_scale_needs_decision": False, "defaults": defaults,
             "norm_lo": [float(x) for x in V.min(0)], "norm_hi": [float(x) for x in V.max(0)]}
+    if kind == 'gauntlets':
+        # Residual axis corrections are independent rigid maps even when both
+        # sides share one scale. Retain them for scene replay and blocker inversion.
+        transforms = {}
+        covered = np.zeros(len(Vp), dtype=bool)
+        for side, sign in (('l', 1), ('r', -1)):
+            ids = np.flatnonzero(source_turned[:, 0] * sign > 0)
+            if not len(ids):
+                continue
+            covered[ids] = True
+            fit = G.similarity_fit(source_turned[ids], Vp[ids])
+            if fit['max'] > 1e-9:
+                raise PlaceError(f'the {side} gauntlet placement is not one proper rigid similarity')
+            transforms[side] = {'vertex_ids': ids.tolist(), 'scale': float(fit['s']),
+                                'rotation': np.asarray(fit['R']).tolist(), 'translation': np.asarray(fit['t']).tolist()}
+        if not covered.all() or not np.all(np.logical_or.reduce([np.isin(T, tr['vertex_ids']).all(1) for tr in transforms.values()])):
+            raise PlaceError('gauntlet placement maps require separated sides with no unassigned vertices or crossing triangles')
+        meta['side_transforms'] = transforms
     return Vp, T, meta, rep
 
 

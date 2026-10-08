@@ -7,7 +7,7 @@
 Every automatic hand sizing and finger identification failed on the user's gauntlets, so the plate labels are a TYPED DECISION: the algorithm may propose, the user (or an agent's proposal, recorded as such)
 labels each plate with a hand or arm bone. ``labels`` validates (every plate labelled - never guessed -, the right hand's bones, finger caps and the bracer metal on ONE bone each, a cloth plate never rigid),
 writes ``glove_labels.json`` and one decision row per plate to ``<piece>/fit/decisions.jsonl``, and returns the bind plan fragment that fit_bind takes as overrides.
-Pose and bind call the shared canon engines with the body's own joints and each glove's recorded independent labels. Automatic mirror relabelling remains a separate explicit decision; it never blocks an independently labelled glove. The pose's DOF ranges must be supplied until a complete canon table is ruled."""
+Pose and bind call the shared canon engines with the body's own joints and each glove's recorded independent labels. Automatic mirror relabelling remains a separate explicit decision; it never blocks an independently labelled glove. Omitted pose DOFs execute the physically untested gauntlet default table for the independently recorded side."""
 
 import json
 import re
@@ -79,12 +79,17 @@ def _record(root, piece, side):
 
 def pose(root, piece, side, armature, body_object, dofs, chain, regions, out_dir, apply=False, curl_fractions=None):
     _record(root, piece, side)
-    if not dofs:
-        from .. import posing
-        return posing.fit_pose("gauntlets")
     from .. import posing
+    defaults = None
+    if not dofs:
+        defaults = posing.fit_pose("gauntlets", side=side)["table"]
+        dofs, chain, regions = defaults["dofs"], defaults["chain"], defaults["regions"]
+        if curl_fractions is None:
+            curl_fractions = defaults["curl_fractions"]
     result = posing.solve_scene("gauntlets", piece, body_object, armature, dofs, chain, regions, root=root,
                                 curl_side=side if curl_fractions is not None else "", curl_fractions=curl_fractions)
+    if defaults is not None:
+        result["defaults"] = defaults
     result["keypoints"] = {"source": "body_joints", "side": side, "labels": "independent"}
     if apply:
         import bpy

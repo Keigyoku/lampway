@@ -137,3 +137,30 @@ The final GUI aggregate exposed a disposable-profile readiness race: its saved o
 
 
 Coordination clarification (2026-10-08): no cross-PR consolidation, combined candidate or combined build is required. Each existing crew branch owns its implementation and tests independently. This lane reports exact overlapping files/symbols and required dependency commits for the captain to relay; it does not merge other crews or block its scope on combined-project acceptance. Actual-box-only measurements remain with the local validator.
+
+
+## Original-contract correction pass, 2026-10-08
+
+The focused worktree pass based on `6c4ba085` closed three additional original
+MCP requirements: non-mesh object detail now returns layers count 0/top null;
+T2 exposes and validates the finite 28-value pinned Blender editor domain,
+including WINDOW; and action=help discloses its six defaults separately from
+arguments and output fields. Client/server schema copies are byte-identical.
+Each gap was reproduced RED before its fix. Native Camera inspection retains
+the unchanged scene/selection snapshot; native view checks preserve no_area for
+a supported but absent editor and refuse invented types before Blender work.
+The pixel opt-in and existing undo behavior remain guarded.
+
+Focused receipts: 753 standalone/TOON tests passed (5.22s); 78 server wrapper,
+lease and offline-docs tests passed; the C2/client-lease set passed 55 tests
+(2.59s), and the post-edit view/inspection/guide subset passed 29 (1.18s).
+Native components passed 20 tests after the layers fix (22.34s), followed by two
+post-enum native checks (3.05s). Standalone/native runs each reported one warning,
+with no failures or skips. Scoped authored git diff --check passed. Exact
+commands and source provenance are in the
+[focused requirement receipt](mcp-wrapper-requirements.md#focused-original-contract-corrections-2026-10-08).
+
+These receipts concern the current worktree, not a final consolidated commit.
+Coordinator-owned registry/guide/document regeneration and aggregate checks
+remain pending. This pass did not rerun named performance, GUI masking/history
+acceptance or packaging and does not promote prior receipts to a new head.

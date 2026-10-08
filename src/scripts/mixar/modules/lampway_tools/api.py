@@ -1158,11 +1158,11 @@ def seed_audit(stage, piece, seeds=None, scores=None, proposals=None, by="agent"
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_place(kind, piece, body, turn=0.0, clear_mm=15.0, scale_anchor="", sides="both", out="placed.npz", object="", pair_scale_group=None):
     """Place a piece on the body by ENCLOSURE with ONE uniform scale (never registration, never a per-region push): helmet = the widest head level above neck_02, waist = the band at
-    spine_01 + 3 cm, boots = shaft width | knee height | foot length (scale_anchor is REQUIRED: the user has not ruled which), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
+    spine_01 + 3 cm, boots = shaft width | knee height | foot length (omitted scale_anchor uses the authorized width starting default, physically untested), gauntlets = the bracer at 35 % vs the forearm's middle (an axis
     more than 25 degrees off is refused), chest = the audits' placement unchanged. piece/body are npz files (mesh_to_npz, body with joints); turn brings the piece to -Y front, +Z up. Writes
     placed.npz and placed.npz.json (scale, translation, anchor_shift, turn, norm_lo/hi) and returns the report. object=<name>: the scene piece
-    the later stages work on is moved by the same placement - the similarity fitted from piece.npz to placed.npz (it must be one, residual
-    < 1e-9 m) - after checking that piece.npz IS that object's world mesh (same vertex count, within 1e-6 m)."""
+    the later stages work on is moved by the same placement - one proper similarity per rigid side fitted from piece.npz to placed.npz (residual
+    < 1e-9 m), with hash-bound inverse maps retained for fit_pose - after checking that piece.npz IS that object's world mesh (same vertex count, within 1e-6 m)."""
     res = _fit_place_run(kind, piece, body, turn, clear_mm, scale_anchor, sides, out, pair_scale_group)
     if object:
         res["object"] = _place_object(object, _p(piece), res["placed"], res["meta"])
@@ -1185,6 +1185,11 @@ def _place_object(name, piece_npz, placed_npz, meta=None):
     if len(W) != len(V0) or float(_np.abs(W - V0).max()) > 1e-6:
         raise ValueError(f"piece.npz is not {name}'s world mesh ({len(V0)} vs {len(W)} vertices"
                          + (f", max {float(_np.abs(W - V0).max()):.6f} m apart" if len(W) == len(V0) else "") + "): write it from this object, then place")
+    from .pipeline import pose_receipt as _PR
+    placement_meta = dict(meta or {})
+    # Validate inverse maps before either scene success branch can mutate geometry.
+    placement_meta['placed_sha256'] = _PR.geometry_hash(V1, _np.load(placed_npz)['T'])
+    _PR.prepare(placement_meta, V1, _np.load(placed_npz)['T'])
     if meta and meta.get("side_transforms"):
         covered = _np.zeros(len(V0), dtype=bool)
         groups = {}
@@ -1203,7 +1208,9 @@ def _place_object(name, piece_npz, placed_npz, meta=None):
         ob.data.vertices.foreach_set("co", local.ravel())
         ob.data.update()
         bpy.context.view_layer.update()
-        return {"name": name, "pair_scale_group": "per_side", "groups": groups, "vertices": len(W)}
+        from . import posing as _PO
+        _PO.stamp_placement(ob, meta)
+        return {"name": name, "pair_scale_group": meta.get("pair_scale_group"), "groups": groups, "vertices": len(W)}
     fit = _G.similarity_fit(V0, V1)
     if fit["max"] > 1e-9:
         raise ValueError(f"the placement is not one similarity of the piece (residual {fit['max']:.3e} m): it is never applied piecewise")
@@ -1213,6 +1220,8 @@ def _place_object(name, piece_npz, placed_npz, meta=None):
     ob.data.transform(Matrix((_np.linalg.inv(mw) @ M @ mw).tolist()))
     ob.data.update()
     bpy.context.view_layer.update()
+    from . import posing as _PO
+    _PO.stamp_placement(ob, meta)
     return {"name": name, "scale": round(float(fit["s"]), 9), "similarity_residual_m": float(fit["max"]), "vertices": int(len(W))}
 
 
@@ -1233,7 +1242,7 @@ def fit_openings(stage, object, axis=None, plane_origin=None, limb="", pose=None
     """The openings decision at fit: every cap a seed put across a limb, neck or waist opening gets keep | gasket | delete, logged append-only in <piece>/fit/decisions.jsonl. detect: the capped
     sites along `axis` (pointing out of the piece); propose: proposals only (the user rules); apply: answers {"OP000": "gasket"}. A GASKET cuts the POSED limb's cross-section (`limb`, an
     object) plus clearance_mm (5..40, default 15) into the cap plane and forms a COLLAR - a tubular flange into the piece whose free edge rolls outward into a lip (an exhaust/intake manifold
-    port, not a raw hole); its depth `flange_mm` (2..60) is the user's number: without it apply answers needs_decision, and `variants` builds and renders three depths (depths_mm) to pick.
+    port, not a raw hole); its depth `flange_mm` (2..60) defaults to the authorized20mm judgment choice, physically untested; `variants` builds and renders three depths (depths_mm) for physical review.
     Needs `pose` (the fit_pose result): never the rest pose. armature + site (a bone: upperarm_l, neck_01, ...) instead of axis: the site's
     axis is the POSED bone's line to its next joint, and the cap is the first cluster that line runs into (canon 06 B.1), extreme or not. Result `<object>_openings`; the source is untouched. Discards a studio texture (texture_discard_ack). keep changes no geometry."""
     from .features import opening as _OP
@@ -1351,25 +1360,31 @@ def armor_piece_pipeline(piece, mode="plan", from_step=1, to_step=15, paired=Non
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out="", apply=False, curl_side="", curl_fractions=None):
+def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, regions=None, out="", apply=False, curl_side="", curl_fractions=None, placement_meta=None, classes=None, side="l"):
     """The closest pose of the body to a piece (canon 08). With dofs [{bone, axis (joint grammar: up | forward | lateral | {line} | {perp} |
     a vector), range [lo, hi] (<= 90 deg wide), step, expect (the first DOF's sign check: {joint, along, min_cm})}] and the scene's piece,
     skinned body and armature: a deterministic sweep (the grid over dofs, then each chain link in turn), rays from each skin sample's bone
     axis to the piece, regions {name: {bones, threshold_m}}; answers the pose in the replayable grammar, the A-pose and posed numbers, and
-    writes pose.json to out. dofs="chest" is the canon's chest table (arms lowered 0..40 x swung -10..10, mirrored; then spine_01,
-    spine_03, neck_01 pitch -8..8). dofs="helmet" uses neck_01/neck_02/head pitch and roll -8..8 step4; with helmet scene inputs this is the default. Without dofs: chest is routed to pose_clearance; waist, boots, gauntlets answer needs_decision (the
-    bones, axes and ranges are the user's to rule; the contract's proposals come with it, marked unverified). apply=true puts the armature
+    writes pose.json to out, including source hashes and residual hit bounds in the source piece frame. placement_meta is a hash-bound canon09 inverse map or a project-relative JSON path; omitted uses the stamp from fit_place(object=...). Missing, malformed or stale maps refuse before solving. classes is optional: one string per placed triangle or a project-relative JSON/NPY path. dofs="chest" is the canon's chest table (arms lowered 0..40 x swung -10..10, mirrored; then spine_01,
+    spine_03, neck_01 pitch -8..8). dofs="helmet" uses neck_01/neck_02/head pitch and roll -8..8 step4. Complete scene inputs without dofs run the kind's canon table; side=l|r selects sided boot/glove defaults, including coupled curl targets. Adopted limb defaults remain physically untested and their provenance is recorded. apply=true puts the armature
     in the pose found (the FIT pose the piece is bound at, canon 03 B.9): the entries replayed through each bone's joint, parents first."""
     from . import posing as _PO
-    if dofs is None and kind == "helmet" and piece and body and armature:
-        dofs = "helmet"
+    if side not in ('l','r'):
+        raise ValueError('side is l | r')
+    default_table = None
+    if dofs is None and piece and body and armature:
+        dofs = kind
     if isinstance(dofs, str):
         if dofs not in _PO.TABLES:
             raise ValueError(f"dofs is a list of DOFs or a named canon table {sorted(_PO.TABLES)}; {dofs!r} names no table")
-        t = _PO.TABLES[dofs]
+        t = _PO.fit_pose(dofs, side=side)['table'] if dofs in ('waist','boots','gauntlets') else _PO.TABLES[dofs]
+        default_table = t
         dofs, chain, regions = t["dofs"], chain if chain is not None else t["chain"], regions or t["regions"]
+        curl_side = curl_side or t.get('curl_side', '')
+        if curl_fractions is None:curl_fractions = t.get('curl_fractions')
     if dofs:
-        res = _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root), curl_side=curl_side, curl_fractions=curl_fractions)
+        res = _PO.solve_scene(kind, piece, body, armature, dofs, chain, regions, out, root=str(_settings().project_root), curl_side=curl_side, curl_fractions=curl_fractions, placement_meta=placement_meta, classes=classes,
+                              default_provenance={k:default_table[k] for k in ('status','source','physical_status','limits')} if default_table and default_table.get('physical_status') else None)
         if apply:
             from .features import validate_pose as _VPO
             arm = bpy.data.objects[armature]
@@ -1379,7 +1394,7 @@ def fit_pose(kind, piece="", body="", armature="", dofs=None, chain=None, region
         return res
     if apply:
         raise ValueError("apply needs a pose: pass dofs (the kind's DOF table)")
-    return _PO.fit_pose(kind)
+    return _PO.fit_pose(kind,side=side)
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
@@ -1580,12 +1595,12 @@ def fit_body(verb, armature="", mesh="", glb="", native_asset="", uproject="", s
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def fit_export(object, armature, out_dir, body, textures=None, validation="", bind_check="", note="", allow_unverified=False, _bone_axis="Z"):
+def fit_export(object, armature, out_dir, body, textures=None, validation="", bind_check="", note="", allow_unverified=False, _bone_axis=None):
     """The rigged export of a fitted piece, behind gates, with a read-back. Refuses (each names its fix): a missing validation or one with FAIL/UNPROVEN, roles with no declared limits (unless
     allow_unverified=true, and then the README says 'limits: proposed; roles without limits: ...'), a bind_check that is not ok, textures whose merge.json mesh_sha256 is not this mesh (a geometry step
-    discards the texture: re-run steps 13-14), vertex groups naming a bone the body package does not have, an existing out_dir. Writes <object>.fbx with the contract settings (primary bone axis Z, secondary X,
-    leaf bones off, units applied), Textures/, README.md (files with sha256, conventions, validation counts, limits status, read-back) and export.json, then READS THE FBX BACK and compares every joint's
-    position and axes with the body package (positions to 0.1 mm, axes to 0.5 degrees): a position-only check passed exports whose frames were 90 degrees off, so it is never the gate."""
+    discards the texture: re-run steps 13-14), vertex groups naming a bone the body package does not have, an existing out_dir. Writes <object>.fbx with canon21's measured convention recipe on independent centimetre copies
+    (leaf bones off, raw unit carriers admitted), Textures/, README.md (files with sha256, conventions, validation counts, limits status, read-back) and export.json, then READS THE FBX BACK and compares every joint's
+    position, rotation, scale and hierarchy with the body package under canon21's 0.01 cm / 0.01 degree / 1e-4 bind bars: a position-only check passed exports whose frames were 90 degrees off, so it is never the gate."""
     from .features import fit_export as _FE
     return _FE.run(object, armature, out_dir, _p(body), textures, validation, bind_check, note, allow_unverified, str(_settings().project_root), _bone_axis)
 
@@ -1619,7 +1634,7 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
 def fit_glove(stage, piece="", side="r", labels=None, roles=None, overrides=None, by="agent", armature="", body_object="", body="", dofs=None, chain=None, regions=None, out_dir="", apply=False, accept_seam_gap_mm=None, curl_fractions=None):
-    """Fit one independently labelled glove using the body's joints and the existing canon pose/bind engines. labels: label every plate (piece vertex group) with this side's bone and material role; metal is rigid on one bone, cloth never rigid. pose: armature/body_object and explicit dofs (first sign expectation required), optional chain/regions, writes glove_pose.json; apply replays the fit pose. bind: recorded labels become bind overrides; body names the native fit_body package, or body_object the labelled scene approximation; plan, weights and exact return preserve metal and the source. apply also enforces the existing seam-gap gate. report: labels, pose, bind stages. out_dir defaults to <piece>/fit/glove. Each glove is labelled independently; no inferred mirror labels."""
+    """Fit one independently labelled glove using the body's joints and the existing canon pose/bind engines. labels: label every plate (piece vertex group) with this side's bone and material role; metal is rigid on one bone, cloth never rigid. pose: armature/body_object and optional dofs (first sign expectation required); omitted dofs execute this side's authorized starting table including coupled curl, marked physically untested. The piece needs the placement stamp from fit_place(object=...). Optional chain/regions override the table; writes glove_pose.json; apply replays the fit pose. bind: recorded labels become bind overrides; body names the native fit_body package, or body_object the labelled scene approximation; plan, weights and exact return preserve metal and the source. apply also enforces the existing seam-gap gate. report: labels, pose, bind stages. out_dir defaults to <piece>/fit/glove. Each glove is labelled independently; no inferred mirror labels."""
     from .pipeline import fit_glove as _FG
     root = str(_settings().project_root)
     if not piece:
@@ -2072,11 +2087,12 @@ def ue_look(action="status", profile=None, scope="scene", parity=False, receipt=
 
 @tool(consumes=LEGACY("armature and action need lampway_normalize_rigged / lampway_normalize_clip, not built (canon R1/R3/R4)"))
 def ue_export(type, object="", armature=None, action=None, out_dir="", textures=None, body=None, frame_rate=None, hero=None, format="fbx",
-              validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis="Z"):
-    """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, primary bone axis Z / secondary X, no
-    leaf bones, units applied, tangents, triangles; fit_export's gates: body package, validation, bind_check, native bones, and
-    the joint read-back), static_prop (the same without the armature), animation (FBX: the armature, every frame keyed at the
-    scene rate, no simplification; frame_rate must equal the scene's) or texture_set (pbr_pack's BaseColor / ORM / Normal_DX with
+              validation="", bind_check="", bake_receipt="", profile=None, allow_unverified=False, _bone_axis=None):
+    """Export to UE by the ONE path its type allows: skinned_piece (FBX: armature + mesh, measured convention axis pair, no
+    leaf bones, independent centimetre copies, tangents, triangles; fit_export's gates: body package, validation, bind_check, native bones, and
+    the joint read-back), static_prop (the same without the armature), animation (FBX: independent armature/action centimetre
+    copies with measured axes, raw units/hierarchy and exact scene-frame key times checked; no skin-bind proof from a skeleton-only clip;
+    no simplification; frame_rate must equal the scene's) or texture_set (pbr_pack's BaseColor / ORM / Normal_DX with
     their DECLARED colour spaces). Canonical input only: a transform not applied, a negative scale or a scene not in metres is
     refused. Meshes are triangulated once (fixed method) on a temporary copy; bake_receipt's triangles_sha256 must match. Writes
     out_dir/<name>.fbx, Textures/, README.md, export.json (settings, content_sha256 with the timestamp zeroed, triangles_sha256,

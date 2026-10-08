@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Bounded candidate tables for owner measurements, never canonical defaults.
+"""Bounded pose candidates and captain-authorized, physically untested defaults.
 
-Ranges absent from canon are experimental envelopes. Results on actual pieces
-must precede any recommendation/ruling. The caller supplies a measured anatomical
-expectation for the first DOF; the normal engine refuses a reversed sign.
+``candidate`` retains explicit caller expectations and thresholds for measurements.
+``adopted`` records the 2026-10-07 judgment authorization of starting envelopes;
+it does not claim measured physical acceptance. The shared engine still refuses
+reversed anatomical signs and empty regions.
 """
 
 
@@ -36,3 +37,25 @@ def candidate(kind, expect, threshold_m, side='l'):
             'limits':'Explicit caller region threshold; report sensitivity before adopting a physical acceptance value'}
     if kind=='gauntlets': result.update(curl_side=side,curl_fractions=[0,1/3,1/2,2/3,1])
     return result
+
+
+def adopted(kind, side='l'):
+    """Captain-authorized starting tables (2026-10-07), physically untested.
+
+    Candidate envelopes are adopted by judgment, not by a measured acceptance.
+    The 2mm diagnostic matches canon08 torso/neck sensitivity; it is not a new
+    physical clearance acceptance bar. Native sign/ancestry checks still apply.
+    """
+    expectations = {
+        'waist': {'joint': 'head', 'along': 'forward', 'min_cm': 0},
+        'boots': {'joint': f'ball_{side}', 'along': 'up', 'min_cm': 0},
+        'gauntlets': {'joint': f'middle_03_{side}',
+                     'along': '-forward' if side == 'l' else 'forward', 'min_cm': 0},
+    }
+    if kind not in expectations:
+        raise ValueError('adopted kind is waist | boots | gauntlets')
+    table = candidate(kind, expectations[kind], .002, side)
+    table.update(status='authorized default; physically untested', physical_status='untested',
+                 source='canon08 B.3/B.5/H.1; bounded decision_tables candidate; AC65 judgment authorization 2026-10-07',
+                 limits='Technical path tests only; natural pose, regional sensitivity and actual piece acceptance remain untested')
+    return table

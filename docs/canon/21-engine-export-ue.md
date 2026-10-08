@@ -4,7 +4,7 @@
 # Canon 21 — Engine export (Unreal): the skeleton the engine reads, and the read-back that proves it
 
 Status: **CANONICAL** gate and the measured Titan recipe; **DRAFT** for any engine other than Unreal 5.8. Implemented by: Lampway
-LT `features/export_checks.py` (`skeleton_export_check`, `engine_import_check`), LT `features/fit_export.py` (rigged export behind
+LT `features/export_checks.py` (`skeleton_export_check`, `engine_import_check`), LT `features/fit_export.py` and `ue/export.py` (rigged export behind
 gates, with a read-back), LT `features/batch_export.py`; Titan `tools/armour_validate.py:414-433` (`bind_mismatch`, the bone-by-bone
 bind check); MB `PoseUE.py:4130-4205` (`exportfbxf.m_operator`), MB `MagicBoneTop_Panel.py:32429-32650` (batch export); GRT
 Unreal module (export rig = the armature object `root`; no export operator of its own).
@@ -52,7 +52,7 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    `interaction`) are exported only if the reference has them (canon 16 B.6).
 5. **Frames in one convention** (canon 17 B.1): a `mixed` armature is refused before writing. The convention inside Blender and
    the axis settings form a PAIR; the read-back proves the pair.
-6. **Animation:** baked keys only (canon 19), no constraints, one action per clip, frame range recorded; root motion per canon 19.
+6. **Animation:** baked keys only (canon 19), no constraints, one action per clip, frame range recorded; root motion per canon 19. UE animation uses the same measured axes and disposable centimetre/action copies. Resolve the requested action slot against the original armature before copying, including a non-active requested action; ambiguous slots refuse. Check raw units, identity Armature container, full topology and exact pinned-writer key cadence. Preserve source action/slot, pose, frame and all datablocks. A skeleton-only clip lacks independent skin cluster binds and cannot claim authored skin-bind acceptance or native UE animation parity.
 7. **Meshes:** one skinned mesh per piece, vertex groups naming only bones the reference has (LT `fit_export.py` gates it),
    normals preserved and compared corner by corner on read-back (Titan tools rail, wave4-tools-9: canonical corner shading and
    actual FBX normal preservation). MB exports with `mesh_smooth_type='EDGE'` and no normal check (`PoseUE.py:4195`).
@@ -123,3 +123,7 @@ worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance}, sha256: {fb
    Blender edit bone holds for an arbitrary frame (max 0.112 deg, 17 % of 400 random frames over 0.01 deg, 2026-10-06, no FBX
    involved); the cause is not identified (the errors are not clustered at the roll singularity, the bone's Y near -Z). A Blender
    read-back may need a measured bar of its own, or a comparison against frames that went through the same storage. No tolerance change was ruled: the implemented authored node/pose/cluster readback keeps0.01deg, reports imported display errors separately and refuses unsupported layouts.
+
+## Shared public-route contract correction
+
+The fit-chain `fit_export` and UE `skinned_piece` routes use the same measured-convention recipes, disposable centimetre copies and reserved Armature container as rig export. They validate raw unit/ancestry scales before the strict authored node/BindPose/cluster and full-hierarchy gate. The existing diagnostic imported-axis check is retained in addition to the unchanged canon bind bars. Wrong position, quaternion, scale, missing reference rows and hierarchy mutations refuse. Passing these file/Blender checks does not assert native Unreal or original-gear acceptance.

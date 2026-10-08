@@ -127,6 +127,8 @@ body.parent = ob; m = body.modifiers.new("Armature", "ARMATURE"); m.object = ob
 sleeve = load_obj(GOLD + "/C07_pose_solve/sleeve.obj", "sleeve")
 dof = {"bone": "upperarm_l", "axis": rig["dof"]["axis_world"], "range": rig["dof"]["range"], "step": rig["dof"]["step"],
        "expect": {"joint": "lowerarm_l", "along": "-up", "min_cm": 2.0}}
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects['sleeve'], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 r = api.fit_pose(kind="chest", piece="sleeve", body="body", armature="rig", dofs=[dof], regions={"arm_l": {"bones": ["upperarm_l"], "threshold_m": 0.01}},
                  out="fit/pose.json")
 res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "a_pose": r.get("a_pose"), "posed": r.get("posed"),
@@ -217,6 +219,8 @@ for i, b in enumerate(REF):
     body.vertex_groups.new(name=b).add([i], 1.0, "REPLACE")
 me2 = bpy.data.meshes.new("piece"); me2.from_pydata([(5, 5, 5), (5.1, 5, 5), (5, 5.1, 5)], [], [(0, 1, 2)]); me2.update()
 bpy.context.scene.collection.objects.link(bpy.data.objects.new("piece", me2))
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects["piece"], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 r = api.fit_pose(kind="chest", piece="piece", body="body", armature="rig", dofs="chest")
 h = api.fit_pose(kind="helmet", piece="piece", body="body", armature="rig", apply=True)
 res({"helmet_schema": h.get("schema"), "helmet_sweeps": len(h.get("sweeps") or []), "helmet_applied": h.get("applied"), "ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})

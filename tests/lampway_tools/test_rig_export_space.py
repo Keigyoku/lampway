@@ -214,6 +214,29 @@ print('RESULT '+json.dumps({'source_unchanged':True,'cleanup':True}))
     assert run.results[0]['cleanup']
 
 
+def test_nonactive_action_slots_bind_to_the_original_owner_and_ambiguity_refuses_before_copies():
+    run = run_script(PRE + r'''
+requested=bpy.data.actions.new('RequestedMultiSlot')
+target=requested.slots.new('OBJECT',arm.name)
+requested.slots.new('OBJECT','AnotherOwner')
+ambiguous=bpy.data.actions.new('AmbiguousMultiSlot')
+ambiguous.slots.new('OBJECT','FirstOwner');ambiguous.slots.new('OBJECT','SecondOwner')
+source=digest(snapshot(arm,mesh,original));ids=canon_io.snapshot_ids()
+with SPACE.centimetre_copies(arm,[],requested,recipe) as copied:
+    assert copied['armature'].animation_data.action_slot.handle==target.handle
+assert canon_io.snapshot_ids()==ids and digest(snapshot(arm,mesh,original))==source
+try:
+    with SPACE.centimetre_copies(arm,[],ambiguous,recipe):assert False
+except ValueError as exc:
+    assert 'ambiguous or incompatible slots' in str(exc)
+else:assert False
+assert canon_io.snapshot_ids()==ids and digest(snapshot(arm,mesh,original))==source
+print('RESULT '+json.dumps({'original_owner_slot':True,'ambiguous_refused':True}))
+''')
+    assert run.rc == 0, run.out
+    assert run.results[0] == {'original_owner_slot': True, 'ambiguous_refused': True}
+
+
 def test_metric_100_export_refuses_operator_clamp_before_copies():
     run = run_script(PRE + r'''
 original.unit_settings.scale_length=100.

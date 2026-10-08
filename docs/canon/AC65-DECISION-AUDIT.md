@@ -1,34 +1,46 @@
 <!-- SPDX-FileCopyrightText: 2026 Lampway contributors -->
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 
-# AC65 decision prerequisites (2026-10-07)
+# AC65 authorized starting defaults (2026-10-07)
 
-AC65 names six decisions. They are not normalization decisions D1–D6: only
-pair scale group and facing margin correspond to normalization D4 and D6.
-The canon supplies working engines and some proposals, but does not contain a
-complete accepted numerical default table for all six. Explicit candidate
-measurements can proceed; successful execution alone cannot select defaults.
+The captain explicitly authorized judgment using the supplied MetaHumanBase and
+gear references, with untested results labelled. This supersedes the earlier
+measurement-prerequisites-only recommendation. These six decisions are adopted
+starting defaults, **physically untested**. They do not establish acceptance of
+an original piece, native engine parity, or an independently measured optimum.
+Only pair scale and facing margin correspond to normalization D4 and D6.
 
-| AC65 decision | Current implementation and recommendation | Evidence needed before a default can be adopted |
+| AC65 decision | Chosen default and rationale | Technical evidence and remaining physical work |
 |---|---|---|
-| Facing margin (normalization D6) | `features/normalize.py` measures all four cardinal yaws against the approved Front plate; `canon_asset.SETTINGS.facing_margin` remains unset. Use actual approved per-piece plates and the shared native-aspect loader to measure best-minus-second IoU gaps. No number is currently recommended by canon. | Original approved plates, declared correct-facing labels, repeatability under the documented loader/render settings, and correct/wrong/tied cases establishing a separation margin. Keep the symmetric tie and unchanged-geometry falsifiers in `test_canon_normalize_facing.py`, then record the justified value and default-path golden. |
-| Pair scale group (normalization D4) | `pipeline/fit_place.py` implements explicit `common` and `per_side`, preserving identities and inverse maps. Compare both on actual asymmetric boots/gauntlets and retain one proper similarity per rigid group. Omitted mode retains the historical calculation and an unresolved-decision marker; it is not a canonical common-scale ruling. | Actual side-specific source-part identities and body-relative comparison of proportions, placement, all-vertex clearance and rest/posed rigid fidelity. Synthetic asymmetric tubes prove independent routing, not the physical choice. `test_canon_pair_scale.py` retains both alternatives and scene replay. |
-| Glove pose and bind | Use the implemented shared engines with independently recorded plate labels, roles, native body joints and native-sidecar weights. `pipeline/fit_glove.py` runs pose and bind/return; no automatic mirror-label algorithm is required for an independently labelled glove. Default gauntlet DOFs still depend on the next decision. | Original labelled glove geometry on each side, source-part fidelity, a justified complete hand/forearm pose table and coupled curl-TO targets, bind-at-fit-pose/return/validate receipts, and rigid-cap plus seam falsifiers. `test_wave3_glove_state.py`, `test_canon_finger_targets.py`, `test_canon_item4_tools.py` and `test_canon_g03_chain.py` prove engines on synthetic inputs. |
-| Fit-pose degrees of freedom | `posing.py` has canonical chest and accepted complete helmet tables. `pipeline/decision_tables.py` supplies bounded experimental waist, boots and gauntlets tables, with explicit anatomical sign expectations and region thresholds. Measure these candidates rather than treating their experimental envelopes as accepted defaults. | Actual placed pieces, both side identities, joints, reversible pose grammar, sign checks and sensitivity of remaining ranges/steps/regions to natural pose and clearance. `test_canon_item7_pose.py` and `test_canon_finger_targets.py` pin the solver; canon08 still lacks three complete accepted numerical tables. |
-| Collar depth | `features/opening.py` accepts explicit gasket flange depth and renders variants; canon06 proposes 10/20/35mm for review, without accepting one. `pipeline/decision_measure.py` has a `collar` variant job. Preserve the keep/gasket/delete decision and material role. | Actual posed opening descriptors, body visibility/through-depth, matching camera views for all proposed variants, flange/lip geometry and manifold/winding checks. The selected depth needs a ruling grounded in those views; C12 must retain no-flange and zero-clearance falsifiers. |
-| Boots scale anchor | `pipeline/fit_place.py` supports explicit shaft `width`, knee `height`, or `foot` length; canon09 does not prefer one. The measurement runner compares all three. Height now measures knee-to-sole length; body/world translation cannot change its scale. Re-run any earlier height candidates on this corrected source. | Actual approved boot/body inputs, body-relative fixed-bound views, knee/sole/foot relationships, per-side scales, all-vertex signed clearance and relevant pose metrics. `test_boot_height_translation.py` pins body-only and both-input translation and the original sole-at-zero result. Physical owner views must identify current source hashes; the 4cm sole-band thickness remains a separate calibration limitation. |
+| Facing margin (D6) | `0.05` best-minus-second silhouette IoU: require five IoU points of separation; a symmetric tie still refuses. | `test_ac65_defaults.py` exercises the omitted-margin native plate path and untested receipt; `test_canon_normalize_facing.py` retains rotation/tie controls. Approved original plates and correct/wrong-facing separation remain unmeasured. |
+| Pair scale group (D4) | `per_side`: retain one proper, reversible similarity per rigid side. The reference shins' reported scales 0.887/0.853 motivate preserving asymmetry; explicit `common` remains available. | Default-path asymmetric tubes retain identities and inverse error below 1e-9 m; `test_canon_pair_scale.py` retains both modes. These inputs do not prove physical left/right proportions or clearance. |
+| Glove pose and bind | Independently supplied labels and roles, native joint keypoints, the complete side-specific gauntlet table below, and shared bind-at-fit-pose/return/validate engines. No inferred mirror labels. | Default tests cover unlabelled refusal and independently labelled right-side routing; finger-target and glove-state tests retain curl/role controls. Original glove geometry, rigid-cap fidelity, seams and full bind/return acceptance remain untested. |
+| Fit-pose DOFs | Adopt the complete bounded waist, boots and gauntlets tables in canon08 B.8; keep chest and helmet tables. All new region thresholds are 0.002 m diagnostics using the existing torso/neck sensitivity. | Default tests cover both sides, actual synthetic sweeps, nonempty regions and reversed-sign refusal. Bounds/steps are judgment choices from the prior candidates; the threshold is not a new physical acceptance bar. Natural pose and regional sensitivity need original-input review. |
+| Collar depth | `20 mm`: middle of the proposed 10/20/35 mm variants, retaining a formed collar while limiting intrusion. Explicit flange depth still overrides it. | Default-path opening tests and existing manifold/winding/clearance controls are technical proof. Actual posed visibility, through-depth, lip geometry and opening-specific keep/gasket/delete decisions remain untested. |
+| Boots scale anchor | `width`: shaft span with wear clearance follows the enclosure rule. Prior height left the foot 8% short; foot scaling placed the shaft 118 mm above the knee. Width avoids choosing either length over enclosure. | Default tests compare omitted anchor with explicit width and reject unknown anchors. Height remains explicit and sole-relative with translation controls. Original shaft/foot/knee relationships, pose clearance and the 4 cm sole-band calibration remain untested. |
 
-The concrete entry point is `scripts/lampway/measure_fit_decisions.py`, backed by
-`pipeline/decision_measure.py`: `facing`, `pair`, `boots`, `pose` and `collar`
-jobs. Glove labels/bind use `api.fit_glove` with their recorded independent
-inputs. Body-relative pair/boots jobs require explicit body context, fixed world
-bounds and acceptance limits; they distinguish all-vertex clearance from
-sampled distance diagnostics and refuse ambiguous opening bands. They do not
-measure every full-chain surface crossing, innermost gap or hideable-skin clause.
+`canon_asset.SETTINGS` records each numeric/placement default's value, ruling date,
+source, rationale and `physical_status: untested`. `decision_tables.adopted`
+records the same proof limit for the new pose tables. Explicit measurement
+candidates remain experimental; a successful candidate run alone does not change
+these defaults. The maintained tests are implementation checks, not physical
+acceptance; the worker's frozen native selection passed 45 tests (one warning), including 20 default cases, after the initial defaults run failed nine and passed one. This is a selected-suite receipt, not a full-suite or original-input acceptance claim. The implementation checkpoint retains the exact binary/source provenance.
 
-Owner scenes, raw matrices and measurements remain external and read-only.
-Before a recommendation becomes a default, retain its private input/source
-hashes and receipts, write the accepted value into the owning canon/settings,
-add default-path goldens and wrong-choice falsifiers, then rerun the actual
-original inputs. Until that evidence exists, keep AC65 open rather than deriving
-numbers from the criterion's phrase “recommended values.”
+Generated golden `C15_ac65_defaults/case.json` pins the complete values and both-side tables. Its13 checks retain missing-default, wrong-side, wrong-sign and false-physical-promotion falsifiers plus six reversible sign probes. Production settings/tables are compared directly to this generated case.
+
+The supplied Drive documentary references have SHA-256
+`8cf58eb66e7a52bf1e1f5b8e60ab8234bfa96aeb4937a3eb63ffb4bb4a9c89df`
+(MetaHumanBase provenance) and
+`1ac36dbaae4fbff8046be4c3c102a0a26fbe44f7a6727a47941cef753e575e4d`
+(modular gear provenance). They distinguish legacy body export/import limits
+and authored gear pose/shape channels; they do not supply physical measurements
+for these defaults. The reported Drive search found documentary references,
+not raw MetaHumanBase or gear files. No original asset fit was inferred from the
+references, and private identities, paths and asset bytes are omitted here.
+
+For physical validation use `scripts/lampway/measure_fit_decisions.py` with
+recorded original inputs, source hashes and fixed body-relative bounds. It
+provides facing, pair, boots, pose and collar jobs; glove labels/bind use
+`api.fit_glove`. All-vertex clearance remains distinct from sampled diagnostics;
+the runner does not measure every full-chain crossing, innermost gap or
+hideable-skin clause. Keep original assets and detailed receipts private.

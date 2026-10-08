@@ -54,6 +54,8 @@ filtered=api.call('inspect',json.dumps({'view':'objects','match':'Cube','fields'
 assert filtered['data']['objects']==[{'name':'Cube'}],filtered
 assert 'match=Cube' in filtered['help'][0] and 'fields=<fields>' in filtered['help'][0],filtered
 assert api.call('inspect',json.dumps({'view':'mesh','name':'Camera'}))['code']=='wrong_type'
+camera_detail=api.call('inspect',json.dumps({'view':'object','name':'Camera'}))
+assert camera_detail['data']['layers']=={'count':0,'top':None},camera_detail
 assert api.call('inspect',json.dumps({'view':'object','name':'Missing'}))['code']=='not_found'
 after=(len(bpy.data.objects),len(bpy.data.meshes),len(cube.data.vertices),len(cube.data.polygons),[o.name for o in bpy.context.selected_objects])
 assert after==before,(before,after)

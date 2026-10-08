@@ -31,6 +31,8 @@ has its own suite under `server/tests/`.
 7. **Test code never ships.** In-tree `tests/` directories under `src/scripts/mixar` are excluded from the install; keep test
    helpers there or here, never in a shipped module.
 
+Original MCP regressions verify definitive empty paint-layer summaries for non-mesh object detail, byte-identical finite view editor schemas and explicit view defaults. Plant an invented editor identifier to prove rejection before runtime, and retain the supported-but-absent editor no_area control. Isolated native Camera and view calls verify these boundaries without changing the scene/selection snapshot or enabling pixels. Focused worktree receipts do not replace final consolidated-head, named-performance, GUI-history or package verification.
+
 ## Test
 
 ```bash
@@ -84,3 +86,5 @@ Native bind tests distinguish source-copy error, authored node/BindPose/cluster 
 | 2026-10-07 | portable matrix scanner reproduction | PR4 publication dependency | scanner controls read an unrelated native-topology test absent from its lane | retain the exact reproduction as a local literal with immutable commit/blob provenance and unchanged security assertions | self-contained20scanner controls |
 
 | 2026-10-08 | actual native bind correction controls | measured long source bones, implicit Manny and verified UE predicate | synthetic source-short-bone diagnosis did not explain actual readback; independent authored binds were missing | Test source preservation, exact disposable container naming and redundant node/pose/cluster evidence separately, with unchanged quaternion bars and explicit physical proof limits. | default-reference/container RED and corrupt bind/near-bar plants |
+
+| 2026-10-08 | original MCP contract boundary controls | complete C0-C2/T1-T3 re-audit | omitted non-mesh summaries and unrestricted editor strings passed existing tests while defaults remained implicit | preserve missing-summary, invented-editor and explicit-default RED controls plus native empty-state and no_area checks | 753 standalone, 78 server and two post-enum isolated native checks; aggregate acceptance remains separate |

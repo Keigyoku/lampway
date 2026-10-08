@@ -337,8 +337,33 @@ def c14():
     check("C14", "capped control straddles the skin", cx_c >= exp["capped_half_extent"]["surface_crossing_edges_min"], f"push {push * 1000:.2f} mm, {cx_c} crossings")
 
 
+def c15():
+    from copy import deepcopy
+    case = J("C15_ac65_defaults/case.json")
+    errors = R.ac65_default_errors(case)
+    check("C15", "all authorized defaults, full tables and untested status", not errors, "; ".join(errors))
+    mutations = {}
+    missing = deepcopy(case); del missing["settings"]["facing_margin"]
+    mutations["missing_default"] = missing
+    crossed = deepcopy(case); crossed["tables"]["boots"]["r"] = deepcopy(crossed["tables"]["boots"]["l"])
+    mutations["wrong_side"] = crossed
+    wrong = deepcopy(case); wrong["tables"]["gauntlets"]["l"]["dofs"][0]["expect"]["along"] = "forward"
+    mutations["wrong_sign"] = wrong
+    promoted = deepcopy(case); promoted["physical_status"] = "tested"
+    mutations["physical_status_promoted"] = promoted
+    check("C15", "complete named falsifiers", set(case["falsifiers"]) == set(mutations))
+    for name, bad in mutations.items():
+        check("C15", "falsifier: " + name, bool(R.ac65_default_errors(bad)))
+    probes = case["sign_probes"]
+    check("C15", "every sided table has a synthetic sign probe", {(p["kind"],p["side"]) for p in probes} == {(k,s) for k in ("waist","boots","gauntlets") for s in ("l","r")} and len(probes) == 6)
+    for probe in probes:
+        good = R.ac65_sign_probe(probe)
+        reverse = deepcopy(probe); reverse["axis"] = [-x for x in reverse["axis"]]
+        check("C15", f"{probe['kind']}/{probe['side']} +20 sign; reversed axis refuses", good > 0 and R.ac65_sign_probe(reverse) < 0)
+
+
 def main():
-    for f in (c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14):
+    for f in (c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15):
         try:
             f()
         except Exception as exc:                       # a crash is a failed check, named

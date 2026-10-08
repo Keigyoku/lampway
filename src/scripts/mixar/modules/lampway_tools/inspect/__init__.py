@@ -231,9 +231,10 @@ def run(**args):
             if view == 'object':
                 result['data'] = objects.detail(ob, scale, args.get('evaluated', False))
                 from . import layers
+                layer_rows = []
                 if ob.type == 'MESH':
                     layer_rows = layers.measure(ob)['layers']
-                    result['data']['layers'] = {'count': len(layer_rows), 'top': layer_rows[-1] if layer_rows else None}
+                result['data']['layers'] = {'count': len(layer_rows), 'top': layer_rows[-1] if layer_rows else None}
                 result['count'] = result['total'] = 1
             else:
                 if view == 'layers':

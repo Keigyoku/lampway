@@ -108,6 +108,8 @@ mod=skin.modifiers.new('rig','ARMATURE');mod.object=arm
 me=bpy.data.meshes.new('piece');me.from_pydata([(3,3,3),(4,3,3),(3,4,3)],[],[(0,1,2)]);me.update()
 piece=bpy.data.objects.new('piece',me);bpy.context.scene.collection.objects.link(piece)
 before=[list(b.matrix_basis) for b in arm.pose.bones]
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects['piece'], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 r=api.fit_pose('gauntlets',piece='piece',body='skin',armature='curl_rig',dofs=[{'bone':'hand_r','axis':[-1,0,0],'range':[0,0],'step':1,'expect':{'joint':'middle_01_r','along':'-up','min_cm':0}}],curl_side='r',curl_fractions=[1])
 res({'result':r,'unchanged':before==[list(b.matrix_basis) for b in arm.pose.bones]})
 '''

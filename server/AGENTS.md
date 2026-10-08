@@ -54,6 +54,8 @@ The identity ratchet covers every agent tool and MCP-only server tool. It valida
 
 The refusal-name source scan excludes test directories only beneath each configured scan root. A checkout or fixture beneath an ancestor named `tests` must still scan production sources and detect planted unregistered names.
 
+MCP view inputs expose 28 pinned Blender editor identifiers, including WINDOW, through byte-identical client/server schema modules. Unknown editor identifiers refuse before Blender execution; supported but absent editors retain no_area. View help discloses its six defaults separately from arguments and output fields. Object detail returns the definitive layers summary count 0/top null for non-mesh targets without invoking the mesh paint engine.
+
 ## Test
 
 ```bash
@@ -97,3 +99,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-07 | strict whole-registry and runtime refusal audit | literal AC35-38/45 | pose inputs had the wrong schema, MCP-only and local schemas escaped debt checks, malformed nested schemas hid numbers, and batch refusals gave unusable calls | validate both DOF interfaces, include server-only and local registries, check finite schema and recursive runtime help, and generate batch call templates | schema loophole RED controls; 117 server, 37 client and seven real Blender refusal checks |
 | 2026-10-07 | refusal scan root-relative test exclusion | exact-head full server audit | an absolute ancestor named tests silently excluded production sources and defeated the planted unknown-name control | exclude only test descendants of each scan root and retain production scanning beneath tests-named checkout ancestors | existing planted refusal plus ancestor and nested-test controls RED then GREEN |
 | 2026-10-07 | terminal long-root verification | exact-head server aggregate | a valid short runtime socket fallback failed the old path-prefix assertion | verify exact launcher-owned routing, short socket length and private configuration with both root lengths | user-configuration RED/GREEN short/long controls |
+
+| 2026-10-08 | original MCP empty states and view reference | complete C0-C2/T1-T3 re-audit | non-mesh detail omitted layers, area schemas were unrestricted and view help omitted explicit defaults | require definitive non-mesh layers, byte-identical finite editor schemas and separate default disclosure while preserving no_area and pixel opt-in | three reproduced RED controls; 753 client/TOON, 78 server and post-edit native controls |

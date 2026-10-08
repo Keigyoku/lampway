@@ -25,7 +25,7 @@ file reads. The agent calls it on a mesh the captain dragged in. The captain see
 {"input": "object name | project path (glb, gltf, fbx, obj, usd, blend)",
  "turn_deg": "number | null (the piece's facing: -90 for a +X-facing import; null = decide by plate or recipe)",
  "plate": "project path of the approved Front plate | null (enables measured facing)",
- "facing_margin": "number 0..1 | null (explicit minimum best-minus-second silhouette IoU; null uses the canonical setting, refusal if unset)",
+ "facing_margin": "number 0..1 | null (explicit minimum best-minus-second silhouette IoU; null uses judgment default0.05, physically untested)",
  "recipe": "project path | null (a recipe's per-piece turn_deg wins over a guess, never over an explicit turn_deg)",
  "generator": "tripo_studio | tripo_api | meshy | hi3d | hyper3d | hunyuan | trellis | captain_authored | lampway_tool | unknown (default: from the Vault record)",
  "want_scale": "real | any (default any)", "scale_evidence": "{method, value, reference} | null",
@@ -84,4 +84,4 @@ the chest's `turn_deg` differing from the greaves' (canon 01 B), Workbench front
 `canon_asset`, `canon_door` (the decorator). Before every landing rewire (`canon_migration.md`).
 
 ## 13. Open questions
-D5 (weld default), D6 (facing margin and whether recipes carry a declared turn per piece), D10 (pivot rule).
+D6 judgment margin0.05 is adopted, physically untested; approved original-plate calibration remains open. D5/D10 retain their recorded rulings.

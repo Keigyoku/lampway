@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """T2: one bound-scene Blender API call, offered automatically over MCP."""
 from .tool_defs import Def, P
+from ..mcp_view_schema import AREA_TYPES
 
 class ViewDef(Def):
     def spec(self):
@@ -9,7 +10,7 @@ class ViewDef(Def):
         props = spec.parameters['properties']
         props['action'].update(enum=['focus', 'screenshot', 'render_still', 'help'])
         props['unhide'].update(default=False)
-        props['area'].update(default='VIEW_3D')
+        props['area'].update(enum=list(AREA_TYPES), default='VIEW_3D')
         props['shot'].update(default=True)
         props['max_bytes'].update(minimum=50000, maximum=900000, default=750000)
         props['preset'].update(enum=['current', 'thumbnail'], default='current')

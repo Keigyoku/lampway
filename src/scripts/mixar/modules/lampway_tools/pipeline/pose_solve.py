@@ -36,12 +36,13 @@ class PoseError(ValueError):
     pass
 
 
-def numpy_hits(origins, dirs, max_t, V, T):
+def numpy_hits(origins, dirs, max_t, V, T, return_faces=False):
     """(n,) the distance along each unit ray to its first triangle hit within (1e-9, max_t), or inf (Moller-Trumbore)."""
     V, T = np.asarray(V, float), np.asarray(T, int)
     a, b, c = V[T[:, 0]], V[T[:, 1]], V[T[:, 2]]
     e1, e2 = b - a, c - a
     out = np.full(len(origins), np.inf)
+    face_ids = np.full(len(origins), -1, dtype=int)
     for i, (o, d) in enumerate(zip(origins, dirs)):
         p = np.cross(d, e2)
         det = np.einsum("ij,ij->i", e1, p)
@@ -54,8 +55,9 @@ def numpy_hits(origins, dirs, max_t, V, T):
         t = np.einsum("ij,ij->i", e2, q) * inv
         m = ok & (u >= -1e-12) & (v >= -1e-12) & (u + v <= 1 + 1e-12) & (t > 1e-9) & (t < max_t[i])
         if m.any():
-            out[i] = t[m].min()
-    return out
+            face_ids[i] = np.flatnonzero(m)[np.argmin(t[m])]
+            out[i] = t[face_ids[i]]
+    return (out, face_ids) if return_faces else out
 
 
 def _ends(ref):
@@ -134,10 +136,19 @@ def _region_members(ref, bones, regions):
     return member
 
 
-def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_hits, curl_side="", curl_fractions=None):
+def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_hits, curl_side="", curl_fractions=None, placement_meta=None, classes=None):
     """The closest pose (module docstring). ``ref`` {bone: {parent, rot (x,y,z,w), pos}} at rest; ``samples`` [(point, bone)] at
     rest; ``piece`` (V, T); ``dofs`` / ``chain`` [{bone, axis, range [lo, hi], step, expect?}]; ``regions`` {name: {bones,
     threshold_m}}."""
+    from . import pose_receipt as PR
+    V,T=piece
+    try:
+        maps=PR.prepare(placement_meta,V,T) if placement_meta is not None else None
+        class_labels=PR.labels(classes,T)
+        if classes is not None and maps is None:
+            raise ValueError('placement metadata is required with classes')
+    except ValueError as error:
+        raise PoseError(str(error)) from error
     if not dofs:
         raise PoseError("no degrees of freedom: pass the kind's DOF table (the ranges are a ruling, not a default)")
     for d in list(dofs) + list(chain):
@@ -163,7 +174,7 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
     ends = _ends(ref)
     V, T = piece
 
-    def evaluate(entries):
+    def evaluate(entries, receipt=False):
         posed = G.pose_cs(ref, entries)
         X = np.empty_like(P)
         O = np.empty_like(P)
@@ -182,13 +193,20 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
         R = X - O
         L = np.linalg.norm(R, axis=1)
         D = R / np.where(L > 1e-12, L, 1.0)[:, None]
-        t = hits(O, D, L, V, T)
+        if receipt:
+            t, face_ids = hits(O, D, L, V, T, return_faces=True)
+        else:
+            t = hits(O, D, L, V, T)
         depth = np.where(np.isfinite(t) & (t < L), L - t, 0.0)
         metrics = {}
         for name, r in regions.items():
             dm = depth[member[name]]
             metrics[name] = {"over": int((dm > r["threshold_m"]).sum()), "fraction": round(float((dm > r["threshold_m"]).mean()) if len(dm) else 0.0, 6),
                              "worst_m": round(float(dm.max()) if len(dm) else 0.0, 9), "samples": int(len(dm))}
+        if receipt:
+            residual=np.zeros(len(P),bool)
+            for name,r in regions.items():residual|=member[name]&(depth>r['threshold_m'])
+            return metrics,posed,PR.blocking(O,D,t,face_ids,residual,B,maps,class_labels)
         return metrics, posed
 
     def grid(d):
@@ -233,6 +251,12 @@ def solve(ref, frame, samples, piece, dofs, chain=(), regions=None, hits=numpy_h
                 row = (key, trial, fraction)
         entries = row[1]
     posed_metrics, posed = evaluate(entries)
-    return {"schema": SCHEMA, "entries": entries, "a_pose": a_pose, "posed": posed_metrics,
+    blocking={}
+    if maps is not None:
+        posed_metrics,posed,blocking=evaluate(entries,receipt=True)
+    result={"schema": SCHEMA, "entries": entries, "a_pose": a_pose, "posed": posed_metrics,
             "pose_cost_deg": float(sum(abs(e["deg"]) for e in entries)), "joints_m": {b: [float(x) for x in t["pos"]] for b, t in posed.items()},
             "sign_check": {"dof": first["bone"], "deg": SIGN_DEG, "moved_cm": round(got, 6)}, "sweeps": sweeps}
+    if maps is not None:
+        result.update(blocking=blocking,body_sha256=PR.source_hash(ref,samples),placed_sha256=PR.geometry_hash(V,T))
+    return result

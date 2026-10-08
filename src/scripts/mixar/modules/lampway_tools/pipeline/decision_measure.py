@@ -21,6 +21,11 @@ def _path(root, value):
     return path
 
 
+def _file_identity(root, path):
+    return {'path':str(Path(path).resolve().relative_to(Path(root).resolve())),
+            'source_sha256':hashlib.sha256(Path(path).read_bytes()).hexdigest()}
+
+
 def _body_context(root, context):
     """Explicit world-metre geometry and fixed camera bounds; never infer anatomy."""
     import bpy
@@ -167,13 +172,23 @@ def measure(config, root):
                 modes=('common','per_side') if action=='pair' else (args.get('pair_scale_group','common'),)
                 anchors=(args.get('scale_anchor'),) if action=='pair' else ('width','height','foot')
                 body=_path(root,args['body']);piece=_path(root,args['piece'])
-                b=np.load(body);row['candidates']=[]
+                row['placement_inputs']={'body':_file_identity(root,body),'piece':_file_identity(root,piece),
+                    'args':{k:args.get(k,default) for k,default in (
+                        ('kind',None),('turn',0),('clear_mm',15),('sides','both'),
+                        ('pair_scale_group',None),('scale_anchor',None))}}
+                with np.load(body,allow_pickle=False) as data:
+                    b={'V':np.array(data['V']),'T':np.array(data['T'])}
+                row['candidates']=[]
                 for mode in modes:
                     for anchor in anchors:
                         V,T,meta,report=fit_place.place(args['kind'],body,piece,args.get('turn',0),args.get('clear_mm',15),anchor,args.get('sides','both'),mode)
+                        if any(_file_identity(root,path)!=row['placement_inputs'][key]
+                               for key,path in (('body',body),('piece',piece))):
+                            raise ValueError('placement source changed during measurement; rerun with stable inputs')
                         out=_path(root,f"measurements/{job['id']}/{mode}-{anchor or 'bracer'}.npz")
                         out.parent.mkdir(parents=True,exist_ok=True);np.savez(out,V=V,T=T)
-                        candidate={'mode':mode,'anchor':anchor,'meta':meta,'report':report,'placed':str(out.relative_to(Path(root).resolve()))}
+                        candidate={'mode':mode,'anchor':anchor,'meta':meta,'report':report,'placed':str(out.relative_to(Path(root).resolve())),
+                                   'placed_sha256':hashlib.sha256(out.read_bytes()).hexdigest()}
                         if requested:
                             candidate['vertex_clearance']=_vertex_clearance(V,CV,CT,limits)
                             capture=_capture_context(V,T,CV,CT,context,int(config.get('image_size',384)),out.with_name(out.stem+'-body.png'))

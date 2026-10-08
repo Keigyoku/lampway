@@ -54,10 +54,10 @@ def test_an_unknown_bone_and_a_missing_role_are_refused(tmp_path):
         FG.labels(str(tmp_path), "Gauntlets1", "r", PLATES, LABELS, {k: v for k, v in ROLES.items() if k != "bracer"})
 
 
-def test_only_unruled_pose_ranges_and_fit_state_stay_explicit():
+def test_authorized_gauntlet_default_and_unruled_fit_state_are_distinct():
     from mixar.modules.lampway_tools import posing
     out = posing.fit_pose("gauntlets")
-    assert not out["ok"] and "degrees of freedom" in out["needs_decision"]["what"]
+    assert out["ok"] and out["table"]["physical_status"] == "untested" and "needs_decision" not in out
     st = FG.fit_state("describe")
     assert st["ok"] is False and "Laya" in st["needs_decision"]["question"] and st["needs_decision"]["why"]
 
@@ -75,6 +75,8 @@ p.vertex_groups.new(name="cap").add([0,1,2], 1.0, "REPLACE")
 escape = api.fit_glove("report",piece="../outside")
 assert not escape["ok"] and "project" in escape["error"], escape
 lab = api.fit_glove("labels", piece="glove", side="r", labels={"cap":"index_01_r"}, roles={"cap":"metal"})
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects['glove'], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 pose = api.fit_glove("pose", piece="glove", side="r", armature="hand_rig", body_object="body_mesh", dofs=[{"bone":"lowerarm_r", "axis":"lateral", "range":[-8,8], "step":4, "expect":{"joint":"hand_r", "along":"forward", "min_cm":0}}])
 bind = api.fit_glove("bind", piece="glove", side="r", armature="hand_rig", body_object="body_mesh")
 assert bind.get("ok"), bind

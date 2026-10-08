@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """T2's JSON entry. Registration and OBSERVE declaration are owned by api.py."""
 from .view import ViewError
+from .view.schema import AREA_TYPES
 from .settings import PathOutsideProject
 
 ACTIONS = ('focus', 'screenshot', 'render_still', 'help')
@@ -24,15 +25,19 @@ def view(action=None, object=None, data=None, unhide=False, area='VIEW_3D', shot
         return refuse('bad_argument', 'max_bytes must be an integer in 50000..900000')
     if type(unhide) is not bool or type(shot) is not bool:
         return refuse('bad_argument', 'unhide and shot must be booleans')
-    if not isinstance(area, str) or not area or preset not in ('current', 'thumbnail'):
+    if not isinstance(area, str) or area not in AREA_TYPES:
+        return refuse('bad_argument', 'area must be one of: ' + ', '.join(AREA_TYPES))
+    if preset not in ('current', 'thumbnail'):
         return refuse('bad_argument', 'area must be an editor type; preset must be current or thumbnail')
     if any(value is not None and not isinstance(value, str) for value in (object, data)) or not isinstance(out, str):
         return refuse('bad_argument', 'object, data and out must be strings')
     if action == 'help':
         return {'action': 'help', 'tool': 'lampway_view', 'description': view.__doc__,
                 'arguments': {'action': list(ACTIONS), 'object': 'focus: one of object/data', 'data': 'focus: datablock name',
-                              'unhide': False, 'area': 'VIEW_3D or editor UI type or WINDOW', 'shot': True,
+                              'unhide': False, 'area': list(AREA_TYPES), 'shot': True,
                               'max_bytes': '750000; 50000..900000', 'preset': 'current or thumbnail', 'out': 'renders/still.png'},
+                'defaults': {'unhide': False, 'area': 'VIEW_3D', 'shot': True, 'max_bytes': 750000,
+                             'preset': 'current', 'out': 'renders/still.png'},
                 'fields': {'home': ['tool', 'description', 'action', 'scene', 'editors', 'active_camera', 'last_capture', 'help'],
                            'focus': ['action', 'object', 'area', 'framed_bounds', 'unhidden', 'undo', 'image_path', 'image', 'help'],
                            'screenshot': ['action', 'area', 'image_path', 'image', 'help'],
