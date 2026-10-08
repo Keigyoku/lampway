@@ -6,8 +6,9 @@ but the standard library and never imports the server.
 
 In order, it:
 
-1. **starts the backend**: ``hermes serve --host 127.0.0.1 --port <P>`` as its own child, in a session of its own (so a Ctrl+C typed
-   into the TUI never reaches it), with the environment ``serve_env`` builds: the unit's ``HERMES_HOME``, a ``HOME`` inside it,
+1. **starts the backend**: ``hermes serve --host 127.0.0.1 --port <P>`` as its own child, in a process group of its own (so a Ctrl+C
+   typed into the TUI never reaches it), within the pane's session so herdr's forced pane close includes it, with the environment
+   ``serve_env`` builds: the unit's ``HERMES_HOME``, a ``HOME`` inside it,
    the serve token from the home's 0600 ``serve.token`` (``HERMES_DASHBOARD_SESSION_TOKEN``: never on a command line),
    ``HERMES_TUI_WS_ORPHAN_REAP_GRACE_S=0`` (a session with no client parks, never reaped), ``HERMES_GATEWAY_LOCK_DIR`` in the home
    (one serve per unit, not one per OS user), the egress proxy's variables, no key of the user's, never ``HERMES_DESKTOP``;
@@ -139,6 +140,7 @@ class Pane:
         self.out = out or sys.stdout
         self.inp = inp or sys.stdin
         self.serve = None
+        self._stopping_serve = False
 
     def say(self, text: str) -> None:
         print(text, file=self.out, flush=True)
@@ -155,7 +157,7 @@ class Pane:
         fd = os.open(logs / "serve.log", os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
         cwd = self.spec.get("cwd") or str(self.home)
         self.serve = subprocess.Popen(serve_argv(self.spec), env=serve_env(self.spec, self.home, self.token, self.environ), cwd=cwd,
-                                      stdin=subprocess.DEVNULL, stdout=fd, stderr=fd, start_new_session=True)
+                                      stdin=subprocess.DEVNULL, stdout=fd, stderr=fd, process_group=0)
         os.close(fd)
         (self.home / "serve.pid").write_text(str(self.serve.pid))
         deadline = time.monotonic() + LISTEN_TIMEOUT_S
@@ -169,19 +171,29 @@ class Pane:
 
     def stop_serve(self) -> None:
         """Ends the serve THIS wrapper started, by its recorded process group (never a pattern kill)."""
-        p, self.serve = self.serve, None
-        if p is None or p.poll() is not None:
+        if self._stopping_serve:
             return
+        p = self.serve
+        if p is None:
+            return
+        self._stopping_serve = True
         try:
-            os.killpg(p.pid, signal.SIGTERM)
-            p.wait(timeout=15)
-        except (ProcessLookupError, PermissionError):
-            pass
-        except subprocess.TimeoutExpired:
-            try:
-                os.killpg(p.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            if p.poll() is None:
+                try:
+                    os.killpg(p.pid, signal.SIGTERM)
+                    p.wait(timeout=15)
+                except ProcessLookupError:
+                    p.wait(timeout=15)
+                except subprocess.TimeoutExpired:
+                    try:
+                        os.killpg(p.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    p.wait(timeout=15)
+            if p.poll() is not None:
+                self.serve = None
+        finally:
+            self._stopping_serve = False
 
     def serve_alive(self) -> bool:
         return self.serve is not None and self.serve.poll() is None
@@ -242,8 +254,13 @@ def main(argv=None) -> int:
     ap.add_argument("--home", required=True, help="the unit's Hermes home, written by Lampway's server")
     args = ap.parse_args(argv)
     pane = Pane(Path(args.home))
+    ending = False
 
     def ended(signum, frame):              # the pane closed (SIGHUP) or the server's user closed it (SIGTERM): serve ends with it
+        nonlocal ending
+        if ending:
+            return                        # repeated HUP/TERM must not interrupt the owned child's wait/reap
+        ending = True
         pane.stop_serve()
         raise SystemExit(0)
     signal.signal(signal.SIGTERM, ended)
@@ -253,6 +270,7 @@ def main(argv=None) -> int:
     except KeyboardInterrupt:
         return 0
     finally:
+        ending = True                      # normal EOF/Ctrl+C cleanup owns the same uninterrupted child join
         pane.stop_serve()
 
 

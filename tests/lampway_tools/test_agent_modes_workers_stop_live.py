@@ -87,7 +87,32 @@ def wait_for(predicate, timeout=90, failure='real worker cancellation did not se
 
 def pane_records(cockpit):
     return [{key: row.get(key) for key in ('id', 'pane_id', 'terminal_id', 'unit', 'role',
-            'state', 'created_by', 'swarm_binding', 'end_reason')} for row in cockpit.list_sessions()]
+            'state', 'created_by', 'swarm_binding', 'end_reason', 'home', 'port')} for row in cockpit.list_sessions()]
+
+
+def worker_serve_record(row, state_dir):
+    """Read the backend identity written by this fixture's actual pane wrapper."""
+    home = Path(row['home']).resolve()
+    assert home.is_relative_to((state_dir / 'agent/hermes').resolve()), row
+    spec = json.loads((home / 'pane.json').read_text())
+    pid = int((home / 'serve.pid').read_text())
+    assert process_running(pid), (row, pid)
+    stat = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
+    argv = [part.decode() for part in Path(f'/proc/{pid}/cmdline').read_bytes().split(b'\0') if part]
+    expected = [str(spec['hermes']), 'serve', '--host', '127.0.0.1', '--port', str(spec['port'])]
+    assert argv[-len(expected):] == expected, argv
+    return {'pid': pid, 'startticks': int(stat[19]), 'home': str(home),
+            'pane_id': row['pane_id'], 'swarm_binding': row['swarm_binding'], 'argv': argv}
+
+
+def worker_serve_running(record):
+    if not process_running(record['pid']):
+        return False
+    try:
+        stat = Path(f"/proc/{record['pid']}/stat").read_text().rsplit(')', 1)[1].split()
+    except FileNotFoundError:
+        return False
+    return int(stat[19]) == record['startticks']
 
 
 @pytest.mark.timeout(1200)
@@ -197,17 +222,24 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
             mains = [r for r in sessions_before if r['unit'] == held['sid'] and r['role'] != 'worker' and r['state'] == 'live']
             assert len(workers_before) == 2 and all(r['state'] == 'live' for r in workers_before)
             assert len(mains) == 1, sessions_before
+            serves = [worker_serve_record(row, settings.state_dir) for row in workers_before]
+            assert len({row['pid'] for row in serves}) == 2
             proof.update({'held': held, 'workers_before': [w.detail() for w in swarm.workers],
-                          'panes_before': sessions_before, 'worker_pids': pids})
+                          'panes_before': sessions_before, 'worker_pids': pids,
+                          'worker_serve_backends_before_stop': serves})
             (client_root / 'worker-stop-proof.json').write_text(json.dumps(proof, indent=2, default=str))
             client.command('stop')
             app_idle = client.wait(lambda s: s.get('state') == 'IDLE' and not s.get('run_open'))
             proof['stop_returned_idle'] = app_idle
             wait_for(lambda: all(w.status == 'cancelled' and w.task.done() for w in swarm.workers))
             wait_for(lambda: all(not process_running(pid) for pid in pids))
+            wait_for(lambda: all(not worker_serve_running(row) for row in serves),
+                     failure='owned Hermes serve backends remain live after real parent Stop')
             proof.update({'workers_after': [w.detail() for w in swarm.workers],
                           'panes_after': pane_records(cockpit),
-                          'worker_processes_running_after_stop': {pid: process_running(pid) for pid in pids}})
+                          'worker_processes_running_after_stop': {pid: process_running(pid) for pid in pids},
+                          'worker_serve_backends_running_after_stop': {
+                              row['pid']: worker_serve_running(row) for row in serves}})
             wait_for(lambda: all(p.stream_closed.is_set() and not p.active_requests for p in providers.values()), timeout=15,
                      failure='provider streams remain open after real Stop closed both worker panes and processes')
             after = client.status()
@@ -247,6 +279,9 @@ def test_actual_parent_stop_interrupts_both_worker_panes_without_commits(tmp_pat
             client.command('quit'); process.wait(timeout=60)
             assert process.returncode == 0
     finally:
+        proof['worker_serve_backends_running_before_fixture_cleanup'] = {
+            row['pid']: worker_serve_running(row)
+            for row in proof.get('worker_serve_backends_before_stop', [])}
         proof.update({'gateway': gateway, 'model_enrollments': model_enrollments,
                       'key_revocations': key_revocations,
                       'provider_streams': {label: {'held': p.held.is_set(), 'closed': p.stream_closed.is_set(),

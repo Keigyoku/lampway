@@ -86,11 +86,14 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    and scene-tab tools reach the user's scene); it cannot be bound to a tab.
    **Mode 1's pane (spec A1, `engine/units.py`, `engine/hermes_pane.py`, `herdr/harnesses/lampway_hermes.py`).** A unit's main
    agent and every Mode 1 worker is a `lampway_hermes` pane running Lampway's stdlib-only wrapper by path with the server's own
-   interpreter; the wrapper starts the pinned `hermes serve` (its own session, a per-unit lock dir, orphan grace 0, the pinned
-   toolset list, never `HERMES_DESKTOP`) and Hermes's own prebuilt TUI in the foreground (`HERMES_NODE`,
+   interpreter; the wrapper starts the pinned `hermes serve` (its own process group within the pane session, a per-unit
+   lock dir, orphan grace 0, the pinned toolset list, never `HERMES_DESKTOP`) and Hermes's own prebuilt TUI in the foreground (`HERMES_NODE`,
    `HERMES_SKIP_NODE_BOOTSTRAP=1`: Node is found, never fetched), and reopens the TUI or restarts a stopped serve only on the user's
-   Enter. Before herdr is asked, `Mode1Units.prepare` writes the home `<state>/agent/hermes/<unit>` (a worker's under
-   `workers/`): `config.yaml` and `serve.token` (0600) and a `pane.json` with no secret. The argv is the wrapper and the home only,
+   Enter. Closing the pane includes its backend in herdr's session-owned shutdown, while the separate backend group
+   keeps foreground TUI Ctrl+C isolated. The wrapper retains its child until it is reaped and joins shutdown through repeated
+   HUP/TERM, including a signal during normal EOF/Ctrl+C final cleanup; server disconnect/shutdown still ends no pane.
+   Before herdr is asked, `Mode1Units.prepare` writes the home
+   `<state>/agent/hermes/<unit>` (a worker's under `workers/`): `config.yaml` and `serve.token` (0600) and a `pane.json` with no secret. The argv is the wrapper and the home only,
    one shell-quoted string for `pane run` (herdr joins its arguments unquoted); no token is ever on a command line, in herdr's argv
    or in a record. The record keeps `home`, `port`, `token_file`, `stored_session_id` and the two tokens' digests (`MODE1_FIELDS`;
    only `Cockpit.update_mode1` changes them), never `scene_session_id` (binding is Mode 2's; `ByoaView.bound` counts only a user's
@@ -380,3 +383,7 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | native ended-history visibility without deletion | captain: soft-hide ended sessions after 30 days, cap visible ended history at 200, preserve resumable records; native two-home RED | default pruning deletes history, automatic archive can hide unended sessions, and a per-home cap permits more than 200 globally | invariant 11: native ended-tip snapshots, 30-day archive, global transient-metadata cap, preserved rows/messages, owned homes only and serialized config preservation | 47 focused checks and four actual native controls; final integration proof required |
 | 2026-10-08 | Stop joins already-signalled workers without a collector | causal no-collector Stop RED | cancellation was signalled but the island acknowledged before owned worker cleanup completed | invariant 6: join only already-cancelled workers of this unit, shield the join across repeated cancellation and retain independently running work | 53 focused checks and three final cancellation controls; matching native proof required |
 | 2026-10-08 | cancelled collection terminalizes for Retry | native Stop after worker cleanup still left swarm.collected false; four causal collector cancellation controls | the collector re-raised before revoking its run or ending its cards, and repeated Stop could cancel worker cleanup again | invariant 6: shield owned worker and completion joins, discard staged commits, finish only the cancelled swarm and preserve the original cancellation | four synthetic real-substrate RED/GREEN controls; matching native proof required |
+
+| 2026-10-08 | owned backend ends with a cancelled worker pane | whole native client Stop left an owned Hermes serve orphan; two actual subprocess causal RED controls | separate backend OS session escaped herdr session shutdown and repeated wrapper TERM abandoned its child wait | Mode1 pane ownership: separate backend process group within the pane session, non-reentrant wrapper shutdown, retained ownership until wait/reap; no unknown process kills or server-disconnect coupling | stand-in HTTP child RED/GREEN; matching native Stop serve-PID proof required |
+
+| 2026-10-08 | normal pane exit retains its backend join through signals | copied committed wrapper EOF plus TERM causal RED | normal finally had not marked shutdown active, so a nested handler exited before the owned child was reaped | Mode1 pane ownership: EOF/Ctrl+C final cleanup enters the same non-reentrant shutdown guard before waiting; retained child identity and session-owned herdr close remain unchanged | scratch actual subprocess RED/GREEN; matching native proof required |

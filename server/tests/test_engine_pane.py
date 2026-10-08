@@ -410,3 +410,110 @@ def test_a_closed_socket_detaches_an_engine_turn_and_still_cancels_a_built_in_on
     assert survivors == {task} and detached and not cancelled
     (survivors, detached, cancelled), _ = asyncio.run(go(None))
     assert survivors == set() and not detached and cancelled
+
+
+def _delayed_serve_pane(tmp_path, *, hold_tui=True):
+    """An actual wrapper process and owned HTTP child, slow enough to expose repeated shutdown."""
+    import subprocess
+    from .serve_support import free_port
+    exe = tmp_path / 'hermes'
+    exe.write_text(STAND_IN.replace('import http.server, json, os, signal, sys',
+        'import http.server, json, os, signal, sys, time').replace(
+        '    port = int(args[args.index("--port") + 1])',
+        '    signal.signal(signal.SIGHUP, signal.SIG_IGN)\n'
+        '    def delayed_term(*_):\n        note(shutdown=True)\n        time.sleep(0.8)\n        sys.exit(0)\n'
+        '    signal.signal(signal.SIGTERM, delayed_term)\n'
+        '    port = int(args[args.index("--port") + 1])').replace(
+        'elif "--tui" in args:', 'elif "--tui" in args:\n    time.sleep(60)' if hold_tui else 'elif "--tui" in args:'))
+    exe.chmod(0o755)
+    node = tmp_path / 'node'
+    node.write_text('#!/bin/sh\necho v22.22.0\n'); node.chmod(0o755)
+    home = tmp_path / 'home'; home.mkdir()
+    (home / 'serve.token').write_text('synthetic-serve-token')
+    (home / 'session.json').write_text(json.dumps({'stored_session_id': 'synthetic-session'}))
+    (home / 'pane.json').write_text(json.dumps({**spec(tmp_path, hermes=str(exe), port=free_port(),
+        node=str(node), session_wait_s=5), 'cwd': str(tmp_path)}))
+    log = tmp_path / 'stand-in.log'
+    output = (tmp_path / 'wrapper.log').open('w')
+    proc = subprocess.Popen([sys.executable, WP.__file__, '--home', str(home)],
+        env={**os.environ, 'STAND_IN_LOG': str(log)}, stdin=subprocess.PIPE,
+        stdout=output, stderr=output, start_new_session=True)
+    assert wait(lambda: (home / 'serve.pid').exists() and notes(log)), 'owned HTTP child did not start'
+    child = int((home / 'serve.pid').read_text())
+    assert wait(lambda: WP.listening(json.loads((home / 'pane.json').read_text())['port']))
+    return proc, child, output
+
+
+def _live_pid(pid):
+    try:
+        return Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0] != 'Z'
+    except FileNotFoundError:
+        return False
+
+
+def _cleanup_delayed_pane(proc, child, output):
+    import signal
+    # These identities were returned by this fixture, never a process-name scan.
+    for pid in [proc.pid, child]:
+        if _live_pid(pid):
+            try: os.killpg(pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+    proc.wait(timeout=5)
+    output.close()
+
+
+def test_pane_close_session_snapshot_includes_owned_slow_serve(tmp_path):
+    import signal
+    proc, child, output = _delayed_serve_pane(tmp_path)
+    try:
+        # The pinned herdr gathers this OS session, then HUP/TERM/KILL every 250ms.
+        session = os.getsid(proc.pid)
+        pids = []
+        for path in Path('/proc').iterdir():
+            if path.name.isdigit():
+                try:
+                    if os.getsid(int(path.name)) == session: pids.append(int(path.name))
+                except ProcessLookupError: pass
+        assert child in pids, 'separate backend OS session escapes real herdr pane-close ownership'
+        assert os.getpgid(child) == child != os.getpgid(proc.pid), 'TUI Ctrl+C must spare serve'
+        for sig in [signal.SIGHUP, signal.SIGTERM, signal.SIGKILL]:
+            for pid in pids:
+                if _live_pid(pid):
+                    try: os.kill(pid, sig)
+                    except ProcessLookupError: pass
+            time.sleep(.25)
+        assert wait(lambda: not _live_pid(child), timeout=2), 'pane closed but its owned serve survived'
+    finally:
+        _cleanup_delayed_pane(proc, child, output)
+
+
+def test_repeated_wrapper_shutdown_keeps_owned_serve_until_reaped(tmp_path):
+    import signal
+    proc, child, output = _delayed_serve_pane(tmp_path)
+    try:
+        os.kill(proc.pid, signal.SIGHUP)
+        time.sleep(.1)
+        os.kill(proc.pid, signal.SIGTERM)
+        time.sleep(.1)
+        assert proc.poll() is None, 'second shutdown abandoned the first owned-child join'
+        assert _live_pid(child), 'slow child must still be in its bounded shutdown'
+        assert proc.wait(timeout=5) == 0
+        assert not _live_pid(child), 'wrapper exit must follow owned backend reaping'
+    finally:
+        _cleanup_delayed_pane(proc, child, output)
+
+
+def test_eof_shutdown_interrupted_by_term_retains_child_join(tmp_path):
+    import signal
+    proc, child, output = _delayed_serve_pane(tmp_path, hold_tui=False)
+    try:
+        proc.stdin.close()  # Ordinary EOF enters main's finally without a shutdown signal.
+        assert wait(lambda: any(n.get('shutdown') for n in notes(tmp_path / 'stand-in.log'))), \
+            'normal finally did not start child shutdown'
+        os.kill(proc.pid, signal.SIGTERM)
+        time.sleep(.1)
+        assert proc.poll() is None, 'TERM reentered normal-exit finally and abandoned the child join'
+        assert proc.wait(timeout=5) == 0
+        assert not _live_pid(child), 'normal exit must reap its backend before returning'
+    finally:
+        _cleanup_delayed_pane(proc, child, output)
