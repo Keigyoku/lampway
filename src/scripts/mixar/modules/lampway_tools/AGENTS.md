@@ -41,7 +41,9 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    server's own defaults). Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
    (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
    Context settings in the Choices/Capabilities surface follow the same rule: the server supplies defaults and explicit project
-   overrides; the client draws a cache, performs requests off-thread and publishes replies on the main thread. Edits/reset require
+   overrides; the client draws a cache, performs requests off-thread and publishes replies on the main thread. Publication
+   redraws areas and rebuilds open refreshable unanchored popovers through the native window helper; temporary popup
+   regions are outside areas, so area redraw alone leaves the original Context page stale. Edits/reset require
    the user's click and a matching project; a stale dialog cannot write another project. The UI shows the pinned runtime's live
    reload and independent summarizer limitations rather than silently restarting a pane or inventing a model window.
 
@@ -69,3 +71,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the client tools' door, jail, refusal shape and human gate were known only from docstrings | the invariants with their modules, the binary-driven suite and its skip rule | captain ruling, 2026-10-05 |
 | 2026-10-07 | the Capabilities page and the walk's step (E2, client half) | coordinator: "the client (Blender UI) half of Capabilities" after the server's switchboard (e837e5c) | invariant 7 named routes only: nothing said who may switch what an agent can do, so a new page could have given a script, or a Client-side default, that say | invariant 9: the user's click through `ui/capabilities.py` behind `human_gate`, the walk writing only the user's differences from the server's defaults, a draw reading a cache that a worker thread fills | none |
 | 2026-10-08 | project Context configuration controls | R3/Q3 missing-section RED and stale-popup RED | the client had no Context settings and a dialog could outlive its selected project | invariant 9: cached defaults/overrides, worker requests, main-thread publication, human-gated explicit edits/reset and project identity fencing; runtime limitations displayed | focused client witnesses; native proof pending |
+
+| 2026-10-08 | original Context popout receives async state | actual production-panel loading RED and callback RED | Context response publication redrew areas but never rebuilt temporary popup layout | invariant 9: main-thread publication refreshes owned native popup layouts as well as areas, without networking from draw or altering user confirmation | callback RED/GREEN; matching native original-popout proof required |

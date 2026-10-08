@@ -29,6 +29,11 @@ chat renderer, overlays); Lampway's changes to it are the fork patches recorded 
 5. **Build only in the build box, through `scripts/lampway/build_linux.sh`.** Python-only changes reach a built app through
    `scripts/lampway/sync_python.sh`; a native change needs the build and its log.
 
+6. **Async popup refresh preserves handle ownership.** `Mixar_refresh_popups` retains operator-dialog refresh. Under
+   `LAMPWAY` it also rebuilds `can_refresh` popovers without an attached button, such as the original Choices Context
+   popout; button-attached popovers stay excluded so layout refresh cannot read a freed anchor. The client requests this
+   rebuild only on its main-thread async publication path.
+
 ## Test
 
 ```bash
@@ -50,3 +55,5 @@ a brand, host or login patch.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the fork-patch conventions lived in one report and the tests that pin them | the guard-and-marker rule, the login and host invariants, the build owner and the three grades of native evidence | captain ruling, 2026-10-05 |
+
+| 2026-10-08 | original Context popout publishes async replies | two actual native original-panel REDs, with ready response cache and bounded real hover | area redraw never rebuilt the temporary popup and the existing helper excluded every popover | invariant 6: retain dialog refresh, add guarded refreshable unanchored popovers and keep button-attached handles excluded | callback RED/GREEN and native ON/OFF syntax; matching original-panel native proof required |

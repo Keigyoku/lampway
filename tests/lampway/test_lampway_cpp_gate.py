@@ -60,3 +60,16 @@ def test_loopback_http_is_allowed_only_under_lampway():
     # The https requirement survives for every non-loopback URL.
     assert 'strncmp(url, "https://", 8)' in exchange
     assert "refusing non-HTTPS URL" in exchange
+
+
+def test_async_popover_refresh_is_guarded_and_excludes_button_attached_popovers():
+    source = _read(ROOT / 'src/source/blender/editors/interface/mixar/tour_menu.cc')
+    helper = source[source.index('int Mixar_refresh_popups('):]
+    guarded = re.search(r'#ifdef LAMPWAY(.*?)#endif', helper, flags=re.S)
+    assert guarded and 'LAMPWAY:' in guarded.group(1)
+    assert 'block.handle->can_refresh' in guarded.group(1)
+    assert 'block.handle->popup_create_vars.but == nullptr' in guarded.group(1)
+    # Upstream dialog refresh survives when the Lampway-only inclusion is compiled out.
+    upstream = helper[:guarded.start()] + helper[guarded.end():]
+    assert 'block.handle->popup_op != nullptr' in upstream
+    assert 'ED_region_tag_refresh_ui(&region)' in upstream

@@ -27,6 +27,10 @@ def _redraw():
     for window in getattr(bpy.context.window_manager, 'windows', []) or []:
         for area in window.screen.areas:
             area.tag_redraw()
+        # Pop-up regions sit outside areas and need their layouts rebuilt after an async reply.
+        refresh = getattr(window, 'mixar_refresh_popups', None)
+        if refresh is not None:
+            refresh()
 
 
 def _apply():

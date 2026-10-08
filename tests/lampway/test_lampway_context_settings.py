@@ -297,3 +297,29 @@ def test_long_native_adoption_note_wraps_without_losing_information(ui):
     # Other rows follow the note; the complete note must appear in their joined text.
     assert note.strip() in ' '.join(pieces)
     assert all(len(piece) <= 64 for piece in pieces if piece.startswith(('Hermes reads', 'compression', 'ordinary', 'threshold', 'protected', 'messages', 'before', 'turn.')))
+
+
+def test_async_reply_rebuilds_open_popup_after_main_thread_publication(ui, monkeypatch):
+    calls, queued = [], []
+    area = SimpleNamespace(tag_redraw=lambda: calls.append(('area', S.STATE['answer'])))
+    window = SimpleNamespace(screen=SimpleNamespace(areas=[area]),
+                             mixar_refresh_popups=lambda: calls.append(('popup', S.STATE['answer'])))
+    monkeypatch.setattr(ui.bpy, 'context', SimpleNamespace(window_manager=SimpleNamespace(windows=[window])))
+    S.reset()
+    reply = answer()
+    class Door:
+        def context(self, project): return reply
+    assert S.request(Door, '/work/p', spawn=queued.append)
+    queued.pop()()
+    assert S.STATE['answer'] is None and not calls, 'worker must not redraw or publish'
+    assert ui._apply() is None
+    assert calls == [('area', reply), ('popup', reply)], 'area redraw cannot rebuild a temporary popup'
+
+
+def test_context_redraw_keeps_area_support_without_native_popup_helper(ui, monkeypatch):
+    calls = []
+    area = SimpleNamespace(tag_redraw=lambda: calls.append('area'))
+    window = SimpleNamespace(screen=SimpleNamespace(areas=[area]))
+    monkeypatch.setattr(ui.bpy, 'context', SimpleNamespace(window_manager=SimpleNamespace(windows=[window])))
+    ui._redraw()
+    assert calls == ['area']
