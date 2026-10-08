@@ -44,7 +44,7 @@ async def call(svc, name: str, arguments: dict) -> tuple:
         tpl = rendered = None
         refs: list = []
         if a.get("template"):
-            tpl = svc.library.get(a["template"])
+            tpl = R.provider_template(svc.library, a["template"])
             rendered = svc.render(a["template"], a.get("variables"), a.get("model"))
             prompt, model, params = rendered["prompt"], rendered["model"], dict(rendered["params"])
             if not model:                                     # CH5: the purpose's choice runs the template (it pins its own model only with a reason)

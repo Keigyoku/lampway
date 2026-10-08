@@ -41,7 +41,8 @@
         "texture-plate",
         "character-sheet",
         "character-part",
-        "turntable"
+        "turntable",
+        "motion-graphics"
       ]
     },
     "media": {

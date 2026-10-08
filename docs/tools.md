@@ -11,7 +11,7 @@ server/.venv/bin/python docs/gen_tools.py          # regenerate
 server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is stale
 ```
 
-- **254 tools** in the agent's registry; **205** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **207 tools** over MCP in total.
+- **255 tools** in the agent's registry; **205** of them run in Blender and are offered over MCP, plus **2** server-side MCP tools (`lampway_credit_balance`, `lampway_call_status`): **207 tools** over MCP in total.
 - Studio tools (`studio_*`) spend credits on your accounts and are **never** offered over MCP; the swarm tools and `ask_user` need the agent loop.
 - The `offered` column says whether an external AI app (Claude Code, Codex, Cursor, VS Code, OpenCode, Claude Desktop) can call the tool.
 - Every tool that costs money returns a plan and waits for your click ([spend](spend.md)); no tool can confirm a spend.
@@ -118,6 +118,7 @@ server/.venv/bin/python docs/gen_tools.py --check  # exit 1 when this page is st
 | [`lampway_clip_classify`](#lampway_clip_classify) | yes | What kind of motion is each action on this armature, what should it be called, does it loop: all measured from six landmark bones (hip, head, hand.l, hand.r, foot.l, foot.r; the bone names... |
 | [`lampway_motion_experiment`](#lampway_motion_experiment) | yes | The wiki's A/B/C motion comparison from a typed brief. |
 | [`lampway_motion_generate`](#lampway_motion_generate) | yes | A motion clip for a short prompt. |
+| [`lampway_motion_graphics`](#lampway_motion_graphics) | no | Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in order from frame 0), encode it to MP4 and Web... |
 | [`lampway_render_video`](#lampway_render_video) | yes | Video: render a turntable or a keyframed camera path (waypoints [{frame, location}]) of an object to an H.264 mp4 under the project root, in a throw-away scene, with the light engines only... |
 | [`lampway_video_gate`](#lampway_video_gate) | no | Deterministic gates on a video file in the project (no model, no spend, ffmpeg only). |
 | [`lampway_video_gen`](#lampway_video_gen) | no | Generate a video. |
@@ -1717,6 +1718,29 @@ Inputs:
 
 MCP: offered.
 
+#### lampway_motion_graphics
+
+Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in order from frame 0), encode it to MP4 and WebM, self-check sampled frames (empty frame, text outside title-safe, text under 22 px, contrast, text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), write a receipt (code hash, every frame's hash, output hashes) under motion/out/<name>-<code8>-<unique-run>/, and file an accepted render in the Asset Vault as kind video. Look at contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() loads every font and image, then returns both required arrays. Setup return example: {"fonts":[{"font":"28px sans-serif","ok":true}],"images":[{"src":"assets/figure.png","ok":true}]}. Resource identifiers are non-empty strings; ok is a boolean. Empty-resource setup: {"fonts":[],"images":[]} is appropriate when none are needed. window.__frame(t) sets every animated property from t alone. window.__audit() returns both arrays for all visible text and marks. Audit return example: {"text":[{"sel":"#title","text":"Title","box":[100,100,500,160],"font_px":28,"opacity":1}],"marks":[{"sel":"figure","box":[600,200,1000,700]}]}. Each row needs a non-empty sel and box=[x0,y0,x1,y1] with finite ordered viewport coordinates. Text additionally needs string text, positive finite font_px and finite opacity in [0,1]; marks require sel and box. Empty audit: {"text":[],"marks":[]} is appropriate only when none are visible. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or transitions; every file lives in the scene folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize. Spends nothing; nothing leaves the machine.
+
+Inputs:
+- `action` (string): render (default) or verify (re-render a receipt and compare)
+- `scene` (string): render: the scene folder, project-relative (e.g. motion/scenes/spend-gate)
+- `html` (string): render: a single-file scene instead of a folder; written to motion/scenes/<name>/index.html first (needs name)
+- `entry` (string): the scene's HTML entry inside its folder (default index.html)
+- `name` (string): kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>-<unique-run>/
+- `duration_s` (number): seconds, (0, 120]; default: the scene's own window.__scene.duration_s
+- `fps` (integer): frames per second, 1..60 (default 30)
+- `width` (integer): even, 16..3840 (default 1920)
+- `height` (integer): even, 16..2160 (default 1080)
+- `formats` (array): a non-empty subset of mp4, webm (default both)
+- `samples` (array): seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)
+- `template` (string): provenance only: the motion-graphics prompt template id@version the scene was written from
+- `variables` (object): provenance only: that template's variables
+- `vault` (boolean): file an accepted render in the Asset Vault (default true)
+- `receipt` (string): verify: the project-relative path of the render's receipt.json
+
+MCP: not offered.
+
 #### lampway_render_video
 
 Video: render a turntable or a keyframed camera path (waypoints [{frame, location}]) of an object to an H.264 mp4 under the project root, in a throw-away scene, with the light engines only (workbench | eevee; Cycles is refused). The file is read back (frames, size, bytes). engine=model:<name> is the generative video slot: not wired. Paths are relative to the project root; a path outside it is refused.
@@ -2292,7 +2316,7 @@ MCP: not offered.
 
 #### lampway_prompt_render
 
-Render a template with variables for a model: returns the prompt text, negatives, the inputs it needs (in order), the params and warnings. A bad variable is refused by name. Pass the same `template` + `variables` to lampway_video_gen / lampway_image_gen to generate with it.
+Render a template with variables for a model: returns the prompt text, negatives, the inputs it needs (in order), the params and warnings. A bad variable is refused by name. For purpose motion-graphics, use the brief to author a local scene with its setup/audit contract, then pass the scene and the same `template` + `variables` to lampway_motion_graphics. Motion briefs are refused by provider generation. For other provider templates, pass the same `template` + `variables` to lampway_video_gen / lampway_image_gen.
 
 Inputs:
 - `id` (string, required)

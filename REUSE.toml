@@ -969,3 +969,19 @@ path = [
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# PR3-owned motion templates and existing Lampway TOON adapter. Exact GPL paths; no third-party attribution overridden.
+[[annotations]]
+path = [
+  "server/lampway_server/compute/toon_out.py",
+  "server/lampway_server/prompts/builtin/mg-facelift-ui-demo@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-release@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-report-card@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-site-clip@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-titan-animatic@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-titan-ui-motion@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-tutorial@1.0.0.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"

@@ -148,6 +148,18 @@ class JobQueue:
 
     # ------------------------------------------------------------------ submit
     def submit(self, service: str, model: str, payload: dict, idempotency_key: Optional[str] = None, origin: str = "user") -> Job:
+        # Local motion templates must be refused before even a provider catalogue lookup. Ordinary validation stays below.
+        template = payload.get("template") if isinstance(payload, dict) else None
+        if (self.prompts is not None and service in ("image_gen", "video_gen") and isinstance(template, dict)
+                and isinstance(template.get("id"), str) and (template.get("version") is None or isinstance(template["version"], str))):
+            from .prompts import render as PR
+            from .prompts.library import LibraryError
+            try:
+                PR.provider_template(self.prompts.library, template["id"], template.get("version"))
+            except PR.RenderError as exc:
+                raise BadJob(str(exc)) from None
+            except LibraryError:
+                pass                                                    # preserve the existing order for unknown ordinary templates
         video_job = self.video is not None and self.video.handles(service, model)
         if service not in self.backends and self.registry.get(service) is None and not (video_job and (service in ("video_gen", "video_upscale") and self.video.available(service) or service == "image_gen")):
             raise UnknownService(f"no backend for service {service!r}; the services are {sorted(set(self.backends) | set(self.registry.keys())) or 'none'}: "

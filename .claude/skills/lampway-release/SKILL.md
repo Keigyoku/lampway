@@ -36,6 +36,9 @@ python3 rail/rail.py check                                 # the rail (also in C
   names. Never print, copy or commit that file. Putting an owner value into a tracked file to make a test pass is the defect the
   gate exists for.
 - Adjacent Python matrix operators and structured bone attributes may resemble email syntax. A code-only classification requires proof of the operator and operands; quoted addresses, comments, bare email-shaped expressions, unknown syntax and owner-specific patterns remain strict. Do not resolve this false positive with a value/domain allowlist or by bypassing the gate.
+- Personal identifiers and commit email domains are fully redacted in gate output. The exact public GitHub provider noreply identity is safe commit metadata; lookalikes and authored personal identities remain blocked, and all commit content is scanned.
+- Proven Python matrix operators with matching structured bone operands are code; quoted values, comments, incomplete syntax and owner-specific patterns remain strict. Do not add value/domain exemptions for code.
+- PR CI scans the event base and authored head SHA, while push CI scans explicit push endpoints. Refuse a missing head rather than substituting checkout HEAD; use the event head for any merge-base fallback.
 - A known-fake value goes in `scripts/lampway/pii_allow.txt`, exactly, with the reason on the same line.
 - The exact public GitHub provider noreply identity is safe commit metadata; provider-domain lookalikes and other addresses remain blocked, and its content is still fully scanned.
 - Commit as your GitHub noreply address; the gate refuses any other author or committer email on a new commit.
@@ -77,6 +80,8 @@ skipped suite is not a pass. Dollar figures and live runs are quoted from their 
 Provenance: `scripts/lampway/prepublish_gate.py`, `.githooks/pre-push`, `.github/workflows/pii-gate.yml`, `CONTRIBUTING.md`,
 the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` directive.
 
+Release-contract merges retain both parents' privacy requirements and historical rows, keep the anneal table contiguous, and regenerate both harness copies from the canonical skill.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -88,4 +93,6 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-07 | native matrix operator classification | complete topology regression publication | executable matrix attributes matched the generic email pattern | prove structured matrix code and retain real-address/owner-pattern controls without allowlist changes or history rewrite | matrix and email planted regressions |
 | 2026-10-07 | explicit PR authored range | captain: issue2 G24 | GitHub synthetic merge committer caused false-positive branch privacy failures | scan event base/head endpoints, refuse unavailable head and retain real bad-email controls without account-setting changes | executed workflow good/bad branch, push and fallback controls |
 | 2026-10-07 | strict no-red completion | captain: inherited reds must be fixed | baseline-attributed failures could return GREEN | every known/new failure forces RED while exact PASS shrinking and attribution remain intact | known FAILED/ERROR controls for both suites with and without shrink |
+| 2026-10-07 | scoped PR1 publication dependencies | parent: integrate tested G24 gate/workflow fixes into PR3 | diagnostics exposed identifiers, matrix expressions resembled addresses, and checkout merge HEAD was a different endpoint | redact identifiers, prove matrix syntax, retain exact-provider/lookalike controls and scan explicit event endpoints | 33 gate/workflow/host/R04 regression cases; source 75a00df9, a4f2cee3, dc732196 |
 | 2026-10-08 | publication inventory and continuous anneal table | captain assigned PR3 review5450133925 two LOW findings | moved font licence left a stale inventory link/status and a blank line split the log table | verify tracked licence targets and upstream/absent status; keep anneal rows contiguous before regenerating skill copies | actual licence path and generated-copy/rail checks |
+| 2026-10-08 | merged publication contracts | captain: merge main after PR3 | duplicate publication changes conflicted with the MCP branch and could lose either history | retain both privacy contracts and parent rows before regenerating skill copies | merged rail check and publication regression selection |

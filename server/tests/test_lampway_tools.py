@@ -13,6 +13,7 @@ from lampway_server.agent import tools as T
 from lampway_server.agent import plan_tools as PLAN_TOOLS
 from lampway_server.agent import orphan_server_tools as OST
 from lampway_server.agent import blender_docs_tools as BDT
+from lampway_server.agent import motion_tools as MGT
 
 
 def args_of(script):
@@ -95,7 +96,7 @@ def test_the_system_prompt_names_the_workflow():
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices"} | PLAN_TOOLS.NAMES | OST.NAMES | BDT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices"} | PLAN_TOOLS.NAMES | OST.NAMES | BDT.NAMES | MGT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():
