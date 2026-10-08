@@ -182,7 +182,7 @@ def menu_rows(scene) -> list:
         no_tools = h.get("tools") is False                    # the server says this harness cannot reach Lampway's tools from its pane
         label = (f"{LABELS[BYOA]}: {h.get('label') or h.get('id')}" + ("" if installed else " (not installed)")
                  + (NO_TOOLS_SUFFIX if installed and no_tools else ""))
-        tip = h.get("install") or (h.get("tools_note") if no_tools else "") or "Your own agent, on its own login, in a pane bound to this tab"
+        tip = (h.get("tools_note") if installed else h.get("install")) or "Your own agent, on its own login, in a pane bound to this tab"
         rows.append(Row("MODE", label, installed and bool(HARNESSES["enabled"]), mode == BYOA and harness == h.get("id"), BYOA,
                         str(h.get("id") or ""), tip))
     if HARNESSES["loaded"] and not HARNESSES["enabled"]:

@@ -432,8 +432,10 @@ def test_the_adapters_put_the_task_on_the_command_line_only_where_herdr_starts_t
     assert HN.get("pi").launch(HN.PaneSpec(cwd=str(tmp_path), session_id="s-1"), task="Do the thing") == ["pi", "--session-id", "s-1", "Do the thing"]
     assert HN.get("grok").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["grok", "Do the thing"]
     assert HN.get("cursor").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["cursor-agent", "Do the thing"]
-    with pytest.raises(ValueError, match="task"):                      # your Hermes: no top-level prompt argument (v0.21.5 --help)
-        HN.get("hermes").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing")
+    # Native Hermes chat -q seeds the interactive first turn on a TTY; MAIN has no oneshot/frontend override.
+    assert HN.get("hermes").launch(HN.PaneSpec(cwd=str(tmp_path)), task="Do the thing") == ["hermes", "chat", "-q", "Do the thing"]
+    with pytest.raises(ValueError, match="connector-only worker policy"):
+        HN.get("hermes").launch(HN.PaneSpec(cwd=str(tmp_path), desktop=False), task="Do the thing")
 
     class Shell(HN.Adapter):                                           # a harness herdr has no kind for is typed into a shell by
         id, label, binary, task_flag = "typed", "Typed", "typed-agent", ()   # pane run: never a model-written task

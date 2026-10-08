@@ -2,13 +2,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Grok (Grok Build, `grok`): the user's own Grok CLI, in a Lampway pane.
 
-New session: `--session-id <uuid>` chosen by Lampway (recorded as the native id); resume: `--resume <id>`. Bypass (the user's tick
-only): `--always-approve`. Lampway's supported pane wiring remains unavailable. Grok 1.0.46 accepts a primary custom-agent
-Markdown file through `--agent <path>` and can add inline MCP entries. That overlay retains unrelated servers from the user's
-config and compat sources; `enabled: false` does not remove an inherited entry. A worker-only MCP route preserving the user's
-login is therefore unproved. Observation: the screen. Checked on an installed Grok 1.0.46 (see FACTS).
+New session uses --session-id; resume uses --resume. Only the user's bypass tick adds --always-approve.
+MAIN uses an explicitly installed native symbolic stdio connector and a pane-owned binding file. The user's own agent,
+HOME, model settings, permissions and other MCP servers remain native. Workers are refused: exclusive discovery preserving
+all native policy/configuration is unproved. Observation is the screen. Checked with installed Grok 1.0.46 (see FACTS).
 """
-from .base import Adapter, Observer
+import json
+from pathlib import Path
+
+from .base import Adapter, Observer, ToolWiring, bearer_headers
+from ...pane_mcp import CONFIG_ENV, ROOT_ENV
 
 
 class Grok(Adapter):
@@ -23,10 +26,16 @@ class Grok(Adapter):
     task_flag = ()                             # `grok [PROMPT]`: the interactive session starts with it
     interrupt_keys = ("ctrl+c",)
     takes_image_paths = True
-    tools_reachable = False
-    tools_note = ("Grok's --agent file can add MCP entries, but its primary-agent overlay retains unrelated configured servers; "
-                  "enabled: false does not remove an inherited server. Lampway has no verified worker-only pane route preserving "
-                  "your login, so its supported pane wiring remains unavailable. Lampway never writes your shared MCP config.")
+    always_pane_config = True
+    tools_reachable = True
+    direct_ok = True
+    worker_ok = False
+    worker_note = ("Grok workers need an exclusive MCP route preserving native configuration and policies. "
+                   "That route is unproved; choose another supported worker harness.")
+    tools_note = ("Install lampway_pane once with your own Grok MCP command using lampway-pane-mcp. Lampway supplies only "
+                  "a pane-owned binding file; your native agent, HOME, providers, permissions and other configured MCP "
+                  "servers remain unchanged. Grok workers are unavailable until exclusive MCP discovery preserving "
+                  "native policies is proved. Account-backed native tool execution remains unverified.")
     FACTS = {
         "version": "1.0.46 installed with xAI's own install script into a throwaway HOME; `grok --version` -> "
                    "'grok 1.0.46 (2765805b9442)'",
@@ -43,6 +52,26 @@ class Grok(Adapter):
                      "mcpInheritance: none did not exclude primary-agent disk sources. Inline env placeholders arrived literally; "
                      "omitting the inline env mapping preserved the inherited process binding. This does not prove HTTP headers "
                      "or an exclusive worker route (scratch receipt grok-primary-route-supported-receipt.json)",
+        "symbolic_connector": "Grok 1.0.46's supported `grok mcp add lampway_pane -- <absolute lampway-pane-mcp>` installs "
+                              "a dedicated stdio connector. Lampway never runs that command against a user's configuration: "
+                              "the user installs it explicitly. MAIN supplies only a pane-owned version-1 file and connector "
+                              "config/root environment variables; no --agent override or HOME/provider/model/policy change. "
+                              "Offline native add using the interpreter and helper path succeeded. Native ACP _x.ai/mcp/call "
+                              "returned two synthetic scene bindings through live rebind; native TUI first-turn discovery "
+                              "preserved the original custom persona. Warmed native config/auth/agent hashes stayed equal. "
+                              "Account-backed native TUI tool execution remains unverified.",
+        "native_bootstrap": "An identical no-connector native ACP baseline also deleted synthetic home managed policy cache "
+                            "and inserted marketplace.default_skills_installs_purged. Ordinary TUI baseline deleted synthetic "
+                            "requirements and managed caches. Native bootstrap owns that behavior; Lampway never reads, "
+                            "copies or writes native configuration/policies. File immutability is not promised.",
+        "primary_empty_body": "Installed 1.0.46 offline baseline saved the configured custom persona; adding an empty-body "
+                              "--agent file replaced it with the default prompt. Therefore MAIN uses no --agent overlay.",
+        "worker_policy": "Native requirements.toml allow_managed_mcp_servers_only and allowed_mcp_servers restricted synthetic "
+                         "discovery, but relocating GROK_HOME changes native configuration. A preserving-home extra policy "
+                         "namespace could not be tested here: bwrap returned 'setting up uid map: Read-only file system'. "
+                         "herdr 0.9.3 also fixes the canonical executable for each kind and has no executable override; a "
+                         "namespace wrapper additionally needs a reviewed native launch seam. No workaround or shared "
+                         "native policy change is used; workers are explicitly refused.",
         "herdr": "herdr 0.9.3 knows the kind `grok` (src/detect/mod.rs interactive_agent_executable)",
         "interrupt": "Ctrl+C: docs/user-guide/03-keyboard-shortcuts.md (1.0.46) 'Esc ... never cancels a running turn (Ctrl+C does)'; "
                      "herdr 0.9.3's grok.toml still names an older 'Esc:cancel' footer",
@@ -52,10 +81,28 @@ class Grok(Adapter):
                         "17-sessions.md, 1.0.46); not mirrored yet: the island shows the screen",
     }
 
+    def _main_only(self, pane):
+        if not pane.desktop:
+            raise ValueError(self.worker_note)
+
     def _args(self, pane, resume_id):
+        self._main_only(pane)
         if resume_id:
             return ["--resume", resume_id, *self._bypass(pane)]
         return (["--session-id", pane.session_id] if pane.session_id else []) + self._bypass(pane)
+
+    def lampway_tools(self, pane):
+        self._main_only(pane)
+        path = pane.mcp_config_path
+        binding = pane.scene_session_id or ""
+        desktop = ({"command": pane.launcher[0], "args": list(pane.launcher[1:]),
+                    "env": {"LAMPWAY_BOUND_SESSION": binding}}
+                   if binding and pane.launcher else None)
+        direct = [{"url": entry.url, "headers": bearer_headers(entry)} for entry in pane.direct] if binding else []
+        body = json.dumps({"version": 1, "binding": binding, "desktop": desktop, "direct": direct}, indent=2)
+        return ToolWiring("symbolic_stdio", (),
+                          {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {},
+                          {path: body} if path else {}, tuple(pane.launcher), binding or None, False, self.tools_note)
 
     def observe(self, record):
         return Observer("screen", None, True, "the pane's screen (Grok's updates.jsonl is an ACP stream Lampway does not mirror yet)")

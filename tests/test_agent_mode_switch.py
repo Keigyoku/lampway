@@ -293,3 +293,12 @@ def test_every_chat_carries_the_tabs_mode():
     send = next(n for n in ast.walk(ast.parse(TRANSPORT_PY)) if isinstance(n, ast.FunctionDef) and n.name == "_send")
     body = ast.get_source_segment(TRANSPORT_PY, send)
     assert "payload['agent_mode']" in body and "lampway_agent_mode" in body
+
+
+def test_installed_supported_harness_keeps_required_connector_setup_help():
+    AM.HARNESSES.update(loaded=True, enabled=True, rows=[{
+        'id': 'hermes', 'label': 'Your Hermes', 'installed': True, 'tools': True,
+        'install': None, 'tools_note': 'Install the dedicated symbolic connector; account execution unverified.'}])
+    row = next(row for row in AM.menu_rows(FakeScene()) if row.harness == 'hermes')
+    assert row.enabled
+    assert row.tip == 'Install the dedicated symbolic connector; account execution unverified.'

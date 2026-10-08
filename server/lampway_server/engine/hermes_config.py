@@ -248,6 +248,7 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
     toolsets = _toolsets(in_force) + ([ASK_TOOLSET] if asks_user else [])
     memory = "memory" in in_force
     skills_write = "skills.write" in in_force
+    background = "background" in in_force
 
     cfg = {
         # hermes_cli/config_defaults.py:22-24; acp_adapter/session.py:472-510 reads model.default and model.provider and resolves
@@ -275,9 +276,11 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
         # config_defaults.py:1456-1459: without ``skills.write`` every skill_manage write is staged for the user's approval.
         "skills": {"write_approval": not skills_write},
         # config_defaults.py:1475-1476: the curator rewrites agent-created skills in the background.
-        "curator": {"enabled": skills_write},
-        # config_defaults.py:780-789: the post-turn fork that saves memory and patches skills runs only when one of them is chosen.
-        "auxiliary": {"background_review": {"enabled": memory or skills_write}},
+        "curator": {"enabled": skills_write and background},
+        # Native background forks require their separate default-off Agent preference, even when memory/skill writes are on.
+        "auxiliary": {"background_review": {"enabled": (memory or skills_write) and background}},
+        # Read by Lampway's native-entry bootstrap, not a new Hermes toolset or model route.
+        "lampway_features": {key: key in in_force for key in ("subagents", "schedule", "background")},
         # tools/mcp_tool_common.py:43-55 ``_resolve_tool_timeout`` reads ``timeouts.mcp.tool_call``; ACP-passed servers carry no
         # per-server timeout (acp_adapter/server.py:170-173).
         "timeouts": {"mcp": {"tool_call": MCP_TOOL_CALL_TIMEOUT_S}},

@@ -122,6 +122,9 @@ def test_memory_on_and_off(board):
     cfg = _render(board)
     assert "memory" in _acp(cfg) and "memory" not in cfg["agent"]["disabled_toolsets"]
     assert cfg["memory"] == {"memory_enabled": True, "user_profile_enabled": True, "provider": ""}
+    assert cfg["auxiliary"]["background_review"]["enabled"] is False
+    board.set("background", enabled=True)
+    cfg = _render(board)
     assert cfg["auxiliary"]["background_review"]["enabled"] is True
     board.set("memory", enabled=False, project="/proj")
     assert "memory" not in _acp(HC.render(board, "/proj", GATEWAY, TOKEN, MODEL))
@@ -132,6 +135,9 @@ def test_skills_write_off_stages_every_skill_write_and_stops_the_curator(board):
     assert "skills" in _acp(cfg)
     assert cfg["skills"]["write_approval"] is True and cfg["curator"]["enabled"] is False
     board.set("skills.write", enabled=True)
+    cfg = _render(board)
+    assert cfg["skills"]["write_approval"] is False and cfg["curator"]["enabled"] is False
+    board.set("background", enabled=True)
     cfg = _render(board)
     assert cfg["skills"]["write_approval"] is False and cfg["curator"]["enabled"] is True
     board.set("skills.use", enabled=False)

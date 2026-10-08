@@ -207,8 +207,9 @@ class Cockpit:
         if swarm_worker is not None:
             if by != "swarm":
                 raise CockpitError("only a swarm opens a worker pane")
-            if ad is None or not ad.direct_ok:
-                raise CockpitError(f"{agent} cannot run a swarm worker yet: no recorded way to point it at Lampway's own endpoint")
+            if ad is None or not ad.direct_ok or not getattr(ad, "worker_ok", True):
+                note = getattr(ad, "worker_note", "") if ad is not None else ""
+                raise CockpitError(note or f"{agent} cannot run a swarm worker yet: no recorded way to point it at Lampway's own endpoint")
             if not self.pane_mcp_url:
                 raise CockpitError("the server's pane endpoint is not known here: no worker pane can be opened")
             if scene_session_id:
@@ -254,7 +255,8 @@ class Cockpit:
         rid = uuid.uuid4().hex[:12]
         lampway = ad is not None and HN.is_lampway(ad.id)
         sid = str(uuid.uuid4()) if ad is not None and ad.picks_session_id and not resume_id else None
-        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and not lampway and (scene or swarm_worker) else None
+        cfg = str(self.root / "panes" / rid / ad.config_name) if ad is not None and not lampway and (
+            scene or swarm_worker or getattr(ad, "always_pane_config", False)) else None
         direct, key = (), None
         if swarm_worker is not None:                           # S3: the worker's only server; its token never in the registry
             direct = (HN.DirectServer(HN.SERVER_NAME, self.pane_mcp_url, {HN.SESSION_HEADER: swarm_worker[0]}, WORKER_TOKEN_ENV, swarm_worker[1]),)

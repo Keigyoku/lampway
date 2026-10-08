@@ -37,6 +37,8 @@ test = [
 
 [project.scripts]
 lampway-server = "lampway_server.__main__:main"
+lampway-hermes-mcp = "lampway_server.pane_mcp:main"
+lampway-pane-mcp = "lampway_server.pane_mcp:main"
 
 [tool.setuptools.packages.find]
 include = ["lampway_server*"]

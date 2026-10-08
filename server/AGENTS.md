@@ -66,10 +66,18 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    checked with (throwaway HOME, `--help`/`--version` and offline commands only: no login, no model call); what only a turn could
    show stays `[UNVERIFIED]` there. herdr 0.9.3 starts every user harness itself (`agent start --kind`), under the agent name
    `host.agent_name` (`lw-<record id>`: herdr takes only `[a-z][a-z0-9_-]{0,31}`), and keys are herdr's spelling (`ctrl+c`, never
-   `ctrl-c`); the played herdrs refuse what the real one refuses (`tests/herdr_support.py` `herdr_refusal`). A harness with no
-   verified pane-scoped route to Lampway's tools (the user's own Hermes and Grok) says so in the listing (`tools: false` with the
-   reason). Grok 1.0.46 accepts a primary `--agent` file with sequence-shaped `mcpServers`, but its overlay retains unrelated
-   configured MCP servers; `enabled: false` does not remove inherited entries. Its worker-only route remains unproved. Cursor's
+   `ctrl-c`); the played herdrs refuse what the real one refuses (`tests/herdr_support.py` `herdr_refusal`). Your Hermes and Grok MAIN use an explicitly user-installed native `lampway_pane` stdio connector, described by
+   `pane_mcp.py`: only an owned 0600 `panes/<id>/mcp.json` under the supplied root gives it binding authority.
+   Lampway never installs it into a user's shared native configuration, changes HOME/provider/persona settings or selects
+   another native agent. Unbound discovery is empty; calls reread binding and close the previous owned transport on change.
+   The listing and native menu retain the required setup note even when tool wiring is supported; account-backed execution
+   stays unverified. Cancellation forwards the native request id and joins the owned child; it does not promise remote tool
+   rollback or server-side abort. Its desktop subprocess is declared in `egress.LAUNCHES` as the existing local
+   scene launcher, with a scrubbed environment and no provider credentials; a declaration never adds an outbound route. Their workers refuse before launch until an exclusive native MCP route preserving the
+   agreed native-tool policy is proved and authorized. Worker readiness is independent of MAIN direct-tool support:
+   unsupported workers are refused in Choices, swarm preflight and host creation before a run, owned files or a pane exist. Hermes's built-in tool names also select same-named MCP servers;
+   Grok's primary-agent overlay retains inherited MCP sources and can replace the configured persona. Neither is an
+   isolation workaround. Cursor's
    supported per-pane plugin describes its account/tool execution as unverified. Pi reaches tools through Lampway's own Pi
    extension (`harnesses/lampway_pi_extension.js`, a wrapper only: it hands the pane's own 0600 config to Pi's MCP client).
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
@@ -166,6 +174,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    which the user accepts or declines. A family row (`messaging.*`, `mcp.*`) is the default for each member with no setting of its
    own, scope by scope (`Store.setting`). Lampway's tool families are checked at call time by `capabilities.check_tool`
    for the in-app agent and for MCP clients; a capability that needs an egress route is in force only while that route is on.
+   Native Hermes delegation (`subagents`), cron (`schedule`) and background agents (`background`) are independent default-off
+   experimental choices for the main Mode 1 agent. Agent preferences warns of untested layering before enabling them.
+   The owned native-entry bootstrap gates commands, RPC and spawn paths as well as advertised tools; memory or skill writes
+   alone cannot enable background review or curator work. Mode 1 swarm workers keep all three disabled.
+   Native child admission preserves the `subprocess.Popen` class identity, imported aliases and annotation behavior;
+   replacing a native class with a function is not a compatible wrapper.
    The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
    gateway only (`provider: custom`, no other provider, no adopted logins), the serve platform's toolsets (`platform_toolsets.cli`,
    pinned again by `HERMES_TUI_TOOLSETS`) are exactly those of the capabilities in force plus `clarify` for a main agent (never a
@@ -387,3 +401,12 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | owned backend ends with a cancelled worker pane | whole native client Stop left an owned Hermes serve orphan; two actual subprocess causal RED controls | separate backend OS session escaped herdr session shutdown and repeated wrapper TERM abandoned its child wait | Mode1 pane ownership: separate backend process group within the pane session, non-reentrant wrapper shutdown, retained ownership until wait/reap; no unknown process kills or server-disconnect coupling | stand-in HTTP child RED/GREEN; matching native Stop serve-PID proof required |
 
 | 2026-10-08 | normal pane exit retains its backend join through signals | copied committed wrapper EOF plus TERM causal RED | normal finally had not marked shutdown active, so a nested handler exited before the owned child was reaped | Mode1 pane ownership: EOF/Ctrl+C final cleanup enters the same non-reentrant shutdown guard before waiting; retained child identity and session-owned herdr close remain unchanged | scratch actual subprocess RED/GREEN; matching native proof required |
+| 2026-10-08 | explicit experimental native Hermes helper preferences | captain: delegate, cron and background off by default with Agent preference opt-ins and untested layering warning | toolset defaults alone leave native command and automatic background paths available | invariant 9: independent default-off native helper choices, native-entry admission guards, memory and skill conjunctions, workers always off | direct captain ruling; focused and pinned runtime evidence required |
+
+| 2026-10-08 | native symbolic MAIN connectors for Your Hermes and Grok | installed CLI discovery and persona controls | no per-process configuration override; primary-agent overlays retain unrelated servers or replace persona | invariant 6: explicit user native installation, owned fail-closed live binding, preserved native settings, visible setup and qualified cancellation; workers refuse unproved isolation | native offline install/discovery/rebind controls and causal focused RED/GREEN; account-backed execution unverified |
+
+| 2026-10-08 | compatible native child admission | unchanged real Hermes pane turn failed before its port opened | replacing Popen with a function broke native union type annotations at import | invariant 9: retain native class identity and imported aliases while guarding constructor arguments | native first-turn causal RED/GREEN and annotation/alias regressions; full corrected source gate required |
+
+| 2026-10-08 | separate native MCP transport from herdr process ownership | existing single-launcher architecture gate rejected helper subprocess inside herdr | the standalone desktop MCP helper had been placed in the herdr package | invariant 6: herdr process launches stay in its one launcher; independent pane MCP transport lives in pane_mcp.py and has its own declared local desktop launch | unchanged architecture gate causal RED/GREEN; full corrected source gate required |
+
+| 2026-10-08 | MAIN connectivity does not imply worker readiness | host worker preflight causal RED; new MAIN direct endpoints | direct_ok alone made unsupported worker options appear ready and reached late adapter errors after creating owned files | invariant 6: separate worker readiness and actionable refusal in Choices, swarm preflight and host before activation or file creation | preserved MAIN and other-worker behavior plus causal refusal controls; full corrected source gate required |

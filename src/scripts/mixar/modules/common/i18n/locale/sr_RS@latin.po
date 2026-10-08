@@ -6555,6 +6555,18 @@ msgstr ""
 msgid "Accept for all projects"
 msgstr ""
 
+msgid "Hermes features"
+msgstr ""
+
+msgid "Refresh to read the server's Agent feature settings"
+msgstr ""
+
+msgid "Changes apply to this project only"
+msgstr ""
+
+msgid "Changes apply to every project"
+msgstr ""
+
 msgid "This Lampway server has no Capabilities yet: update it, then Refresh"
 msgstr ""
 

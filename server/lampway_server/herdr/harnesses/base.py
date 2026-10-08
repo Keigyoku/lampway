@@ -145,6 +145,9 @@ class Adapter:
     #: Whether this adapter can write a direct entry (Lampway's own loopback endpoint with a bearer): a swarm worker's only server
     #: and a bound pane's swarm entry (spec S3). [UNVERIFIED per harness until a recorded fixture.]
     direct_ok = False
+    #: MAIN direct wiring does not establish exclusive worker discovery. Meaningful only with direct_ok.
+    worker_ok = True
+    worker_note = ""
     #: What reconcile looks for among the pane's foreground processes (None: the binary's name).
     process_match: Optional[str] = None
     #: How the island's Stop interrupts this harness's running turn: the keys typed into its pane (herdr 0.9.3's key spelling,

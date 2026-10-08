@@ -101,6 +101,7 @@ LAUNCHES: dict = {
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
                                           "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session, "
                                           "and one that starts Lampway's own Mode 1 pane starts the local wrapper above (route None, A1)"),
+    "pane_mcp.py:Connector.stdio_request": ("local", "the MAIN pane's owned 0600 binding starts Lampway's desktop stdio launcher with scrubbed environment; it reaches the bound local scene through existing MCP, no provider keys or vendor login environment are forwarded"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
     "herdr/launcher.py:_probe_spawn": ("local", "a harness's own version flag (harnesses/ Adapter.detect) with the scrubbed environment: it prints a "
                                                 "version and sends nothing [UNVERIFIED per harness until each adapter's fixture]"),

@@ -15,10 +15,14 @@ from lampway_server.mcp import McpServer
 def test_direct_bearer_never_appears_on_an_adapters_command_line(harness, tmp_path):
     adapter = HN.get(harness)
     secret = "fixture-worker-bearer-value"
+    # Hermes/Grok expose the supported scene-bound main route; their worker
+    # refusals are covered independently. Every original secrecy assertion runs.
+    main = harness in {"hermes", "grok"}
     direct = HN.DirectServer("lampway", "http://127.0.0.1:8787/api/v1/mcp/pane",
-                             {HN.SESSION_HEADER: "swarm:sw1:worker-1"}, "LAMPWAY_WORKER_TOKEN", secret)
+                             {} if main else {HN.SESSION_HEADER: "swarm:sw1:worker-1"}, "LAMPWAY_WORKER_TOKEN", secret)
     pane = HN.PaneSpec(cwd=str(tmp_path), home=str(tmp_path / "home"), session_id="fixture-session",
-                       mcp_config_path=str(tmp_path / adapter.config_name), desktop=False, direct=(direct,))
+                       mcp_config_path=str(tmp_path / adapter.config_name), desktop=main,
+                       scene_session_id="scene-bound-main" if main else None, direct=(direct,))
     wiring = adapter.lampway_tools(pane)
     assert secret not in json.dumps(adapter.launch(pane))
     assert secret not in json.dumps(adapter.resume("fixture-session", pane))

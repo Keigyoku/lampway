@@ -22,6 +22,8 @@ RISK_ORDER = ("reads", "writes_project", "runs_code", "reaches_internet", "acts_
 RISK_TITLE = {"reads": "Looks only", "writes_project": "Changes your project", "runs_code": "Runs code",
               "reaches_internet": "Reaches the internet", "acts_outside": "Acts outside Lampway", "spends_plan": "Plans paid work"}
 WARNED = ("runs_code", "acts_outside")
+HERMES_LAYERING = ("subagents", "schedule", "background")
+LAYERING_WARNING = "untested layering: Hermes delegation, cron and background agents are experimental."
 NOT_ASKED = ("reads", "spends_plan")   # reading is not asked about, and a spend is the studio gate's (law 3), never this setting's
 APPROVAL_LABEL = (("none", "Never asks"), ("ask_each_time", "Asks every time"), ("ask_once_per_session", "Asks once per session"))
 # What an option is called on the page, and the key the Client writes it under (the server keeps ``options`` as the Client sends it).
@@ -64,7 +66,7 @@ def _backend(row: dict) -> str:
 
 def needs_confirm(row: dict) -> bool:
     """Turning this on shows its warning first: it runs code or acts outside Lampway."""
-    return row.get("risk") in WARNED
+    return row.get("id") in HERMES_LAYERING or row.get("risk") in WARNED
 
 
 def warning(row: dict) -> str:
@@ -72,6 +74,8 @@ def warning(row: dict) -> str:
     spec; any other is the server's sentence for it, so a backend is never said to run where it does not."""
     if not needs_confirm(row):
         return ""
+    if row.get("id") in HERMES_LAYERING:
+        return LAYERING_WARNING + " " + str(row.get("does") or row.get("label") or row["id"])
     if row.get("id") == "terminal" and _backend(row) in ("local", ""):
         return LOCAL_TERMINAL
     does = str(row.get("does") or row.get("label") or row.get("id") or "").strip().rstrip(".")

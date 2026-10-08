@@ -85,7 +85,7 @@ def listing() -> list:
                      "status": "installed" if found else "not installed", "path": found.path if found else None,
                      "version": found.version if found else None, "install": None if found else a.install_hint,
                      # what a pane of it can do from the island, so the user knows before they pick it
-                     "tools": a.tools_reachable, "tools_note": "" if a.tools_reachable else a.tools_note,
+                     "tools": a.tools_reachable, "tools_note": a.tools_note,
                      "images": a.takes_image_paths, "images_note": "" if a.takes_image_paths else a.images_note,
                      "stop": bool(a.interrupt_keys)})
     return rows

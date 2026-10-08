@@ -40,6 +40,9 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    every write behind `human_gate`; the first-run walk's step in `onboarding.py` writes only what the user ticked differently from the
    server's own defaults). Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
    (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
+   Agent preferences exposes the same server-backed native Hermes delegation, cron and background choices. Every enable
+   action displays the explicit untested layering warning and requires user confirmation; all default off on the server.
+   The warning remains visible when enabled, and scripts cannot confirm it. No client-only copy of these choices is saved.
    Context settings in the Choices/Capabilities surface follow the same rule: the server supplies defaults and explicit project
    overrides; the client draws a cache, performs requests off-thread and publishes replies on the main thread. Publication
    redraws areas and rebuilds open refreshable unanchored popovers through the native window helper; temporary popup
@@ -73,3 +76,4 @@ page; the canon's open decisions are the captain's.
 | 2026-10-08 | project Context configuration controls | R3/Q3 missing-section RED and stale-popup RED | the client had no Context settings and a dialog could outlive its selected project | invariant 9: cached defaults/overrides, worker requests, main-thread publication, human-gated explicit edits/reset and project identity fencing; runtime limitations displayed | focused client witnesses; native proof pending |
 
 | 2026-10-08 | original Context popout receives async state | actual production-panel loading RED and callback RED | Context response publication redrew areas but never rebuilt temporary popup layout | invariant 9: main-thread publication refreshes owned native popup layouts as well as areas, without networking from draw or altering user confirmation | callback RED/GREEN; matching native original-popout proof required |
+| 2026-10-08 | Agent preferences for experimental native Hermes helpers | captain: default-off delegate, cron and background knobs with an explicit untested layering warning | preferences lacked these controls and generic capability warnings did not name experimental layering | invariant 9: cached server-backed switches, persistent warning, explicit human confirmation before each enable, no client defaults | six behavioral RED failures and focused client GREEN; native UI proof required |

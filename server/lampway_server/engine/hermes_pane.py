@@ -88,12 +88,18 @@ def tui_env(spec: dict, home: Path, token: str, environ=None) -> dict:
     return env
 
 
+def native_argv(spec: dict, args: list) -> list:
+    hermes = Path(spec["hermes"])
+    return [str(hermes.with_name("python")), str(Path(__file__).with_name("hermes_features.py")),
+            "--console-script", str(hermes), *args]
+
+
 def serve_argv(spec: dict) -> list:
-    return [str(spec["hermes"]), "serve", "--host", "127.0.0.1", "--port", str(int(spec["port"]))]
+    return native_argv(spec, ["serve", "--host", "127.0.0.1", "--port", str(int(spec["port"]))])
 
 
 def tui_argv(spec: dict, stored_id: str) -> list:
-    return [str(spec["hermes"]), "--tui"] + (["--resume", stored_id] if stored_id else [])
+    return native_argv(spec, ["--tui"] + (["--resume", stored_id] if stored_id else []))
 
 
 def stored_session(home: Path) -> str:

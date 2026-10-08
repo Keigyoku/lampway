@@ -88,6 +88,7 @@ CATALOGUE = (
     C("swarm", "Run parallel Lampway workers", "Start up to six Lampway workers, each in its own headless Lampway.", "runs_code",
       lampway=("swarm",)),
     C("schedule", "Run tasks on a schedule", "Run tasks on a schedule while the server runs.", "runs_code", hermes=("cron",)),
+    C("background", "Run Hermes background agents", "Run native Hermes background, side-question and review agents.", "runs_code"),
     C("computer.use", "Control this computer's desktop", "Move the mouse, type and read the screen of this computer.", "acts_outside",
       hermes=("computer_use",), approval="ask_each_time"),
     C("messaging.*", "Talk to me on a messaging app", "Send and receive messages on a messaging platform.", "acts_outside",

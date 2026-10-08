@@ -65,6 +65,8 @@ class LAMPWAY_PT_agent_pill_preferences(Panel):
 
     def draw(self, context):
         self.layout.prop(context.window_manager, "lampway_floating_agent_pill")
+        from . import capabilities
+        capabilities.draw_agent_features(self.layout)
 
 
 classes = (LAMPWAY_OT_agent_pill_note_dismiss, LAMPWAY_PT_agent_pill_preferences)

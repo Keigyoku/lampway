@@ -37,7 +37,10 @@ nothing, but gain agent persistence".
      gateway (E1.4).
    - **Mode 2, your agent:** a harness the user runs (B1), on its own login.
 2. **Every agent is a process in a pane on Lampway's herdr server.** This covers a scene tab's main agent and every swarm
-   worker, in either mode. No agent runs inside Lampway's server, and none runs as a hidden child process. **Removed:**
+   worker, in either mode. No agent runs inside Lampway's server, and no hidden child agents run by default. Native Hermes
+   delegation, cron and background agents are explicit experimental exceptions for the main Mode 1 agent: all three stay
+   off by default, with separate controls in Agent preferences and an **untested layering** warning before enabling them.
+   Mode 1 swarm workers keep all three off; Lampway's pane-backed swarm remains separate. **Removed:**
    - the built-in agent loop (`turns.py`'s provider loop) as a runtime;
    - `BuiltinBrain`;
    - `EngineBrain`'s hidden Hermes children;
@@ -940,6 +943,7 @@ everything that runs code, leaves the machine or acts outside Lampway off until 
 | `skills.use` | Use installed skills | Hermes skills | reads | – | on |
 | `skills.write` | Write and improve its own skills | Hermes `skill_manage`, curator | writes_project | – | off |
 | `subagents` | Start helper agents | Hermes `delegate_task` | runs_code | – | off |
+| `background` | Run Hermes background agents | Native side questions, background review and curator | runs_code | – | off |
 | `swarm` | Run parallel Lampway workers | Lampway swarm | runs_code | – | off |
 | `schedule` | Run tasks on a schedule while the server runs | Hermes `cron` | runs_code | – | off |
 | `computer.use` | Control this computer's desktop | Hermes `computer_use` | acts_outside | – | off |
@@ -1123,10 +1127,17 @@ superseded by this one:
 | Codex CLI | 0.161.0 (npm) | `[PROMPT]` / `resume <id>` | `-c mcp_servers.…` overrides: `codex mcp list --json` parsed exactly the pane's entries | Esc | path in the prompt | its rollout (id recorded once found) |
 | OpenCode | 1.18.35 (npm) | `--prompt` / `--session <id>` | `OPENCODE_CONFIG`: `opencode mcp list` connected the pane's entry | Esc twice | path in the prompt | the screen (its sessions are in its own database) |
 | Pi | 1.0.4 (npm `@earendil-works/pi-coding-agent`) | `--session-id <id>` (Lampway's) / `--session <id>` | Lampway's Pi extension (`-e`): Pi answered `/mcp` with "lampway: connected" | Esc | path in the prompt (its `read` tool reads images) | its session file (`PiMirror`) |
-| Your Hermes | v0.21.5 (Lampway's pinned build, run as a user's would be) | — / `--resume <id>` | none per pane: only `config.yaml` in its home (E1.10) | Ctrl+C | a pasted path is attached | the screen |
-| Grok | 1.0.46 (x.ai installer) | `--session-id <uuid>` (Lampway's) / `--resume <id>` | none per pane: user and project config only | Ctrl+C (its docs: Esc never cancels) | a pasted path becomes an image | the screen |
+| Your Hermes | v0.21.5 (Lampway's pinned build, run as a user's would be) | — / `--resume <id>` | user-installed `lampway_pane` symbolic connector; pane-owned live binding (E1.10) | Ctrl+C | a pasted path is attached | the screen |
+| Grok | 1.0.46 (x.ai installer) | `--session-id <uuid>` (Lampway's) / `--resume <id>` | user-installed `lampway_pane` symbolic connector; pane-owned live binding | Ctrl+C (its docs: Esc never cancels) | a pasted path becomes an image | the screen |
 | Cursor agent | 2026.10.01-e373342 (cursor.com installer) | `[prompt...]` / `--resume <chatId>` | none per pane: `.cursor/mcp.json` or `~/.cursor/mcp.json` only | Ctrl+C | refused (none documented) | the screen |
 
+- **Your Hermes and Grok MAIN connectors, built 2026-10-08.** A user explicitly installs the dedicated
+  `lampway_pane` stdio connector using their own native MCP command. Lampway supplies its owned binding file and rereads
+  it on each request, including rebind/unbind. Native HOME, login, provider and persona choices remain native; no
+  primary-agent overlay is selected. Installed native offline discovery/calls were measured with synthetic homes and
+  denied internet access. Account-backed model tool execution, image attachment and live-turn Stop remain unverified.
+  Their swarm workers refuse unproved exclusive discovery: Hermes combines native-tool and MCP filtering, and Grok's
+  preserving-home policy namespace could not be proved on the cloud runner. See [setup and evidence](byoa-native-connectors.md).
 - **Pi has MCP.** The spec's "Pi has no MCP by design" was true of the old `@mariozechner/pi-coding-agent`; Pi 1.x has it built
   in, but reads only `~/.pi/agent/mcp.json` and the trust-gated `.pi/mcp.json`. Lampway's Pi extension
   (`harnesses/lampway_pi_extension.js`) is a wrapper only: it reads the pane's own 0600 config (`LAMPWAY_PI_MCP`) and calls

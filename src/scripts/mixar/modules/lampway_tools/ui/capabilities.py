@@ -131,7 +131,7 @@ class LAMPWAY_OT_capability_switch(_Write):
         row = _row(self.cap_id)
         if self.enabled and face.needs_confirm(row) and not (self.confirm and state.STATE["pending"] == self.cap_id):
             state.STATE["pending"] = self.cap_id
-            return f"Confirm in Capabilities to let your agent use {row.get('label') or self.cap_id}", False
+            return f"Read the warning below and confirm to let your agent use {row.get('label') or self.cap_id}", False
         project = state.write_project()
         answer = _put(client, self.cap_id, enabled=self.enabled)
         state.STATE["pending"] = ""
@@ -280,6 +280,8 @@ def _draw_row(layout, r, st) -> None:
     if v["scope_tag"]:
         line.label(text=v["scope_tag"])
     _wrapped(layout, v["does"])
+    if r.get("id") in face.HERMES_LAYERING:
+        _wrapped(layout, face.LAYERING_WARNING, icon="ERROR")
     if v["route_note"]:
         note = layout.row(align=True)
         note.label(text=v["route_note"], icon="INFO")
@@ -313,6 +315,34 @@ def _draw_card(layout, card, st) -> None:
         acc = buttons.operator("lampway.capability_proposal_accept", text="Accept", depress=True)
         acc.pid, acc.scope = card["pid"], "global"
     buttons.operator("lampway.capability_proposal_decline", text="Decline").pid = card["pid"]
+
+
+def draw_agent_features(layout) -> None:
+    """Agent preferences reuse the server's cached feature rows and human-confirmed switches."""
+    box = layout.box()
+    top = box.row()
+    top.label(text="Hermes features")
+    top.operator("lampway.capabilities_refresh", text="Refresh", icon="FILE_REFRESH")
+    _wrapped(box, face.LAYERING_WARNING, icon="ERROR")
+    _wrapped(box, "After upgrading, close and reopen existing agent panes to apply the native feature controls.", icon="INFO")
+    st = state.STATE
+    if not st["ok"] or st["inflight"]:
+        box.label(text="Refresh to read the server's Agent feature settings")
+        if st["error"]:
+            _wrapped(box, st["error"], icon="ERROR")
+        return
+    if st["project"]:
+        scope = box.row()
+        scope.operator("lampway.capability_project_only", text="This project only",
+                       icon="CHECKBOX_HLT" if st["project_only"] else "CHECKBOX_DEHLT")
+    box.label(text="Changes apply to this project only" if st["project"] and st["project_only"] else
+                   "Changes apply to every project")
+    rows = {r.get("id"): r for r in st["rows"]}
+    for cid in face.HERMES_LAYERING:
+        if cid in rows:
+            _draw_row(box, rows[cid], st)
+        else:
+            box.label(text=cid + ": not listed by this server")
 
 
 def draw_capabilities(layout, context=None) -> None:

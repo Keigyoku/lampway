@@ -222,8 +222,10 @@ def test_the_wrapper_gives_serve_its_token_only_in_its_environment_and_keeps_eve
     assert tui["HERMES_TUI_GATEWAY_URL"] == "ws://127.0.0.1:4321/api/ws?token=serve-tok"
     assert tui["HERMES_SKIP_NODE_BOOTSTRAP"] == "1" and tui["HERMES_NODE"] == "/opt/node/bin/node", "Node is never fetched"
     assert tui["PATH"].split(os.pathsep)[0] == "/opt/node/bin" and tui["HERMES_TUI_DIR"] == "/engine/src/ui-tui"
-    assert WP.serve_argv(spec(tmp_path)) == ["/engine/env/bin/hermes", "serve", "--host", "127.0.0.1", "--port", "4321"]
-    assert WP.tui_argv(spec(tmp_path), "20261007_a") == ["/engine/env/bin/hermes", "--tui", "--resume", "20261007_a"]
+    bootstrap = str(Path(WP.__file__).with_name("hermes_features.py"))
+    prefix = ["/engine/env/bin/python", bootstrap, "--console-script", "/engine/env/bin/hermes"]
+    assert WP.serve_argv(spec(tmp_path)) == prefix + ["serve", "--host", "127.0.0.1", "--port", "4321"]
+    assert WP.tui_argv(spec(tmp_path), "20261007_a") == prefix + ["--tui", "--resume", "20261007_a"]
     assert "serve-tok" not in " ".join(WP.serve_argv(spec(tmp_path)) + WP.tui_argv(spec(tmp_path), "x"))
     # measured live: serve folds a GUI's `project` toolset into every session; the pinned list (choices + Lampway's server) drops it
     pinned = WP.serve_env(spec(tmp_path, toolsets=["vision", "clarify", "lampway"]), home, "serve-tok", {**environ, "HERMES_TUI_TOOLSETS": "all"})
@@ -289,6 +291,7 @@ def test_the_wrapper_keeps_serve_when_the_tui_exits_and_reopens_it_only_on_enter
     exe = tmp_path / "hermes"
     exe.write_text(STAND_IN)
     exe.chmod(0o755)
+    (tmp_path / "python").symlink_to(sys.executable)
     home = tmp_path / "home"
     home.mkdir()
     (home / "serve.token").write_text("serve-tok")
@@ -314,6 +317,9 @@ def test_the_wrapper_keeps_serve_when_the_tui_exits_and_reopens_it_only_on_enter
         assert wait(lambda: any("Press Enter to reopen" in s for s in out)), out
         serves, tuis = [n for n in notes(log) if "serve" in n], [n for n in notes(log) if "tui" in n]
         assert len(serves) == 1 and serves[0]["token"] == "serve-tok", "serve got its token in its environment"
+        marker = json.loads((home / "serve.features.json").read_text())
+        assert marker["pid"] == serves[0]["serve"] and marker["schema"] == 1
+        assert (home / "serve.features.json").stat().st_mode & 0o777 == 0o600
         assert len(tuis) == 1 and tuis[0]["tui"] == ["--tui", "--resume", "20261007_abc"] and tuis[0]["token"] is None
         assert tuis[0]["url"].endswith("/api/ws?token=serve-tok")
         time.sleep(0.5)
@@ -426,6 +432,7 @@ def _delayed_serve_pane(tmp_path, *, hold_tui=True):
         '    port = int(args[args.index("--port") + 1])').replace(
         'elif "--tui" in args:', 'elif "--tui" in args:\n    time.sleep(60)' if hold_tui else 'elif "--tui" in args:'))
     exe.chmod(0o755)
+    (tmp_path / "python").symlink_to(sys.executable)
     node = tmp_path / 'node'
     node.write_text('#!/bin/sh\necho v22.22.0\n'); node.chmod(0o755)
     home = tmp_path / 'home'; home.mkdir()

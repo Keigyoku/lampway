@@ -65,6 +65,8 @@ def byoa_worker_readiness() -> dict:
             reason = "your own agents in Lampway's panes are off: enable Bring Your Own Agent first"
         elif not adapter.direct_ok:
             reason = f"{adapter.label} cannot run a worker: {adapter.tools_note or 'no supported per-pane tool endpoint'}"
+        elif not adapter.worker_ok:
+            reason = f"{adapter.label} cannot run a worker: {adapter.worker_note}"
         elif adapter.locate() is None:
             reason = f"{adapter.label} is not installed: {adapter.install_hint}"
         if reason:

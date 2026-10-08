@@ -28,7 +28,7 @@ BINARIES = {"claude": "claude", "codex": "codex", "hermes": "hermes", "opencode"
 BYPASS_TOKENS = ("--dangerously-skip-permissions", "--dangerously-bypass-approvals-and-sandbox", "--auto", "--force", "--yolo", "--always-approve")
 #: The harnesses whose per-pane wiring an installed copy was seen to read (each adapter's FACTS); the others have no per-pane way in.
 VERIFIED_WIRING = ("claude", "codex", "opencode", "pi")
-SUPPORTED_WIRING = (*VERIFIED_WIRING, "cursor")  # Cursor's actual CLI/runtime supports plugins; an account-backed call is still owed
+SUPPORTED_WIRING = (*VERIFIED_WIRING, "cursor", "hermes", "grok")  # Native symbolic connectors require explicit user installation; account calls remain owed
 #: herdr 0.9.3's kind for each harness (src/detect/mod.rs interactive_agent_executable): herdr starts every one of them itself.
 HERDR_KINDS = {"claude": "claude", "codex": "codex", "hermes": "hermes", "opencode": "opencode", "pi": "pi", "grok": "grok", "cursor": "cursor"}
 
@@ -168,11 +168,11 @@ def test_the_pi_extension_is_a_wrapper_only():
 
 
 @pytest.mark.parametrize("hid", ("hermes", "grok"))
-def test_a_harness_with_no_per_pane_way_in_says_so_in_the_listing(hid, only_path):
+def test_symbolic_connector_harnesses_keep_explicit_setup_and_proof_limits_in_listing(hid, only_path):
     a = HN.get(hid)
-    assert a.tools_reachable is False and a.tools_note and "never writes" in a.tools_note, hid
+    assert a.tools_reachable is True and "install" in a.tools_note.lower() and "unverified" in a.tools_note.lower(), hid
     row = next(r for r in HN.listing() if r["id"] == hid)
-    assert row["tools"] is False and row["tools_note"] == a.tools_note, row
+    assert row["tools"] is True and row["tools_note"] == a.tools_note, row
     assert all(r["tools"] is True and r["tools_note"] == "" for r in HN.listing() if r["id"] in VERIFIED_WIRING)
 
 
