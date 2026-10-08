@@ -145,6 +145,15 @@ def r03():
 
 
 # ----------------------------------------------------------------------------- R04 retarget
+def direction_angle_deg(a, b):
+    """Angle without arccos's amplification of backend roundoff near dot=1.
+
+    atan2 retains actual small misalignment instead of converting a one-ULP dot
+    error into a microradian angle. Cross and dot scale equally for nonunit axes.
+    """
+    return float(np.degrees(np.arctan2(np.linalg.norm(np.cross(a, b)), a @ b)))
+
+
 def r04():
     Rs = {"A": R.rot("x", 90.0), "B": R.rot("x", 90.0) @ R.rot("y", 10.0)}
     Rt = {"A": Rs["A"] @ R.rot("y", 90.0), "B": Rs["B"] @ R.rot("y", -30.0)}        # same along axes, different rolls
@@ -159,7 +168,7 @@ def r04():
         keyB = R.local_from_world(WtB, WtA, Rt["B"], Rt["A"])
         naive = R.retarget_local_copy(WsB, Rs["B"], Rt["B"])
         frames.append({"Ws": {"A": WsA, "B": WsB}, "Wt": {"A": WtA, "B": WtB}, "key": {"A": keyA, "B": keyB},
-                       "along_error_deg": max(float(np.degrees(np.arccos(np.clip(W[:, 1] @ Ws[:, 1], -1, 1))))
+                       "along_error_deg": max(direction_angle_deg(W[:, 1], Ws[:, 1])
                                               for W, Ws in ((WtA, WsA), (WtB, WsB))),
                        "naive_error_deg": R.angle_deg(naive, WtB)})
     Ls, Lt = 0.27, 0.30

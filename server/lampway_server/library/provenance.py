@@ -2,12 +2,15 @@
 
 ``record`` writes the assets (generation outputs go into managed storage: they are the only copy), one ``generation`` row per output, the prompt as its own asset keyed by
 template@version + variables, and ``generated_from`` / ``derived_from`` relations to every parent it can resolve (an unresolved parent is kept as text). ``capture`` is what
-tools call: it never raises, so a provenance failure cannot fail a generation; the payload is spooled (secrets and signed URLs removed) and ``replay_spool`` retries it."""
+tools call: provenance failures are returned/spooled (secrets and signed URLs removed), so they cannot fail a generation; owning-operation cancellation
+propagates. ``replay_spool`` retries capture and indexed output relationships."""
 from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import stat
 import time
 from pathlib import Path
 from typing import Optional
@@ -16,7 +19,8 @@ from .store import AssetLibrary, LibraryError, _clean_urls
 
 REQUIRED = {"video_gen": ["model", "provider", "prompt_sha256", "params_json", "cost_basis", "job_id", "started_at"],
             "image_to_model": ["studio", "model", "action", "job_id", "seed|seed_not_exposed"],
-            "local_edit": ["tool", "parent_seed"], "image_gen": ["model", "prompt_sha256", "job_id"]}
+            "local_edit": ["tool", "parent_seed"], "image_gen": ["model", "prompt_sha256", "job_id"],
+            "motion_graphics": ["action", "job_id", "params_json"]}
 DEFAULT_REQUIRED = ["action", "job_id"]
 PARENT_RELATIONS = {"parent_seed": ("derived_from", "parent_seed"), "start_frame": ("generated_from", "start_frame"), "end_frame": ("generated_from", "end_frame"),
                     "reference_video": ("generated_from", "reference_video")}
@@ -49,9 +53,39 @@ def _missing(action: str, g: dict, has_parent: bool) -> list:
     return out
 
 
-def record(lib: AssetLibrary, payload: dict) -> dict:
+def _checked_spool_output(output: dict) -> dict:
+    if not output.get("spool_blob"):
+        return output
+    path = Path(output["path"])
+    expected = output.get("spool_sha256") or path.name
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        raise LibraryError("spooled bytes need their capture SHA-256")
+    descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise LibraryError("spooled bytes must be a regular file")
+        with os.fdopen(descriptor, "rb", closefd=False) as source:
+            data = source.read()
+    finally:
+        os.close(descriptor)
+    if hashlib.sha256(data).hexdigest() != expected:
+        raise LibraryError("spooled bytes changed after capture; preserve the spool and restore the captured blob")
+    return {**output, "bytes": data}
+
+
+def _put_owned(lib, spec, cancel=None):
+    """Cancellation and publication share an admission point; record every admitted commit before returning."""
+    def put():
+        result = lib.put(spec)
+        if cancel is not None:
+            cancel.record_assets([{"id": result["id"], "kind": spec["kind"]}])
+        return result
+    return cancel.commit_owned(put) if cancel is not None else put()
+
+
+def record(lib: AssetLibrary, payload: dict, *, cancel=None) -> dict:
     g = dict(payload.get("generation") or {})
-    outputs = payload.get("outputs") or []
+    outputs = [_checked_spool_output(o) for o in payload.get("outputs") or []]
     ok = g.get("ok", True)
     if g.get("cost_basis") == "estimated" and g.get("cost_usd") is None and g.get("cost_credits") is None:
         raise LibraryError("estimated cost needs a number or basis 'none'")
@@ -63,11 +97,13 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
     template_id, template_version, vars_ = g.get("template_id"), g.get("template_version"), g.get("vars") or {}
     prompt_asset = None
     if prompt:
+        if cancel is not None:
+            cancel.check()
         vars_sha = hashlib.sha256(json.dumps(vars_, sort_keys=True).encode()).hexdigest()[:16]
         key = f"{template_id}@{template_version}:{vars_sha}" if template_id else "prompt:" + hashlib.sha256(prompt.encode()).hexdigest()[:16]
-        prompt_asset = lib.put({"kind": "prompt", "subtype": "filled" if vars_ or not template_id else "template", "name": f"{template_id or 'prompt'} {template_version or ''}".strip(),
+        prompt_asset = _put_owned(lib, {"kind": "prompt", "subtype": "filled" if vars_ or not template_id else "template", "name": f"{template_id or 'prompt'} {template_version or ''}".strip(),
                                 "source": {"kind": "provenance", "key": key}, "files": [{"role": "main", "bytes": prompt.encode(), "storage": "cas"}],
-                                "stats": {"template_id": template_id, "template_version": template_version, "vars_json": json.dumps(vars_, sort_keys=True), "chars": len(prompt)}})["id"]
+                                "stats": {"template_id": template_id, "template_version": template_version, "vars_json": json.dumps(vars_, sort_keys=True), "chars": len(prompt)}}, cancel)["id"]
     parents, unresolved, rels = g.get("parents") or {}, [], []
     cols = {"parent_seed": "parent_seed_asset", "start_frame": "start_frame_asset", "end_frame": "end_frame_asset", "reference_video": "reference_video_asset"}
     gen = {"studio": g.get("studio"), "provider": g.get("provider"), "model": g.get("model"), "model_version": g.get("model_version"), "action": g.get("action"), "prompt_asset": prompt_asset,
@@ -98,7 +134,8 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
     res = {"ok": True, "assets": [], "generation_ids": [], "relations": [], "unresolved_parents": unresolved}
     missing_all: list = []
     if not outputs:
-        res["generation_ids"].append(lib.add_generation(None, gen))
+        generation_id = cancel.commit_owned(lib.add_generation, None, gen) if cancel is not None else lib.add_generation(None, gen)
+        res["generation_ids"].append(generation_id)
         res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
         return res
     for i, o in enumerate(outputs):
@@ -109,17 +146,47 @@ def record(lib: AssetLibrary, payload: dict) -> dict:
             attrs["parent_ref"] = {u["role"]: u["ref"] for u in unresolved}
         terms = [{"facet": f, "label": l, "by": "rule"} for f, l in (o.get("terms") or {}).items()]
         ident = o.get("path") or o.get("name") or str(i)
-        spec = {"kind": o["kind"], "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(ident.encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
+        spec = {"kind": o["kind"], "subtype": o.get("subtype"), "name": o.get("name") or Path(o["path"]).stem, "source": {"kind": "generation", "key": f"{g.get('job_id') or hashlib.sha1(ident.encode()).hexdigest()[:12]}:{o.get('role', 'main')}:{i}"},
                 "files": [{"role": o.get("role", "main"), "storage": "cas", **({"bytes": o["bytes"]} if "bytes" in o else {"path": o["path"]})}], "attrs": attrs, "terms": terms, "relations": [{**r, "by": "rule"} for r in rels], "generation": gen}
-        put = lib.put(spec)
-        res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
-        if put["deduped"]:                                   # the same bytes were made before: this job's origin is still a fact worth keeping
-            res["generation_ids"].append(lib.add_generation(lib.version_of(put["dedupe_of"]), gen))
-        elif put["created"]:
-            res["generation_ids"].append(lib._reader().execute("SELECT id FROM generation WHERE version_id=? ORDER BY rowid DESC LIMIT 1", (lib.version_of(put["id"], put["version"]),)).fetchone()[0])
-        for r in rels:
-            res["relations"].append({"src": put["id"], "dst": r["to"], "type": r["type"]})
-        res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
+        try:
+            if cancel is not None:
+                cancel.check()
+            put = _put_owned(lib, spec, cancel)
+            res["assets"].append({"id": put["id"], "version": put["version"], "created": put["created"], "deduped": put["deduped"]})
+            if put["deduped"]:  # the same bytes were made before: this job's origin is still a fact worth keeping
+                def add_generation():
+                    return lib.add_generation(lib.version_of(put["dedupe_of"]), gen)
+                generation_id = cancel.commit_owned(add_generation) if cancel is not None else add_generation()
+                res["generation_ids"].append(generation_id)
+            elif put["created"]:
+                res["generation_ids"].append(lib._reader().execute("SELECT id FROM generation WHERE version_id=? ORDER BY rowid DESC LIMIT 1", (lib.version_of(put["id"], put["version"]),)).fetchone()[0])
+            for r in rels:
+                res["relations"].append({"src": put["id"], "dst": r["to"], "type": r["type"]})
+            res["completeness"] = _completeness(g.get("action"), gen, bool(rels))
+        except Exception as exc:
+            if cancel is not None:
+                cancel.check()
+            if "output_relations" not in payload:
+                raise
+            return {**res, "ok": False, "partial": bool(res["assets"]), "error": str(exc)}
+    try:
+        from . import curate
+        for relation in payload.get("output_relations") or []:
+            if cancel is not None:
+                cancel.check()
+            src, dst = relation["src"], relation["dst"]
+            if type(src) is not int or type(dst) is not int or not (0 <= src < len(res["assets"]) and 0 <= dst < len(res["assets"])):
+                raise LibraryError("output relation indices must name captured outputs")
+            source, target = res["assets"][src]["id"], res["assets"][dst]["id"]
+            if cancel is not None:
+                cancel.commit_owned(curate.relate, lib, source, relation["type"], target, by="rule", role=relation.get("role", ""))
+            else:
+                curate.relate(lib, source, relation["type"], target, by="rule", role=relation.get("role", ""))
+            res["relations"].append({"src": source, "dst": target, "type": relation["type"]})
+    except Exception as exc:
+        if cancel is not None:
+            cancel.check()
+        return {**res, "ok": False, "partial": bool(res["assets"]), "error": str(exc)}
     return res
 
 
@@ -152,22 +219,38 @@ def audit(lib: AssetLibrary, spool=None) -> dict:
     return out
 
 
-def capture(lib: Optional[AssetLibrary], spool, payload: dict) -> dict:
-    """The tools' entry point. Never raises: a failure is spooled (cleaned) and retried at the next start."""
+def capture(lib: Optional[AssetLibrary], spool, payload: dict, *, cancel=None) -> dict:
+    """Return/spool provenance failures for retry; explicit owning-operation cancellation propagates."""
+    partial = {}
     try:
+        if cancel is not None:
+            cancel.check()
         if lib is None:
             raise LibraryError("the library is not open")
-        return record(lib, payload)
+        result = record(lib, payload, cancel=cancel)
+        if result.get("ok"):
+            return result
+        partial = result
+        raise LibraryError(result.get("error") or "capture incomplete")
     except Exception as e:  # noqa: BLE001 - a provenance failure must never fail the generation
+        if cancel is not None:
+            cancel.check()
         try:
-            p = Path(spool)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            safe = _spoolable(payload, p.parent / "spool_blobs")
-            with open(p, "a", encoding="utf-8") as fh:
-                fh.write(json.dumps({"t": time.time(), "error": _clean(f"{type(e).__name__}: {e}"), "payload": _clean(safe)}, sort_keys=True) + "\n")
+            def write_spool():
+                p = Path(spool)
+                p.parent.mkdir(parents=True, exist_ok=True)
+                safe = _spoolable(payload, p.parent / "spool_blobs")
+                with open(p, "a", encoding="utf-8") as fh:
+                    fh.write(json.dumps({"t": time.time(), "error": _clean(f"{type(e).__name__}: {e}"), "payload": _clean(safe)}, sort_keys=True) + "\n")
+            if cancel is not None:
+                cancel.commit_owned(write_spool)
+            else:
+                write_spool()
         except Exception:  # noqa: BLE001
-            return {"ok": False, "spooled": False, "error": str(e)}
-        return {"ok": False, "spooled": True, "error": str(e)}
+            if cancel is not None:
+                cancel.check()
+            return {**partial, "ok": False, "spooled": False, "error": str(e)}
+        return {**partial, "ok": False, "spooled": True, "error": str(e)}
 
 
 def _spoolable(payload: dict, blob_dir: Path) -> dict:
@@ -179,9 +262,10 @@ def _spoolable(payload: dict, blob_dir: Path) -> dict:
         if "bytes" in o:
             data = o.pop("bytes")
             blob_dir.mkdir(parents=True, exist_ok=True)
-            f = blob_dir / hashlib.sha256(data).hexdigest()
+            sha256 = hashlib.sha256(data).hexdigest()
+            f = blob_dir / sha256
             f.write_bytes(data)
-            o.update(path=str(f), spool_blob=True)
+            o.update(path=str(f), spool_blob=True, spool_sha256=sha256)
         outs.append(o)
     out["outputs"] = outs
     return out
@@ -191,20 +275,35 @@ def replay_spool(lib: AssetLibrary, spool) -> dict:
     p = Path(spool)
     if not p.exists():
         return {"replayed": 0, "still_failing": 0}
-    keep, done = [], 0
+    keep, done, cleanup = [], 0, set()
     for line in p.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
         try:
             row = json.loads(line)                                  # a line torn by a crash mid-write is kept, never fatal
-            record(lib, row["payload"])
+            result = record(lib, row["payload"])
+            if not result.get("ok"):
+                raise LibraryError(result.get("error") or "capture incomplete")
             for o in row["payload"].get("outputs") or []:
                 if o.get("spool_blob"):
-                    Path(o["path"]).unlink(missing_ok=True)          # the bytes are in the library's own storage now
+                    cleanup.add(Path(o["path"]))
             done += 1
         except Exception:  # noqa: BLE001
             keep.append(line)
     p.write_text("".join(x + "\n" for x in keep), encoding="utf-8")
+    retained = set()
+    for line in keep:
+        try:
+            for output in json.loads(line)["payload"].get("outputs") or []:
+                if output.get("spool_blob"):
+                    retained.add(Path(output["path"]).resolve())
+        except (TypeError, ValueError, KeyError, AttributeError):
+            # A torn/invalid row may name any shared blob. Keep evidence until its references can be recovered.
+            cleanup.clear()
+            break
+    for path in cleanup:
+        if path.resolve() not in retained:
+            path.unlink(missing_ok=True)  # all queued consumers succeeded and no retained row needs these bytes
     return {"replayed": done, "still_failing": len(keep)}
 
 

@@ -33,6 +33,9 @@ python3 rail/rail.py check                                 # the rail (also in C
   `PII_OWNER_PATH_RE` from a `pii_owner.env` file (mode 0600) in the shared git directory; CI reads repository secrets of the same
   names. Never print, copy or commit that file. Putting an owner value into a tracked file to make a test pass is the defect the
   gate exists for.
+- Personal identifiers and commit email domains are fully redacted in gate output. The exact public GitHub provider noreply identity is safe commit metadata; lookalikes and authored personal identities remain blocked, and all commit content is scanned.
+- Proven Python matrix operators with matching structured bone operands are code; quoted values, comments, incomplete syntax and owner-specific patterns remain strict. Do not add value/domain exemptions for code.
+- PR CI scans the event base and authored head SHA, while push CI scans explicit push endpoints. Refuse a missing head rather than substituting checkout HEAD; use the event head for any merge-base fallback.
 - A known-fake value goes in `scripts/lampway/pii_allow.txt`, exactly, with the reason on the same line.
 - Commit as your GitHub noreply address; the gate refuses any other author or committer email on a new commit.
 - `--git` also refuses any commit that ADDS a person's home: an unexpanded test placeholder directory (`@RUN_TMP@/...`), an app
@@ -78,3 +81,5 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the pre-publish and release steps were spread across the hook, CI, CONTRIBUTING and the build order | one procedure for every push and every tag, with the DOX closeout row read by `rail.py closeout` | captain ruling, 2026-10-05 |
 | 2026-10-06 | the rail in the pre-push hook | captain: "Those recs are fine" (recommendation 2) | an unreceipted rail change was caught only after it was published, by CI | `.githooks/pre-push` runs `rail.py check --quick` after the pre-publish gate; a branch without the rail skips it | captain ruling, 2026-10-06 |
 | 2026-10-06 | private paths in --git | the coordinator found 436 files under `@RUN_TMP@/home/…/app/` in the integrator's unpushed commit d4272d6e | a test ran the binary with an unexpanded placeholder home; it migrated the person's real ~/.mixar into the repository and `git add -A` committed it | PRIVATE_PATHS in `--git` with a self-test case, the same shapes in .gitignore, the history rewrite rule above | none |
+
+| 2026-10-07 | scoped PR1 publication dependencies | parent: integrate tested G24 gate/workflow fixes into PR3 | diagnostics exposed identifiers, matrix expressions resembled addresses, and checkout merge HEAD was a different endpoint | redact identifiers, prove matrix syntax, retain exact-provider/lookalike controls and scan explicit event endpoints | 33 gate/workflow/host/R04 regression cases; source 75a00df9, a4f2cee3, dc732196 |

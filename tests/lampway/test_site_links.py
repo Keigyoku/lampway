@@ -29,6 +29,8 @@ HOSTS = {
     "api.openai.com": "provider", "chatgpt.com": "provider login", "clerk.higgsfield.ai": "provider login", "mcp.higgsfield.ai": "provider",
     "higgsfield.ai": "provider", "www.tripo3d.ai": "studio", "wavespeed.ai": "provider named in a prompt template", "www.eachlabs.ai": "provider named in a prompt template",
     "huggingface.co": "model downloads", "opencode.ai": "documentation of a connected app", "www.blender.org": "provenance", "developer.blender.org": "provenance",
+    "projects.blender.org": "pinned Blender source and manual provenance",
+    "docs.blender.org": "official versioned Blender API/manual provenance",
     "spdx.dev": "licence tooling", "www.contributor-covenant.org": "code of conduct source", "json-schema.org": "schema namespace", "www.w3.org": "xml namespace",
     "schemas.microsoft.com": "xml namespace", "developer.nvidia.com": "build dependency", "www.apple.com": "signing certificate authority",
     "queue.fal.run": "provider: the fal queue (specs/mrmak/12, behind the job receipts and egress)", "fal.ai": "provider: fal's site, named in the price-source note",
@@ -106,3 +108,16 @@ def test_the_host_gate_sees_a_planted_offender(tmp_path):
     finally:
         sys.modules[__name__].ROOT = saved
     assert bad == ["lampway.app", "www.mixar.app"]
+
+
+def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_path):
+    f = tmp_path / "provenance.py"
+    f.write_text('A = "https://projects.blender.org/blender/blender"\n'
+                 'B = "https://docs.blender.org/api/5.2/"\n'
+                 'C = "https://docs.blender.org.example.invalid/api/5.2/"\n')
+    sys.modules[__name__].ROOT, saved = tmp_path, ROOT
+    try:
+        bad = [h for _p, _n, h in _hosts_in([f]) if h not in HOSTS]
+    finally:
+        sys.modules[__name__].ROOT = saved
+    assert bad == ["docs.blender.org.example.invalid"]

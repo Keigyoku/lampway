@@ -125,6 +125,38 @@ async def test_an_unknown_server_request_gets_method_not_found(tmp_path):
         await p.close()
 
 
+async def test_fake_unknown_request_logs_the_reply_before_completing_the_turn(tmp_path):
+    log = tmp_path / "wire.log"
+    child = await asyncio.create_subprocess_exec(sys.executable, FAKE,
+                                                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+                                                env={"SCENARIO": "unknown_request", "LOG": str(log), "PATH": "/usr/bin:/bin"})
+
+    async def receive():
+        return json.loads(await asyncio.wait_for(child.stdout.readline(), 3))
+
+    try:
+        child.stdin.write(json.dumps({"id": 1, "method": "turn/start", "params": {}}).encode() + b"\n")
+        await child.stdin.drain()
+        assert (await receive())["id"] == 1
+        assert await receive() == {"id": 900, "method": "foo/bar", "params": {}}
+        # Completion must wait for the reply, rather than a delay that races the test's wire-log snapshot.
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(child.stdout.readline(), 0.5)
+        reply = {"id": 900, "error": {"code": -32601, "message": CA.UNSUPPORTED}}
+        child.stdin.write(json.dumps(reply).encode() + b"\n")
+        await child.stdin.drain()
+        assert (await receive())["method"] == "item/agentMessage/delta"
+        assert (await receive())["method"] == "turn/completed"
+        assert next(m for m in wire(log) if m.get("id") == 900) == reply
+    finally:
+        child.stdin.close()
+        try:
+            await asyncio.wait_for(child.wait(), 3)
+        except asyncio.TimeoutError:
+            child.kill()
+            await child.wait()
+
+
 async def test_a_duplicate_call_id_reuses_the_first_result_and_is_yielded_once(tmp_path):
     p, log = provider(tmp_path, scenario="dup_call")
     try:

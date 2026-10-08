@@ -114,7 +114,9 @@ def _v_image(args, jail):
         from ..prompts import render as R
         from ..prompts.library import Library
         try:
-            rendered = R.render(Library.from_env(), args["template"], args.get("variables") or {}, args.get("model"))
+            library = Library.from_env()
+            R.provider_template(library, args["template"])
+            rendered = R.render(library, args["template"], args.get("variables") or {}, args.get("model"))
         except ValueError as exc:
             raise ActionError(str(exc)) from None
         out = Path(jail(args.get("out_dir") or "studio/prompts"))

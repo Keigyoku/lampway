@@ -37,6 +37,7 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
+9. **Motion correctness.** `motion/` keeps sequential fresh-browser capture, separates receipt reproduction from existing-media integrity and provenance, checks finite inputs/audits/receipts, and seals checked render bytes before Vault capture. Cancellation joins only its own worker/processes, prevents new filing admission and reports committed assets; preserve user media and retained failure evidence. Replay retains QA/variant relationship intents. No retention, resource-limit or platform policy is inferred from these fixes. Contracts: [`../specs/motion_graphics/motion_graphics.md`](../specs/motion_graphics/motion_graphics.md).
 
 ## Test
 
@@ -59,3 +60,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the server's invariants lived only in module docstrings | egress, approval, receipt, MCP, script-literal, herdr and secret invariants stated with their modules; the suite command | captain ruling, 2026-10-05 |
+| 2026-10-07 | motion correctness hardening | captain authorizes mandatory PR3 integrity, Vault, validation and owned cancellation fixes | receipt reproduction obscured missing media, mutable handoff and replay lost QA edges, invalid inputs bypassed checks and cancelled callers left publishing workers | separate verification statuses, sealed bytes and replay intents, finite shape validation and tracked owned cancellation with retained evidence; no policy expansion | causal motion regressions and live Chromium cancellation |

@@ -2,7 +2,6 @@
 import json
 import os
 import sys
-import time
 
 SCENARIO = os.environ.get("SCENARIO", "two_tools")
 LOG = os.environ.get("LOG", "/dev/null")
@@ -45,7 +44,14 @@ while True:
             os._exit(3)
         if SCENARIO == "unknown_request":
             send({"id": 900, "method": "foo/bar", "params": {}})
-            time.sleep(0.2)
+            # The turn completes only after the reply is consumed and on disk, so completion synchronizes the test's wire-log read.
+            while True:
+                reply = read()
+                if reply is None:
+                    sys.exit(0)
+                log(reply)
+                if reply.get("id") == 900 and ("error" in reply or "result" in reply):
+                    break
         calls = {"two_tools": [("call-a", "scene_summary", {}), ("call-b", "lampway_status", {})], "one_tool": [("call-a", "scene_summary", {})], "dup_call": [("call-a", "scene_summary", {}), ("call-a", "scene_summary", {})]}.get(SCENARIO, [])
         for k, (cid, tool, args) in enumerate(calls):
             send({"id": 100 + k, "method": "item/tool/call", "params": {"tool": tool, "arguments": args, "callId": cid, "threadId": "th1", "turnId": "tu1"}})
