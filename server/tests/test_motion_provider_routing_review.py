@@ -156,3 +156,49 @@ def test_queued_motion_template_refuses_before_video_catalogue_lookup(routes, tm
         queue.submit("video_gen", "synthetic", payload)
     assert seen == [] and not queue.jobs
     assert payload == {"template": {"id": "mg-site-clip"}}
+
+
+@pytest.mark.parametrize("template", MG_TEMPLATES)
+@pytest.mark.parametrize("model", [None, "synthetic explicit image model"])
+def test_studio_image_motion_template_refuses_before_writes_or_model_choice(routes, tmp_path, monkeypatch, template, model):
+    from lampway_server.studios import actions
+    svc, _, seen = routes
+    monkeypatch.setattr(Library, "from_env", classmethod(lambda cls: svc.library))
+    def studio_choice():
+        seen.append("studio_choice")
+        return "synthetic image model"
+    monkeypatch.setattr(actions, "tripo_image_model", studio_choice)
+    tpl = svc.library.get(template)
+    variables = {k: _value_for(v) for k, v in tpl["variables"].items() if "default" not in v}
+    args = {"template": template, "variables": variables, "out_dir": "studio-output"}
+    if model:
+        args["model"] = model
+    def jail(path):
+        seen.append("jail")
+        return str(tmp_path / path)
+    with pytest.raises(actions.ActionError, match="motion-graphics.*lampway_motion_graphics"):
+        actions.ACTIONS["tripo.image"].validate(args, jail)
+    assert seen == [], "refusal must precede path resolution, output writes and provider model choice"
+    assert not (tmp_path / "studio-output").exists()
+    assert not svc.runlog.runs()
+
+
+@pytest.mark.parametrize("model", [None, "synthetic explicit image model"])
+def test_ordinary_studio_image_template_retains_prompt_file_and_model_choice(routes, tmp_path, monkeypatch, model):
+    from lampway_server.studios import actions
+    svc, _, seen = routes
+    monkeypatch.setattr(Library, "from_env", classmethod(lambda cls: svc.library))
+    def studio_choice():
+        seen.append("studio_choice")
+        return "synthetic chosen image model"
+    monkeypatch.setattr(actions, "tripo_image_model", studio_choice)
+    args = {"template": "seamless-tile", "out_dir": "studio-output"}
+    if model:
+        args["model"] = model
+    clean = actions.ACTIONS["tripo.image"].validate(args, lambda path: str(tmp_path / path))
+    assert clean["template"].startswith("seamless-tile@")
+    assert clean["model"] == (model or "synthetic chosen image model")
+    assert clean["refs"] == [] and clean["aspect"] == "1:1"
+    assert (tmp_path / "studio-output/prompt.txt").read_text() == svc.render("seamless-tile")["prompt"]
+    assert seen == (["studio_choice", "render"] if model is None else ["render"])
+    assert not svc.runlog.runs(), "validation writes a prompt file, never a generation receipt"
