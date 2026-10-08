@@ -31,6 +31,10 @@ has its own suite under `server/tests/`.
 7. **Test code never ships.** In-tree `tests/` directories under `src/scripts/mixar` are excluded from the install; keep test
    helpers there or here, never in a shipped module.
 
+The site-link gate admits the offline Blender corpus's exact recorded attribution URLs only in its packaged manifest and
+NOTICE. It preserves the global host list and rejects runtime reuse, changed pins/versions/queries, lookalike hosts and extra
+URLs on an allowed line. These static references grant no runtime retrieval or egress route.
+
 ## Test
 
 ```bash
@@ -53,3 +57,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the test discipline lived in the gates' docstrings and the lanes' reports | seven invariants (RED first, plants, shrinking allow-lists, skips, no live spend, no weakening, no shipped tests) and the suite commands | captain ruling, 2026-10-05 |
+| 2026-10-08 | exact static corpus attribution | parent approved bounded PR4 provenance compatibility | ten official packaged attribution references failed the shipped-host gate | admit exact manifest/NOTICE URL literals while preserving runtime host refusals and planted path/pin/query/lookalike/extra-link controls | actual ten-reference RED and focused gate controls |
