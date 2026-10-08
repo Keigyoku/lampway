@@ -92,12 +92,20 @@ async def call(system, name: str, arguments: dict) -> tuple:
             return json.dumps({"purposes": system.settings.video_purposes, "per_job_cap_usd": system.settings.video_max_job_usd,
                                "models": [{"slug": m["slug"], "label": m["label"], "parameters": {k: v.get("enum") or v.get("type") for k, v in m["parameters"].items()}}
                                           for m in rows]}), False
+        prompts = None
+        if arguments.get("template"):
+            from ..prompts import render as R
+            from ..prompts.library import Library
+            prompts = getattr(system, "prompts", None) or getattr(getattr(system, "jobs", None), "prompts", None)
+            R.provider_template(prompts.library if prompts is not None else Library.from_env(), arguments["template"])
         purpose = system.settings.video_purposes.get(arguments.get("purpose") or "bulk")
         if purpose is None:
             return f"unknown purpose {arguments.get('purpose')!r}; the purposes are {sorted(system.settings.video_purposes)}", True
         rendered = None
         if arguments.get("template"):
-            rendered = system.prompts.render(arguments["template"], arguments.get("variables"), arguments.get("model"))
+            if prompts is None:
+                return "prompt templates are not available on this server", True
+            rendered = prompts.render(arguments["template"], arguments.get("variables"), arguments.get("model"))
             purpose = {**purpose, **{k: v for k, v in rendered["params"].items() if k in ("model", "duration", "resolution", "aspect_ratio", "image_mode")}}
             arguments = dict(arguments, prompt=rendered["prompt"])
         elif not str(arguments.get("prompt") or "").strip():

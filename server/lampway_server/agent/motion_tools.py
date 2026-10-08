@@ -27,8 +27,15 @@ SPEC = ToolSpec(NAME, (
     "write a receipt (code hash, "
     "every frame's hash, output hashes) under motion/out/<name>-<code8>-<unique-run>/, and file an accepted render in the Asset Vault as kind video. Look at "
     "contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() "
-    "loads every font and image and reports each; window.__frame(t) sets every animated property from t alone; window.__audit() lists the visible "
-    "text and marks. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or transitions; every file lives in the scene "
+    'loads every font and image, then returns both required arrays. Setup return example: {"fonts":[{"font":"28px sans-serif","ok":true}],'
+    '"images":[{"src":"assets/figure.png","ok":true}]}. Resource identifiers are non-empty strings; ok is a boolean. '
+    'Empty-resource setup: {"fonts":[],"images":[]} is appropriate when none are needed. '
+    'window.__frame(t) sets every animated property from t alone. window.__audit() returns both arrays for all visible text and marks. '
+    'Audit return example: {"text":[{"sel":"#title","text":"Title","box":[100,100,500,160],"font_px":28,"opacity":1}],'
+    '"marks":[{"sel":"figure","box":[600,200,1000,700]}]}. Each row needs a non-empty sel and box=[x0,y0,x1,y1] '
+    'with finite ordered viewport coordinates. Text additionally needs string text, positive finite font_px and finite opacity in [0,1]; '
+    'marks require sel and box. Empty audit: {"text":[],"marks":[]} is appropriate only when none are visible. '
+    "No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or transitions; every file lives in the scene "
     "folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify "
     "re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd "
     "or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), "

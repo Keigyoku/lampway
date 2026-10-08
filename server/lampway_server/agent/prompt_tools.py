@@ -19,7 +19,9 @@ def specs() -> list:
         ToolSpec("lampway_prompt_get", "One template in full: the five-part body (subject, action, camera, style, constraints), its typed variables with bounds, negatives, timed beats, "
                  "the input roles in order, per-model adapters, gates and provenance.", obj({"id": {"type": "string"}, "version": {"type": "string"}}, ["id"])),
         ToolSpec("lampway_prompt_render", "Render a template with variables for a model: returns the prompt text, negatives, the inputs it needs (in order), the params and warnings. A bad "
-                 "variable is refused by name. Pass the same `template` + `variables` to lampway_video_gen / lampway_image_gen to generate with it.",
+                 "variable is refused by name. For purpose motion-graphics, use the brief to author a local scene with its setup/audit contract, then pass the scene "
+                 "and the same `template` + `variables` to lampway_motion_graphics. Motion briefs are refused by provider generation. For other provider templates, "
+                 "pass the same `template` + `variables` to lampway_video_gen / lampway_image_gen.",
                  obj({"id": {"type": "string"}, "variables": {"type": "object"}, "model": {"type": "string"}, "version": {"type": "string"}}, ["id"])),
         ToolSpec("lampway_prompt_save", "Save a template to the USER scope (validated; an existing id@version is never overwritten: bump the version). Fork a built-in by getting it, "
                  "editing and saving it with a higher version.", obj({"template": {"type": "object"}}, ["template"])),
