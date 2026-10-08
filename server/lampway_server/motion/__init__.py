@@ -216,10 +216,22 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
     if not capture.has_frame():
         raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
-    ready = capture.setup() or {}
+    ready = capture.setup()
+    if not isinstance(ready, dict):
+        raise Refused("window.__setup() must return an object with fonts and images arrays")
+    misses = []
+    for key, label in (("fonts", "font"), ("images", "src")):
+        reports = ready.get(key)
+        if not isinstance(reports, list):
+            raise Refused(f"window.__setup() must return a {key} array (use [] when none are needed)")
+        for report in reports:
+            if (not isinstance(report, dict) or not isinstance(report.get(label), str) or not report[label].strip()
+                    or not isinstance(report.get("ok"), bool)):
+                raise Refused(f"window.__setup() {key}: each row needs a non-empty {label} string and a boolean ok")
+            if report["ok"] is False:
+                misses.append(report[label])
     if hasattr(capture, "has_audit") and not capture.has_audit():
         raise Refused("the scene does not define window.__audit: return text and marks arrays (motion_graphics.md section 4)")
-    misses = [f.get("font") for f in ready.get("fonts") or [] if not f.get("ok")] + [i.get("src") for i in ready.get("images") or [] if not i.get("ok")]
     if misses:
         raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")
     if capture.animations():
@@ -596,7 +608,8 @@ def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
     checks = {"integrity_matches": all(item["matches"] for item in integrity.values()), "integrity": integrity,
               "provenance_matches": mismatch is None and all(item["matches"] for item in provenance.values()), "provenance": provenance}
     if mismatch is not None:
-        return {"reproduced": False, "frames_differing": [], "mp4_equal": False, "webm_equal": False, "engine_matches": False, "error": mismatch, **checks}
+        eq = {f"{fmt}_equal": False if fmt in a["formats"] else None for fmt in E.FORMATS}
+        return {"reproduced": False, "frames_differing": [], **eq, "engine_matches": False, "error": mismatch, **checks}
     differ = R.differing(old_rows, new_rows)
     eq = {f"{fmt}_equal": (r["outputs"].get(fmt) or {}).get("sha256") == (new["outputs"].get(fmt) or {}).get("sha256") if fmt in r["outputs"] else None
           for fmt in E.FORMATS}

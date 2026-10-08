@@ -357,7 +357,7 @@ class Chromium:
         return bool(self.evaluate("typeof window.__audit === 'function'"))
 
     def setup(self) -> dict:
-        return self.evaluate("window.__setup()", await_promise=True) or {}
+        return self.evaluate("window.__setup()", await_promise=True)
 
     def scene(self) -> dict:
         return self.evaluate("window.__scene") or {}

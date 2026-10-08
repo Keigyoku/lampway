@@ -14,7 +14,7 @@ window.__frame = t => { /* set every visible animated property from t */ };
 window.__audit = () => ({ text: [], marks: [] });
 ```
 
-This is an interface sketch, not a complete acceptable scene. `__setup()` must load all assets/fonts before capture and report each as `{font,ok}` or `{src,ok}`. Missing reports cannot prove a resource loaded. Requested tool dimensions determine the viewport; the metadata does not override tool dimension defaults. Captured PNG dimensions must match that viewport.
+This is an interface sketch, not a complete acceptable scene. `__setup()` must load all assets/fonts before capture and return an object containing both arrays, reporting each resource as `{font,ok}` or `{src,ok}` with a nonempty string identifier and boolean readiness. Use empty arrays when no resources of that type are needed. Malformed reports are refused in both capture passes; false readiness names the missing resource. Requested tool dimensions determine the viewport; the metadata does not override tool dimension defaults. Captured PNG dimensions must match that viewport.
 
 `__frame(t)` must establish animation from time alone. Authoring forbids clocks, unseeded randomness, requestAnimationFrame and independently advancing CSS animations/transitions. Runtime checks `document.getAnimations()` after setup and rejects active animations; it does not statically enforce every forbidden JavaScript API. Use deterministic math/data and preloaded resources; fresh sequential browser checks establish sampled agreement.
 
@@ -35,7 +35,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 
 These checks use sampled pixels and authored geometry. They do not detect all readability, omitted text, poor pacing, layout or animation defects. Review the contact sheet and rendered video separately. Keep sparse-opening and other warnings visible.
 
-For reproduction of the detail gate, resize to half-resolution with bilinear filtering, compute luminance using RGB weights 0.2126/0.7152/0.0722, and measure the share whose summed horizontal/vertical local differences exceed 10 on the 0–255 scale. Overlap selectors are literal authored values: `sel == "figure"` or `sel.startswith("card")`, with the exact text selector exemption `.card .tag`.
+For reproduction of the detail gate, resize to half-resolution with bilinear filtering, compute luminance using RGB weights 0.2126/0.7152/0.0722, and measure the share whose summed horizontal/vertical local differences exceed 10 on the 0–255 scale. Detail and contrast decisions use the measured ratio before display rounding; a value just below a threshold still fails or warns. Overlap selectors are literal authored values: `sel == "figure"` or `sel.startswith("card")`, with the exact text selector exemption `.card .tag`.
 
 ## Template contract
 

@@ -52,7 +52,8 @@ def frame_stats(png: bytes):
     lum = a @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
     # detail: share of pixels with a local luminance step > 10/255. A smooth glow or a flat fill has none; text and marks do.
     g = np.abs(np.diff(lum, axis=0))[:, :-1] + np.abs(np.diff(lum, axis=1))[:-1, :]
-    return im, {"lum_mean": round(float(lum.mean()), 2), "lum_std": round(float(lum.std()), 2), "detail_share": round(float((g > 10).mean()), 5)}
+    # Threshold decisions need the measured fraction; round only its presentation in finding details.
+    return im, {"lum_mean": round(float(lum.mean()), 2), "lum_std": round(float(lum.std()), 2), "detail_share": float((g > 10).mean())}
 
 
 def srgb_lum(c):
@@ -88,7 +89,7 @@ def text_contrast(im, box, pad=10):
     lo, hi = inner[int(0.02 * (len(inner) - 1))], inner[int(0.98 * (len(inner) - 1))]
     fg = hi if abs(hi - bg) >= abs(lo - bg) else lo
     a, b = max(fg, bg), min(fg, bg)
-    return round((a + 0.05) / (b + 0.05), 2)
+    return float((a + 0.05) / (b + 0.05))
 
 
 def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
@@ -109,10 +110,10 @@ def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
             f.append({"check": "legibility", "severity": "fail", "detail": f"text under {MIN_TEXT_PX} px: {t['text']!r} ({t['font_px']} px)"})
         if t["opacity"] >= 0.95:
             c = text_contrast(im, t["box"])
-            t["contrast_measured"] = c
+            t["contrast_measured"] = round(c, 2) if c is not None else None
             need = 3.0 if t["font_px"] >= 24 else 4.5
             if c is not None and c < need:
-                f.append({"check": "legibility", "severity": "fail", "detail": f"contrast {c} < {need}: {t['text']!r}"})
+                f.append({"check": "legibility", "severity": "fail", "detail": f"contrast {c:.6f} < {need}: {t['text']!r}"})
     for m in marks:
         x0, y0, x1, y1 = m["box"]
         if x0 < 0 or y0 < 0 or x1 > W or y1 > H:
