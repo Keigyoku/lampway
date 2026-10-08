@@ -13,6 +13,7 @@ second copy of each model imported with its materials into the scratch scene, no
 emission materials for the data modes (section 6.5); a missing normal map shows flat, the finding."""
 
 import json
+import time
 from pathlib import Path
 
 import bpy
@@ -22,7 +23,7 @@ from bpy.types import Operator, Panel
 from mixar.modules.lampway_tools import compare_face
 
 STATE = {"manifest": None, "stats": [], "numbers": {}, "labels": {}, "revealed": False, "picked": None, "areas": {}, "mode": "1",
-         "sync": True, "spin": False, "window": None, "last": None, "root": "", "set_dir": ""}
+         "sync": True, "spin": False, "spin_at": None, "window": None, "last": None, "root": "", "set_dir": ""}
 DATA_MODES = ("5", "6", "7")
 _HANDLE = []
 
@@ -80,7 +81,7 @@ def _compare_areas():
     return out
 
 
-SPIN_DEG_PER_TICK = 2.0      # a turntable: 20 degrees a second at the 100 ms poll
+SPIN_DEG_PER_TICK = 2.0      # nominal 100 ms step: 20 degrees a second, including delayed polls
 
 
 def _state(views):
@@ -92,10 +93,12 @@ def _state(views):
 
 def _sync():
     """The 100 ms poll (mrmak/05 6.6): a view the user moved is copied to the others (Sync), and that manual orbit turns
-    Spin off; with Spin on and nothing moved, every view turns about the world's vertical by the same step."""
+    Spin off; with Spin on and nothing moved, every view turns at the same elapsed-time rate."""
     if not STATE["areas"]:
+        STATE["spin_at"] = None
         return None
     if not STATE["sync"] and not STATE["spin"]:
+        STATE["spin_at"] = None
         return 0.1
     views = [(area, area.spaces.active.region_3d) for _w, area in _compare_areas()]
     current = _state(views)
@@ -104,6 +107,7 @@ def _sync():
         moved = next((k for k, (cur, old) in enumerate(zip(current, STATE["last"])) if cur != old), None)
     if moved is not None:
         STATE["spin"] = False                              # a manual orbit stops the turntable
+        STATE["spin_at"] = None
         if STATE["sync"]:
             src = views[moved][1]
             for k, (_a, r) in enumerate(views):
@@ -114,9 +118,14 @@ def _sync():
     elif STATE["spin"]:
         import math
         from mathutils import Quaternion
-        turn = Quaternion((0.0, 0.0, 1.0), math.radians(SPIN_DEG_PER_TICK))
+        now = time.monotonic()
+        elapsed = 0.1 if STATE["spin_at"] is None else now - STATE["spin_at"]
+        turn = Quaternion((0.0, 0.0, 1.0), math.radians(SPIN_DEG_PER_TICK * elapsed / 0.1))
         for _a, r in views:
             r.view_rotation = (r.view_rotation @ turn).normalized()
+        STATE["spin_at"] = now
+    else:
+        STATE["spin_at"] = None
     STATE["last"] = _state(views)
     return 0.1
 
@@ -314,6 +323,7 @@ def open_window(context) -> int:
                 bpy.ops.view3d.localview(frame_selected=True)
     STATE["window"] = window.as_pointer()
     STATE["last"] = None
+    STATE["spin_at"] = time.monotonic() if STATE["spin"] else None
     if not _HANDLE:
         _HANDLE.append(bpy.types.SpaceView3D.draw_handler_add(_draw_overlay, (), 'WINDOW', 'POST_PIXEL'))
     if not bpy.app.timers.is_registered(_sync):
@@ -366,6 +376,8 @@ class LAMPWAY_OT_compare_toggle(Operator):
     def execute(self, context):
         if self.what in ("sync", "spin"):
             STATE[self.what] = not STATE[self.what]
+            if self.what == "spin":
+                STATE["spin_at"] = time.monotonic() if STATE["spin"] else None
         return {"FINISHED"}
 
 
