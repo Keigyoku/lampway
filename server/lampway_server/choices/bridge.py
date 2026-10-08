@@ -15,7 +15,7 @@ from . import registry as REG
 _MAIN_MODEL = {"chatgpt_plan": "chatgpt_model", "anthropic": "anthropic_model", "openrouter": "openrouter_model"}
 _FIELDS = {
     "agent.main": {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"},
-    "agent.worker": {"provider", "swarm_provider", "claude_swarm_model", "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model"},
+    "agent.worker": {"swarm_provider", "claude_swarm_model", "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model"},
     "image.plates": {"image_backend", "image_purposes"},
 }
 _EXTRA_ENV = {"agent.main": ("LAMPWAY_CODEX_MODEL", "LAMPWAY_CLAUDE_MODEL", "LAMPWAY_CODEX_EFFORT"), "agent.dictation": ("LAMPWAY_OPENROUTER_STT_MODEL",)}
@@ -33,7 +33,7 @@ def _video_option(slug: str) -> str:
     return "higgsfield:" + slug.split("/", 1)[1] if slug.startswith("higgsfield/") else "openrouter:" + slug
 
 
-def chains(s: Settings, env=None) -> dict:
+def chains(s: Settings, env=None, *, worker_fields=None) -> dict:
     """{purpose: entry} for every purpose a settings value decides."""
     env = os.environ if env is None else env
     out = {}
@@ -44,7 +44,20 @@ def chains(s: Settings, env=None) -> dict:
         out["agent.main"] = _entry("openai:local", params={"model": s.openai_model, "base_url": s.openai_base_url})
     else:
         out["agent.main"] = _entry("mock")
-    kind = s.swarm_provider or prov
+    # Defaults are not a worker selection. Follow the parent's entire resolved
+    # choice until worker-specific preferences/environment/dialog values move it.
+    # A scope passes its actual keys so default-valued fields do not become clicks.
+    if worker_fields is None:
+        worker_fields = {k for k in _FIELDS["agent.worker"]
+                         if s.sources.get(k) in {"env", "saved", "choices"}
+                         or (k in PP.ENV_VARS and PP.ENV_VARS[k] in env)}
+    worker_fields = set(worker_fields)
+    kind = s.swarm_provider
+    if not kind:
+        if "openrouter_swarm_model" in worker_fields:
+            kind = "openrouter"
+        elif worker_fields & {"chatgpt_swarm_model", "chatgpt_swarm_effort"}:
+            kind = "chatgpt_plan"
     if kind == "openrouter":
         out["agent.worker"] = _entry(f"openrouter:{s.openrouter_swarm_model}")
     elif kind == "chatgpt_plan":
@@ -95,7 +108,7 @@ def providers_scope(state_dir) -> dict:
     if not saved:
         return {}
     s = PP.apply_saved(Settings(), saved, env={}, choices=False)
-    every = chains(s, env={})
+    every = chains(s, env={}, worker_fields=saved)
     return {pid: {**every[pid], "source": "providers"} for pid in _touched(saved) if pid in every}
 
 
@@ -109,7 +122,7 @@ def env_scope(env=None) -> dict:
             touched.add(pid)
     if not touched:
         return {}
-    every = chains(Settings.from_env(env), env=env)
+    every = chains(Settings.from_env(env), env=env, worker_fields=set_keys)
     out = {}
     for pid in touched:
         if pid in every:
@@ -241,7 +254,7 @@ def save_dialog_choices(s: Settings, values: dict) -> dict:
     modeled = {k: v for k, v in values.items() if k in MODELED}
     if modeled:
         trial = PP.trial(s, modeled)
-        every = chains(trial)
+        every = chains(trial, worker_fields=modeled)
         for pid in sorted(_touched(modeled)):
             if pid in every:
                 entry = {k: every[pid][k] for k in ("preferred", "fallbacks", "params")}

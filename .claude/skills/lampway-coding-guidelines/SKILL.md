@@ -24,7 +24,8 @@ owner values in tracked files; build the tool, not the output. Every procedure b
 
 Before changing an agent mode, pane or swarm worker, read the governing section A and the current worker selection in S4/Q10 of
 [`docs/reports/agent-modes-spec.md`](../../../docs/reports/agent-modes-spec.md). Worker mode/harness (`agent.worker_mode`) and
-Mode 1 service (`agent.worker`) are independent of the parent's choices; Mode 2 uses its selected harness's own login, without
+Mode 1 service (`agent.worker`) are separate controls: the service follows the parent implicitly until the user changes it,
+then the explicit worker resolution stays pinned. Mode 2 uses its selected harness's own login, without
 Lampway credential transfer. Agent execution during native renders follows
 [`docs/render-job-contract.md`](../../../docs/render-job-contract.md); client proxy and certificate changes follow
 [`docs/enterprise-network.md`](../../../docs/enterprise-network.md). Neither configuration nor a contract link grants egress.
@@ -183,3 +184,5 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |
 | 2026-10-07 | the agent pins beside Blender's | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | only Blender's pin was named in the build model, so a lane could treat Hermes or herdr as whatever was installed | the bullet in section 1: both pins, their tags, their build scripts, and what a bump is | none |
 | 2026-10-08 | governing AgentModes and execution/network contracts in the operating guide | captain's worker selection clarification, confirmed by the parent; PR4 governing-link closeout | the guide named the agent pins but not the governing mode and worker selection, render execution or enterprise network contracts | section 0 points at the contracts, separates worker mode from its Mode 1 service and preserves Mode 2's own login without credential transfer | captain clarification, confirmed 2026-10-08 |
+
+| 2026-10-08 | implicit initial worker service and explicit overrides | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | the preceding worker-service wording inferred an independent initial default | the governing paragraph names implicit parent service, explicit pinned worker overrides and separate mode selection | direct captain ruling |

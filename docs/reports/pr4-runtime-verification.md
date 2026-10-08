@@ -67,8 +67,9 @@ still earn its own current-head canon CI after publication.
 ## Remaining acceptance and decisions
 
 * Saved worker mode and service are separate and the configured production factory consumes the worker resolution. The initial
-  unsaved service still derives from main settings in `choices.bridge.chains`; the current independence ruling is documented
-  separately from the older follow-main default. Its exact initial service policy remains unresolved.
+  service ruling is settled: it follows the parent implicitly until explicitly changed, after which the worker override stays
+  pinned. The compatibility mapping now preserves explicit worker choices through parent-only preference, environment and
+  dialog updates, with 165 focused Choices/provider/wiring checks passing and 20 pre-fix mapping failures retained.
 * Complete the full client/server suites and exact final published-head CI; build and retain a matching receipt after these
   scoped repairs, then rerun actual Stop, profile Docs/Report, native Mode and palette checks against that same candidate.
 * All seven adapters still require real account-backed scene-tool, interrupt, image and session-record acceptance. No provider,

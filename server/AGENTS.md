@@ -178,7 +178,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     swarm models (a session scope), then `agent.worker` in Choices, which the Providers dialog's swarm fields and the model picker's
     worker role both write, then that default), never by another: a provider's failure, or a worker choice that cannot be built, is an
     OpenAI-style error, not a retry. The configured app factory forwards the worker's pinned resolution and shares only its
-    existing app-owned authentication object. Revoking a pane key cancels every enrolled model call for that key even
+    existing app-owned authentication object. An unset worker service follows the complete parent choice until explicitly
+    changed; parent-only preferences, environment and dialog updates do not create or replace a saved worker override.
+    Worker-specific selections keep their service family, model and effort, and the captured resolution stays pinned. Revoking a pane key cancels every enrolled model call for that key even
     while its TCP peer remains connected; it leaves other panes' calls running and admits no call after revocation.
     Owned worker shutdown and confirmed user close of a Lampway Mode 1 worker forget its key before asking herdr to close its pane;
     an unconfirmed close remains refused. Serve's Ollama probe (`POST /api/show`) gets a harmless 404.
@@ -322,3 +324,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-08 | PR4 configured worker and owned-copy maintenance | configured app worker selection RED; idle maintenance RED with aged synthetic copies | production lambda dropped the resolved worker choice; idle server never expired copies until another action | invariant 6: existing 30-day owned-copy policy runs on the existing maintenance tick and keeps originals; invariant 10: production factory forwards the pinned resolution with app-owned auth | none |
 | 2026-10-08 | PR4 owned pane model-call lifetime | actual two-worker Stop left a provider held after pane close; TCP-held and multi-call RED controls | admission revocation left already-running calls alive and a worker could retry before key removal | invariant 10: enrolled calls end with their key, revocation precedes owned pane close, main calls survive, confirmation stays mandatory | none |
+
+| 2026-10-08 | implicit parent service until explicit worker choice | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | parent-only provider scope selected a cheap/low-effort worker model and a parent dialog save overwrote an explicit worker choice | invariant 10: full implicit parent choice, explicit worker scopes only from worker fields, saved overrides preserved and resolutions pinned | direct captain ruling |
