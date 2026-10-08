@@ -24,6 +24,7 @@ from . import orphan_server_tools as ost
 from . import connections_tools as cnt
 from . import choices_tools as cht
 from . import capabilities_tools as capt
+from . import motion_tools as mgt
 
 RUN_BLENDER_PYTHON = "run_blender_python"
 SCENE_SUMMARY = "scene_summary"
@@ -92,7 +93,7 @@ TOOLS = [
     ),
 ]
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs() + capt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs() + capt.specs() + mgt.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -115,7 +116,7 @@ def script_for(name: str, arguments: dict) -> str:
         if not (1 <= limit <= 1000 and offset >= 0):
             raise UnknownTool("scene_summary takes limit 1..1000 and offset >= 0")
         return f"_LIMIT, _OFFSET, _FULL = {limit}, {offset}, {bool(args.get('full'))}\n" + SCENE_SUMMARY_SCRIPT
-    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES or name in cnt.NAMES or name in cht.NAMES or name in capt.NAMES:
+    if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES or name in cnt.NAMES or name in cht.NAMES or name in capt.NAMES or name in mgt.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if name in ost.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")

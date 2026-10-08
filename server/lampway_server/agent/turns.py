@@ -30,6 +30,7 @@ from .providers.base import ToolCall
 from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, capabilities_tools, orphan_server_tools, marks_context, questions as Q
 from .. import capabilities as CAP
 from . import plan_tools
+from . import motion_tools
 from .swarm import SwarmContext, SwarmManager, is_swarm_tool
 from .tools import UnknownTool, format_tool_result, script_for
 
@@ -291,6 +292,10 @@ class AgentHub:
             cancelled = True
         elif self.engine is not None and self.engine.is_running(session_id):
             cancelled = await self.engine.interrupt(session_id)     # spec A2: session.interrupt
+        if self.engine is not None:
+            # MCP tools run in separate requests: Stop joins this unit's work even when the island task or pane ended.
+            cancelled_tools = await self.engine.cancel_tool_calls(session_id)
+            cancelled = bool(cancelled_tools) or cancelled
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 
@@ -513,6 +518,8 @@ class AgentHub:
             return await plan_tools.call(self, server_tools.project_root(), call.name, call.arguments)
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
+        if call.name in motion_tools.NAMES:
+            return await motion_tools.call(self.assets, server_tools.project_root(), call.name, call.arguments)
         if call.name in image_tools.NAMES:
             return await image_tools.call(self.prompts, call.name, call.arguments)
         if call.name in video_tools.NAMES:

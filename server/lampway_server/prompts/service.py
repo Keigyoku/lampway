@@ -32,6 +32,7 @@ class PromptService:
             return None
         if not isinstance(spec, dict) or not spec.get("id"):
             raise R.RenderError("template must be {id, variables?, version?}")
+        R.provider_template(self.library, spec["id"], spec.get("version"))
         rendered = self.render(spec["id"], spec.get("variables"), spec.get("model") or (model if model and model != "default" else None), spec.get("version"))
         payload["prompt"] = rendered["prompt"]
         params = dict(payload.get("params") or {})

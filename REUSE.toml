@@ -259,6 +259,13 @@ precedence = "override"
 SPDX-FileCopyrightText = "2025-PRESENT Johann Schopplich"
 SPDX-License-Identifier = "MIT"
 
+# Official TOON conformance fixtures, unmodified from toon-format/spec.
+[[annotations]]
+path = ["tests/toon/fixtures/**/*.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "2025-2026 Johann Schopplich"
+SPDX-License-Identifier = "MIT"
+
 # MCP T3: offline RST generated from Lampway's Blender core and the pinned manual.
 [[annotations]]
 path = "server/lampway_server/blender_docs/data/api/**"
@@ -284,6 +291,13 @@ precedence = "closest"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
+[[annotations]]
+path = ["docs/schemas/inspect/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Existing Lampway-owned files: absent from the fork import d8a5fffb; NOTICE.md declares Lampway's own work GPL-3.0-or-later. Exact paths only; original/derived third-party work is declared separately below. Generated icon PNGs derive from scripts/dev/brand_art/icons/lampway_icons.svg via lampway_icons.py; theme measurements/provenance derive from the documented GPL scripts.
 [[annotations]]
 path = [
   ".githooks/pre-push",
@@ -939,4 +953,20 @@ path = [
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Adeveda Enterprises Private Limited"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# PR3-owned motion templates and existing Lampway TOON adapter. Exact GPL paths; no third-party attribution overridden.
+[[annotations]]
+path = [
+  "server/lampway_server/compute/toon_out.py",
+  "server/lampway_server/prompts/builtin/mg-facelift-ui-demo@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-release@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-report-card@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-site-clip@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-titan-animatic@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-titan-ui-motion@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-tutorial@1.0.0.json",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"

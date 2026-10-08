@@ -150,6 +150,8 @@ class HermesFront:
         self.hub = hub
         self.units = units
         self.links: dict = {}
+        self._tool_calls: dict[str, set[asyncio.Task]] = {}
+        self._tool_stops: dict[str, asyncio.Task] = {}
         self.feed = None                                     # history.Feed: the client's archive (R2), made on its first poll
 
     # ------------------------------------------------------------------------------------------------- the hub's side
@@ -305,11 +307,45 @@ class HermesFront:
         await link.client.call("session.steer", {"session_id": link.live_id, "text": text.strip()})
 
     async def interrupt(self, session_id: str) -> bool:
+        calls = await self.cancel_tool_calls(session_id)
         link = self.links.get(session_id)
         if link is None or not link.running:
-            return False
+            return bool(calls)
         await self._interrupt(link)
         return True
+
+    async def cancel_tool_calls(self, unit: str) -> int:
+        """Join only this unit's owned tool requests; Stop keeps its HTTP response paired."""
+        drain = self._tool_stops.get(unit)
+        if drain is None:
+            calls = tuple(self._tool_calls.get(unit, ()))
+            if not calls:
+                return 0
+
+            async def join():
+                for call in calls:
+                    call.cancel()
+                await asyncio.gather(*calls, return_exceptions=True)
+                return len(calls)
+
+            drain = asyncio.create_task(join())
+            self._tool_stops[unit] = drain
+        interrupted = False
+        try:
+            while True:
+                try:
+                    count = await asyncio.shield(drain)
+                    break
+                except asyncio.CancelledError:
+                    if drain.cancelled():
+                        raise
+                    interrupted = True
+            if interrupted:
+                raise asyncio.CancelledError
+            return count
+        finally:
+            if drain.done() and self._tool_stops.get(unit) is drain:
+                self._tool_stops.pop(unit, None)
 
     async def _interrupt(self, link: Link) -> None:
         try:
@@ -480,6 +516,36 @@ class HermesFront:
         return [t for t in list(TOOLS) + list(SWARM_SPECS) if CAP.tool_offered(t.name)]
 
     async def call_tool(self, unit: str, name: str, arguments: dict) -> tuple:
+        if unit in self._tool_stops:
+            return json.dumps({"ok": False, "cancelled": True, "error": "the unit's tool calls are stopping"}), True
+        call = asyncio.create_task(self._call_tool(unit, name, arguments))
+        calls = self._tool_calls.setdefault(unit, set())
+        calls.add(call)
+        try:
+            return await asyncio.shield(call)
+        except asyncio.CancelledError:
+            # Cancelling the HTTP caller must also join its owned work. A unit Stop cancels
+            # the child instead, so its request can still return the matching error result.
+            caller_cancelled = asyncio.current_task().cancelling()
+            if caller_cancelled:
+                call.cancel()
+                while not call.done():
+                    try:
+                        await asyncio.shield(call)
+                    except asyncio.CancelledError:
+                        continue
+                    except Exception:
+                        break
+                if call.done() and not call.cancelled():
+                    call.exception()
+                raise
+            return json.dumps({"ok": False, "cancelled": True, "error": "tool call cancelled"}), True
+        finally:
+            calls.discard(call)
+            if not calls and self._tool_calls.get(unit) is calls:
+                self._tool_calls.pop(unit, None)
+
+    async def _call_tool(self, unit: str, name: str, arguments: dict) -> tuple:
         """One of Lampway's tools from the unit's Hermes, whoever started its turn: on the scene tab's current client socket."""
         from ..agent.providers.base import ToolCall
         from ..agent.turns import Turn, clip_result

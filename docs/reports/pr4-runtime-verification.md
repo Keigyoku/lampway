@@ -122,6 +122,26 @@ passing tests and thirteen still unverified. Native cases used the explicitly re
 a matching final-build receipt. The earlier stdin-launched run failed five multiprocessing cases; that receipt is retained and
 all five passed under the reloadable file launcher.
 
+## Current-main reconciliation
+
+The captain authorized a local main-to-PR4 sync and keeping the base current. The first new base is
+`dfe0d1a448f58dfbf9bffcec9a287c0e21c6ab39`, which merged PR3 motion; fourteen conflicts cover shared directives, release
+mirrors, licences, registry/docs, removed-loop tests and publication controls. The reconciliation preserves motion tools
+and Capabilities without restoring the removed provider loop, retains exact path/URL attribution instead of widening
+global hosts, and regenerates skill mirrors and tool docs from their authoritative sources. Both parents' anneal rows and
+licence provenance remain. Relevant unknown-RPC correlation/usability coverage moves to the supported engine MCP path.
+
+Review also found that a local motion tool runs in a separate MCP request from the island/native Hermes turn. Stop now
+cancels and joins the stopped unit's transient tool tasks, fences admission during cleanup, returns paired cancellation
+errors and preserves other units. The real Front/MCP blocked-motion control was RED before the repair; five causal
+lifecycle cases passed afterward, including the live island-task path. These tests use deterministic local motion mocks;
+real Chromium checks and final source/native/full-suite evidence are recorded separately. No private teaser is substituted.
+The available Chromium 151.0.7922.173 browser opt-in diagnostic was RED: 6 passed, 14 failed, no skips. Six production
+render cases aborted because the SUID helper is not root-owned; eight containment cases were blocked before their assertions
+by managed file-URL policy. No sandbox, helper ownership or managed-policy control was changed. The three original outside-
+repository teaser cases were not run because their exact fixture is unavailable. These are retained environment/proof gaps,
+not passing acceptance; a skipped default opt-in does not erase the separately observed RED diagnostic.
+
 ## Remaining acceptance and decisions
 
 * Saved worker mode and service are separate and the configured production factory consumes the worker resolution. The initial
@@ -147,8 +167,11 @@ all five passed under the reloadable file launcher.
 * The final contract audit found unused R3/Q3 Context configuration and native internal-helper interpretation gaps. A separate
   PR4-only candidate has typed project overrides, displayed pinned defaults, no default writes, user-only routes and guarded
   client controls; 154 client checks and 179 combined server/adapter checks passed, with four live-engine checks not run in that
-  candidate focus. It refuses live saves because the pinned runtime lacks a guarded reload of these fields, and cannot select
-  an independent summarizer model through the current gateway. It is not published or accepted. The captain's ruling is pending
+  candidate focus. It refuses live saves because the pinned runtime lacks a guarded reload of these fields. Independent
+  summarizer routing is implemented in that separate candidate against the existing guarded provider factory; 133 focused
+  tests passed, with four native-live checks not run, and the final nineteen owned cases passed. The complete exported patch
+  is retained with SHA256 `6776dc71e9eee98d6b1b2964275c573778daccf1f6bb1d1dc2410d906bfc9fac`.
+  The candidate is not published or accepted. The captain's ruling is pending
   on next-user-reopen application versus retaining the live-reload requirement, and on whether Hermes's native internal helpers
   may remain inside the existing pane under A0/A1/Q14. A proposed delegation restriction alone does not fence native `/bg` or
   `/btw`; no complete internal-helper isolation is claimed.
@@ -159,5 +182,5 @@ all five passed under the reloadable file launcher.
   silent native pruning policy was introduced. R5 explicitly supersedes parked turns, so the old 24-hour parked TTL is not
   a separate acceptance requirement under this pane architecture.
 
-No force push, merge, deployment, paid provider call, account credential transfer, user desktop operation or private asset
+No force push, pull-request merge, deployment, paid provider call, account credential transfer, user desktop operation or private asset
 upload was performed by this cloud crew. User originals were not purged; image-expiry tests use their own temporary files.

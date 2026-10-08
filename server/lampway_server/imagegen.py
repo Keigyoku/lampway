@@ -66,7 +66,9 @@ def render_prompt_file(template: str, variables: dict, out_dir: str, model: str 
     """Render a library template and STORE the rendered prompt as ``<out_dir>/prompt.txt`` (inside the project root). Returns (path relative as given, render)."""
     from .prompts import render as R
     from .prompts.library import Library
-    rendered = R.render(Library.from_env(), template, variables or {}, model)
+    library = Library.from_env()
+    R.provider_template(library, template)
+    rendered = R.render(library, template, variables or {}, model)
     d = Path(ST.jail(out_dir))
     d.mkdir(parents=True, exist_ok=True)
     (d / "prompt.txt").write_text(rendered["prompt"], encoding="utf-8")

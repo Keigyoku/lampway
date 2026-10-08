@@ -88,6 +88,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `scripts/unix/`, `scripts/windows/`, `cmake/` | upstream's build machinery, with Lampway's options (`LAMPWAY`, `MIXAR_CUDA`) |
 | `tests/` | the standalone client suites, the brand and fork gates, the binary-driven tool tests, the rail's tests |
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
+| `specs/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
 ## Governing runtime contracts
@@ -99,6 +100,12 @@ selection in S4 and Q10 keeps worker mode separate; the Mode 1 service follows t
 Read [`docs/render-job-contract.md`](docs/render-job-contract.md) before changing agent execution during native renders, and
 [`docs/enterprise-network.md`](docs/enterprise-network.md) before changing those agents' client network configuration. These
 contracts supplement the laws; a documented route or proxy is not an egress grant.
+
+When synchronizing an agent-mode branch with main, resolve motion tool dispatch
+through the existing pane runtime: preserve Hermes ownership of Mode 1 and make
+pane Stop await that unit's outstanding tool calls before acknowledging cleanup.
+Qualify the reconciled commit with a build produced from that same commit; proofs
+from either parent remain historical evidence, not acceptance of the combined tree.
 
 ## Facts carried from the upstream guide (verified against this tree)
 
@@ -148,6 +155,8 @@ a law, this file. Each child states its invariants, its test commands and its ow
 
 ## Maintaining this file
 
+Motion contracts live in [`specs/motion_graphics/motion_graphics.md`](specs/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
+
 Keep it for what almost every session needs; point at the file or command that owns a detail. Prefer rewriting an entry to
 appending a sibling. A change here owes an anneal row in the same commit, like every rail.
 
@@ -169,6 +178,9 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-07 | the engine pinned | captain: Hermes Agent's runtime in Mode 1's seat (agent-modes spec Q7, E1.1) | a second pinned source tree had no row in the map | `third_party/hermes-agent` in the repository map, read-only like `upstream/` | captain ruling, 2026-10-06 |
 | 2026-10-07 | herdr pinned; both pins named by tag | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | herdr was whatever the user had installed, so the layout depended on an unknown version (a misspelled metadata option went unseen until a real herdr ran); the Hermes row named no tag | `third_party/herdr` at herdr's current release (v0.9.3) in the map beside Blender's and Hermes's rows, each with its tag; Hermes stays at its current release (v2026.9.24) | captain ruling, 2026-10-07 |
 | 2026-10-07 | the server's index row after the loop's removal | coordinator brief, Mode 1 loose end 10 | the Child DOX Index still said the server owns an "agent loop", which spec A5 removed: Mode 1 runs only on Hermes in its pane | the server row names what it owns now: the island's front end to the Hermes pane and the model gateway, no loop of its own | none |
-| 2026-10-08 | AgentModes governing contracts and independent worker selection indexed | captain's worker selection clarification, confirmed by the parent; PR4 governing-link closeout | the root guide omitted the render and enterprise contracts, and the agent spec still presented parent-harness inheritance as an open default | the governing runtime contracts link section A, S4 and Q10 and the render/network contracts; saved worker mode and Mode 1 service remain separate, with Mode 2 on its own login | captain clarification, confirmed 2026-10-08 |
+| 2026-10-07 | formal motion contracts indexed | captain authorizes writing the previously unwritten specs | implementation citations had no repository specification and could overstate acceptance | index the new contracts and require explicit behavior, gap and decision status with exact-head evidence | captain ruling, 2026-10-07 |
 
+| 2026-10-08 | AgentModes governing contracts and independent worker selection indexed | captain's worker selection clarification, confirmed by the parent; PR4 governing-link closeout | the root guide omitted the render and enterprise contracts, and the agent spec still presented parent-harness inheritance as an open default | the governing runtime contracts link section A, S4 and Q10 and the render/network contracts; saved worker mode and Mode 1 service remain separate, with Mode 2 on its own login | captain clarification, confirmed 2026-10-08 |
 | 2026-10-08 | initial worker service clarified directly | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | the preceding clarification inferred independent initial service without a named default | governing contracts distinguish separate worker mode, implicit parent service and a pinned explicit worker override | direct captain ruling |
+
+| 2026-10-08 | merge main motion contracts beside PR4 pane runtime contracts | captain authorizes keeping main synchronized | adjacent contract and anneal additions could lose motion specification status or the pane-only runtime and worker-selection rulings | preserve both contract indexes and every inherited anneal row; specifications remain distinct from exact-head proof | authorized main synchronization |

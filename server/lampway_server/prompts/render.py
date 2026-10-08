@@ -17,6 +17,14 @@ class RenderError(ValueError):
     pass
 
 
+def provider_template(library: Library, template_id: str, version=None) -> dict:
+    """Read a provider-bound template, refusing local motion code before provider work or output writes."""
+    template = library.get(template_id, version)
+    if template.get("purpose") == "motion-graphics":
+        raise RenderError(f"{template_id}: motion-graphics templates produce local scene code: use lampway_motion_graphics")
+    return template
+
+
 def cap_negatives(negatives: list) -> list:
     """At most 5: the guidance is to pick the 3-5 that matter (too many negatives dull the result)."""
     return [str(n).strip() for n in negatives if str(n).strip()][:S.MAX_NEGATIVES]

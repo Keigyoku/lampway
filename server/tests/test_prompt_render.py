@@ -87,6 +87,15 @@ def test_every_builtin_loads_and_renders_for_every_model_it_declares():
     for t in lib.list():
         models = {t["defaults"]["model"]} if t.get("defaults", {}).get("model") else set()
         models |= {m.replace("*", "x") for m in t.get("model_adapters", {})}
+        if t["purpose"] == "motion-graphics":
+            # a brief for the code-writing agent's OWN model (specs/motion_graphics/motion_graphics.md section 7): no provider model to declare, and
+            # its subject variables (task, version, ...) have no default; it renders with them given, no slot or role left
+            given = {k: (s["enum"][0] if s["type"] == "enum" else s.get("min", 1) if s["type"] in ("integer", "number") else "x")
+                     for k, s in (t.get("variables") or {}).items() if "default" not in s}
+            out = R.render(lib, t["id"], given)
+            assert out["prompt"].strip() and "{{" not in out["prompt"] and "[start_image]" not in out["prompt"] and len(out["negatives"]) <= 5, t["id"]
+            assert not models, f"{t['id']}: a motion-graphics brief declares no provider model"
+            continue
         assert models, t["id"]
         for model in sorted(models):
             out = R.render(lib, t["id"], {}, model=model)

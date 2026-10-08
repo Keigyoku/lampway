@@ -179,3 +179,17 @@ def test_an_allowed_reference_does_not_hide_an_extra_url_on_its_line(tmp_path, m
     notice.parent.mkdir(parents=True)
     notice.write_text("https://projects.blender.org/lab/blender_mcp https://projects.blender.org/api/upload")
     assert _host_offenders([notice]) == [f"{CORPUS}NOTICE.md:1: projects.blender.org"]
+
+
+def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_path):
+    f = tmp_path / (CORPUS + "manifest.json")
+    f.parent.mkdir(parents=True)
+    f.write_text('{"source": "https://projects.blender.org/blender/blender.git",\n'
+                 ' "api": "https://docs.blender.org/api/5.2/",\n'
+                 ' "lookalike": "https://docs.blender.org.example.invalid/api/5.2/"}\n')
+    sys.modules[__name__].ROOT, saved = tmp_path, ROOT
+    try:
+        bad = _host_offenders([f])
+    finally:
+        sys.modules[__name__].ROOT = saved
+    assert bad == [f"{CORPUS}manifest.json:3: docs.blender.org.example.invalid"]
