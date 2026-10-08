@@ -55,7 +55,7 @@ The identity ratchet covers every agent tool and MCP-only server tool. It valida
 The refusal-name source scan excludes test directories only beneath each configured scan root. A checkout or fixture beneath an ancestor named `tests` must still scan production sources and detect planted unregistered names.
 
 MCP view inputs expose 28 pinned Blender editor identifiers, including WINDOW, through byte-identical client/server schema modules. Unknown editor identifiers refuse before Blender execution; supported but absent editors retain no_area. View help discloses its six defaults separately from arguments and output fields. Object detail returns the definitive layers summary count 0/top null for non-mesh targets without invoking the mesh paint engine.
-11. **Motion correctness.** `motion/` keeps sequential fresh-browser capture, separates receipt reproduction from existing-media integrity and provenance, checks finite inputs/audits/receipts, and seals checked render bytes before Vault capture. Cancellation joins only its own worker/processes, prevents new filing admission and reports committed assets; preserve user media and retained failure evidence. Replay retains QA/variant relationship intents. No retention, resource-limit or platform policy is inferred from these fixes. Contracts: [`../specs/motion_graphics/motion_graphics.md`](../specs/motion_graphics/motion_graphics.md).
+11. **Motion correctness.** `motion/` keeps sequential fresh-browser capture, separates receipt reproduction from existing-media integrity and provenance, checks finite inputs/audits/receipts, and seals checked render bytes before Vault capture. Cancellation joins only its own worker/processes, prevents new filing admission and reports committed assets; preserve user media and retained failure evidence. Replay retains QA/variant relationship intents. No retention, resource-limit or platform policy is inferred from these fixes. Contracts: [`../docs/canon/motion_graphics/motion_graphics.md`](../docs/canon/motion_graphics/motion_graphics.md).
 
 ## Test
 
@@ -76,6 +76,8 @@ The lane whose contract names the change writes it; the integration lane (`lp/wa
 Doctrine (the laws above, provider and spend policy) is the captain's.
 
 Main merges retain both the offline MCP wrappers and motion tool dispatch; generated tool documentation comes from the combined registry. Existing privacy, lease and no-spend boundaries remain enforced.
+
+Motion contract links resolve to ../docs/canon/motion_graphics/; measured acceptance is kept in ../docs/reports/motion-graphics-acceptance.md. Documentation relocation leaves production motion behavior and policy unchanged.
 
 ## Anneal log
 
@@ -98,3 +100,4 @@ Main merges retain both the offline MCP wrappers and motion tool dispatch; gener
 | 2026-10-07 | motion correctness hardening | captain authorizes mandatory PR3 integrity, Vault, validation and owned cancellation fixes | receipt reproduction obscured missing media, mutable handoff and replay lost QA edges, invalid inputs bypassed checks and cancelled callers left publishing workers | separate verification statuses, sealed bytes and replay intents, finite shape validation and tracked owned cancellation with retained evidence; no policy expansion | causal motion regressions and live Chromium cancellation |
 | 2026-10-08 | original MCP empty states and view reference | complete C0-C2/T1-T3 re-audit | non-mesh detail omitted layers, area schemas were unrestricted and view help omitted explicit defaults | require definitive non-mesh layers, byte-identical finite editor schemas and separate default disclosure while preserving no_area and pixel opt-in | three reproduced RED controls; 753 client/TOON, 78 server and post-edit native controls |
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
+| 2026-10-08 | motion documentation links | captain: relocate and write up motion specs | server contracts cited the root specs folder | link normative canon and separate measured report | combined registry/dispatch and documentation link checks |

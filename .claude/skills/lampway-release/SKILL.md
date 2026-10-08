@@ -82,6 +82,8 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 
 Release-contract merges retain both parents' privacy requirements and historical rows, keep the anneal table contiguous, and regenerate both harness copies from the canonical skill.
 
+Email content exemptions apply to an entire matched address or host. Reject suffix lookalikes in both regex exceptions and known-fake entries; a known-fake address on a line must not suppress a second address. Retain exact-host controls and scanner CLI redaction. Preserve versioned prompt filenames as non-contact text; responsive fixtures use reserved fake domains without changing address lengths.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -96,3 +98,4 @@ Release-contract merges retain both parents' privacy requirements and historical
 | 2026-10-07 | scoped PR1 publication dependencies | parent: integrate tested G24 gate/workflow fixes into PR3 | diagnostics exposed identifiers, matrix expressions resembled addresses, and checkout merge HEAD was a different endpoint | redact identifiers, prove matrix syntax, retain exact-provider/lookalike controls and scan explicit event endpoints | 33 gate/workflow/host/R04 regression cases; source 75a00df9, a4f2cee3, dc732196 |
 | 2026-10-08 | publication inventory and continuous anneal table | captain assigned PR3 review5450133925 two LOW findings | moved font licence left a stale inventory link/status and a blank line split the log table | verify tracked licence targets and upstream/absent status; keep anneal rows contiguous before regenerating skill copies | actual licence path and generated-copy/rail checks |
 | 2026-10-08 | merged publication contracts | captain: merge main after PR3 | duplicate publication changes conflicted with the MCP branch and could lose either history | retain both privacy contracts and parent rows before regenerating skill copies | merged rail check and publication regression selection |
+| 2026-10-08 | email content domain boundaries | PR3 finding4213654799 assigned to MCP owner | unbounded regex and known-fake prefixes accepted malicious suffix hosts | match full hosts and scope email exemptions to the matched address | 21 initial RED cases, allowlist RED, full privacy regression GREEN |

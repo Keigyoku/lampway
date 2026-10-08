@@ -49,6 +49,16 @@ Also: [goldens/](goldens/README.md) (two generators + self-tests: C01-C15 48 che
 and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Canons 16-22 were added the same day (the captain's rig-tools scope) and
 cite Lampway at `4e9001c7`.
 
+## Motion graphics contracts
+
+The motion contracts follow the same canon/report split as the 3D algorithms and rig-tool specifications. They describe existing runtime behavior and its invariants; open requirements retain their status, and no new algorithm golden or physical acceptance is inferred from their placement here.
+
+| Contract | Tool / implementation | Status and evidence |
+|---|---|---|
+| [Motion graphics method and invariants](motion_graphics/motion_graphics.md) | `lampway_motion_graphics`; server `motion/` | Implemented/tested rows and explicit open requirements; [acceptance report](../reports/motion-graphics-acceptance.md) |
+| [Agent inputs, outputs and receipt](motion_graphics/tool.md) | server `agent/motion_tools.py` | Runtime contract; reproduction, integrity and provenance remain separate |
+| [Scene, self-checks, templates and workflow](motion_graphics/scene.md) | server `motion/frames.py`, `motion/check.py`, motion templates | Retained refusal/threshold falsifiers; live-browser and platform evidence stay in reports |
+
 ## Sources read
 
 - Memory notes (captain rulings and lessons), every one the brief named plus pipeline-set-hp-lp, salvage-parts-piece-by-piece,

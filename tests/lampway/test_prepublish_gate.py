@@ -13,6 +13,46 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GATE = ROOT / "scripts/lampway/prepublish_gate.py"
 
+EXEMPT_EMAIL_DOMAINS = (
+    "users.noreply.github.com", "example.com", "example.invalid", "example.org",
+    "lampway.local", "lampway.dev", "anthropic.com", "example.net", "example.test",
+    "x.com", "z.io",
+)
+
+
+@pytest.mark.parametrize("domain", EXEMPT_EMAIL_DOMAINS)
+@pytest.mark.parametrize("suffix", (".evil.org", "-evil.org", "x"))
+def test_exempt_email_domains_do_not_exempt_suffix_lookalikes(domain, suffix):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    email = "noreply" + "@" + domain + suffix
+    findings = gate["scan_line"](email)
+    assert any(row[0] == "any-email" for row in findings)
+    assert all(email not in row[2] and domain not in row[2] for row in findings)
+
+
+@pytest.mark.parametrize("domain", EXEMPT_EMAIL_DOMAINS)
+def test_exact_exempt_email_domains_remain_exempt(domain):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    email = "noreply" + "@" + domain
+    assert not any(row[0] == "any-email" for row in gate["scan_line"](email))
+
+
+def test_an_exempt_address_does_not_hide_another_address_on_the_same_line():
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    line = "owner" + "@" + "lampway.local " + "private-fixture" + "@" + "gmail.com"
+    assert [row[0] for row in gate["scan_line"](line)] == ["any-email"]
+
+
+@pytest.mark.parametrize("name", ("template", "other-one"))
+def test_versioned_prompt_filenames_are_not_email_addresses(name):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    filename = name + "@" + "1.0.0.json"
+    assert gate["scan_line"]('path = "prompts/' + filename + '"') == []
+
 
 def test_the_gate_sees_every_planted_offender():
     p = subprocess.run([sys.executable, str(GATE), "--self-test"], capture_output=True, text=True)

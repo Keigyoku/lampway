@@ -53,6 +53,8 @@ Recovered public release assets retain exact release/file digests, installed-pat
 
 Physical UE capture handoffs enumerate exact missing transform/importer fields and preserve owner-only absolute rows; returned deltas do not establish a corrective transform alone. Approved material-role overlays update only named roles in private-copy recipes; facing/match, numerical limits and full acceptance remain separate.
 
+Normative motion method, scene and tool contracts belong in docs/canon/motion_graphics/ and the canon index. Their acceptance, historical measurements, review dispositions and remaining evidence belong in docs/reports/motion-graphics-acceptance.md; docs/README.md links both. Moving or rewriting a contract does not promote measured status.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -68,3 +70,4 @@ Physical UE capture handoffs enumerate exact missing transform/importer fields a
 | 2026-10-07 | original subtitle release recovery | captain: fix missing bundled originals without private transfer | public source omitted eight authored dub tracks and runtime packs contain no subtitles | verify official archive digest and installer file identities, preserve original bytes/timing and source licence | public release recovery hashes and maintained locale validation |
 
 | 2026-10-07 | precise physical bind and role handoffs | captain: continue actual bind diagnosis and approve three material roles | aggregate bind errors could not distinguish hierarchy, axes and comparison semantics; role approval risked implying full fit sign-off | enumerate minimum local capture with derived-only output and record exact role-only ruling without upgrading acceptance | owner-local capture and48role provenance overlays |
+| 2026-10-08 | motion canon and report convention | captain: follow existing canon and reports layout | root specs and a new parallel specs tree would split documentation authority | index normative contracts under canon and retain evidence history in reports | all relocated Markdown targets resolve; original thresholds and historical evidence retained |

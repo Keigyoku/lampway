@@ -3,7 +3,18 @@
 
 # Tool and receipt contracts
 
-Behavior follows the [agent wrapper](../../server/lampway_server/agent/motion_tools.py) and [renderer](../../server/lampway_server/motion/__init__.py) on this branch. This describes current behavior and remaining boundaries; it does not introduce an alternate executable schema.
+Status: **implemented contracts with explicit evidence limits and open requirements**. See the [motion canon](motion_graphics.md) and [acceptance report](../../reports/motion-graphics-acceptance.md); no acceptance is promoted by this write-up.
+
+## A. Problem and invariants
+
+Define the agent wire inputs, outputs and receipt meaning used by render and verify. Input validation precedes rendering; false reproduction is interpreted independently from transport success; cancellation and partial Vault filing remain visible; output paths remain project-contained.
+
+## B. Verification and gaps
+
+The acceptance report maps runtime regressions and live-browser evidence to exact heads. Malformed setup/audit/input, forbidden resources, near-threshold measurements and failed reproduction retain their refusal controls. Dedicated motion goldens and broader-platform proof are not supplied; existing open requirements stay open.
+
+
+Behavior follows the [agent wrapper](../../../server/lampway_server/agent/motion_tools.py) and [renderer](../../../server/lampway_server/motion/__init__.py) on this branch. This describes current behavior and remaining boundaries; it does not introduce an alternate executable schema.
 
 ## Inputs
 

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The agent's motion-graphics tool (specs/motion_graphics/motion_graphics.md): ``lampway_motion_graphics`` renders scene code to MP4 and WebM
+"""The agent's motion-graphics tool (docs/canon/motion_graphics/motion_graphics.md): ``lampway_motion_graphics`` renders scene code to MP4 and WebM
 frame by frame in a headless Chromium, self-checks it, writes a receipt and files an accepted render in the Asset Vault; ``verify`` re-renders a
 receipt and proves it reproduces. It runs here on the server (never in Blender), spends nothing and sends nothing: the long work runs in a thread
 and the call returns the paths. It is not a job service: the job registry takes only the Mixar client's wire job types."""

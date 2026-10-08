@@ -3,9 +3,22 @@
 
 # Motion graphics specification
 
-Status: newly authored on 2026-10-07 with the captain's authorization. This is not a recovered historical specification. These specifications belong to PR3 on `lp/motion`, added after implementation snapshot `6d51409ad2164b133a4eb17f9ac6b11a6b9559f0`; runtime descriptions now include the mandatory correctness fixes on this branch. Exact tested revisions remain in the acceptance ledger. Writing these documents does not certify release acceptance. Earlier separate docs drafts were closed without merge; this branch is the authoritative source.
+Status: **DRAFT for the explicit open requirements**; implemented and tested behavior retains its exact revision and evidence in the [acceptance report](../../reports/motion-graphics-acceptance.md). Originally authored on PR3 on 2026-10-07 after implementation snapshot `6d51409ad2164b133a4eb17f9ac6b11a6b9559f0`; this repository canon is now authoritative. The historical specification was not recovered, and publication does not certify release acceptance.
 
-Read [tool and receipt contracts](tool.md), [scene and workflow contracts](scene.md), and [acceptance and open requirements](acceptance.md) together. **Implemented** means inspected runtime behavior at that commit; **tested** requires the evidence listed in acceptance; **open requirement** needs implementation and a falsifier; **decision** needs the captain's choice. A requirement written here is not a passing test.
+Implemented by: [agent tool](../../../server/lampway_server/agent/motion_tools.py), [renderer](../../../server/lampway_server/motion/__init__.py), [frame capture](../../../server/lampway_server/motion/frames.py) and [self-checks](../../../server/lampway_server/motion/check.py). Index: [canon](../INDEX.md).
+
+## A. Problem and invariants
+
+Turn an authored local scene into repeatable silent video while retaining independently checkable source, frame, media and Vault evidence. The input is project-contained scene code and assets; time is seconds, frame rate is frames/second, and viewport geometry is pixels. Outputs are requested videos plus frame, audit and provenance receipts.
+
+Sequential frame order, fresh-browser sampled checks, exclusive output ownership, no provider spend or automatic egress, and unchanged source assets are required. Reproduction, existing-media integrity and provenance are separate results. Sampled agreement cannot certify every frame; unsigned receipts cannot attest immutable source history.
+
+## B. Falsifiers and implementation gaps
+
+Retained regressions cover order-dependent capture, differing probe pixels, missing/corrupt original videos, source/output path swaps, malformed inputs, cancelled workers and lost Vault relationships. The [acceptance report](../../reports/motion-graphics-acceptance.md) lists exact tests, revisions, observed RED/GREEN and real-browser evidence. Dedicated motion golden files are not supplied; the algorithm goldens do not prove this tool. Resource/retention policy, immutable snapshots and broader-platform proof retain their stated open status below; relocation changes none of those decisions.
+
+
+Read [tool and receipt contracts](tool.md), [scene and workflow contracts](scene.md), and [acceptance and open requirements](../../reports/motion-graphics-acceptance.md) together. **Implemented** means inspected runtime behavior at that commit; **tested** requires the evidence listed in acceptance; **open requirement** needs implementation and a falsifier; **decision** needs the captain's choice. A requirement written here is not a passing test.
 
 ## 1. Scope and source of authority
 

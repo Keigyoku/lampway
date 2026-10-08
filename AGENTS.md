@@ -86,7 +86,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `scripts/unix/`, `scripts/windows/`, `cmake/` | upstream's build machinery, with Lampway's options (`LAMPWAY`, `MIXAR_CUDA`) |
 | `tests/` | the standalone client suites, the brand and fork gates, the binary-driven tool tests, the rail's tests |
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
-| `specs/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
+| `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
 ## Facts carried from the upstream guide (verified against this tree)
@@ -139,7 +139,7 @@ a law, this file. Each child states its invariants, its test commands and its ow
 
 ## Maintaining this file
 
-Motion contracts live in [`specs/motion_graphics/motion_graphics.md`](specs/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
+Motion contracts live in [`docs/canon/motion_graphics/motion_graphics.md`](docs/canon/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
 
 Keep it for what almost every session needs; point at the file or command that owns a detail. Prefer rewriting an entry to
 appending a sibling. A change here owes an anneal row in the same commit, like every rail.
@@ -158,6 +158,8 @@ The render/device/job contract is documented in [docs/render-job-contract.md](do
 
 Main merges retain both the offline MCP wrappers and motion tool dispatch; generated tool documentation comes from the combined registry. Existing privacy, lease and no-spend boundaries remain enforced.
 
+Motion normative specifications are indexed in docs/canon/INDEX.md, with measured acceptance and review evidence in docs/reports/motion-graphics-acceptance.md. The repository has no parallel root specs tree for those contracts.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -171,3 +173,4 @@ Main merges retain both the offline MCP wrappers and motion tool dispatch; gener
 | 2026-10-07 | complete no-red ownership | captain: inherited reds must be fixed | baseline-relative greens and missing public network/render docs obscured unfinished integration | assign every failing identity, document current contracts and require combined zeroFAIL/ERROR evidence without weakened guards | exact122-ID inventory and source-backed network/render gates |
 | 2026-10-07 | formal motion contracts indexed | captain authorizes writing the previously unwritten specs | implementation citations had no repository specification and could overstate acceptance | index the new contracts and require explicit behavior, gap and decision status with exact-head evidence | captain ruling, 2026-10-07 |
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
+| 2026-10-08 | motion documentation convention | captain: use canon and reports | root motion specs did not follow the repository convention | point the repository map and contracts at canon with separate acceptance reports | canon/docs indexes and complete relocated-link audit |

@@ -65,6 +65,8 @@ Scanner regression fixtures remain self-contained when the security guard is sha
 
 Native bind tests distinguish source-copy error, authored node/BindPose/cluster error and imported display reconstruction. Preserve the unchanged shortest-quaternion rotation bar, including a diagonal-axis near-bar falsifier. A synthetic display-tail mechanism does not establish an owner-source cause. Native source_copy and exact Armature container controls preserve originals and refuse unsupported graphs/conventions or occupied names before copies.
 
+Privacy regression coverage includes suffix lookalikes for every exempt email host and legacy fake domain, positive exact-host controls, and mixed-line addresses. Preserve generic and owner-specific blocking plus matrix-code and CLI redaction controls. Keep versioned prompt filename controls and use same-length reserved fake addresses for responsive layout fixtures.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -88,3 +90,4 @@ Native bind tests distinguish source-copy error, authored node/BindPose/cluster 
 | 2026-10-08 | actual native bind correction controls | measured long source bones, implicit Manny and verified UE predicate | synthetic source-short-bone diagnosis did not explain actual readback; independent authored binds were missing | Test source preservation, exact disposable container naming and redundant node/pose/cluster evidence separately, with unchanged quaternion bars and explicit physical proof limits. | default-reference/container RED and corrupt bind/near-bar plants |
 
 | 2026-10-08 | original MCP contract boundary controls | complete C0-C2/T1-T3 re-audit | omitted non-mesh summaries and unrestricted editor strings passed existing tests while defaults remained implicit | preserve missing-summary, invented-editor and explicit-default RED controls plus native empty-state and no_area checks | 753 standalone, 78 server and two post-enum isolated native checks; aggregate acceptance remains separate |
+| 2026-10-08 | email exemption falsifiers | PR3 finding4213654799 | domain prefix exceptions and line-wide email allowlisting hid planted offenders | test complete hosts and independent addresses while retaining exact fake controls | initial21 and allowlist RED receipts plus privacy suite |

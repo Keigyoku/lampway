@@ -80,6 +80,8 @@ Derived bind diagnostics include left-relative and right-relative quaternion del
 
 The bounded export-copy probe identifies its overlay by exact source hashes. Preserve immutable historical probes; update current pins when the owned exporter changes, without claiming a commit identity from an arbitrary checkout or native engine acceptance.
 
+Generic email scanning consumes the complete host and bounds every domain exemption. Legacy example placeholders retain only exact reserved hosts; other known-fake hosts/addresses cannot exempt suffix lookalikes or another address on the line.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -109,3 +111,4 @@ The bounded export-copy probe identifies its overlay by exact source hashes. Pre
 | 2026-10-07 | public bounded export-copy probe | captain: local validator cannot read off-repository cloud probe | private task paths blocked reproducible short-bone diagnosis and nested failures could expose owner strings | publish source-pinned eight-row disposable-copy diagnostics with unchanged-scene and sanitized-refusal controls | real-binary bounded numeric rows, wrong-source, missing-row and post-yield cleanup tests |
 
 | 2026-10-08 | current export-copy probe source pins | scoped native conform/export correction | historical1368 pins refused the corrected Python modules | Keep the historical probe immutable and pin current exporter bytes with a source-hash identity; no engine acceptance claim. | bounded numeric, wrong-source, missing-row and sanitized cleanup controls |
+| 2026-10-08 | email scanner exact exemptions | PR3 finding4213654799 assigned to MCP owner | regex and allowlist prefixes hid suffix lookalikes | retain full-host matches, per-address exemptions and redaction | suffix, exact-domain, mixed-line, versioned-filename and self-test controls |

@@ -3,6 +3,17 @@
 
 # Scene, templates and workflow
 
+Status: **implemented contracts with explicit evidence limits and open requirements**. See the [motion canon](motion_graphics.md) and [acceptance report](../../reports/motion-graphics-acceptance.md); no acceptance is promoted by this write-up.
+
+## A. Problem and invariants
+
+Define deterministic scene authoring, readiness/audit geometry and the template workflow. Readiness is checked after setup; each frame is authored from seconds alone; authored audits enumerate visible text and marks in viewport pixels; sampled checks and template guidance retain their documented limits.
+
+## B. Verification and gaps
+
+The acceptance report maps runtime regressions and live-browser evidence to exact heads. Malformed setup/audit/input, forbidden resources, near-threshold measurements and failed reproduction retain their refusal controls. Dedicated motion goldens and broader-platform proof are not supplied; existing open requirements stay open.
+
+
 ## Scene contract (section 4 of the original implementation references)
 
 A scene is a project-contained directory with HTML and every required font, image, script and stylesheet. Use local or embedded resources. The author must supply:
