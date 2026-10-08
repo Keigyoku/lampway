@@ -42,8 +42,14 @@ The native binary SHA-256 is `795dee99a94835145d9e8b9724d6fa23f570fcab089c62908a
 Actual native GUI checks show a separate, positive-height Mode chip beside Model, correct BYOA tooltip, and a mouse-opened
 registered Mode menu. The five fitter/RNA checks and eleven native consumer ON/OFF syntax/branch and planted-definition
 controls passed. Physical View3D drawer and brand tests measured both requested palette changes. This is not a full OFF build.
-All 54 required checkpoint identities passed together on that published head with no skips. Its full client suite is still
-running and has recorded failures; earlier baseline counts and changing-tree runs are not final acceptance evidence.
+All 54 required checkpoint identities passed together on that published head with no skips. Its immutable full client run
+finished with 9,597 passed, 10 failed and 79 skipped, plus 96 passed subtests. Before/after clean source, build stamp and binary
+hash match. The failures were static attribution, worker Stop, two dimensionless SVG fixtures, the governing render-contract
+link, three expired collection-time voice credentials and two unchanged 240-second procedural-render timeouts. The first five
+were repaired by `96ab5403`; the three voice fixtures now mint credentials at execution. No production expiry or test deadline
+was weakened. Matching Mesa's renderer pool to the cloud CPU quota (`LP_NUM_THREADS=4`) still timed out the unchanged first
+material test at 240 seconds, with source, generated overlay and installed script bytes held. The second calibration was not
+run. Both original full-run render failures remain unverified and need the requested built-app hardware validation.
 
 ## Scoped completion repairs
 
@@ -61,8 +67,14 @@ behavior was not changed by the worker repair.
 
 The exact three-file PR1 dependency `323d44b99e5c4418e5412de710bbc436982034d5` is imported with provenance. Its R04 angle
 measurement uses `atan2(cross norm, dot)` to preserve actual angles without BLAS-dependent arccos amplification; matrices,
-keys, tolerances, falsifiers and the exact-byte gate remain intact. PR1's published `b1e300cf` canon CI passed. PR4 must
-still earn its own current-head canon CI after publication.
+keys, tolerances, falsifiers and the exact-byte gate remain intact. PR1's published `b1e300cf` canon CI passed. All five PR4 CI
+workflows passed at `96ab54031af4957be77b80781ba54bba8d43d727`, and its 54 required checkpoint identities passed without skips.
+
+The guarded full server run at immutable clean `96ab5403` finished with 2,341 passed, zero failed and 17 skipped. Four of those
+skips were a supplied engine-path mistake; the separate corrected-root run passed all four without skips. This is 2,345 unique
+passing tests and thirteen still unverified. Native cases used the explicitly recorded prior `eeb3039d` binary; they are not
+a matching final-build receipt. The earlier stdin-launched run failed five multiprocessing cases; that receipt is retained and
+all five passed under the reloadable file launcher.
 
 ## Remaining acceptance and decisions
 
@@ -73,10 +85,21 @@ still earn its own current-head canon CI after publication.
 * Complete the full client/server suites and exact final published-head CI; build and retain a matching receipt after these
   scoped repairs, then rerun actual Stop, profile Docs/Report, native Mode and palette checks against that same candidate.
 * All seven adapters still require real account-backed scene-tool, interrupt, image and session-record acceptance. No provider,
-  paid-call, credential or persistent-grant authorization has been supplied. Grok 1.0.46 symbolic MCP variables work in concurrent
-  offline doctor checks, but the primary custom-agent activation did not apply scoped MCP during a network-denied synthetic
-  first turn. A persistent setup exception is not ready to approve until its isolation is technically demonstrated. User Hermes's
-  compatible login-preserving pane route also remains unproved. A terminal opening or offline probe is not account acceptance.
+  paid-call, credential or persistent-grant authorization has been supplied. Correct sequence-shaped `mcpServers` activated
+  Grok 1.0.46's primary custom-agent body and inline MCP in a network-denied synthetic first turn. Earlier mapping-shaped
+  fixtures were invalid, so no primary-activation vendor defect is claimed. Primary overlays still retain unrelated global
+  MCP entries, and `enabled: false` does not remove inherited entries. Symbolic variables were proven in doctor/disk config;
+  inline environment placeholders arrived literally. Worker-only isolation remains unproved, separately from account approval.
+  User Hermes's compatible login-preserving pane route also remains unproved. A terminal opening or offline probe is not account
+  acceptance.
+* The final contract audit found unused R3/Q3 Context configuration and native internal-helper interpretation gaps. A separate
+  PR4-only candidate has typed project overrides, displayed pinned defaults, no default writes, user-only routes and guarded
+  client controls; 154 client checks and 179 combined server/adapter checks passed, with four live-engine checks not run in that
+  candidate focus. It refuses live saves because the pinned runtime lacks a guarded reload of these fields, and cannot select
+  an independent summarizer model through the current gateway. It is not published or accepted. The captain's ruling is pending
+  on next-user-reopen application versus retaining the live-reload requirement, and on whether Hermes's native internal helpers
+  may remain inside the existing pane under A0/A1/Q14. A proposed delegation restriction alone does not fence native `/bg` or
+  `/btw`; no complete internal-helper isolation is claimed.
 
 No force push, merge, deployment, paid provider call, account credential transfer, user desktop operation or private asset
 upload was performed by this cloud crew. User originals were not purged; image-expiry tests use their own temporary files.

@@ -63,8 +63,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    show stays `[UNVERIFIED]` there. herdr 0.9.3 starts every user harness itself (`agent start --kind`), under the agent name
    `host.agent_name` (`lw-<record id>`: herdr takes only `[a-z][a-z0-9_-]{0,31}`), and keys are herdr's spelling (`ctrl+c`, never
    `ctrl-c`); the played herdrs refuse what the real one refuses (`tests/herdr_support.py` `herdr_refusal`). A harness with no
-   per-pane way to Lampway's tools (the user's own Hermes, Grok, Cursor: they read MCP servers only from the user's own or the
-   project's shared config) says so in the listing (`tools: false` with the reason); Pi reaches them through Lampway's own Pi
+   verified pane-scoped route to Lampway's tools (the user's own Hermes and Grok) says so in the listing (`tools: false` with the
+   reason). Grok 1.0.46 accepts a primary `--agent` file with sequence-shaped `mcpServers`, but its overlay retains unrelated
+   configured MCP servers; `enabled: false` does not remove inherited entries. Its worker-only route remains unproved. Cursor's
+   supported per-pane plugin describes its account/tool execution as unverified. Pi reaches tools through Lampway's own Pi
    extension (`harnesses/lampway_pi_extension.js`, a wrapper only: it hands the pane's own 0600 config to Pi's MCP client).
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
@@ -326,3 +328,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | PR4 owned pane model-call lifetime | actual two-worker Stop left a provider held after pane close; TCP-held and multi-call RED controls | admission revocation left already-running calls alive and a worker could retry before key removal | invariant 10: enrolled calls end with their key, revocation precedes owned pane close, main calls survive, confirmation stays mandatory | none |
 
 | 2026-10-08 | implicit parent service until explicit worker choice | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | parent-only provider scope selected a cheap/low-effort worker model and a parent dialog save overwrote an explicit worker choice | invariant 10: full implicit parent choice, explicit worker scopes only from worker fields, saved overrides preserved and resolutions pinned | direct captain ruling |
+| 2026-10-08 | exact Grok primary overlay observations | valid sequence-shaped primary-agent fixture on installed 1.0.46 | invalid mapping-shaped probes falsely suggested primary activation was unsupported; global MCP exclusion still fails | invariant 6 and adapter FACTS distinguish proven activation/name replacement from unproved worker isolation and account execution | network-denied synthetic native probes |
