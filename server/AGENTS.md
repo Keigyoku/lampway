@@ -83,6 +83,10 @@ Composite `lampway_fit stage=conform` documents the admitted ARAP candidate, cal
 
 Keep composite stage guidance within the full MCP catalogue byte ceiling; link detailed arguments to canon03-H2 and preserve candidate next_args instead of increasing the measured limit.
 
+Cockpit labels remain user-facing text. Launch Claude, Codex and OpenCode with a distinct durable ASCII herdr identifier derived from the session record id; persist both identifiers, preserve permission flags and use pane/terminal identity for reconciliation. Duplicate friendly labels must not collide or trigger an extra launch.
+
+The public normalize_rigged unit argument forwards auto, m, cm or in. Explicit units are caller declarations recorded separately from measured reference-height evidence; they do not resize a rig to match a reference or bypass convention/topology gates. Keep the existing catalogue byte bound.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -108,3 +112,5 @@ Keep composite stage guidance within the full MCP catalogue byte ceiling; link d
 | 2026-10-08 | admitted soft conform stage contract | captain admits ARAP candidate and delegates untested solver defaults | public descriptions still claimed the stage was unbuilt, while a solve could be mistaken for reviewed acceptance | document explicit limits, pending candidate versus accepted stage, untested defaults and unchanged identity/review gates | composite/native solver regressions and generated registry check |
 
 | 2026-10-08 | bounded conform catalogue | full standalone G15 check | expanded guidance crossed335000B catalogue ceiling | shorten redundant stage prose, preserve explicit inputs/review/untested labels and linked canon, retain ceiling | unchanged full catalogue regression |
+| 2026-10-08 | cockpit friendly labels and launch identity | actual native friendly-name audit | capitals, spaces and Unicode reached herdr agent start and were rejected | preserve display names and launch once using a durable ASCII session identifier | 13 genuine invalid-name RED cases followed by friendly-name, duplicate, persistence and command controls |
+| 2026-10-08 | declared normalization unit interface | actual own-rig unknown-unit refusal | help named an argument absent from the public wrapper | expose and forward the declared unit with schema documentation, provenance and unchanged bounds | server forwarding and full catalogue controls |

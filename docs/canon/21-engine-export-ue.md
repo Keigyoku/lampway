@@ -52,6 +52,15 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    `interaction`) are exported only if the reference has them (canon 16 B.6).
 5. **Frames in one convention** (canon 17 B.1): a `mixed` armature is refused before writing. The convention inside Blender and
    the axis settings form a PAIR; the read-back proves the pair.
+   A complete342 independent native bind calibration uses canon17's separately
+   verified writer-axis admission while retaining the strict joint classifier's
+   original result. Its private reference receipt must match the unchanged rest
+   fingerprint, exact topology and all342 independent bind rows under the
+   existing bars. The default file readback compares against these independent
+   reference binds, not the output itself. Missing, corrupted or stale receipts
+   refuse. Original-input headless conform and authored-file checks pass after
+   the measured329-frame correction; a fresh actual UE import of the corrected
+   file remains required and unverified.
 6. **Animation:** baked keys only (canon 19), no constraints, one action per clip, frame range recorded; root motion per canon 19. UE animation uses the same measured axes and disposable centimetre/action copies. Resolve the requested action slot against the original armature before copying, including a non-active requested action; ambiguous slots refuse. Check raw units, identity Armature container, full topology and exact pinned-writer key cadence. Preserve source action/slot, pose, frame and all datablocks. A skeleton-only clip lacks independent skin cluster binds and cannot claim authored skin-bind acceptance or native UE animation parity.
 7. **Meshes:** one skinned mesh per piece, vertex groups naming only bones the reference has (LT `fit_export.py` gates it),
    normals preserved and compared corner by corner on read-back (Titan tools rail, wave4-tools-9: canonical corner shading and

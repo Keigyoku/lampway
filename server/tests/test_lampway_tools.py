@@ -173,3 +173,10 @@ def test_qa_tag_layers_requires_the_explicit_target_object():
     assert "object" in spec.parameters.get("required", [])
     with pytest.raises(ValueError, match="object"):
         LT.build_script(next(d for d in LT.DEFS if d.name == "lampway_qa_tag_layers"), {})
+
+
+def test_normalize_rigged_forwards_an_explicit_authored_unit():
+    spec = next(t for t in T.TOOLS if t.name == "lampway_normalize_rigged")
+    assert "unit" in spec.parameters["properties"]
+    script = T.script_for("lampway_normalize_rigged", {"armature": "own_rig", "unit": "m", "dry_run": False})
+    assert args_of(script) == {"armature": "own_rig", "unit": "m", "dry_run": False}

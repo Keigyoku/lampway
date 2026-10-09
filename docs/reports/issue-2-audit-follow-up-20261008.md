@@ -77,3 +77,68 @@ The supplied complete private audit archive was downloaded and read:3,749,232 by
 The native build preflight reports absent build dependencies and libraries; the selected filesystem initially had17GiB free versus the build script's100GiB requirement (later14GiB after verification artifacts). No new build stamp is written. The maintained reference admission requires the authentic shelf; no primitive is substituted. The selected environment exposes no GPU device.
 
 The explicit live list also retains owner-provider sign-in/Connections tests, paid studio approval and execution, UE Look editor/render parity, native fit export/validate, actual MetaTailor export, authenticated cockpit/MCP workflows, missing authentic shelf/Boots fixtures, and final match/facing/physical fit review. Existing checked WezTerm and native-sidecar acceptance are preserved. No spend, account change, desktop operation, deployment or PR merge is performed by this follow-up.
+
+
+## Subsequent supplied-input correction pass
+
+The subsequent validation package supplies authentic shelf images, original
+native inputs and independently captured bind references. Its image recheck
+supersedes the earlier missing-chest-oracle claim: the unchanged chest ranking
+and cut test runs with the authentic Pictures tree beneath an isolated HOME.
+Historical reports above retain their original head and evidence attribution.
+
+The native conform path now carries the independent authored full native bind
+through the fixed declared writer-axis bridge. It requires the exact native
+roster/edges and identity mapping, matching reference joints, proper frames,
+unit scale and unchanged bind tolerances. It refuses synthesis, IK additions,
+offsets and stale or modified reference-bound receipts. Joint-angle diagnosis
+remains separate and can still report mixed; writer admission comes from the
+independent full-bind proof. Default export readback uses that independent
+reference rather than its own output. Actual engine import remains a separate
+required physical check.
+
+Scale application now preserves authored armature-space rotations and transfers
+unkeyed current pose translations alongside location keys. Rollback restores
+existing key coordinates, handles and current locations without replacing NLA
+action identities. The existing eight-frame 1e-6m preservation bar remains.
+The public normalizer exposes the declared unit override already named by its
+refusal. Validated mannequin IK and origin marker helpers use authored endpoint
+transport, with exact graph guards rather than an arbitrary continuation child.
+
+Native bind intake explicitly validates the complete authored helper graph;
+placement planning measures current fit-pose segments and excludes correctives
+from automatically selected anatomical fit bones. General unstamped weight
+inspection retains its original refusal. Successful planning is not permission
+to widen the caller's bone contract or claim a reviewed physical fit.
+
+The native screenshot operator now reads the existing offscreen window
+composition under the target window GPU context and restores the previous
+context. The windowmanager target owns the conditional LAMPWAY definition;
+upstream OFF routing remains covered. The compiled dispatcher regression is
+separate from a full rebuilt application and actual nonblack operator pixels.
+
+Cockpit friendly labels are preserved while Claude, Codex and OpenCode launch
+once with a distinct durable ASCII identifier tied to the session record.
+Reconciliation retains pane/terminal identity and existing permission flags.
+UE cube capture now restores normal postprocessing even after a disabled-control
+readback exception and verifies both disabled/restored settings. That correction
+does not establish the cause or acceptance of an ineffective physical GPU
+control; the unchanged 1/255 control and publication guards remain mandatory.
+
+The source-integrity diagnostic test now expects all three modules it actually
+pins, including rig_core. No scene-preservation assertion or source pin was
+removed. Owned regression runs retain behavioral RED and reversion/corruption
+receipts. Full server/client results, native source versus current Python-overlay
+limits and exact source/package hashes are delivered in the private verification
+package. The separately owned Agent Mode failures remain an integration
+interface; this pass does not merge or reimplement that crew.
+
+
+Current worktree checks: full server2250 passed/54 skipped; combined native-Python
+integration48 passed on the older diagnostic binary/current overlay; compiled
+native-source and UE capture controls45 passed; cockpit label controls14 passed.
+The standalone client repeat found the54 separately owned Agent Mode identities
+plus a brand-scanner fixture ancestry defect. The scanner now prunes only exact
+test/cache descendants beneath each scan root, with a genuine ancestor RED and
+four passing controls. These worktree results precede the final committed-head
+repeat; skipped platform/live tests and physical acceptance remain separate.

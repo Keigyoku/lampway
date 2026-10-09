@@ -59,14 +59,16 @@ def reference_rig(path, ob):
     k = float(doc["adapter"]["centimeters_per_unit"]) / 100.0
     inv = ob.matrix_world.inverted()
     inv3 = np.array(inv.to_3x3())
-    names, parents, heads, frames = [], {}, {}, {}
+    names, parents, heads, frames, scales = [], {}, {}, {}, {}
     for b in doc["bones"]:
         t, q = b["bind"]["translation"], b["bind"]["rotation"]
         names.append(b["name"])
         parents[b["name"]] = b["parent"]
         heads[b["name"]] = tuple(inv @ Vector((t[0] * k, -t[1] * k, t[2] * k)))
         frames[b["name"]] = inv3 @ np.array(_q((-q[0], q[1], -q[2], q[3])).to_matrix())
-    return {"names": names, "parents": parents, "heads": heads, "frames": frames, "name": f"{doc.get('name')} ({p.name})", "sha256": RC.sha(doc["bones"])}
+        scales[b["name"]] = b["bind"].get("scale", [1, 1, 1])
+    return {"names": names, "parents": parents, "heads": heads, "frames": frames, "scales": scales,
+            "name": f"{doc.get('name')} ({p.name})", "sha256": RC.sha(doc["bones"])}
 
 
 def _source(ob):
@@ -212,6 +214,8 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
                "sha256": {"input": stamp["input"], "map": _file_sha(mp), "reference": ref["sha256"]}}
     if preserving:
         summary.update(reference_scope="source_preservation", engine_bind_acceptance="unverified; source rest preservation is not native UE parity")
+    elif plan.get("reference_scope") == "independent_native_bind":
+        summary.update(reference_scope=plan["reference_scope"], engine_bind_acceptance="unverified; independent-reference frames require actual UE import acceptance")
     if dry_run:
         return {**summary, "dry_run": True, "how": "dry_run=false writes the conformed copy (the source is never touched)"}
     visibility = [(o.hide_viewport, o.hide_get()) for o in [ob, *meshes]]
@@ -284,6 +288,8 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
         frame_errs = {b["name"]: RC.angle_deg(np.array(new.data.bones[b["name"]].matrix_local.to_3x3()), b["frame"]) for b in plan["bones"]}
         worst = max(frame_errs, key=frame_errs.get)
         frame_err = {"bone": worst, "deg": frame_errs[worst]}
+        if plan.get("reference_scope") == "independent_native_bind" and frame_errs[worst] > RC.BARS["rotation_deg"]:
+            raise C.FeatureError(f"{worst}: native frame storage error {frame_errs[worst]:.6g} deg exceeds the unchanged bind rotation bar: rolled back")
         rest_new, rest_base = _evaluated(copies), _evaluated(base_meshes)
         drift = max((float(np.max(np.abs(a - b))) for a, b in zip(rest_new, rest_base) if len(a)), default=0.0)
         span = max((float(np.max(np.abs(a))) for a in rest_base if len(a)), default=1.0)
@@ -326,4 +332,16 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
            "animation": "not carried: the copy has no action (rig_retarget or rig_convert carries motion across rest frames)",
            "help": [f"run lampway_rig_inspect armature={name} before the next rig tool"]}
     out["sha256"] = {**summary["sha256"], "output": RT._fingerprint(new, RT.read(new))}
+    if plan.get("reference_scope") == "independent_native_bind":
+        mw = np.array(new.matrix_world)
+        binds = {n: {"head_m": (mw[:3, :3] @ np.asarray(ref["heads"][n]) + mw[:3, 3]).tolist(),
+                     "frame_engine": (mw[:3, :3] @ np.asarray(ref["frames"][n])).tolist()} for n in ref["names"]}
+        new["lw_native_reference_bind"] = json.dumps({"schema": "lampway.native-reference-bind/1",
+            "convention": convention, "reference_sha256": ref["sha256"], "output_rest": out["sha256"]["output"],
+            "binds": binds, "binds_sha256": RC.sha(binds)}, separators=(",", ":"))
+        try:
+            RT.reference_convention(new)
+        except Exception:
+            _remove([new, *copies])
+            raise
     return out

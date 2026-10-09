@@ -127,6 +127,24 @@ def postprocess_readback(actual, fields):
     return settings
 
 
+def disabled_tone_controls(ue, component, normal, fields, controls, sample):
+    """Verify the actual control state and restore it even if GPU readback fails."""
+    disabled_fields = dict(fields, tone_curve_amount=0.0, expand_gamut=0.0)
+    disabled = ue.PostProcessSettings()
+    for key, value in disabled_fields.items():
+        disabled.set_editor_property('override_' + key, True)
+        disabled.set_editor_property(key, value)
+    try:
+        component.set_editor_property('post_process_settings', disabled)
+        settings = postprocess_readback(component.get_editor_property('post_process_settings'), disabled_fields)
+        for control in controls:
+            control['tone_curve_disabled'] = sample(control['input'])
+        return settings
+    finally:
+        component.set_editor_property('post_process_settings', normal)
+        postprocess_readback(component.get_editor_property('post_process_settings'), fields)
+
+
 def plan(request):
     size = request['profile']['project']['cvars']['r.LUT.Size']
     count = sum(1 for _ in grid(size, request['shaper']))
@@ -239,17 +257,11 @@ def capture(ue):
             if max(abs(a - b) for a, b in zip(raw, rgb)) > 0.005:
                 raise ValueError('raw scene-color input control failed; no cube emitted')
             controls.append({'input': list(rgb), 'raw': raw, 'display': sample(rgb)})
-        disabled = ue.PostProcessSettings()
-        # Clone every applied field so the negative control changes only the native UE curve/gamut.
-        for key, value in fields.items():
-            disabled.set_editor_property('override_' + key, True)
-            disabled.set_editor_property(key, value)
-        disabled.set_editor_property('tone_curve_amount', 0.0)
-        disabled.set_editor_property('expand_gamut', 0.0)
-        component.set_editor_property('post_process_settings', disabled)
-        for control in controls:
-            control['tone_curve_disabled'] = sample(control['input'])
-        component.set_editor_property('post_process_settings', pp)
+        disabled_settings = disabled_tone_controls(ue, component, pp, fields, controls, sample)
+        # Synthetic QA values and typed settings only: retain failed controls without a sidecar.
+        print('LAMPWAY_UE_CUBE_CONTROLS ' + json.dumps({
+            'postprocess_readback': settings, 'disabled_postprocess_readback': disabled_settings,
+            'controls': controls}, sort_keys=True))
         if max(abs(a - b) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) <= 1 / 255:
             raise ValueError('native disabled-tone negative control showed no curve difference')
         started, rows = time.monotonic(), []

@@ -121,6 +121,8 @@ class Cockpit:
             raise CockpitError("a command session needs the command")
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
+        record_id = uuid.uuid4().hex[:12]
+        herdr_agent_name = "lampway-" + record_id
         snap = self.snapshot()
         ws = next((w for w in snap["workspaces"] if w.get("label") == WORKSPACE_LABEL), None)
         env = L.pane_env()
@@ -140,9 +142,9 @@ class Cockpit:
         elif agent in ("claude", "codex", "opencode"):
             sid = str(uuid.uuid4()) if agent == "claude" and not resume_id else None
             native_id = native_id or sid
-            L.run(self.root, ["agent", "start", name[:40], "--kind", agent, "--pane", pane_id, "--", *agent_args(agent, effort, bypass, resume_id, sid)], timeout=120)
+            L.run(self.root, ["agent", "start", herdr_agent_name, "--kind", agent, "--pane", pane_id, "--", *agent_args(agent, effort, bypass, resume_id, sid)], timeout=120)
             tokens = [agent]
-        rec = {"id": uuid.uuid4().hex[:12], "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
+        rec = {"id": record_id, "name": name, "herdr_agent_name": herdr_agent_name if agent in ("claude", "codex", "opencode") else None, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
                "state": "live", "adopted": True, "agent_sends": False, "created_at": time.time(), "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by}
         self._update(lambda d: d["sessions"].append(rec))

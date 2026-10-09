@@ -22,8 +22,12 @@ anything, (3) matching one character's size to another. They are never the same 
    {1, 0.01, 100, 0.0254, 39.37} only when the ratio lands within 5 % of it, else refuse naming the ratio (the reference-height
    read is LT `export_checks.py:96`). MB multiplies the object by 100 and sets the scene unit to 0.01 unconditionally
    (`AutoScalenew.py:213-216, 290`) — correct only for a metre-authored source.
+   A caller may explicitly declare `unit=m|cm|in` at the normalization door;
+   record that declaration as `unit_metadata`, retain the measured reference
+   ratio, and apply only the declared unit factor. A different character size
+   (for example1.258 times the reference) is not a guessed unit conversion.
 2. **Applying a uniform object scale s** to an animated armature: rest heads x s, pose-bone location keys x s (all bones, both
-   handles), object-level location keys untouched, rotation keys untouched. Exact (golden R03 uniform control: 0.0 m).
+   handles), and unkeyed current pose locations x s. Object-level location keys and rotation keys stay untouched. Uniform rest writes preserve the authored armature-space rotation, scaling only matrix translation and length through edit RNA; the native recursive parent-local roll re-extraction is not needed for a scalar transform. Exact (golden R03 uniform control: 0.0 m).
 3. **A non-uniform object scale S** has NO rotation-only equivalent once bones are posed: `S R_rest B` is not a rotation times a
    rest when S is not uniform. Translation keys transfer exactly by `loc' = R'^T S R_rest loc` with `R' = polar(S R_rest)`
    (R03: world offset (0.4, -0.1, 0.9) kept); rotation keys do not. The tool therefore applies S to an UNANIMATED armature
@@ -54,6 +58,8 @@ anything, (3) matching one character's size to another. They are never the same 
 | 2026-10-05 (read) | MB Apply Scale: a generator consumed by a nested loop leaves the FIRST location f-curve unscaled; only `scale[0]` is used; it runs only when `scale[0] > 1` | test the transfer, never trust the loop | MB `ApplyScalear.py:18`, `:108-121` |
 | 2026-10-05 (measured) | MB Apply Scale reads `action.fcurves`, which Blender 5.2 does not have (`Action.fcurves` False, `Action.layers` True) | an add-on that claims 5.1 still carries the 4.3 API in places | headless probe; MB `ApplyScalear.py:108` |
 | 2026-09-30 | FBX bones carried scale 100 although the frames were right | the unit is part of the export recipe (canon 21) | memory native-body-canonical-for-fit |
+
+| 2026-10-09 (measured) | Actual own-warrior root at object scale0.01 with unkeyed pelvis translation: old normalization drift4.82m; corrected scalar rest/pose transfer drift9.685754776e-7m; four saved variants3.5762786865e-7m | transfer unkeyed locations, retain authored rest rotation and unchanged1e-6m guard; rollback restores NLA keys on their original action IDs | isolated original-input copies, normalization follow-up |
 
 ## E. Golden tests (`goldens/R03_apply_scale`)
 

@@ -50,6 +50,16 @@ Receipts distinguish `authored_bind_verification`, `reference_scope` and still
 unverified `engine_bind_acceptance`. A self roundtrip supplies no independent
 native reference, and native mesh-versus-Skeleton pose calibration remains pending.
 
+An output from complete342 independent native bind conform retains a private
+reference receipt. Verify its reference pin, expected-bind digest, exact
+topology, current rest fingerprint and every independent bind row before
+selecting the declared convention recipe. Joint-angle classification remains
+visible and unchanged. With no explicit export reference, this path uses the
+stored independent reference binds for authored-file readback and reports
+`reference_scope="independent_native_bind"`. Reject stale or corrupted receipts;
+do not silently fall back to joint classification or self reference. This
+reference/file proof does not establish fresh actual UE import parity.
+
 Refusals: `mixed` convention (canon 17); root or hierarchy differing from the reference;
 leaf bones; a vertex group naming a bone the reference lacks; constraints present; a read-back row over tolerance
 (rows listed, the file moved to `export/rejected/`); an existing different `out`.

@@ -13,7 +13,7 @@ from mixar.modules.lampway_tools.features import rig_export_space as SPACE
 from mixar.modules.lampway_tools.features import rig_tools as RT
 from mixar.modules.lampway_tools.rig_tools import core as RC
 
-EXPECTED = {'rig_export.py': '98e11550658dca89e59f72a8f7d363ac26313075439db1de66f5c7b03b8a4880', 'rig_export_space.py': '9bb3c077bde9591eb30b8c003289a63e738c7f19869ad299f5ef72534d47c847'}
+EXPECTED = {'rig_export.py': 'f5d32ebc50c2ce092fcb76fa5feebb9443e20062ab3f2e5aa67ff44f9feab0bf', 'rig_export_space.py': '9bb3c077bde9591eb30b8c003289a63e738c7f19869ad299f5ef72534d47c847'}
 SELECTED = ('upperarm_twistCor_01_r','thigh_twistCor_01_l','thigh_twist_01_l',
             'upperarm_twist_01_r','calf_twistCor_02_r','calf_twist_02_r',
             'calf_twist_02_l','calf_twistCor_02_l')

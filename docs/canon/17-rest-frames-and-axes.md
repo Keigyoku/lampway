@@ -28,6 +28,22 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 
 1. **Detect the convention** of any armature: per bone the angle between local Y and head->child; all ~0 -> `blender`, all ~90
    -> `ue_axes`, else `mixed` -> refuse (golden R02 classifier; tolerance 10 deg on non-branching bones).
+   **Independent native bind admission (2026-10-09):** the supplied original
+   complete342 graph reproduces329 frame mismatches after generic conform.
+   Its independently captured engine feet and mirrored limbs are authored
+   frames, not universally positive joint-aligned axes. Keep the strict joint
+   classifier and its `mixed` result visible. For a complete native source and
+   independent reference with exact names/edges and matching joints under
+   canon21's0.01cm bar, carry every reference frame through the declared fixed
+   writer bone-axis bridge: `R_blender = R_reference @ B.T`, where
+   `B=[[0,-1,0],[1,0,0],[0,0,1]]`; `ue_axes` uses the reference frame directly.
+   Refuse synthesis, IK additions, offsets, nonidentity mappings, improper
+   reference rotations and nonidentity reference scales beyond canon21's
+   existing bars. Never reconstruct an authored helper or foot frame from its
+   child. The private independent-bind receipt pins the reference, all342
+   expected binds and the output rest fingerprint; recipe admission rechecks
+   all position/rotation/scale bars. This is declared writer-axis admission,
+   separately labelled from joint classification and actual UE acceptance.
 2. **The frame rule** (deterministic, joint-driven): `along = unit(child_head - head)` (the next joint on the chain, Titan
    `proc_body.chain_ends`, never the imported tail — canon 01); `up = the reference bone's secondary axis, transported onto this
    limb by the minimal rotation taking the reference along-axis to this along-axis`; `frame = Gram-Schmidt(along, up)` with
@@ -36,6 +52,9 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
    parent's rotation (a leaf has no child joint); a foot's along is ankle -> ball, its up the ground normal; a twist bone takes
    its parent's frame (twist bones rotate about the parent's along-axis only).
 4. **Native auxiliary branches.** The measured342-edge MetaHuman profile explicitly distinguishes anatomical core joints, peripheral toe chains and258 authored auxiliary drivers. Corrective roots, finger half/bulge/palm/side drivers and twist/corrective drivers are not anatomical continuation joints. Preserve every verified auxiliary's authored rest frame and roll; analytical along is that frame's Y (`blender`) or X (`ue_axes`), with authored world length, recorded as `along_source=authored_helper_frame`. Validate exact names and parent edges; unknown/reparented rows refuse before mutation. Convention classification measures anatomical joint chains, excluding those exact auxiliary roles. A normalized helper endpoint requires the validated document and unchanged rest fingerprint; posed consumers transport that endpoint through the current pose rather than re-aiming it at an auxiliary child. R02's120° fan-out falsifier remains, supplemented by the complete342graph native regression.
+   Known UE IK and interaction markers use authored reference frames/endpoints
+   with `along_source=reference_transport`, under the optional-root parent graph
+   contract. Unknown marker branches refuse rather than inventing continuation.
 5. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
    signed), orthogonalised against along (Titan `proc_body.finger_axis`; memory gltf-bone-tail-is-not-direction). The thumb's bend
    axis is the normal of its own plane (thumb_01, thumb_02, thumb_03), oriented toward the palm. MB instead asks the person

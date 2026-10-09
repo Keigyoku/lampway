@@ -88,7 +88,7 @@ def audit(object, armature, intended=None, max_influences=4, side=None):
             "side_check": {"side": want, "groups_on_wrong_side": wrong}, "hotspots": hotspots, "pass": bool(ok), "max_influences": int(max_influences)}
 
 
-def bone_segments(arm):
+def bone_segments(arm, *, native_raw=False, posed=False):
     """{bone: (head, end)} in world space for every bone of ``arm``: head -> the head of its continuation child (canon 01
     C.1, canon_geom.chain_ends with the UE limb continuations), never the bone's tail - Blender's glTF import lays a UE
     bone's tail 90 deg off its limb."""
@@ -97,11 +97,19 @@ def bone_segments(arm):
     heads = {b.name: tuple((mw @ b.head_local)[:]) for b in arm.data.bones if b.name not in lone}
     parents = {b.name: (b.parent.name if b.parent else None) for b in arm.data.bones if b.name not in lone}
     from .normalize_rigged import canonical_helper_ends
-    helpers = canonical_helper_ends(arm)
+    helpers = canonical_helper_ends(arm, native_raw=native_raw)
+    if posed:
+        from mathutils import Vector
+        for name, end in helpers.items():
+            transport = mw @ arm.pose.bones[name].matrix @ arm.data.bones[name].matrix_local.inverted() @ mw.inverted()
+            helpers[name] = tuple(transport @ Vector(end))
+        heads = {name: tuple(mw @ arm.pose.bones[name].head) for name in heads}
     out = G.bone_segments(heads, parents, main_child=G.CONTINUATION, helper_ends=helpers) if heads else {}
     for b in arm.data.bones:
         if b.name in lone:
-            out[b.name] = (np.array((mw @ b.head_local)[:]), np.array((mw @ b.tail_local)[:]))
+            source = arm.pose.bones[b.name] if posed else b
+            head, tail = (source.head, source.tail) if posed else (b.head_local, b.tail_local)
+            out[b.name] = (np.array(mw @ head), np.array(mw @ tail))
     return out
 
 

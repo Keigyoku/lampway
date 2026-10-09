@@ -16,7 +16,7 @@ import numpy as np
 from .axes import cross, unit
 from .native_topology import terminal_children
 
-MAIN_CHILD = {"pelvis": "spine_01", "spine_05": "neck_01", "hand_l": "middle_01_l", "hand_r": "middle_01_r"}
+MAIN_CHILD = {"root": "pelvis", "pelvis": "spine_01", "spine_05": "neck_01", "hand_l": "middle_01_l", "hand_r": "middle_01_r"}
 LEAF = 0.8
 
 # The continuation of every UE limb bone that carries twist / corrective / helper children beside its next joint (UE5

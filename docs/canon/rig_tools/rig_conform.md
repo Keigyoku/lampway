@@ -53,6 +53,19 @@ conform. Receipt fields `reference_scope="source_preservation"` and
 does not supply an independent native reference or repair a native pose mismatch.
 Generic, non-native conform retains its existing reference-driven construction.
 
+An explicit independent native profile on the exact complete342 graph uses
+canon17's reference-bind calibration when its joints already match the source
+under0.01cm. Preserve each source head and length; carry the independent engine
+frame through the fixed inverse writer bridge for `blender`, or directly for
+`ue_axes`. Reject synthesis, offsets, IK, nonidentity maps and invalid reference
+rotation/scale before allocation. Verify Blender's stored frame under the
+unchanged0.01degree bar and retain the rest/posed-skin checks. A private
+`lw_native_reference_bind` receipt binds the independent reference rows and
+declared axes to the output rest fingerprint. `reference_scope` is
+`independent_native_bind`; actual UE import acceptance remains unverified.
+This bounded path calibrates a matching native body; it does not fit different
+reference joints or claim a general native reference construction algorithm.
+
 ## Goldens
 
 R01 (synthesis), R02 (frames, roll independence); a Blender-side test conforms a Mixamo-named synthetic 22-bone rig and

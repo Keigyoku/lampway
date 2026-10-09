@@ -114,6 +114,38 @@ The verified native342 conform path requires an explicit reference: source_copy 
 
 Refresh the public copy diagnostic source pins whenever its verified exporter/helper dependency changes. Keep the wrong-overlay refusal and sanitized state-restoration controls; a refreshed hash is diagnostic admission, never engine acceptance.
 
+Complete342 independent native bind conform preserves source heads/skin while
+carrying each independently referenced engine frame through the fixed writer
+axis bridge. Require exact reference/source topology, identity mapping and
+matching reference joints; reject synthesis, IK, offsets and invalid reference
+rotation/scale. Bind private expected rows and declared writer axes to the
+output rest fingerprint, and recheck every unchanged canon21 bind bar before
+recipe selection or authored-file readback. Retain strict joint classification
+as a separate diagnostic. Weighting/bind consumers may reuse the validated
+reference convention on this disposable corrected rig; an uncalibrated mixed
+original remains refused. File/reference checks never assert fresh UE physical
+parity or original-piece fit acceptance.
+
+Shared auxiliary endpoints admit only the complete verified342 native graph and
+an established convention, including the checked independent reference receipt.
+Use each verified auxiliary's authored along axis and length; unknown or
+reparented helpers refuse. Stamped IK bones retain their authored endpoint when
+no anatomical continuation exists. Transport rest endpoints through the current
+pose before weighting or opening consumers use them; never return stale rest
+endpoints for a posed rig. Source identity, rest fingerprints and unchanged
+bind-return/piece-acceptance guards remain required.
+
+Uniform rig scaling writes original armature-space rest matrices with scaled
+translations and lengths through EditBone storage, avoiding recursive
+parent-local frame reconstruction. Transfer unkeyed pose locations as well as
+action keys; rollback restores original NLA actions and keys in place. Verify
+actual head/rest/posed-skin drift under the existing bars separately from
+independent native-reference calibration and engine acceptance.
+
+Automatic native fit-bone histograms exclude the exact verified auxiliary driver
+roles after complete-graph endpoint validation. Explicit caller bone choices
+remain available; a corrective helper is not an inferred anatomical fit target.
+
 The captain admitted the ARAP-with-clearance candidate under canon03-H2 on2026-10-08 and delegated solver-default judgment. Composite conform requires canonical real-scale mesh admission, immutable source identities, persisted cloth/leather selections, a verified native sidecar and current sampled fit pose. Clearance/seam targets are caller-explicit. Solve creates a disposable candidate with numerical diagnostics and physical_status untested; only unchanged candidate/source/body/pose hashes plus genuine output-render review permit an accepted stage. Bind/weights must use that accepted candidate. Keep rigid metal/ornaments unchanged and refuse nonconvergence, unsafe opening-band signs and stale inputs before admission.
 
 Procedural material probe baking uses one EEVEE frame for three equal-resolution emission tiles only when its reachable coordinate graph is independent of world/camera/external-object state. Each tile retains identical local/object coordinates and the previous linear pixels. Unknown or coordinate-sensitive graphs keep isolated three-frame rendering. Preserve all55 preset tests, the existing240-second per-process limit, caller scene state and owned camera/world cleanup. Resource-profile passes remain distinct from matching-native aggregate acceptance.
@@ -176,3 +208,7 @@ Public stage descriptions keep detailed solver input contracts in the linked can
 | 2026-10-08 | bounded procedural probe render cost | private audit240s timeouts for two55-preset material checks | rendering three separate frames per preset exceeded constrained software-render budgets | render three independent coordinate-safe emission tiles in one frame, conservatively retain isolated fallback and caller/owned-data cleanup | byte-exact independent linear pixels, coordinate fallback plants and12 fullfile passes on oneCPU under unchanged deadlines |
 
 | 2026-10-08 | bounded conform catalogue guidance | exact-source aggregate exposed335295B catalogue | expanded stage prose crossed335000B MCP catalogue ceiling | concise stage description links full canon inputs and preserves actionable candidate next_args without changing the limit | unchanged catalogue ceiling regression |
+
+| 2026-10-08 | independently referenced native bind calibration | supplied actual342 stage audit and original-input replay | generic child/Z frame reconstruction changed329 native engine frames while self readback passed; authored feet are not positive joint-aligned | carry exact independent native frames through the fixed writer-axis bridge, pin private full-bind/rest receipts and recheck unchanged bars; keep joint classification, bind consumers and actual UE acceptance distinct | original-input329-to-zero plan residuals, actual conform/file export and corruption controls; fresh actual UE import remains pending |
+
+| 2026-10-09 | native normalization and posed bind consumers | supplied actual native body and labelled chest | parent-local scale reconstruction drifted native skin, posed consumers returned rest endpoints and automatic fit candidates chose corrective drivers | scale original armature-space rest matrices and keyed/unkeyed translations with in-place rollback; validate authored helper/IK endpoints and current pose transport; exclude exact auxiliary roles only from automatic fit histograms | original native scaling and fit-bind RED/GREEN receipts; physical piece/UE acceptance remains separate |

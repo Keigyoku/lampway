@@ -29,5 +29,5 @@ res({'schema':receipt['schema'],'count':receipt['bone_count'],
     assert r.rc == 0, r.out[-2000:]
     result = r.results[-1]
     assert result["schema"] == "lampway.native-frame-diagnostic/1" and result["count"] == 342
-    assert result["source"] == {"rig_tools": 64, "normalize_rigged": 64}
+    assert result["source"] == {"rig_tools": 64, "normalize_rigged": 64, "rig_core": 64}
     assert result["function"] and result["json_matches"] and result["unchanged"]

@@ -52,10 +52,14 @@ def _parts(ob):
     return {g.name: np.array([v.index for v in ob.data.vertices if any(x.group == g.index and x.weight > 0 for x in v.groups)], dtype=int) for g in ob.vertex_groups}
 
 
-def _hist(ob, arm, idx):
-    bones = [b for b in arm.data.bones if b.use_deform]
+def _hist(ob, arm, idx, segments=None):
+    from ..canon_geom import native_topology as NT
+    native = {b.name for b in arm.data.bones} == set(NT.PARENTS)
+    # Canon 07 D: native correctives are authored drivers, not fit bones.
+    # Their full graph/endpoints are still validated before sampling distances.
+    bones = [b for b in arm.data.bones if b.use_deform and (not native or b.name not in NT.AUXILIARY)]
     P = np.array([(ob.matrix_world @ ob.data.vertices[i].co)[:] for i in idx])
-    seg = WT.bone_segments(arm)                                             # head -> continuation child (canon 01 C.1)
+    seg = segments if segments is not None else WT.bone_segments(arm, native_raw=True, posed=True)
     D = np.stack([WT._seg_dist(P, *seg[b.name]) for b in bones], axis=1)
     near = D.argmin(axis=1)
     return {bones[k].name: float((near == k).mean()) for k in range(len(bones)) if (near == k).any()}
@@ -76,6 +80,7 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
     if not parts:
         raise C.FeatureError(f"{ob.name} has no vertex groups naming its parts: label the parts (a vertex group per part) before binding")
     out = {}
+    segments = None
     for name, idx in parts.items():
         role = roles.get(name)
         if role not in ROLES:
@@ -87,7 +92,9 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
         if role == "metal" and mode == "blend":
             raise C.FeatureError(f"part {name} is metal: metal is placed by one rigid transform; ask for a ruled cut (original vertex ids) to split it")
         _check_bones(ov.get("bones", []), arm)
-        h = _hist(ob, arm, idx)
+        if segments is None:
+            segments = WT.bone_segments(arm, native_raw=True, posed=True)
+        h = _hist(ob, arm, idx, segments)
         if mode == "rigid":
             bones = ov.get("bones") or [max(h, key=h.get)]
             if len(bones) != 1:

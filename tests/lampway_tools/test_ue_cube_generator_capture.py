@@ -218,3 +218,170 @@ def test_wrong_component_direction_prevents_capture_and_outputs_and_cleans_qa_ac
         C.capture(ue)
     assert len(spawned) == 2 and destroyed == list(reversed(spawned)) and not renders
     assert list(root.iterdir()) == [root / 'request.json']
+
+
+def test_disabled_control_checks_applied_settings_and_restores_on_capture_error():
+    from types import SimpleNamespace
+    fields = dict(tone_curve_amount=1.0, expand_gamut=1.0, white_tint=0.0)
+    class Settings:
+        def __init__(self):
+            self.values = {}
+        def set_editor_property(self, key, value):
+            self.values[key] = value
+        def get_editor_property(self, key):
+            return self.values[key]
+    normal = Settings()
+    for key, value in fields.items():
+        normal.set_editor_property('override_' + key, True)
+        normal.set_editor_property(key, value)
+    current = [normal]
+    component = SimpleNamespace(set_editor_property=lambda key, value: current.__setitem__(0, value),
+                                get_editor_property=lambda key: current[0])
+    def broken_sample(rgb):
+        assert current[0].values['tone_curve_amount'] == 0.0
+        assert current[0].values['expand_gamut'] == 0.0
+        raise RuntimeError('synthetic readback failure')
+    with pytest.raises(RuntimeError, match='synthetic readback'):
+        C.disabled_tone_controls(SimpleNamespace(PostProcessSettings=Settings), component,
+                                 normal, fields, [{'input': [0.18] * 3}], broken_sample)
+    assert current[0] is normal
+
+
+def test_disabled_control_rejects_unapplied_override_before_sampling():
+    from types import SimpleNamespace
+    normal = UEPostProcess(tone_curve_amount=1.0, expand_gamut=1.0)
+    calls = []
+    component = SimpleNamespace(set_editor_property=lambda *args: calls.append(args),
+                                get_editor_property=lambda key: normal)
+    class IgnoredSettings:
+        def set_editor_property(self, *args):
+            pass
+    with pytest.raises(ValueError, match='actual postprocess differs: tone_curve_amount'):
+        C.disabled_tone_controls(SimpleNamespace(PostProcessSettings=IgnoredSettings), component,
+                                 normal, dict(tone_curve_amount=1.0, expand_gamut=1.0),
+                                 [{'input': [0.18] * 3}], lambda rgb: pytest.fail('must check before sampling'))
+    assert calls[-1] == ('post_process_settings', normal)
+
+
+def test_disabled_control_reads_back_every_field_and_restores_normal_state():
+    from types import SimpleNamespace
+    fields = dict(tone_curve_amount=1.0, expand_gamut=1.0, white_tint=0.0)
+    class Settings:
+        def __init__(self):
+            self.values = {}
+        def set_editor_property(self, key, value):
+            self.values[key] = value
+        def get_editor_property(self, key):
+            return self.values[key]
+    normal = Settings()
+    for key, value in fields.items():
+        normal.set_editor_property('override_' + key, True)
+        normal.set_editor_property(key, value)
+    current = [normal]
+    component = SimpleNamespace(set_editor_property=lambda key, value: current.__setitem__(0, value),
+                                get_editor_property=lambda key: current[0])
+    controls = [{'input': [0.18] * 3}]
+    result = C.disabled_tone_controls(SimpleNamespace(PostProcessSettings=Settings), component,
+                                     normal, fields, controls, lambda rgb: [0.5] * 3)
+    assert result == dict(tone_curve_amount=0.0, expand_gamut=0.0, white_tint=0.0)
+    assert controls[0]['tone_curve_disabled'] == [0.5] * 3
+    assert current[0] is normal and normal.values['tone_curve_amount'] == 1.0
+
+
+@pytest.mark.parametrize('difference', [0.0, 1 / 255])
+def test_unchanged_or_one_code_value_tone_control_refuses_publication(tmp_path, difference):
+    request = {'profile': {'project': {'cvars': {'r.LUT.Size': 2}}}}
+    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.0] * 3,
+                     tone_curve_disabled=[difference] * 3) for _ in range(4)]
+    with pytest.raises(ValueError, match='tone-curve controls failed'):
+        C.write_outputs(tmp_path, request, {}, [[0, 0, 0]] * 8, {}, controls)
+    assert not list(tmp_path.iterdir())
+
+
+def test_disabled_control_refuses_incorrect_restored_readback():
+    from types import SimpleNamespace
+    class Settings:
+        def __init__(self):
+            self.values = {}
+        def set_editor_property(self, key, value):
+            self.values[key] = value
+        def get_editor_property(self, key):
+            return self.values[key]
+    normal = UEPostProcess(tone_curve_amount=1.0, expand_gamut=1.0)
+    current = [normal]
+    def readback(key):
+        return UEPostProcess(tone_curve_amount=0.0, expand_gamut=1.0) if current[0] is normal else current[0]
+    component = SimpleNamespace(set_editor_property=lambda key, value: current.__setitem__(0, value),
+                                get_editor_property=readback)
+    with pytest.raises(ValueError, match='actual postprocess differs: tone_curve_amount'):
+        C.disabled_tone_controls(SimpleNamespace(PostProcessSettings=Settings), component,
+                                 normal, dict(tone_curve_amount=1.0, expand_gamut=1.0),
+                                 [{'input': [0.18] * 3}], lambda rgb: [0.5] * 3)
+
+
+def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path):
+    """Exercise capture itself; the fake is orchestration proof, never GPU proof."""
+    from types import SimpleNamespace as NS
+    root = tmp_path / 'Saved/LampwayCubeQA'
+    root.mkdir(parents=True)
+    profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
+    (root / 'request.json').write_text(json.dumps(dict(
+        disposable_qa_project=True, profile=profile, name='synthetic', shaper=SHAPER,
+        shaper_source='synthetic test only', max_seconds=1)))
+    class Settings:
+        def __init__(self):
+            self.values = {}
+        def set_editor_property(self, key, value):
+            self.values[key] = value
+        def get_editor_property(self, key):
+            return self.values[key]
+    class Component(Settings):
+        def get_forward_vector(self):
+            return NS(x=0, y=0, z=-1)
+        def show_only_actor_components(self, actor):
+            pass
+        def capture_scene(self):
+            pass
+    component, parameter, spawned, destroyed = Component(), [], [], []
+    dynamic = NS(set_vector_parameter_value=lambda key, value: parameter.__setitem__(slice(None), value))
+    mesh = NS(set_static_mesh=lambda *args: None, set_material=lambda *args: None,
+              create_dynamic_material_instance=lambda *args: dynamic)
+    plane = NS(get_component_by_class=lambda cls: mesh, set_actor_scale3d=lambda *args: None)
+    camera = NS(get_component_by_class=lambda cls: component)
+    def spawn(*args):
+        actor = plane if not spawned else camera
+        spawned.append(actor)
+        return actor
+    def raw_pixel(*args):
+        return NS(r=parameter[0], g=parameter[1], b=parameter[2])
+    def display_pixel(*args):
+        if component.values['post_process_settings'].values['tone_curve_amount'] == 0.0:
+            raise RuntimeError('synthetic GPU readback error')
+        return NS(r=100, g=100, b=100)
+    expression = NS(set_editor_property=lambda *args: None)
+    ue = NS(
+        Paths=NS(project_dir=lambda: str(tmp_path)),
+        SystemLibrary=NS(get_engine_version=lambda: '5.8.2-56702186+++UE5',
+            get_console_variable_int_value=lambda key: profile['project']['cvars'][key]),
+        EditorLevelLibrary=NS(get_editor_world=lambda: object(), spawn_actor_from_class=spawn,
+                              destroy_actor=lambda actor: destroyed.append(actor)),
+        Material=Settings, MaterialShadingModel=NS(MSM_UNLIT=object()),
+        MaterialEditingLibrary=NS(create_material_expression=lambda *args: expression,
+            connect_material_property=lambda *args: True, recompile_material=lambda *args: None),
+        MaterialExpressionVectorParameter=object(), MaterialProperty=NS(MP_EMISSIVE_COLOR=object()),
+        StaticMeshActor=object(), StaticMeshComponent=object(), SceneCapture2D=object(), SceneCaptureComponent2D=object(),
+        Rotator=UEPositionalRotator, Vector=lambda *args: args, Vector4=UEVector4,
+        LinearColor=lambda *args: list(args), load_asset=lambda path: object(), PostProcessSettings=Settings,
+        SceneCapturePrimitiveRenderMode=NS(PRM_USE_SHOW_ONLY_LIST=object()),
+        AutoExposureMethod=UEExposureMethod,
+        TextureRenderTargetFormat=NS(RTF_RGBA8=object(), RTF_RGBA16F=object()),
+        SceneCaptureSource=NS(SCS_SCENE_COLOR_HDR=object(), SCS_FINAL_COLOR_LDR=object()),
+        RenderingLibrary=NS(create_render_target2d=lambda *args: object(),
+            read_render_target_raw_pixel=raw_pixel, read_render_target_pixel=display_pixel))
+    with pytest.raises(RuntimeError, match='synthetic GPU readback error'):
+        C.capture(ue)
+    # Actor cleanup alone would hide that the control path never restored normal settings.
+    assert component.values['post_process_settings'].values['tone_curve_amount'] == profile['tonemap']['tone_curve_amount']
+    assert component.values['post_process_settings'].values['expand_gamut'] == profile['tonemap']['expand_gamut']
+    assert destroyed == list(reversed(spawned))
+    assert list(root.iterdir()) == [root / 'request.json']

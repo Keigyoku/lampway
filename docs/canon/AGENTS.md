@@ -81,6 +81,13 @@ The motion_graphics/ group contains normative method, scene and agent/receipt co
 
 Canon03-H2 candidate admission is ruled on2026-10-08: implement and measure ARAP with delegated, documented solver defaults. Those defaults and original-piece fit remain physically untested. Numerical clearance/seam targets remain caller-explicit; candidate convergence never substitutes for unchanged rigid/source ledgers, output-render review or native motion acceptance.
 
+Canon17/21 distinguish strict joint-angle classification from independently
+verified native writer axes. Complete342 matching native references carry exact
+authored frames through the fixed writer bridge; private source/bind/rest pins
+and all unchanged bind bars govern recipe admission and file readback. Retain
+mixed joint diagnostics and refuse stale or unsupported inputs. Headless
+reference/file matches do not certify a fresh actual UE import.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -110,3 +117,5 @@ Canon03-H2 candidate admission is ruled on2026-10-08: implement and measure ARAP
 | 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07, using supplied body/gear references | prerequisites-only doctrine blocked an explicitly authorized choice; arbitrary defaults could be mistaken for measurement | record chosen defaults and complete pose/curl tables with untested provenance, explicit overrides and falsifiers; keep physical acceptance separate | default-path RED/GREEN and documentary hashes; no original gear validation |
 | 2026-10-08 | motion contracts in canon | captain: write specifications like the other canon and reports | formal motion requirements lived outside the canonical documentation layout | keep normative inputs, invariants, methods and gaps here and measurements in reports | canon index and linked motion acceptance report |
 | 2026-10-08 | admitted ARAP candidate | captain explicitly admits03-H2 and delegates untested solver defaults | the open decision kept item14 unimplemented and could be confused with per-piece visual admission | date the ruling, document solver choices as physically untested and retain explicit limits/rigid/source/render-review gates | generated soft seam/shape/anchor/nonconvergence controls and disposable native candidate checks |
+
+| 2026-10-08 | independently referenced native bind axes | supplied actual342 stage audit and original-input replay | child-based frame reconstruction lost329 independently captured frames and authored feet are not universally joint-aligned | distinguish strict joint diagnostics from complete native bind calibration, carry the fixed writer bridge and recheck pinned independent binds under unchanged bars | actual native conform and authored-file proof; fresh actual UE import remains unverified |

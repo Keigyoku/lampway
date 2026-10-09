@@ -38,7 +38,7 @@ REQUIRED = ("object_types", "apply_unit_scale", "apply_scale_options", "global_s
             "use_custom_props", "bake_anim_step", "bake_anim_simplify_factor", "bake_anim_force_startend_keying")
 RAW_IMPORT = {"automatic_bone_orientation": False, "primary_bone_axis": "Y", "secondary_bone_axis": "X", "global_scale": 1.0,
               "use_custom_normals": True, "ignore_leaf_bones": False}
-ENGINE_FROM_BLENDER = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])   # X_e = Y_b, Y_e = -X_b, Z_e = Z_b
+ENGINE_FROM_BLENDER = RC.ENGINE_FROM_BLENDER   # X_e = Y_b, Y_e = -X_b, Z_e = Z_b
 
 
 @contextmanager
@@ -151,7 +151,8 @@ def _table(ob, names=None, turn=None, representation=None):
 
 
 def _convention(ob):
-    return RC.classify_convention(list(RT.convention_angles(RT.read(ob)).values()))
+    rig = RT.read(ob)
+    return RT.reference_convention(ob, rig) or RC.classify_convention(list(RT.convention_angles(rig).values()))
 
 
 def _import(path):
@@ -179,6 +180,14 @@ def _corner_normals(ob):
 def _reference(reference, ob, convention, root, exporter=None):
     """(table, parents, name, sha256, imported record or None)."""
     if not reference:
+        if RT.reference_convention(ob):
+            receipt = json.loads(ob["lw_native_reference_bind"])
+            table = {}
+            for n, bind in receipt["binds"].items():
+                q = Matrix(bind["frame_engine"]).to_quaternion()
+                table[n] = {"translation": [x * 100 for x in bind["head_m"]],
+                            "rotation": [q.x, q.y, q.z, q.w], "scale": [1., 1., 1.]}
+            return table, _deform_parents(ob), "independent native reference bind", receipt["reference_sha256"], None
         turn = ENGINE_FROM_BLENDER if convention == "blender" else None
         par = _deform_parents(ob)
         t = _table(ob, set(par), turn)
@@ -362,11 +371,14 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
     fbx_sha = hashlib.sha256(writing.read_bytes()).hexdigest()
     summary = {"recipe": {"name": doc.get("name"), "path": str(recipe_path), "exporter": doc["exporter"]}, "convention": convention,
                "recipe_selection": {"requested": recipe or "auto", "measured_convention": convention,
-                                    "selected": doc.get("name"), "source": "measured_normalized_frames" if recipe in ("", "auto", None) else "explicit_caller_recipe",
+                                    "selected": doc.get("name"), "source": (
+                                        "independent_native_reference_bind" if ob.get("lw_native_reference_bind") else "measured_normalized_frames"
+                                    ) if recipe in ("", "auto", None) else "explicit_caller_recipe",
                                     "ue_confirmation": "pending M-RIG-01; Blender raw-frame readback alone does not prove physical Unreal acceptance"},
                "unit_scale_factor": usf, "reference": ref_name, "container_top_bone": container, "animation": anim,
-               "reference_scope": "independent_blender_reference" if reference else "self_roundtrip",
-               "engine_bind_acceptance": "unverified; requires actual native reference capture",
+               "reference_scope": "independent_blender_reference" if reference else (
+                   "independent_native_bind" if ob.get("lw_native_reference_bind") else "self_roundtrip"),
+               "engine_bind_acceptance": "unverified; requires fresh actual UE import parity of the written file",
                "export_space": space_receipt, "effective_exporter": effective_exporter,
                "readback_representation": readback_units, "container_scale_failures": container_scale_failures,
                "authored_bind_verification": authored_proof,

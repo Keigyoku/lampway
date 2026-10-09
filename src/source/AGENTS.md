@@ -31,6 +31,9 @@ chat renderer, overlays); Lampway's changes to it are the fork patches recorded 
 
 Bounded native translation units extract existing click, slot-content, slide and cursor helpers with declarations and CMake registration, preserving runtime behavior. Lampway palette patches use the shared documented tokens under LAMPWAY guards. Keep dynamic GlassWash, actual capture-helper guards and buffer lifetime behavior; source-level passes require a separate authorized build-box compilation before native behavior acceptance.
 
+
+Lampway full-window screenshot readback uses the maintained offscreen composition even when the GPU reports frontbuffer-read capability; redraw/swap can discard frontbuffer pixels. The windowmanager target owns its conditional PRIVATE LAMPWAY definition. Preserve GPU context push/pop on success and allocation failure, keep the upstream OFF path, and retain separate opt-in/masking/busy guards on UI observation. Compiled dispatcher controls are not an actual rebuilt screenshot acceptance receipt.
+
 ## Test
 
 ```bash
@@ -56,3 +59,5 @@ Native targets with fork-only consumers own a conditional `PRIVATE LAMPWAY` comp
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the fork-patch conventions lived in one report and the tests that pin them | the guard-and-marker rule, the login and host invariants, the build owner and the three grades of native evidence | captain ruling, 2026-10-05 |
 | 2026-10-07 | native inherited UI maintenance | captain: resolve inherited reds | oversized modules and stale palette/source pins obscured current UI and capture contracts | preserve helper bodies during bounded extraction, use guarded shared palette roles and retain live theme/capture lifetime checks | source corruption controls plus required separate build-box compile |
 | 2026-10-07 | compiled profile and viewport fork guards | captain: physical AC34 reported upstream URL operators | creator-local LAMPWAY definitions did not propagate to interface or viewport targets | each guarded editor owns its conditional private definition, with actual compile-command and physical verification | ON/OFF target guards and corruption controls |
+
+| 2026-10-08 | native screenshot offscreen readback | actual753 audit black operator frames and isolated hash-identical llvmpipe reproduction | native capability-selected frontbuffer reads returned all-zero images after screenshot redraw | route Lampway full-window reads through existing offscreen composition with drawable restoration and target-owned fork definition; retain upstream OFF and real pixel rerun requirements | compiled actual dispatcher ON/OFF RED/GREEN and exact black-frame reproduction; full native rebuild remains owed |

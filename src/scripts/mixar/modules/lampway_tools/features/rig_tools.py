@@ -55,6 +55,20 @@ def _fingerprint(ob, rig):
                    "frames": {k: np.round(v, 9).tolist() for k, v in rig["frames"].items()}, "matrix": [list(r) for r in ob.matrix_world]})
 
 
+def reference_convention(ob, rig=None):
+    """Verify private independent native binds for writer-axis routing only."""
+    raw = ob.get("lw_native_reference_bind")
+    if not raw:
+        return None
+    rig = rig or read(ob)
+    rig = {**rig, "scales": {b.name: np.linalg.norm(np.array((ob.matrix_world @ b.matrix_local).to_3x3()), axis=0)
+                            for b in ob.data.bones}}
+    try:
+        return RC.reference_bind_convention(rig, json.loads(raw), _fingerprint(ob, rig))
+    except (ValueError, TypeError, KeyError, RC.RigRefused) as exc:
+        raise C.FeatureError(str(exc)) from None
+
+
 def _fcurves(action):
     """Every f-curve of an action: the legacy list, or (Blender 4.4+) the layered channelbags."""
     out = list(getattr(action, "fcurves", []) or [])
@@ -128,6 +142,8 @@ def inspect(armature, reference="", family="auto", profile="ue5_body"):
         fam["note"] = str(exc)
     mapped, missing = RC.map_slots(names, tables[fam["name"]], RC.REQUIRED[profile]) if fam["name"] else ({}, list(RC.REQUIRED[profile]))
     vals = list(convention_angles(rig).values())
+    joint_class = RC.classify_convention(vals)
+    reference_class = reference_convention(ob, rig)
     ref = _reference()
     zs = [h[2] for h in rig["heads"].values()]
     height = (max(zs) - min(zs)) if zs else 0.0
@@ -158,7 +174,9 @@ def inspect(armature, reference="", family="auto", profile="ue5_body"):
     receipt = {"armature": ob.name, "bones": len(bones), "deform": sum(1 for b in bones if b.use_deform),
                "roots": sorted(b.name for b in bones if b.parent is None), "family": fam,
                "slots": {"mapped": mapped, "missing_required": missing, "required_set": profile},
-               "convention": {"class": RC.classify_convention(vals), "bones_measured": len(vals),
+               "convention": {"class": reference_class or joint_class, "joint_class": joint_class,
+                              "evidence": "independent_native_reference" if reference_class else "joint_axes",
+                              "bones_measured": len(vals),
                               "angles_deg": {"median": round(float(np.median(vals)), 6) if vals else None, "min": round(min(vals), 6) if vals else None,
                                              "max": round(max(vals), 6) if vals else None}},
                "units": {"scene_scale_length": float(bpy.context.scene.unit_settings.scale_length), "object_scale": [round(v, 9) for v in ob.scale],
@@ -259,6 +277,46 @@ def _world_heads(ob, frames):
     return out
 
 
+def _uniform_rest_scale(ob, scale):
+    """Scale joint coordinates without reconstructing every parent-local roll.
+
+    BKE_armature_transform re-extracts roll recursively even for a scalar
+    matrix. Edit coordinates keep the authored armature-space roll instead.
+    """
+    from .. import canon_io
+    selection = canon_io._selection()
+    active = bpy.context.view_layer.objects.active
+    mode = active.mode if active else "OBJECT"
+    hidden, viewport = ob.hide_get(), ob.hide_viewport
+    rest = {b.name: (b.matrix_local.copy(), b.length) for b in ob.data.bones}
+    try:
+        if active and active.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+        ob.hide_viewport = False
+        ob.hide_set(False)
+        C.activate(ob)
+        bpy.ops.object.mode_set(mode="EDIT")
+        for b in ob.data.edit_bones:
+            matrix, length = rest[b.name]
+            matrix.translation *= scale
+            b.matrix = matrix
+            b.length = length * scale
+            b.head_radius *= scale
+            b.tail_radius *= scale
+            b.envelope_distance *= scale
+            b.bbone_x *= scale
+            b.bbone_z *= scale
+        bpy.ops.object.mode_set(mode="OBJECT")
+    finally:
+        if ob.mode == "EDIT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+        ob.hide_set(hidden)
+        ob.hide_viewport = viewport
+        canon_io._restore_selection(selection)
+        if active and mode != "OBJECT":
+            bpy.ops.object.mode_set(mode=mode)
+
+
 def normalize(armature, unit="auto", apply_scale=True, dry_run=True):
     ob = _armature(armature)
     _inspected(ob)
@@ -291,20 +349,30 @@ def normalize(armature, unit="auto", apply_scale=True, dry_run=True):
     lo, hi = min(r[0] for r in ranges), max(r[1] for r in ranges)
     frames = sorted({int(round(x)) for x in np.linspace(lo, hi, 8)})
     before = _world_heads(ob, frames)
+    original_data = ob.data
     backup_data, backup_scale = ob.data.copy(), ob.scale.copy()
-    backup_acts = [(a, a.copy()) for a in acts]
+    backup_locations = {pb.name: pb.location.copy() for pb in ob.pose.bones}
+    backup_keys = [(k, k.co.copy(), k.handle_left.copy(), k.handle_right.copy())
+                   for fc in loc_curves for k in fc.keyframe_points]
     try:
         rest = {b.name: np.array(b.matrix_local.to_3x3()) for b in ob.data.bones}
-        ob.data.transform(Matrix.Diagonal((*total, 1.0)))
+        if uniform:
+            _uniform_rest_scale(ob, float(total[0]))
+        else:
+            ob.data.transform(Matrix.Diagonal((*total, 1.0)))
         for fc in loc_curves:                       # uniform: the location keys scale with the rest (rotation keys never change)
             s = float(total[0])
             for k in fc.keyframe_points:
                 k.co[1] *= s
                 k.handle_left[1] *= s
                 k.handle_right[1] *= s
-        if not uniform:                             # an unanimated rig: the current pose's locations move into the new rest frames
-            for pb in ob.pose.bones:
-                if any(abs(x) > 0 for x in pb.location):
+        for pb in ob.pose.bones:
+            if any(abs(x) > 0 for x in pb.location):
+                if uniform:
+                    # Keyless channels retain their current pose between frame
+                    # evaluations. They need the same transfer as keyed ones.
+                    pb.location = backup_locations[pb.name] * float(total[0])
+                else:
                     loc, _Rn = RC.apply_scale_loc_exact(rest[pb.name], total, list(pb.location))
                     pb.location = loc
         ob.scale = (1.0, 1.0, 1.0)
@@ -319,13 +387,14 @@ def normalize(armature, unit="auto", apply_scale=True, dry_run=True):
             raise C.FeatureError(f"the applied scale moved a joint by {drift:.3g} m (> 1e-6): rolled back")
     except Exception:
         ob.data, ob.scale = backup_data, backup_scale
-        for a, b in backup_acts:
-            if ob.animation_data and ob.animation_data.action is a:
-                ob.animation_data.action = b
+        for k, co, left, right in backup_keys:
+            k.co, k.handle_left, k.handle_right = co, left, right
+        for pb in ob.pose.bones:
+            pb.location = backup_locations[pb.name]
+        if original_data.users == 0:
+            bpy.data.armatures.remove(original_data)
         bpy.context.view_layer.update()
         raise
-    for a, b in backup_acts:
-        bpy.data.actions.remove(b)
     if backup_data.users == 0:
         bpy.data.armatures.remove(backup_data)
     out = {**plan, "dry_run": False, "changed": True, "frames_checked": len(frames), "max_world_drift_m": drift,

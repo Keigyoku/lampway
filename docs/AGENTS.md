@@ -55,6 +55,8 @@ Physical UE capture handoffs enumerate exact missing transform/importer fields a
 
 Normative motion method, scene and tool contracts belong in docs/canon/motion_graphics/ and the canon index. Their acceptance, historical measurements, review dispositions and remaining evidence belong in docs/reports/motion-graphics-acceptance.md; docs/README.md links both. Moving or rewriting a contract does not promote measured status.
 
+Supplied-input follow-ups preserve older report head attribution and explicitly supersede corrected fixture claims. Distinguish independent-reference normalized copies from direct raw normalization, source/dispatcher checks from rebuilt pixels, and diagnostic hardening from unresolved physical GPU controls. Actual bind refusals remain evidence until their caller contracts and rendered fit are reviewed.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -71,3 +73,4 @@ Normative motion method, scene and tool contracts belong in docs/canon/motion_gr
 
 | 2026-10-07 | precise physical bind and role handoffs | captain: continue actual bind diagnosis and approve three material roles | aggregate bind errors could not distinguish hierarchy, axes and comparison semantics; role approval risked implying full fit sign-off | enumerate minimum local capture with derived-only output and record exact role-only ruling without upgrading acceptance | owner-local capture and48role provenance overlays |
 | 2026-10-08 | motion canon and report convention | captain: follow existing canon and reports layout | root specs and a new parallel specs tree would split documentation authority | index normative contracts under canon and retain evidence history in reports | all relocated Markdown targets resolve; original thresholds and historical evidence retained |
+| 2026-10-08 | supplied-input audit correction provenance | complete validation package | older missing-input claims obscured actual supplied fixtures and component passes risked implying physical acceptance | preserve prior receipts, identify corrected fixtures and predecessors, and keep source versus physical gates separate | private current receipts and source-hashed follow-up report |

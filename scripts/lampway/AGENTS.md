@@ -42,6 +42,8 @@ UE cube capture scripts run only in an explicitly disposable UE QA project, save
 
 Construct UE rotations with explicit pitch/yaw/roll keywords. Before allocating render targets or taking controls, verify the capture component's actual finite world forward vector points down world Z at the disposable QA plane; an actor direction cannot substitute for component readback. Record the verified vector and preserve raw-control refusals, actor cleanup and no-output failure behavior.
 
+Read back all disabled-tone fields and overrides before sampling, and verify restored normal settings even on a capture exception. Retain path-free numeric QA control readbacks before the unchanged curve-difference refusal; a diagnostic marker is not cube acceptance or proof of a rendering cause.
+
 Source FBX bind diagnostics use the exact-hash pinned pure parser without package bootstrap, bpy or scene import. Record raw Model ancestors, authored unit/axis/transform properties, bind poses and cluster matrices without inferred coordinate conversion or engine acceptance. Hash the source before/after, refuse malformed/unsupported layouts, and write only a new exclusive0600 private receipt; stdout and errors contain aggregate counts/hash or sanitized reasons.
 
 ## Test
@@ -84,6 +86,8 @@ Generic email scanning consumes the complete host and bounds every domain exempt
 
 The UE bind comparator also evaluates all48 signed permutation conjugacy bases and every matched pair's relative-angle invariant locally. Publish residual/count summaries only; normalize captured quaternions solely for comparison, select no corrective basis and preserve every existing pass metric and bind bar. Repin the current export-copy probe when the owned exporter changes; historical probes remain immutable.
 
+Export-copy diagnostics pin the current exporter module bytes and retain mismatch refusals; refresh a pin only with the measured exporter change, never to admit an unrelated installed overlay.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -116,3 +120,5 @@ The UE bind comparator also evaluates all48 signed permutation conjugacy bases a
 | 2026-10-08 | email scanner exact exemptions | PR3 finding4213654799 assigned to MCP owner | regex and allowlist prefixes hid suffix lookalikes | retain full-host matches, per-address exemptions and redaction | suffix, exact-domain, mixed-line, versioned-filename and self-test controls |
 | 2026-10-08 | original mixed-frame diagnostic gap | current private audit rejected MetaHuman with median89.999448/max103.97325 | aggregate Y angles omitted child choices and X alignment, permitting unsupported convention guesses | capture installed classifier and sampled X/Y/Z rows under unchanged fingerprint; keep original heads/frames private and strict mixed refusal | two missing-interface REDs,34 pure GREEN tests and native unchanged-scene control |
 | 2026-10-08 | runnable native rotation diagnosis | current calibrated mesh-reference audit omits per-bone deltas | aggregate near180-degree errors cannot identify a writer or basis change | compute all48 proper/improper basis residual summaries and all-pair angle invariants without raw tables, correction selection or altered verdicts; update current exporter pin | five missing-interface RED controls;56 pure GREEN cases and synthetic342-row bound |
+| 2026-10-08 | disabled-tone state verification | N05 actual GPU no-difference refusal | disabled settings were assumed applied and failed control pixels were discarded | verify disabled and restored native settings and retain numeric control marker under unchanged bars; keep GPU cause and acceptance unverified | synthetic RED/GREEN and threshold controls; actual GPU rerun pending |
+| 2026-10-08 | independent native export diagnostic pin | exporter reference correction | historical exporter pin refused the current diagnostic overlay | bind diagnostics to the corrected committed source and retain wrong-pin controls | exact current source SHA and diagnostic regressions |

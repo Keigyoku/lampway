@@ -1453,14 +1453,15 @@ def joints_from_views(mesh="", cameras="", keypoints="", calibration="", known="
 
 
 @tool(consumes={"armature": Need(kind=("skeleton",), accept_raw=True)})
-def normalize_rigged(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True):
+def normalize_rigged(armature, meshes=None, profile="ue5_body", turn_deg=0.0, dry_run=True, unit="auto"):
     """An armature (and the meshes skinned to it) into a canonical skeleton and canonical rigged meshes (specs/canon/normalization
     contracts/normalize_rig.md): rig_inspect (convention, roster, units) then rig_normalize (unit and object scale, drift-checked),
     then the documents - bones with along = head -> the next joint (never the tail) and their frames; stamped lw_canon. Refused: a
-    mixed convention, a roster incomplete against the profile (ue5_body | ue5_body_fingers | metahuman), units no known factor explains,
+    mixed convention, a roster incomplete against the profile (ue5_body | ue5_body_fingers | metahuman), auto units no known factor explains,
+    unless the caller declares unit=m|cm|in (recorded as unit metadata, never a size match),
     a turn (the rig must face -Y). dry_run (default) changes nothing and answers the plan."""
     from .features import normalize_rigged as _NR
-    return _NR.run(armature, meshes, profile, turn_deg, dry_run)
+    return _NR.run(armature, meshes, profile, turn_deg, dry_run, unit)
 
 
 @tool(consumes={"input": Need(kind=("texture",), accept_raw=True)})

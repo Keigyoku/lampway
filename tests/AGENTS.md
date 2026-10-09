@@ -33,6 +33,9 @@ has its own suite under `server/tests/`.
 
 Original MCP regressions verify definitive empty paint-layer summaries for non-mesh object detail, byte-identical finite view editor schemas and explicit view defaults. Plant an invented editor identifier to prove rejection before runtime, and retain the supported-but-absent editor no_area control. Isolated native Camera and view calls verify these boundaries without changing the scene/selection snapshot or enabling pixels. Focused worktree receipts do not replace final consolidated-head, named-performance, GUI-history or package verification.
 
+
+Native screenshot regressions compile the actual maintained full-window readback dispatcher with controlled context/capability/failure boundaries, retain upstream OFF routing and target-definition corruption plants. Isolated operator comparisons must assert nonblack pixels after the maintained rebuild and record genuine binary/source provenance; an operator FINISHED result or working QA offscreen capture does not certify screenshot output.
+
 ## Test
 
 ```bash
@@ -77,6 +80,10 @@ Native bind tests distinguish source-copy error, authored node/BindPose/cluster 
 
 Privacy regression coverage includes suffix lookalikes for every exempt email host and legacy fake domain, positive exact-host controls, and mixed-line addresses. Preserve generic and owner-specific blocking plus matrix-code and CLI redaction controls. Keep versioned prompt filename controls and use same-length reserved fake addresses for responsive layout fixtures.
 
+Diagnostic source-integrity checks retain every loaded module pin, including rig_core. Native frame admission remains independently referenced and fingerprint-bound with stale-reference and unchanged tolerance falsifiers; report current Python overlay separately from rebuilt native pixel acceptance. Cockpit label regressions model the real herdr identifier grammar while preserving labels, durable identity and once-only launch.
+
+Brand scans exclude only exact test/cache descendants of each configured production root. Ancestors named tests or testing must still expose production strings and planted offenders; retain both ancestor and nested-fixture controls.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -103,3 +110,7 @@ Privacy regression coverage includes suffix lookalikes for every exempt email ho
 | 2026-10-08 | email exemption falsifiers | PR3 finding4213654799 | domain prefix exceptions and line-wide email allowlisting hid planted offenders | test complete hosts and independent addresses while retaining exact fake controls | initial21 and allowlist RED receipts plus privacy suite |
 
 | 2026-10-08 | bounded onboarding GUI observations | private AC51 half-CPU stale panel audit | a one-second assertion ran before queued input was handled and editor redraw did not explicitly refresh popup layout | distinguish model/input acknowledgement from native convergence; preserve persistent stale, overlap, footer and single-popup controls with sampled evidence | delayed-input RED, popup-refresh REDs and software native receipts |
+
+| 2026-10-08 | native screenshot routing regressions | actual753 screenshot operator all-black output | successful save return hid zero-pixel frontbuffer output and a missing target definition could disable the fix | compile the actual dispatcher with ON/OFF, capability, context-switch and failed-read controls plus target-scope plants; require separate rebuilt native pixel evidence | two pre-fix failures, compiled dispatcher GREEN and hash-identical isolated RED |
+| 2026-10-08 | actual audit regression reconciliation | native diagnostic and cockpit audit | an outdated two-module expectation failed and friendly labels violated launcher grammar | retain all three source pins and verify distinct durable valid identifiers without hiding labels | genuine diagnostic and 13 invalid-name RED controls; isolated GREEN with platform evidence separate |
+| 2026-10-08 | root-relative brand scanner fixture admission | full client run under a tests-named ancestor | substring filtering hid every planted production offender | prune only exact tests/testing/cache child directories beneath each scan root | genuine StopIteration plus ancestor RED, all four brand controls GREEN |
