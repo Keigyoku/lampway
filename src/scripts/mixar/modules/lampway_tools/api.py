@@ -781,10 +781,10 @@ def segment_mesh(object, method="shells", angle=40.0, min_faces=1, engine="algor
     ``sharp`` edges (dihedral > angle), or ``uv_islands``; regions under min_faces merge into a neighbour (isolated ones into ONE remainder
     part); a split into more than max_parts (default 200) parts is refused before anything is made, naming the min_faces that fits. The original is hidden,
     never deleted. engine=studio:tripo is the part-detection slot. ``labels`` ({mode: map | recipe, island_labels, recipe, owner}) labels the
-    UV islands as vertex groups <object>_<label> instead (the Client's island enumeration; nothing is split)."""
+    UV islands as vertex groups <object>_<label> instead (the Client's island enumeration; nothing is split). labels.mode=separate_parts instead needs recipe, FACE INT face_attribute and exact part_names {ID: recipe part}; creates one combined ownership copy with original vertex/face IDs and source seams, preserving geometry/UV/material and exact source corner vectors with measured native normal quantization. It does not accept open seams."""
     if labels:
         from .features import island_labels as _IL
-        return _IL.label(object, labels, _p(labels.get("recipe", "")), _p(labels.get("owner", "")))
+        return _IL.label(object, labels, _p(labels.get("recipe", "")), _p(labels.get("owner", "")), max_parts=max_parts)
     return _F_segment.segment_mesh(object, method, angle, min_faces, engine, max_parts=max_parts)
 
 

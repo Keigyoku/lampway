@@ -7,7 +7,7 @@
 TITAN rig-axi is the prior art (its joints schema and required-joint list reused, the code re-implemented): a titan.rig-joints/1 file measured on the example, provenance checked by the
 example's sha256, the template's heads written to the measured joints (closed form, canon 20 B.2), the other bones placed by their measured
 segments (rig_tools/core.fit_template), frames by canon 17 (core.conform_plan, the template's Z as the up hint), an inside check of six axis
-rays per joint, and the example's own weights from the fitted bone segments (canon 07 falloff; never copied from the native body). GRT's
+rays per joint, and the example's own weights transferred from its fitted procedural body (canon20 B5 / canon07 B7). GRT's
 Unreal module (appended Mannequin, hand-placed controls, Apply Rig) is not ported: the measurement replaces the hand placement.
 
 Writes the armature <example>_rig and a weighted copy <example>_rigged (the example itself is never touched) and saves both to ``out``
@@ -28,12 +28,11 @@ from .. import canon_io
 from . import common as C
 from . import rig_conform as RF
 from ..canon_geom import bones as CB
-from ..canon_geom import skinweights as SW
+from ..canon_geom import procedural_body as PB
 from ..rig_tools import core as RC
 
 SCHEMA = "titan.rig-joints/1"
 HIDDEN_DEFAULT = ("pelvis", "thigh_l", "thigh_r")
-WEIGHT_MARGIN_M = 0.03          # canon 07 falloff: every bone within 3 cm of the nearest segment shares the vertex (Lampway's choice)
 RAYS = [Vector(v) for v in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))]
 
 
@@ -86,14 +85,107 @@ def _joints(joints, ob, sha, root, template):
 
 
 def _inside(ob, points):
-    dg = bpy.context.evaluated_depsgraph_get()
-    tree = BVHTree.FromObject(ob, dg)
-    inv = ob.matrix_world.inverted()
-    out = {}
-    for n, p in points.items():
-        q = inv @ Vector(p)
-        out[n] = sum(1 for d in RAYS if tree.ray_cast(q, d)[0] is not None)
-    return out
+    # Measured rig joints are REST heads. An existing action must not turn this
+    # provenance/inside check into a comparison against animated geometry.
+    arms = {m.object for m in ob.modifiers if m.type == "ARMATURE" and m.object is not None}
+    poses = {arm: arm.data.pose_position for arm in arms}
+    try:
+        for arm in arms:
+            arm.data.pose_position = "REST"
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        tree = BVHTree.FromObject(ob, dg)
+        inv = ob.matrix_world.inverted()
+        out = {}
+        for n, p in points.items():
+            q = inv @ Vector(p)
+            out[n] = sum(1 for d in RAYS if tree.ray_cast(q, d)[0] is not None)
+        return out
+    finally:
+        for arm, pose in poses.items():
+            arm.data.pose_position = pose
+        bpy.context.view_layer.update()
+
+
+def _procedural_weights(example, rigged, arm, heads, parents):
+    """Titan rig-blender m_weights: measured elliptical limbs, nearest face transfer.
+
+    These recipe constants reproduce the referenced implementation; they are
+    construction parameters, not motion quality thresholds or fit acceptance.
+    """
+    arms = {m.object for m in example.modifiers if m.type == "ARMATURE" and m.object is not None}
+    poses = {a: a.data.pose_position for a in arms}
+    body_ob = None
+    body_mesh = None
+    try:
+        for a in arms:
+            a.data.pose_position = "REST"
+        bpy.context.view_layer.update()
+        evaluated = example.evaluated_get(bpy.context.evaluated_depsgraph_get())
+        mesh = evaluated.to_mesh()
+        try:
+            tree = BVHTree.FromPolygons([example.matrix_world @ v.co for v in mesh.vertices], [list(p.vertices) for p in mesh.polygons])
+        finally:
+            evaluated.to_mesh_clear()
+        segments = CB.bone_segments(heads, parents, main_child=CB.CONTINUATION)
+        bones = {}
+        def radii(point, x, z, reach):
+            values = []
+            for axis in (x, z):
+                hits = [tree.ray_cast(point, sign * axis, reach) for sign in (1, -1)]
+                distances = [h[3] for h in hits if h[0] is not None]
+                values.append(0.85 * sum(distances) / len(distances) if distances else None)
+            a, b = values
+            a = a if a is not None else (b if b is not None else 0.02)
+            return (a, b if b is not None else a)
+        for name in sorted(heads):
+            head, tail = map(Vector, segments[name])
+            along = (tail - head).normalized()
+            frame = arm.data.bones[name].matrix_local.to_3x3()
+            across = min((frame.col[i].normalized() for i in range(3)), key=lambda v: abs(v.dot(along)))
+            x = (across - along * across.dot(along)).normalized()
+            z = x.cross(along)
+            reach = 0.03 if name.split("_")[0] in ("thumb", "index", "middle", "ring", "pinky") else (0.08 if name.startswith(("hand", "foot", "ball")) else 0.3)
+            bones[name] = {"parent": parents[name], "length": (tail - head).length,
+                           "frame": ((x.x, along.x, z.x, head.x), (x.y, along.y, z.y, head.y), (x.z, along.z, z.z, head.z), (0, 0, 0, 1)),
+                           "head": radii(head, x, z, reach), "tail": radii(tail, x, z, reach)}
+        widths = PB.joint_blends(bones, 0.25)
+        for name, width in widths.items():
+            bones[name]["blend"] = width
+        body = PB.body(bones, stations=6, sides=12, blend=min(widths.values(), default=0))
+        body_mesh = bpy.data.meshes.new("lw_fit_weight_body")
+        body_mesh.from_pydata(body["verts"], [], body["faces"])
+        body_mesh.update()
+        body_ob = bpy.data.objects.new("lw_fit_weight_body", body_mesh)
+        bpy.context.scene.collection.objects.link(body_ob)
+        groups = {n: body_ob.vertex_groups.new(name=n) for n in sorted(bones)}
+        for i, weights in enumerate(body["weights"]):
+            for name, value in weights.items():
+                groups[name].add([i], value, "REPLACE")
+        mod = rigged.modifiers.new("lw_fit_weight_transfer", "DATA_TRANSFER")
+        mod.object = body_ob
+        mod.use_vert_data = True
+        mod.data_types_verts = {"VGROUP_WEIGHTS"}
+        mod.vert_mapping = "POLYINTERP_NEAREST"
+        mod.layers_vgroup_select_src = "ALL"
+        mod.layers_vgroup_select_dst = "NAME"
+        with bpy.context.temp_override(object=rigged, active_object=rigged, selected_objects=[rigged]):
+            bpy.ops.object.datalayout_transfer(modifier=mod.name)
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        unweighted = sum(not any(g.weight > 1e-6 for g in v.groups) for v in rigged.data.vertices)
+        if unweighted:
+            raise C.FeatureError(f"procedural body transfer left {unweighted} vertices unweighted: audit the example's fitted body")
+        return {"source": "fitted example procedural body (canon20 B5 / canon07 B7)", "method": "procedural_body_nearest_face",
+                "bones": len(bones), "body_verts": len(body["verts"]), "body_faces": len(body["faces"]),
+                "joint_blend_fraction": 0.25, "joint_blends_m": widths, "unweighted": unweighted}
+    finally:
+        if body_ob is not None:
+            bpy.data.objects.remove(body_ob, do_unlink=True)
+        if body_mesh is not None and body_mesh.users == 0:
+            bpy.data.meshes.remove(body_mesh)
+        for a, pose in poses.items():
+            a.data.pose_position = pose
+        bpy.context.view_layer.update()
 
 
 @canon_io.rollback_imports
@@ -174,11 +266,19 @@ def fit(example, joints, root, template="", hands="none", hidden=None, conventio
         for coll in ob.users_collection or [bpy.context.scene.collection]:
             coll.objects.link(rigged)
         made.append(rigged)
+        if rigged.parent is not None and rigged.parent.type == "ARMATURE":
+            world = rigged.matrix_world.copy()
+            rigged.parent = None
+            rigged.parent_type = "OBJECT"
+            rigged.matrix_world = world
         for g in list(rigged.vertex_groups):
             rigged.vertex_groups.remove(g)
+        # This is a replacement bind on a new mesh, including when the example
+        # arrived rigged. Keeping its old Armature would deform the copy twice.
+        for mod in list(rigged.modifiers):
+            if mod.type == "ARMATURE":
+                rigged.modifiers.remove(mod)
         grammar = [n for n in RC.REQUIRED_JOINTS if n in f["heads"]]
-        wdoc = {"source": "procedural: canon 07 falloff over the fitted bone segments (never the native body's weights)", "margin_m": WEIGHT_MARGIN_M,
-                "bones": len(grammar), "unweighted": 0}
         if weights == "procedural":
             gpar = {}
             for n in grammar:
@@ -186,14 +286,7 @@ def fit(example, joints, root, template="", hands="none", hidden=None, conventio
                 while p is not None and p not in grammar:
                     p = tpl["parents"].get(p)
                 gpar[n] = p
-            segs = CB.bone_segments({n: f["heads"][n] for n in grammar}, gpar, main_child=CB.CONTINUATION)
-            groups = {n: rigged.vertex_groups.new(name=n) for n in grammar}
-            mw = rigged.matrix_world
-            for v in rigged.data.vertices:
-                w = SW.falloff_weights(np.array(mw @ v.co), segs, WEIGHT_MARGIN_M)
-                for b, x in w.items():
-                    groups[b].add([v.index], float(x), "REPLACE")
-            wdoc["unweighted"] = sum(1 for v in rigged.data.vertices if not v.groups)
+            wdoc = _procedural_weights(ob, rigged, arm_ob, {n: f["heads"][n] for n in grammar}, gpar)
         else:
             wdoc = {"source": "none"}
         mod = rigged.modifiers.new("Armature", "ARMATURE")

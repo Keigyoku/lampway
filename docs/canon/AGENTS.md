@@ -90,6 +90,14 @@ and all unchanged bind bars govern recipe admission and file readback. Retain
 mixed joint diagnostics and refuse stale or unsupported inputs. Headless
 reference/file matches do not certify a fresh actual UE import.
 
+Canon03 authored FACE preparation retains original vertex/face identities and
+source seams rather than approving new cuts. Exact corner-vector provenance is
+separate from native normal encoding quantization. Canon20 procedural example
+weighting follows the verified Titan body construction and transfer; canon07's
+quarter-shorter-bone law is a joint-owned width, and its historical 0.4–7 cm
+range is a measurement rather than a clamp. Preserve genuine outside-joint and
+physical motion acceptance gates.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -123,3 +131,4 @@ reference/file matches do not certify a fresh actual UE import.
 | 2026-10-08 | independently referenced native bind axes | supplied actual342 stage audit and original-input replay | child-based frame reconstruction lost329 independently captured frames and authored feet are not universally joint-aligned | distinguish strict joint diagnostics from complete native bind calibration, carry the fixed writer bridge and recheck pinned independent binds under unchanged bars | actual native conform and authored-file proof; fresh actual UE import remains unverified |
 
 | 2026-10-08 | exact generated animation profile publication | I04 actual generated profile self-refusal | nine-decimal quaternion normalization moved two components on rebuild | publish a bounded exact rotation fixed point for profile transforms and basis; settle the coupled declared adapter orbit for canonical samples; retain exact hashes and corruption refusals | supplied profile RED, synthetic exact rebuild controls and actual Walking profile/extract/normalize/adapt/compare/verify GREEN |
+| 2026-10-09 | authored source seam and canonical example-body implementation | actual labelled gear and template quality follow-up | copied topology could hide seams and constant global falloff omitted the canonical procedural body | preserve source identity and normal provenance; implement referenced joint-owned widths without turning measured ranges into thresholds or waiving physical gates | authored preparation/stale-seam controls and independent native procedural weight comparison |

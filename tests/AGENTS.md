@@ -106,6 +106,15 @@ Text-replacement controls model a prior native editor consuming the first outsid
 
 Platform-guard models evaluate the bounded defined/AND/OR grammar with real precedence and parentheses, retain unknown-form refusal, and compare every maintained conditional against actual compiler preprocessing for Linux fork ON/OFF, Apple, Windows and unsupported platforms. Header-free preprocessing is a selection proof, not complete native compilation or linkage.
 
+Authored FACE-part copy tests preserve exact source identities, corners, UVs,
+materials and normal-vector provenance, while reporting native normal encoding
+separately. Plant changed ownership/topology/source and moved copied seams;
+original seam gates must survive every valid preparation transform. Template
+refit tests use real bound/parented examples, REST-versus-POSE rays, injected BVH
+failure and independent canonical procedural-body weight expectations. Retain
+source action, pose, parent, weights and world transforms; reject the old global
+falloff by actual weight rows, not only by missing metadata.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -145,3 +154,5 @@ Platform-guard models evaluate the bounded defined/AND/OR grammar with real prec
 | 2026-10-09 | orphan bind-source coverage | resumed actual full chain | weights claimed success with uncovered zero rows while return refused | test prepublication coverage and immutable state/object boundaries; copied cleanup retains original identity proof | genuine native orphan-shape RED and unchanged original-input guard GREEN |
 
 | 2026-10-09 | native platform model compiler comparison | full5b aggregate exposed two new cinema controls | the OR-only test parser rejected the valid Linux-and-fork dock registration condition before reaching unchanged linkage assertions | model bounded logical grammar and verify every guard against real platform preprocessing, retaining unsupported-form refusal | two reproduced parser REDs; Linux ON/OFF, Apple, Windows and no-platform compiler comparisons GREEN |
+| 2026-10-09 | authored copy and original seam falsifiers | real labelled gear preparation | overlapping rigid rows and geometry-only seam detection hid source boundaries | test exact face ownership, stable copied IDs, normal semantics and stale/moved original seam rejection without acceptance flags | actual preparation RED plus native source/recipe/topology/seam controls |
+| 2026-10-09 | independent procedural body and replacement bind controls | supplied example rig quality audit | missing method metadata alone would not prove algorithm failure and copied bindings retained old rig dependencies | assert actual independent finger weights, single new binding, preserved source/parent/world state and restored REST evaluation on exception | native old-falloff functional RED and Titan/current-method comparison |

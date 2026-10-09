@@ -172,6 +172,24 @@ quality. Retain the true-rest measurements and explicit mapping, offer callable
 target-weight audit and copy-only cleanup previews, and keep role review and
 physical acceptance separate from those candidate operations.
 
+Explicit authored FACE-part preparation creates a copied combined mesh with
+disjoint groups, original vertex/face IDs and a hash-bound original seam ledger.
+Preserve geometry, UVs, materials, custom data and exact source corner vectors;
+native normal encoding quantization is measured separately. Bind planning
+validates source, recipe, ownership and copied topology identities and retains
+original seam gates despite copied transforms. Separation never accepts source
+cuts or openings.
+
+Template refits evaluate inside rays against the example's bound REST geometry
+and restore every armature's pose mode even when evaluation fails. Replacement
+copies remove inherited Armature modifiers and inherited armature parenting
+while retaining world placement and untouched originals. Canon20 example weights
+come from the ray-sized procedural body and nearest-polygon transfer, with each
+joint owning a quarter of the shorter adjacent bone on both sides. Preserve
+authoritative prior-art radius and blending rules, original authored vertex
+identities and genuine outside-joint refusals; algorithm controls do not certify
+the supplied example's physical motion quality.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -238,3 +256,5 @@ physical acceptance separate from those candidate operations.
 | 2026-10-09 | compatible restricted surface matching | resumed actual cape binding audit | one nearer incompatible face hid valid region surfaces and left a disconnected component unseeded | choose the nearest compatible allowed triangle under unchanged bars; keep explicit fallback remapping and genuine zero-weight refusal | synthetic nearest-face RED and original cape component receipt |
 | 2026-10-09 | causal motion quality follow-up | resumed exact source and target replay | omitted channels could be mistaken for proof of distortion despite the original rig reproducing it | preserve explicit mapping, name unestablished cause and callable weight audit; candidate cleanup stays copied and unreviewed | original-versus-conformed skin covariance and callable audit RED/GREEN |
 | 2026-10-09 | complete bind row coverage | resumed original-input full chain | unlabeled faceless vertices published zero-weight rows and failed only at return | refuse uncovered planned-part membership before sidecar/output, preserve source IDs and require explicit copy cleanup or assignment | native orphan-shape RED and original-input prepublication refusal GREEN |
+| 2026-10-09 | authored FACE ownership and source seam transport | supplied part groups overlapped at rigid boundaries | shared rows overwrote rigid bindings and packed normal values changed meaning after smoothing-fan separation | make explicit authored copies with stable IDs, original seam ledgers and exact source corner vectors; report native normal quantization separately | native preparation and shifted-seam RED controls plus copied original-input measurements |
+| 2026-10-09 | complete own-example procedural rig weighting | canonical template route and original skin audit | pose/rest inside mismatch, duplicate bindings, inherited armature parenting and global falloff violated the example-body route | REST-aligned rays with finally restoration, independent replacement binding and canonical ray-sized body transfer with joint-owned widths | native binding/parent REDs and independent Titan finger-weight comparison under unchanged source/quality gates |

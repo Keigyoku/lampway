@@ -79,6 +79,8 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
     parts = _parts(ob)
     if not parts:
         raise C.FeatureError(f"{ob.name} has no vertex groups naming its parts: label the parts (a vertex group per part) before binding")
+    from .authored_parts import source_seams
+    original_seams, original_ids = source_seams(ob, root)
     out = {}
     segments = None
     for name, idx in parts.items():
@@ -122,11 +124,17 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
                         kd.insert(P[j], k)
                     kd.balance()
                     shared = np.array([x for x in A if kd.find_range(P[x], SEAM_EPS)])
-            if len(shared):
-                row = {"parts": [a, b], "vertices": int(len(shared)), "bones": [out[a]["bones"][0] if out[a]["mode"] == "rigid" else None, out[b]["bones"][0] if out[b]["mode"] == "rigid" else None]}
+            source_pair = original_seams.get((a, b), set())
+            source_count = len(source_pair)
+            if original_ids is not None:
+                source_count = len(source_pair | {int(original_ids[i]) for i in shared})
+            else:
+                source_count = len(shared)
+            if source_count:
+                row = {"parts": [a, b], "vertices": int(source_count), "bones": [out[a]["bones"][0] if out[a]["mode"] == "rigid" else None, out[b]["bones"][0] if out[b]["mode"] == "rigid" else None]}
                 seams.append(row)
                 if out[a]["mode"] == "rigid" and out[b]["mode"] == "rigid" and out[a]["bones"] != out[b]["bones"]:
-                    opens.append({"parts": [a, b], "bones": sorted({out[a]["bones"][0], out[b]["bones"][0]}), "vertices": int(len(shared)),
+                    opens.append({"parts": [a, b], "bones": sorted({out[a]["bones"][0], out[b]["bones"][0]}), "vertices": int(source_count),
                                   "why": "two rigid parts of one shell on different bones: the seam opens when the bones move"})
     parent = {n: n for n in names}
     def find(x):
