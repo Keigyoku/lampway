@@ -304,7 +304,7 @@ def _source_arrays(src, bones):
     return tree, np.array([v[:] for v in V]), np.array(tris), names, W
 
 
-def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M, matched_fraction_warning_threshold=MATCHED_FRACTION_WARNING_THRESHOLD):
+def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=0, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M, matched_fraction_warning_threshold=MATCHED_FRACTION_WARNING_THRESHOLD):
     import math
     _match_warnings(1.0, matched_fraction_warning_threshold)  # validate before creating the derivative
     ob = C.need_object(object)
@@ -388,9 +388,10 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
     mod.object = arm
     stamp_source(dup, ob)
     unweighted = int((Wt.sum(axis=1) <= EPS).sum())
-    hist = {str(k): int(((Wt > EPS).sum(axis=1) == k).sum()) for k in range(1, 5)}
+    counts, frequencies = np.unique((Wt > EPS).sum(axis=1), return_counts=True)
+    hist = {str(int(k)): int(v) for k, v in zip(counts, frequencies)}
     return {"ok": True, "object": dup.name, "source": src.name, "engine": engine, "matched_fraction": round(float(matched.mean()), 6), "inpainted_vertices": inpainted, "groups_written": len(gnames),
-            "max_influences": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted,
+            "max_influences": int(counts.max()) if len(counts) else 0, "influence_limit": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted,
             "matched_fraction_warning_threshold": matched_fraction_warning_threshold,
             "warnings": _match_warnings(float(matched.mean()), matched_fraction_warning_threshold)}
 

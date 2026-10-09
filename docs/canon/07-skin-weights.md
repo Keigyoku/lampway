@@ -125,6 +125,14 @@ assigned `blend`; two rigid anchors at one point; the science python lacking `ro
 Receipt `weights.json`: `{matched_fraction, inpainted, duplicates_identical: true, influence_histogram, max_influences, per_part:
 {role, mode, bones, reason}, seam_pairs_checked, sha256: {piece, body_package, pose}}`.
 
+## Current public planar seam interface (2026-10-09)
+
+The historical gaps above describe `b806617f`. `fit_bind` now composes the existing `band_weights` primitive through an optional `bind_overrides._seam_bands` list at `stage=plan`. Each recipe names `parts` and `bones` in behind/ahead order, `generated_same_shell: true`, the working `workflows.mesh_hash(piece)` as `source_sha256`, complete `source_seam_pairs` as working source vertex ID pairs, world-metre `cut_point`, `axis`, and positive finite `width_m` (default 0.05 m). The declaration must come from actual source authority; coincident points alone do not establish same-shell provenance.
+
+The bounded interface admits explicit flexible planar cuts with disjoint ownership and compatible endpoint fields. Complete contact pairs must match the source within the unchanged weld bar and lie on the declared plane. Rigid/metal ownership, ambiguous or overlapping bands, invalid endpoints, and changed source/frame/membership/recipe refuse before publication. Plan and weights retain the input identities and pair count; band composition precedes the unchanged strict rigid fade. It does not authorize any seam opening or certify physical quality. The source remains intact and physical review remains separate.
+
+`weight_transfer` now uses `limit_groups=0` by default, preserving native influences. A positive caller-requested cap is still applied and recorded; it is never selected implicitly as four. This does not change the engine's own export constraints or the explicit cleanup limit operation.
+
 ## H. Decisions owed by the captain
 
 1. Influence cap for armour pieces in UE (none / 8 / 12)?

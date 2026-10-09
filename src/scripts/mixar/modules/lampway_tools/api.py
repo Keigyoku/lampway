@@ -1491,11 +1491,11 @@ def normalize_mesh(input, turn_deg=None, plate="", recipe="", generator="", want
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", weld_m=1e-5, matched_fraction_warning_threshold=0.5):
+def weight_transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=0, deform_only=True, name="", engine="algorithmic", weld_m=1e-5, matched_fraction_warning_threshold=0.5):
     """Copy skin weights from a rigged body onto a piece. Each piece vertex is matched to the closest point on the body's (deformed) surface and takes the barycentric weights when the distance <=
     max_distance (default 0.05 m, at most 0.5) and its normal is within max_normal_angle (default 30 degrees; a flipped normal also counts when flip_normals); every vertex with no trustworthy match is
     inpainted so armpits, crotch and chest-to-arm gaps blend without painting. engine algorithmic: a harmonic fill over the mesh graph (Blender's python); engine robust: the SIGGRAPH Asia 2023 method
-    (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups caps the influences (default 4, 0 = no cap).
+    (robust Laplacian, biharmonic constrained solve) in the science python (needs LAMPWAY_PYTHON_SCIENCE with numpy scipy libigl robust_laplacian). limit_groups is an explicit influence cap; default 0 preserves all influences.
     The source must carry vertex groups and exactly one Armature modifier; the piece must have no topology modifiers. Result: a NEW object <object>_wt (or `name`) with the body's groups and Armature; the
     original is untouched. matched_fraction_warning_threshold is a 0..1 diagnostic cutoff (default 0.5, calibrated against placed and unplaced native fixtures);
     below it warnings suggest lampway_fit_place. It never gates export. Returns matched_fraction, inpainted_vertices, groups_written, the influence histogram and unweighted_vertices.
@@ -1611,7 +1611,8 @@ def fit_bind(stage, piece="", armature="", roles=None, bind_overrides=None, out_
     """Bind a finished piece to the body's skeleton by the user's weight laws. plan: per part (a vertex group of the piece) a role from `roles` {part: metal | leather | cloth | embroidery} - the user's or
     the recipe's, never a render's colour: a part without one is refused - and a mode: metal = rigid, ONE bone at full weight (the bone with most of its vertices nearest, or the override), anything else =
     restrict (weighted by position from the body's own weights, restricted to the bones its geometry spans); `bind_overrides` {part: {mode, bones, reason}} (metal as blend is refused: ask for a ruled cut;
-    an unknown bone names the nearest). Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
+    an unknown bone names the nearest). Optional bind_overrides._seam_bands explicitly declares generated same-shell flexible planar cuts, source hash/contact pairs, ordered parts/bones, world-metre cut_point/axis and width_m (default 0.05): canon07 B.6. Invalid authority, rigid parts, overlapping bands and stale source/frame/ownership refuse. It never accepts a seam opening.
+    Parts that share a seam and a bone form a rigid group; two rigid parts of one shell on different bones OPEN the seam (seam_opens). Writes bind_plan.json and seams.json.
     weights: a copy <piece>_fit (the source is untouched) with the plan's weights; the body's weights come from `body`, the fit_body package's NATIVE sidecar (the engine's weights, every influence, skinned to the
     armature's current pose: canon 03 F.6) - `body_object`, a skinned scene body, is accepted as an approximation and labelled so. A cloth/leather vertex within 5 mm of a rigid part takes its bone (canon 07 B.5; at a seam, the bone alone).
     A restrict part (canon 07) is welded by position, matched only on the body's own region for its bones (a closer surface of another region cannot

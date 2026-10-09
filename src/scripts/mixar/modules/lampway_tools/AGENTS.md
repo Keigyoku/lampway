@@ -190,6 +190,8 @@ authoritative prior-art radius and blending rules, original authored vertex
 identities and genuine outside-joint refusals; algorithm controls do not certify
 the supplied example's physical motion quality.
 
+Explicit generated same-shell flexible planar cuts enter fit_bind through bind_overrides._seam_bands. Pin working mesh/world/positive memberships and complete original contact pairs before weights; revalidate before sampling or publication. Use canon07 positional bands before strict rigid fade; no rigid role or source seam acceptance changes. weight_transfer preserves all native influences by default; positive requested caps remain explicit.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -258,3 +260,4 @@ the supplied example's physical motion quality.
 | 2026-10-09 | complete bind row coverage | resumed original-input full chain | unlabeled faceless vertices published zero-weight rows and failed only at return | refuse uncovered planned-part membership before sidecar/output, preserve source IDs and require explicit copy cleanup or assignment | native orphan-shape RED and original-input prepublication refusal GREEN |
 | 2026-10-09 | authored FACE ownership and source seam transport | supplied part groups overlapped at rigid boundaries | shared rows overwrote rigid bindings and packed normal values changed meaning after smoothing-fan separation | make explicit authored copies with stable IDs, original seam ledgers and exact source corner vectors; report native normal quantization separately | native preparation and shifted-seam RED controls plus copied original-input measurements |
 | 2026-10-09 | complete own-example procedural rig weighting | canonical template route and original skin audit | pose/rest inside mismatch, duplicate bindings, inherited armature parenting and global falloff violated the example-body route | REST-aligned rays with finally restoration, independent replacement binding and canonical ray-sized body transfer with joint-owned widths | native binding/parent REDs and independent Titan finger-weight comparison under unchanged source/quality gates |
+| 2026-10-09 | canonical positional bands and uncapped native transfer | canon07 B.6/B.9 and implementation item3 | pure band primitive was disconnected and the public transfer silently dropped native influences | source-bound planar recipes, endpoint/identity refusals, native positional C03 and twelve-influence controls | real C03 tear and stale/authority/default-cap REDs; isolated native regression receipts |

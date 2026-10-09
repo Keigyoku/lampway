@@ -115,6 +115,8 @@ failure and independent canonical procedural-body weight expectations. Retain
 source action, pose, parent, weights and world transforms; reject the old global
 falloff by actual weight rows, not only by missing metadata.
 
+Native fit_bind seam-band checks drive C03 through the public plan/weights path, preserve exact inverse bars and reject missing contact authority, rigid/profile/axis/endpoint/overlap and stale inputs before publication. Native transfer checks preserve twelve influences by default and retain an explicitly requested cap. Older-binary current-source controls remain distinct from matching native acceptance.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -156,3 +158,4 @@ falloff by actual weight rows, not only by missing metadata.
 | 2026-10-09 | native platform model compiler comparison | full5b aggregate exposed two new cinema controls | the OR-only test parser rejected the valid Linux-and-fork dock registration condition before reaching unchanged linkage assertions | model bounded logical grammar and verify every guard against real platform preprocessing, retaining unsupported-form refusal | two reproduced parser REDs; Linux ON/OFF, Apple, Windows and no-platform compiler comparisons GREEN |
 | 2026-10-09 | authored copy and original seam falsifiers | real labelled gear preparation | overlapping rigid rows and geometry-only seam detection hid source boundaries | test exact face ownership, stable copied IDs, normal semantics and stale/moved original seam rejection without acceptance flags | actual preparation RED plus native source/recipe/topology/seam controls |
 | 2026-10-09 | independent procedural body and replacement bind controls | supplied example rig quality audit | missing method metadata alone would not prove algorithm failure and copied bindings retained old rig dependencies | assert actual independent finger weights, single new binding, preserved source/parent/world state and restored REST evaluation on exception | native old-falloff functional RED and Titan/current-method comparison |
+| 2026-10-09 | public positional seam and native influence tests | canon07 B.6/B.9 missing implementation | primitive-only goldens did not detect disconnected bands or the public four-influence default | public C03, endpoint/identity and twelve-influence behavioral controls | genuine old-code/reversion RED and native current-source GREEN |

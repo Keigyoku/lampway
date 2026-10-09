@@ -42,3 +42,9 @@ checks and classify unexecuted local legs separately. Historical UE gray-control
 failure and unmatched crash artifacts are unresolved evidence, not component
 passes. The final packet must preserve original acceptance thresholds and
 separately owned Agent Mode dependencies.
+
+## Canonical seam and influence follow-up
+
+The public fit_bind weights path previously did not call canon07's positional seam band. A genuine C03 control measured an 82.084836 mm seam gap and different duplicate rows before the correction. The existing plan accepts explicit source-bound flexible planar cut recipes through bind_overrides._seam_bands; complete contacts, working source/world/ownership identity, endpoint fields and disjoint flexible scope are checked before sampling/publication. The band uses the canonical primitive, precedes strict rigid fade and retains original source/opening and inverse gates. The original contact conflict is not waived by this method.
+
+The public weight_transfer default previously capped native influences at four. Its default is now zero (no cap), preserving the source influences while positive requested limits remain explicit. Native current-Python controls cover the public defaults, positional C03 and refusal/identity boundaries. These controls use an older binary and do not establish matching native or original-asset physical acceptance. Complete local recipe/acceptance tooling is delivered separately; accepted source contact and physical review remain genuine inputs.

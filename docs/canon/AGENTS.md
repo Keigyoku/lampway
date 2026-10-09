@@ -98,6 +98,8 @@ quarter-shorter-bone law is a joint-owned width, and its historical 0.4–7 cm
 range is a measurement rather than a clamp. Preserve genuine outside-joint and
 physical motion acceptance gates.
 
+Canon07 current implementation documents explicit source-bound planar flexible seam recipes and preserves all native influences by default. Keep historical gap lists pinned to their original commits, require complete source contact authority, and retain strict rigid-anchor and physical review gates.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -132,3 +134,4 @@ physical motion acceptance gates.
 
 | 2026-10-08 | exact generated animation profile publication | I04 actual generated profile self-refusal | nine-decimal quaternion normalization moved two components on rebuild | publish a bounded exact rotation fixed point for profile transforms and basis; settle the coupled declared adapter orbit for canonical samples; retain exact hashes and corruption refusals | supplied profile RED, synthetic exact rebuild controls and actual Walking profile/extract/normalize/adapt/compare/verify GREEN |
 | 2026-10-09 | authored source seam and canonical example-body implementation | actual labelled gear and template quality follow-up | copied topology could hide seams and constant global falloff omitted the canonical procedural body | preserve source identity and normal provenance; implement referenced joint-owned widths without turning measured ranges into thresholds or waiving physical gates | authored preparation/stale-seam controls and independent native procedural weight comparison |
+| 2026-10-09 | canonical seam engine and native influence defaults | canon07 B.6/B.9 implementation review | historical method claims obscured disconnected public band composition and silent four-influence cap | document the bounded cut interface and uncapped default with guarded physical status | C03/native transfer RED/GREEN and unchanged canon goldens |
