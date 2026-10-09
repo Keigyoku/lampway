@@ -151,6 +151,12 @@ allowed region under the existing distance and angle bars. A nearer incompatible
 face must not hide it. Named fallback only remaps sampled influences; truly
 unseeded components retain zero-weight refusal.
 
+Every source vertex must have positive membership in a planned part before
+weights reads the sidecar or publishes a fit object/state. Uncovered vertices,
+including faceless orphans, refuse with bounded original IDs and a source-cleanup
+plan or explicit part-assignment next step. Cleanup stays an explicit copied
+predecessor with retained identity/face proof, never implicit source removal.
+
 The captain admitted the ARAP-with-clearance candidate under canon03-H2 on2026-10-08 and delegated solver-default judgment. Composite conform requires canonical real-scale mesh admission, immutable source identities, persisted cloth/leather selections, a verified native sidecar and current sampled fit pose. Clearance/seam targets are caller-explicit. Solve creates a disposable candidate with numerical diagnostics and physical_status untested; only unchanged candidate/source/body/pose hashes plus genuine output-render review permit an accepted stage. Bind/weights must use that accepted candidate. Keep rigid metal/ornaments unchanged and refuse nonconvergence, unsafe opening-band signs and stale inputs before admission.
 
 Procedural material probe baking uses one EEVEE frame for three equal-resolution emission tiles only when its reachable coordinate graph is independent of world/camera/external-object state. Each tile retains identical local/object coordinates and the previous linear pixels. Unknown or coordinate-sensitive graphs keep isolated three-frame rendering. Preserve all55 preset tests, the existing240-second per-process limit, caller scene state and owned camera/world cleanup. Resource-profile passes remain distinct from matching-native aggregate acceptance.
@@ -231,3 +237,4 @@ physical acceptance separate from those candidate operations.
 | 2026-10-09 | canonical inverse and advertised render passes | inherited audit I04/I08 | quantized inverse drifted exact hashes and string passes became characters | settle declared inverse orbit without hidden data; parse and validate tokens before rendering with caller restoration | actual packet/Walking exact inverse and two-pose clay/depth native receipts |
 | 2026-10-09 | compatible restricted surface matching | resumed actual cape binding audit | one nearer incompatible face hid valid region surfaces and left a disconnected component unseeded | choose the nearest compatible allowed triangle under unchanged bars; keep explicit fallback remapping and genuine zero-weight refusal | synthetic nearest-face RED and original cape component receipt |
 | 2026-10-09 | causal motion quality follow-up | resumed exact source and target replay | omitted channels could be mistaken for proof of distortion despite the original rig reproducing it | preserve explicit mapping, name unestablished cause and callable weight audit; candidate cleanup stays copied and unreviewed | original-versus-conformed skin covariance and callable audit RED/GREEN |
+| 2026-10-09 | complete bind row coverage | resumed original-input full chain | unlabeled faceless vertices published zero-weight rows and failed only at return | refuse uncovered planned-part membership before sidecar/output, preserve source IDs and require explicit copy cleanup or assignment | native orphan-shape RED and original-input prepublication refusal GREEN |

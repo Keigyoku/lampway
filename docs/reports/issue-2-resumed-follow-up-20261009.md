@@ -20,8 +20,8 @@ the original acceptance boundary. No matching tolerance or fallback policy chang
 
 The covering native controls reproduce the hidden-surface refusal and unstable
 tie selection, retain the truly out-of-range refusal, and preserve the original
-piece groups and modifiers. The bind/weights/return regression run passes
-39 cases with one explicit skip. The canon check passes its 48 mesh and 34 rig
+piece groups and modifiers. The final bind/weights/return and uncovered-source regression run passes
+41 cases with no skips. The canon check passes its 48 mesh and 34 rig
 goldens, schemas and byte determinism.
 
 C02 also exposed an incidental test premise: coincident body vertices do not
@@ -34,6 +34,19 @@ golden geometry and expected inverse; no expected value is rewritten.
 Approved recipe bindings are explicit caller inputs in the actual rerun. Candidate
 pauldron-derived fallbacks remain physically unreviewed. Numerical stage execution
 does not create source, conform-output, seam or physical-fit approval.
+
+The subsequent full input run exposed unlabeled faceless vertices: weights
+published zero rows and claimed success before return refused them. Weights now
+refuses missing planned-part membership before sidecar reads or output publication,
+with bounded source IDs and an actionable cleanup plan. A copied loose-geometry
+cleanup is an explicit corrected predecessor; retained source identities, every
+face corner, coordinates and positive part membership are verified. It does not
+establish original-input or physical acceptance. The corrected copy weights all
+30,902 retained vertices, including all 4,583 upper-cape vertices. Return still
+rejects an 11.060 mm rigid back-plate residual against the unchanged 0.5 mm bar,
+and apply rejects ten rigid seam conflicts. Three shared back-plate/pauldron
+vertices carry conflicting rigid bone assignments; their ownership or explicit
+separation needs a reviewed input contract before physical export.
 
 ## Native text-field focus
 

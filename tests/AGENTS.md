@@ -96,7 +96,15 @@ disposable fit copy. Coincident vertices do not imply those weights survive the
 separate forward round-trip control under the same 1e-6 metre bar; never narrow
 compatible-surface matching to retain an incidental golden transfer result.
 
+Uncovered bind-source vertices are a prepublication refusal, including the
+faceless orphan shape. Verify bounded original IDs, unchanged bind state and
+absence of a new fit object. An explicit copied cleanup must prove retained
+source identities, face-corner membership and coordinates before a corrected
+predecessor's numerical chain is measured.
+
 Text-replacement controls model a prior native editor consuming the first outside press, no existing editor, and an already active target. Keep empty/Unicode replacements and SearchMenu/Num single-activation falsifiers, then verify exact Save As, repeat Save and reopened content on the isolated app; input timing experiments alone do not establish focus correction.
+
+Platform-guard models evaluate the bounded defined/AND/OR grammar with real precedence and parentheses, retain unknown-form refusal, and compare every maintained conditional against actual compiler preprocessing for Linux fork ON/OFF, Apple, Windows and unsupported platforms. Header-free preprocessing is a selection proof, not complete native compilation or linkage.
 
 ## Anneal log
 
@@ -134,3 +142,6 @@ Text-replacement controls model a prior native editor consuming the first outsid
 | 2026-10-09 | localized UI overlap and CtrlQ controls | additional914 provisional findings | Python popup gating hid missing native dock registration and unrelated symbol addresses could imply a false crash cause | record actual native map/registry states and fresh-region CtrlQ outcomes with explicit build identity; preserve source/physical evidence distinction | reopened mapped-island RED, platform-selection runtime RED,463 controls GREEN and isolated exit0 cases |
 | 2026-10-09 | independent inverse and compatible transfer controls | resumed cape repair and C02 regression | coincident vertices with incompatible face normals accidentally inherited the authored golden weights through inpainting | preserve authored weights and exact inverse expected values, and separately verify transferred-weight forward round trip | native incident-face diagnosis and unchanged golden/bar controls |
 | 2026-10-09 | native text focus acquisition | I02 repeated actual .mixar Save As failure | retained directory editing consumed the first filename click and text went to a highlighted field | establish Text-only focus through two bounded native clicks, retaining search/numeric activation and exact file/content evidence | GDB outside-press exit, three model REDs,77 focused and725 combined controls GREEN; matching native build remains separate |
+| 2026-10-09 | orphan bind-source coverage | resumed actual full chain | weights claimed success with uncovered zero rows while return refused | test prepublication coverage and immutable state/object boundaries; copied cleanup retains original identity proof | genuine native orphan-shape RED and unchanged original-input guard GREEN |
+
+| 2026-10-09 | native platform model compiler comparison | full5b aggregate exposed two new cinema controls | the OR-only test parser rejected the valid Linux-and-fork dock registration condition before reaching unchanged linkage assertions | model bounded logical grammar and verify every guard against real platform preprocessing, retaining unsupported-form refusal | two reproduced parser REDs; Linux ON/OFF, Apple, Windows and no-platform compiler comparisons GREEN |

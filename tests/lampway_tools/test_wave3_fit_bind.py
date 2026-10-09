@@ -170,3 +170,22 @@ res({"face":int(hit[2]),"distance_m":float(hit[3])})
 ''')
     assert r.rc == 0, r.out[-2000:]
     assert r.results[-1]["face"] == 0, r.results[-1]
+
+
+def test_uncovered_orphan_vertices_refuse_weights_before_copy_or_state_publication():
+    r = run('''
+from pathlib import Path
+import bmesh
+arm, bd = rig_and_body(); p = two_parts()
+bm = bmesh.new(); bm.from_mesh(p.data); bm.verts.new((0,0,4)); bm.to_mesh(p.data); bm.free()
+api.fit_bind("plan",piece="piece",armature="body_rig",roles={"plate":"metal","cloth":"cloth"},out_dir="fit/uncovered")
+state = Path(root)/"fit/uncovered/bind_state.json"; before = state.read_bytes()
+out = api.fit_bind("weights",piece="piece",armature="body_rig",body_object="body_mesh",out_dir="fit/uncovered")
+res({"ok":out.get("ok"),"error":out.get("error"),"fit_exists":bpy.data.objects.get("piece_fit") is not None,
+     "state_unchanged":state.read_bytes()==before,"source_vertices":len(p.data.vertices)})
+''')
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert not d["ok"] and "no positive membership" in d["error"], d
+    assert "lampway_scene_cleanup" in d["error"] and "part group" in d["error"], d
+    assert not d["fit_exists"] and d["state_unchanged"], d

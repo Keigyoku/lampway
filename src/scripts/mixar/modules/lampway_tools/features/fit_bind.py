@@ -350,6 +350,15 @@ def weights(piece, armature, out_dir, body_object, root, body=""):
     parts = _parts(ob)
     bones = {b.name for b in arm.data.bones}
     n = len(ob.data.vertices)
+    covered = np.zeros(n, dtype=bool)
+    for part in pl["parts"]:
+        covered[parts.get(part, [])] = True
+    uncovered = np.flatnonzero(~covered)
+    if len(uncovered):
+        raise C.FeatureError(f"{len(uncovered)} vertices of {ob.name} have no positive membership in a planned part group "
+                             f"(vertex IDs {uncovered[:20].tolist()}): assign them to an explicit part group and re-run stage plan; "
+                             "for proven loose source geometry, review lampway_scene_cleanup(objects=[<piece>], steps=['loose'], "
+                             "plan_only=true) before its copy cleanup. No weights copy was created")
     names = sorted(bones)
     W = np.zeros((n, len(names)))
     ix = {b: i for i, b in enumerate(names)}
