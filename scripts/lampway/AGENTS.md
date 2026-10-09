@@ -88,6 +88,8 @@ The UE bind comparator also evaluates all48 signed permutation conjugacy bases a
 
 Export-copy diagnostics pin the current exporter module bytes and retain mismatch refusals; refresh a pin only with the measured exporter change, never to admit an unrelated installed overlay.
 
+Launcher --help/-h lists supported flags and exits0 without requiring a build, creating profiles, launching services or printing secrets. Unknown flags still exit2.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -122,3 +124,4 @@ Export-copy diagnostics pin the current exporter module bytes and retain mismatc
 | 2026-10-08 | runnable native rotation diagnosis | current calibrated mesh-reference audit omits per-bone deltas | aggregate near180-degree errors cannot identify a writer or basis change | compute all48 proper/improper basis residual summaries and all-pair angle invariants without raw tables, correction selection or altered verdicts; update current exporter pin | five missing-interface RED controls;56 pure GREEN cases and synthetic342-row bound |
 | 2026-10-08 | disabled-tone state verification | N05 actual GPU no-difference refusal | disabled settings were assumed applied and failed control pixels were discarded | verify disabled and restored native settings and retain numeric control marker under unchanged bars; keep GPU cause and acceptance unverified | synthetic RED/GREEN and threshold controls; actual GPU rerun pending |
 | 2026-10-08 | independent native export diagnostic pin | exporter reference correction | historical exporter pin refused the current diagnostic overlay | bind diagnostics to the corrected committed source and retain wrong-pin controls | exact current source SHA and diagnostic regressions |
+| 2026-10-08 | launcher help entry | inherited setup audit I12 | unknown-flag path rejected help | early static help with no startup side effects or secret output | two behavioral REDs and32 existing/help/Linux checks GREEN |

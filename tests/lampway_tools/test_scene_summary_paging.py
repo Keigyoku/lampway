@@ -28,3 +28,32 @@ def test_scene_summary_pages_its_objects_with_totals():
     rest = _summary({"offset": 100, "limit": 100})
     assert [o["name"] for o in rest["objects"]] == [f"e{i:03d}" for i in range(100, 150)] and rest.get("next_offset") is None
     assert len(_summary({"full": True})["objects"]) == 150
+
+
+def test_summary_pages_only_current_tab_and_its_materials():
+    setup = '''import bpy
+old = bpy.context.scene
+old_names = sorted(o.name for o in old.objects)
+old_mat = bpy.data.materials.new("OtherTabOnly")
+bpy.data.objects["Cube"].data.materials.append(old_mat)
+current = bpy.data.scenes.new("HelmetTab")
+bpy.context.window.scene = current
+material = bpy.data.materials.new("HelmetBronze")
+for i in range(3):
+    mesh = bpy.data.meshes.new(f"helmet_mesh{i}")
+    mesh.materials.append(material)
+    current.collection.objects.link(bpy.data.objects.new(f"Helmet{i}", mesh))
+'''
+    body = "\nresults=[]\n"
+    for args in ({"limit": 2}, {"limit": 2, "offset": 2}, {"full": True}):
+        body += script_for(SCENE_SUMMARY, args) + "\nresults.append(__RESULT__)\n"
+    r = run_script(setup + body + "\nimport json\nprint('RESULT', json.dumps({'pages':results,'old_unchanged':old_names==sorted(o.name for o in old.objects)}))\n")
+    assert r.rc == 0, r.out[-2000:]
+    first, last, full = r.results[0]["pages"]
+    assert r.results[0]["old_unchanged"]
+    assert first["object_count"] == 3 and first["next_offset"] == 2
+    assert [o["name"] for o in first["objects"]] == ["Helmet0", "Helmet1"]
+    assert [o["name"] for o in last["objects"]] == ["Helmet2"] and last["next_offset"] is None
+    assert len(full["objects"]) == 3
+    assert all(p["scene"] == "HelmetTab" and p["material_count"] == 1
+               and [m["name"] for m in p["materials"]] == ["HelmetBronze"] for p in (first, last, full))

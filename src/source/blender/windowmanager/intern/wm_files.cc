@@ -4172,7 +4172,16 @@ static void save_set_filepath(bContext *C, wmOperator *op)
       }
     }
     
+#ifdef LAMPWAY
+    /* LAMPWAY: replacing a leading-dot filename such as ".mixar" appends a
+     * second extension. Preserve an already selected suffix (including case)
+     * on repeated Save; only change it when the requested format differs. */
+    if (!BLI_path_extension_check(filepath, target_extension)) {
+      BLI_path_extension_replace(filepath, FILE_MAX, target_extension);
+    }
+#else
     BLI_path_extension_replace(filepath, FILE_MAX, target_extension);
+#endif
     wm_filepath_default(bmain, filepath, target_extension);
     RNA_property_string_set(op->ptr, prop, filepath);
   }

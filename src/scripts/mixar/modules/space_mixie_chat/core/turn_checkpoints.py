@@ -146,7 +146,7 @@ def _pending_key(scene):
     pointer = getattr(scene, "as_pointer", None)
     return pointer() if callable(pointer) else id(scene)
 
-_SUMMARY_BODY_SHA256 = "3e7d9bf09f464319168248725b31fc0edcc2e3882d87963aef6c0b7ac687eead"
+_SUMMARY_BODY_SHA256 = "798755d493162da738ab4d1bf80cb7d6c4f4b6edc1350c3833b410b77f8e5a97"
 
 
 def certified_read_script(script: str) -> bool:

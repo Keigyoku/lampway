@@ -486,10 +486,11 @@ DEFS = [
          "displacement | emission | opacity | mask | material_id | curvature | hdri | reference"), P("normal_convention", desc="auto (default: from the naming) | gl | dx"),
          P("tiling_real_world_m", "array", "a tileable's physical size [w, h] in metres"), P("source_naming", desc="ambientcg | polyhaven | lampway | tripo | none (default)")],
         api="normalize_texture"),
-    Def("lampway_normalize_mesh", "A raw mesh (a scene object, or a file under the project root, imported raw) into a CANONICAL mesh (canon: specs/canon/normalization): metres, +Z up, "
-        "front -Y, transform applied, the scale state recorded (Tripo / Hi3D generator_normalised; real only with evidence), a generated mesh welded by position (1e-5 m, refused above 5 % merged), "
-        "lw_source_face, pivot at the bounding box's bottom centre; stamped lw_canon with a receipt. The facing is declared by turn_deg (-90 for a +X-facing import) or a recipe, "
-        "or measured against an approved Front plate at four cardinal yaws with true-aspect silhouette IoU and an explicit best-minus-second margin. Unset margin or ambiguous facing refuses. A skinned mesh goes to the rig normalizer. Tools that read assets refuse a raw one with 'normalize first'.",
+    Def("lampway_normalize_mesh", "Normalize a raw scene mesh or project-root file (canon normalization): metres, +Z up, front -Y, applied transforms, recorded scale "
+        "(Tripo/Hi3D generator_normalised; real requires evidence), generated meshes welded by position (1e-5 m; >5% merged refuses), lw_source_face and lw_canon receipt. "
+        "Single meshes use bbox bottom centre; multipart files retain relative placement with one shared assembly origin and turn. Multipart plate-only facing refuses: supply turn_deg or recipe turn. "
+        "Facing is declared by turn_deg (-90 for +X front) or recipe, or measured against an approved Front plate at four cardinal yaws with true-aspect silhouette IoU and a best-minus-second margin. "
+        "Unset margin or ambiguous facing refuses. Skinned inputs use normalize_rigged. Asset tools require normalization.",
         [P("input", required=True, desc="object name or project path"), P("turn_deg", "number", "the piece's facing turn about Z"), P("plate", desc="approved Front plate (needs the facing margin)"),
          P("recipe", desc="a recipe json with turn_deg"), P("generator", desc="tripo_studio | tripo_api | meshy | hi3d | ... | lampway_tool | captain_authored | unknown"),
          P("want_scale", desc="any (default) | real"), P("scale_evidence", "object", "{method, value, reference} for real scale"), P("weld", desc="auto (default) | never"),

@@ -56,6 +56,26 @@ def qnorm(value):
     return [x if sign > 0 else -x for x in q]
 
 
+def _quaternion(value):
+    """A deterministic fixed point of nine-decimal rotation publication.
+
+    Rounding a unit quaternion can move its norm enough that normalizing those
+    published decimals rounds a component differently. Follow that finite
+    quantized orbit, retaining its exact fixed point (or the lexicographically
+    first state of a rounding cycle). Rebuilding starts in the same orbit and
+    therefore publishes exactly the same bytes, without a digest tolerance.
+    """
+    current = tuple(_round(x) for x in qnorm(value))
+    states, seen = [], {}
+    for _ in range(64):
+        if current in seen:
+            return list(min(states[seen[current]:]))
+        seen[current] = len(states)
+        states.append(current)
+        current = tuple(_round(x) for x in qnorm(current))
+    raise ValueError("quaternion publication did not reach a bounded canonical orbit")
+
+
 def qmul(a, b):
     ax, ay, az, aw = a
     bx, by, bz, bw = b
@@ -95,7 +115,7 @@ def _transform(value):
     if not isinstance(value, dict) or set(value) != {"translation", "rotation", "scale"}:
         raise ValueError("transform requires translation, rotation and scale only")
     return {"translation": [_round(x) for x in _vector(value["translation"], 3)],
-            "rotation": [_round(x) for x in qnorm(value["rotation"])],
+            "rotation": _quaternion(value["rotation"]),
             "scale": _scale(value["scale"])}
 
 
@@ -198,7 +218,7 @@ def make_profile(name, bones, *, basis, centimeters_per_unit):
     """
     _name(name)
     _hierarchy(bones)
-    basis = [_round(x) for x in qnorm(basis)]
+    basis = _quaternion(basis)
     units = _number(centimeters_per_unit)
     if units <= 0:
         raise ValueError("profile units must be positive")
@@ -289,6 +309,40 @@ def _samples(samples, profile, duration):
             _transform(transform)
 
 
+def _normalize_pose(native, reference, basis, units):
+    t = _transform(native)
+    q = qmul(qmul(qmul(basis, t["rotation"]), qinv(reference["rotation"])), qinv(basis))
+    return _transform({"translation": [x*units for x in rotate(basis, t["translation"])],
+                       "rotation": q, "scale": t["scale"]})
+
+
+def _adapt_pose(canonical, reference, basis, units):
+    q = qmul(qmul(qmul(qinv(basis), canonical["rotation"]), basis), reference["rotation"])
+    return _transform({"translation": [x/units for x in rotate(qinv(basis), canonical["translation"])],
+                       "rotation": q, "scale": canonical["scale"]})
+
+
+def _canonical_pose(native, reference, basis, units):
+    """Publish one representative of the exact adapter round-trip orbit.
+
+    A quaternion fixed under normalization alone need not remain fixed under
+    reference/basis conversion and its inverse. Both adapter sides quantize,
+    so publication must settle their coupled orbit too. This uses only the
+    declared profile and encoded transforms, with no retained native payload.
+    """
+    current = _normalize_pose(native, reference, basis, units)
+    states, seen = [], {}
+    for _ in range(64):
+        key = encode(current)
+        if key in seen:
+            return min(states[seen[key]:], key=encode)
+        seen[key] = len(states)
+        states.append(current)
+        current = _normalize_pose(_adapt_pose(current, reference, basis, units),
+                                  reference, basis, units)
+    raise ValueError("adapter publication did not reach a bounded canonical orbit")
+
+
 def normalize(samples, profile, *, duration=None, channels=None):
     refs = _profile(profile)
     if isinstance(samples, dict) and samples.get("schema") == SCHEMA:
@@ -307,10 +361,7 @@ def normalize(samples, profile, *, duration=None, channels=None):
     for sample in samples:
         pose = {}
         for name, native in sample["pose"].items():
-            t = _transform(native)
-            q = qmul(qmul(qmul(b, t["rotation"]), qinv(refs[name]["reference"]["rotation"])), qinv(b))
-            pose[name] = _transform({"translation": [x*units for x in rotate(b, t["translation"])],
-                                     "rotation": q, "scale": t["scale"]})
+            pose[name] = _canonical_pose(native, refs[name]["reference"], b, units)
         result.append({"time": sample["time"][:], "pose": pose})
     value = {"schema": SCHEMA, "profile": copy.deepcopy(profile), "duration": str(duration),
              "fps": [30, 1], "samples": result, "channels": copy.deepcopy(channels)}
@@ -340,9 +391,7 @@ def adapt(packet, profile):
     for sample in packet["samples"]:
         pose = {}
         for name, t in sample["pose"].items():
-            q = qmul(qmul(qmul(qinv(b), t["rotation"]), b), refs[name]["reference"]["rotation"])
-            pose[name] = _transform({"translation": [x/units for x in rotate(qinv(b), t["translation"])],
-                                     "rotation": q, "scale": t["scale"]})
+            pose[name] = _adapt_pose(t, refs[name]["reference"], b, units)
         result.append({"time": sample["time"][:], "pose": pose})
     return result
 

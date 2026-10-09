@@ -205,7 +205,7 @@ def test_scene_summary_tool_runs_the_fixed_listing_script(fake, provider):
             p["script"], output='{"objects": [{"name": "Cube", "type": "MESH"}], "materials": []}'))
     script = next(f for f in frames if f.get("method") == "blender.execute_script")["params"]
     assert script["tool_name"] == "scene_summary"
-    assert "bpy.data.objects" in script["script"] and "bpy.data.materials" in script["script"]
+    assert "bpy.context.scene.objects" in script["script"] and "_o.material_slots" in script["script"]
     assert "__RESULT__" in script["script"]  # executor.py:429-431 flattens the __RESULT__ variable
     tool_results = [part for part in provider.requests[1].messages[-1].content if part.get("type") == "tool_result"]
     assert "Cube" in tool_results[0]["content"]

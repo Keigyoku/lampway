@@ -17,6 +17,7 @@ dependencies = [
     "PyJWT[crypto]>=2.8",
     "python-multipart>=0.0.9",     # the asset-search and handwriting endpoints take multipart/form-data
     "pillow>=10",                  # the asset-search image features (colour histograms of the previews)
+    "zstandard>=0.23",             # bounded compressed Blender header recognition in Vault scans
     "docutils>=0.21",               # offline Blender RST documentation parser
     "jsonschema>=4.20",            # MCP wrapper input/output contracts
     "numpy>=1.26",                 # the Asset Vault's vectors and shape descriptors, the video gates, the fal pre-flight

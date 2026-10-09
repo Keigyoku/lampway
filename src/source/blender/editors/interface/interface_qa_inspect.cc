@@ -233,6 +233,20 @@ void qa_emit_custom_targets(std::string &out,
   }
 }
 
+static std::string qa_button_visible_text(const ui::Button *but, const bool secret)
+{
+  if (secret) {
+    return {};
+  }
+#ifdef LAMPWAY
+  /* LAMPWAY: the visible edit buffer precedes the committed RNA/draw string. */
+  if (but->editstr != nullptr) {
+    return but->editstr;
+  }
+#endif
+  return but->drawstr.empty() ? but->str : but->drawstr;
+}
+
 void qa_dump_region(std::string &out,
                     bool &first_widget,
                     const wmWindow *win,
@@ -318,7 +332,6 @@ void qa_dump_region(std::string &out,
       out += mixar_qa::but_type_name(but->type);
       out += "\",";
 
-      const std::string &text = but->drawstr.empty() ? but->str : but->drawstr;
       json_str(out, "mixar_component", blender::ui::mixar_component_name(but->mixar_style.component));
       out += ',';
       json_str(out, "mixar_theme", blender::ui::mixar_theme_name(but->mixar_style.theme));
@@ -331,7 +344,7 @@ void qa_dump_region(std::string &out,
              ",\"selected\":" + std::to_string(motion.selected) + "},";
       const bool secret = but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_PASSWORD;
       out += secret ? "\"secret\":true," : "";
-      json_str(out, "text", secret ? std::string() : text);
+      json_str(out, "text", qa_button_visible_text(but, secret));
       out += ',';
       if (secret) {
         json_str(out, "tip", "");

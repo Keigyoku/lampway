@@ -199,7 +199,7 @@ def _uv_sets(me, V):
 
 
 def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_hint=None, want_scale="any", scale_evidence=None, weld="auto",
-                     weld_distance_m=None, pivot="bbox_bottom_centre", pivot_offset=None, recipe="", plate="", root=".", facing_margin=None):
+                     weld_distance_m=None, pivot="bbox_bottom_centre", pivot_offset=None, recipe="", plate="", root=".", facing_margin=None, assembly=None):
     """Normalize one scene mesh object in place; returns (document, receipt)."""
     if ob.type != "MESH":
         raise C.FeatureError(f"{ob.name} is a {ob.type}, not a mesh: normalize it with its own kind's tool")
@@ -228,7 +228,7 @@ def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_h
     backup, W0 = ob.data, ob.matrix_world.copy()
     ob.data = ob.data.copy()                                       # work on a copy: a refusal below leaves the object as it was
     try:
-        doc, rbytes = _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit)
+        doc, rbytes = _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit, assembly)
     except Exception:
         work = ob.data
         ob.data, ob.matrix_world = backup, W0
@@ -242,7 +242,7 @@ def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_h
     return doc, rbytes
 
 
-def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit):
+def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit, assembly=None):
     me = ob.data
     raw = dict(raw or (json.loads(ob["lw_raw"]) if "lw_raw" in ob.keys() else {}))
     raw_sha = raw.get("sha256") or canon_io.geometry_sha256(ob)
@@ -317,6 +317,8 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
                "output": {"canonical_sha256": canonical, "asset_id": f"raw-{raw_sha[:12]}"}, "steps": steps,
                "conventions": conventions_block(turn_deg=turn, weld_m=dist if welded else "n/a", source_frame=conv["source_frame"]["name"]),
                "settings": {k: CA.SETTINGS[k] for k in ("weld_m", "weld_guard_fraction", "pivot_rule", "facing_margin", "pair_scale_group")}, "refused": []}
+    if assembly is not None:
+        receipt["assembly"] = assembly
     rbytes = json.dumps(receipt, sort_keys=True, indent=1).encode()
     doc = {"schema": "lampway.canonical-asset", "schema_version": 1, "kind": "mesh", "asset_id": f"raw-{raw_sha[:12]}", "raw": raw_doc,
            "conventions": conv, "transform": {"applied": True, "object_matrix": _r9(np.eye(4))}, "scale": scale,
@@ -378,10 +380,48 @@ def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any
 
 def _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root, facing_margin=None):
     out, receipts, unchanged = [], [], True
+    assembly, worlds, pivot_args = None, {}, {}
+    if len(objs) > 1:
+        # A file's meshes share one source frame. Capture it before baking any
+        # ancestor, and choose one origin for the whole imported assembly.
+        if plate and turn_deg is None and not recipe and generator != "lampway_tool":
+            raise C.FeatureError("assembly facing needs one shared turn_deg or a recipe turn; per-piece plate registration would change assembly placement")
+        turn, _ = _decide_frame(turn_deg, recipe, "", generator, root)
+        worlds = {o.as_pointer(): o.matrix_world.copy() for o in objs}
+        lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+        A = _rz(turn)
+        for o in objs:
+            node = o
+            while node is not None:
+                if node.constraints or node.animation_data:
+                    raise C.FeatureError("animated or constrained assembly transforms need an explicit static copy before mesh normalization")
+                node = node.parent
+            co = np.empty(len(o.data.vertices) * 3)
+            o.data.vertices.foreach_get("co", co)
+            if not len(co):
+                raise C.FeatureError(f"assembly member {o.name} has no vertices")
+            W = np.asarray(worlds[o.as_pointer()])
+            V = (co.reshape(-1, 3) @ W[:3, :3].T + W[:3, 3]) @ A.T
+            lo, hi = np.minimum(lo, V.min(0)), np.maximum(hi, V.max(0))
+        off = np.array([-(lo[0]+hi[0])/2, -(lo[1]+hi[1])/2, -lo[2]])
+        assembly = {"members": len(objs), "pivot_rule": "bbox_bottom_centre", "offset_m": _r9(off),
+                    "turned_bbox_min_m": _r9(lo), "turned_bbox_max_m": _r9(hi), "turn_deg": turn}
+        pivot_args = {"pivot": "source_origin", "pivot_offset": off, "assembly": assembly}
+        def depth(o):
+            n = 0
+            while o.parent is not None:
+                n += 1
+                o = o.parent
+            return n
+        objs = sorted(objs, key=depth)  # parents finish before child world matrices are restored
+        plate = ""
     for o in objs:
+        if assembly is not None:
+            o.matrix_world = worlds[o.as_pointer()]
+            bpy.context.view_layer.update()
         before = o.get("lw_canon")
         doc, rbytes = normalize_object(o, turn_deg=turn_deg, generator=generator or "unknown", raw=raw, path_hint=hint, want_scale=want_scale,
-                                       scale_evidence=scale_evidence, weld=weld, weld_distance_m=weld_distance_m, recipe=recipe, plate=plate, root=root, facing_margin=facing_margin)
+                                       scale_evidence=scale_evidence, weld=weld, weld_distance_m=weld_distance_m, recipe=recipe, plate=plate, root=root, facing_margin=facing_margin, **pivot_args)
         out.append(o.name)
         if rbytes is not None:
             unchanged = False

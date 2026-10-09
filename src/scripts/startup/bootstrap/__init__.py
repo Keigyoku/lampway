@@ -516,6 +516,14 @@ def register():
                 e, exc_info=True,
             )
 
+        # Quick Setup is drawn before the deferred UI queue finishes. Register
+        # its Continue operator through the normal owner first: the later queue
+        # visit reuses these classes and shutdown retains the same module.
+        _startup_modules = _get_mixar_path() / "modules"
+        _register_single_ui_module(
+            _startup_modules / "lampway_tools" / "ui" / "onboarding.py", _startup_modules
+        )
+
         # 1. Load and register bootstrap modules first (synchronous, only ~5 files)
         _load_bootstrap_modules()
 

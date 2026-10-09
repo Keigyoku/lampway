@@ -35,6 +35,8 @@ Acceptance audits include the complete current issue body and acceptance-bearing
 
 Network and render contract pages cite current public modules and operator behavior, including loopback, trust verification, render refusal, main-thread restoration and device preference ownership. Missing historical private document maps cannot stand in for public links.
 
+Inherited audit receipts preserve historical allocation separately from current source and actual-fixture reruns. Keep each finding's numerical bar, source hash and acceptance limits; report physical-quality rejection, compiled native controls and older-binary overlays separately from a matching native build or live provider acceptance.
+
 ## Test
 
 ```bash
@@ -74,3 +76,5 @@ Supplied-input follow-ups preserve older report head attribution and explicitly 
 | 2026-10-07 | precise physical bind and role handoffs | captain: continue actual bind diagnosis and approve three material roles | aggregate bind errors could not distinguish hierarchy, axes and comparison semantics; role approval risked implying full fit sign-off | enumerate minimum local capture with derived-only output and record exact role-only ruling without upgrading acceptance | owner-local capture and48role provenance overlays |
 | 2026-10-08 | motion canon and report convention | captain: follow existing canon and reports layout | root specs and a new parallel specs tree would split documentation authority | index normative contracts under canon and retain evidence history in reports | all relocated Markdown targets resolve; original thresholds and historical evidence retained |
 | 2026-10-08 | supplied-input audit correction provenance | complete validation package | older missing-input claims obscured actual supplied fixtures and component passes risked implying physical acceptance | preserve prior receipts, identify corrected fixtures and predecessors, and keep source versus physical gates separate | private current receipts and source-hashed follow-up report |
+
+| 2026-10-08 | inherited audit evidence and live limits | captain assigns twelve inherited findings to PR1 | component receipts could erase poor motion quality or imply rebuilt native acceptance | retain per-finding code/test evidence, original verdicts and separate physical obligations | inherited audit follow-up report and private source-hashed package |

@@ -365,3 +365,80 @@ res(out)
         assert not any("scale_to_measure" in h for h in d[k]["help"]), ("a scaled OBJECT is not a scale-STATE refusal", d[k]["help"])
     assert d["back"]["ok"], d["back"]
     assert d["edited"]["ok"] is False and "geometry_sha256 differs" in d["edited"]["error"], d["edited"]
+
+
+def test_a_multipart_import_preserves_assembly_placement_under_one_turn_and_pivot():
+    d = run('''
+from pathlib import Path
+from mixar.modules.lampway_tools import canon_asset as CA
+parts = [nosed("lower"), nosed("upper")]
+parts[0].location = (0.2, -0.4, 0.3)
+parts[1].parent = parts[0]
+parts[1].location = (0.5, 0.7, 1.2)
+bpy.context.view_layer.update()
+for o in bpy.context.view_layer.objects: o.select_set(o in parts)
+bpy.context.view_layer.objects.active = parts[0]
+bpy.ops.export_scene.gltf(filepath=os.path.join(root, "assembly.glb"), use_selection=True)
+for o in parts: bpy.data.objects.remove(o, do_unlink=True)
+imp = canon_io.import_raw(os.path.join(root, "assembly.glb"))
+raw = [bpy.data.objects[n] for n in imp["objects"] if bpy.data.objects[n].type == "MESH"]
+P0 = [np.array([(o.matrix_world @ v.co)[:] for v in o.data.vertices]) for o in raw]
+for o in raw: bpy.data.objects.remove(o, do_unlink=True)
+out = api.normalize_mesh(input="assembly.glb", turn_deg=-90, generator="tripo_studio", weld="never")
+assert out.get("ok"), out
+objs = [bpy.data.objects[n] for n in out["objects"]]
+P1 = [np.array([(o.matrix_world @ v.co)[:] for v in o.data.vertices]) for o in objs]
+A = np.array([[0., 1., 0.], [-1., 0., 0.], [0., 0., 1.]])
+turned = np.concatenate(P0) @ A.T
+lo, hi = turned.min(0), turned.max(0)
+off = np.array([-(lo[0]+hi[0])/2, -(lo[1]+hi[1])/2, -lo[2]])
+# Match intrinsic piece sizes; returned order need not follow importer order.
+errors = [min(float(np.abs(p - (q @ A.T + off)).max()) for q in P0) for p in P1]
+receipts = [json.loads((Path(root)/p).read_text()) for p in out["receipts"]]
+res({"error": max(errors), "height": float((np.concatenate(P1).max(0)-np.concatenate(P1).min(0))[2]),
+     "expected_height": float((turned.max(0)-turned.min(0))[2]), "receipts": receipts,
+     "valid": all(not CA.check(json.loads(o["lw_canon"]), canon_io.facts(o)) for o in objs)})
+''')
+    assert d["error"] < 1e-6, d
+    assert abs(d["height"] - d["expected_height"]) < 1e-6, d
+    assert d["valid"]
+    assert all(r["assembly"]["members"] == 2 for r in d["receipts"])
+
+
+def test_a_multipart_plate_only_import_refuses_without_leaving_scene_ids():
+    d = run(SCENE_PRINT + r'''
+parts = [nosed("lower"), nosed("upper")]
+parts[1].location = (0.0, 0.0, 0.8)
+bpy.context.view_layer.update()
+for o in bpy.context.view_layer.objects: o.select_set(o in parts)
+bpy.context.view_layer.objects.active = parts[0]
+bpy.ops.export_scene.gltf(filepath=os.path.join(root, "assembly.glb"), use_selection=True)
+for o in parts: bpy.data.objects.remove(o, do_unlink=True)
+before = scene_print()
+out = api.normalize_mesh(input="assembly.glb", plate="front.png", generator="tripo_studio", weld="never")
+res({"ok": out.get("ok"), "error": out.get("error"), "unchanged": before == scene_print()})
+''')
+    assert not d["ok"] and "shared turn_deg" in d["error"], d
+    assert d["unchanged"], d
+
+
+def test_an_animated_assembly_ancestor_refuses_before_mesh_mutation():
+    d = run('''
+from mixar.modules.lampway_tools.features import normalize as N
+anchor = bpy.data.objects.new("moving_parent", None)
+bpy.context.scene.collection.objects.link(anchor)
+anchor.keyframe_insert(data_path="location", frame=1)
+parts = [nosed("lower"), nosed("upper")]
+for o in parts: o.parent = anchor
+bpy.context.view_layer.update()
+before = [canon_io.geometry_sha256(o) for o in parts]
+try:
+    N._normalize_all(parts, None, None, 0, "", "", "tripo_studio", "any", None, "never", None, root)
+    error = ""
+except N.C.FeatureError as exc:
+    error = str(exc)
+res({"error": error, "unchanged": before == [canon_io.geometry_sha256(o) for o in parts],
+     "unstamped": all("lw_canon" not in o for o in parts)})
+''')
+    assert "static copy" in d["error"], d
+    assert d["unchanged"] and d["unstamped"], d

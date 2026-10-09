@@ -20,6 +20,8 @@ Issue2 supersedes the inevitably refused default export recipe with selection fr
 
 The captain authorized AC65 starting defaults by judgment on 2026-10-07 using supplied MetaHumanBase/gear documentary references. Record 0.05 facing margin, per_side pair scale, 20 mm collar, boot width and complete canon08 pose/curl tables with physical_status untested. Preserve explicit alternatives and experimental candidate provenance; original physical acceptance remains separate.
 
+Canon22 profile rotations and adapter basis must publish deterministic fixed points of the bounded normalize/round orbit. Rebuilding remains exactly byte-equal and hash-checked; preserve corrupted-profile refusals. Canonical sample publication must also settle the bounded declared adapter inverse/forward orbit so normalize → adapt → normalize remains byte-identical without retained input data. A native A1-bar pass cannot stand in for byte equality.
+
 ## Invariants
 
 1. **This copy is the source of truth.** It replaced the spec shelf's `specs/canon/` on 2026-10-06; edits land here, through a
@@ -119,3 +121,5 @@ reference/file matches do not certify a fresh actual UE import.
 | 2026-10-08 | admitted ARAP candidate | captain explicitly admits03-H2 and delegates untested solver defaults | the open decision kept item14 unimplemented and could be confused with per-piece visual admission | date the ruling, document solver choices as physically untested and retain explicit limits/rigid/source/render-review gates | generated soft seam/shape/anchor/nonconvergence controls and disposable native candidate checks |
 
 | 2026-10-08 | independently referenced native bind axes | supplied actual342 stage audit and original-input replay | child-based frame reconstruction lost329 independently captured frames and authored feet are not universally joint-aligned | distinguish strict joint diagnostics from complete native bind calibration, carry the fixed writer bridge and recheck pinned independent binds under unchanged bars | actual native conform and authored-file proof; fresh actual UE import remains unverified |
+
+| 2026-10-08 | exact generated animation profile publication | I04 actual generated profile self-refusal | nine-decimal quaternion normalization moved two components on rebuild | publish a bounded exact rotation fixed point for profile transforms and basis; settle the coupled declared adapter orbit for canonical samples; retain exact hashes and corruption refusals | supplied profile RED, synthetic exact rebuild controls and actual Walking profile/extract/normalize/adapt/compare/verify GREEN |

@@ -87,6 +87,10 @@ Cockpit labels remain user-facing text. Launch Claude, Codex and OpenCode with a
 
 The public normalize_rigged unit argument forwards auto, m, cm or in. Explicit units are caller declarations recorded separately from measured reference-height evidence; they do not resize a rig to match a reference or bypass convention/topology gates. Keep the existing catalogue byte bound.
 
+Cockpit submits coding-agent text through one native herdr agent prompt targeted by the registered pane; terminal commands use pane run, staging remains send-text. Preserve blocked/stale-agent refusal, existing permission/typing/length guards and never retry an uncertain submission or send a fallback Enter. Forward only an explicitly set LAMPWAY_MCP_DISCOVERY_DIR through pane/systemd whitelists; secret keys remain excluded.
+
+Scene summary reads the current scene object roster and its material slots while preserving complete page totals, offset/full behavior and selection. Certify only the exact maintained body hash; forged/appended scripts still capture. Vault compressed Blender recognition validates pinned legacy12/modern17-byte headers from at most256KiB compressed input and64MiB advertised windows, reading at most17 decoded bytes; malformed/over-budget input remains unknown, archives never unpack, source remains read-only and enrollment requires the user. Declare the zstandard runtime dependency; header recognition is not full asset integrity.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -114,3 +118,6 @@ The public normalize_rigged unit argument forwards auto, m, cm or in. Explicit u
 | 2026-10-08 | bounded conform catalogue | full standalone G15 check | expanded guidance crossed335000B catalogue ceiling | shorten redundant stage prose, preserve explicit inputs/review/untested labels and linked canon, retain ceiling | unchanged full catalogue regression |
 | 2026-10-08 | cockpit friendly labels and launch identity | actual native friendly-name audit | capitals, spaces and Unicode reached herdr agent start and were rejected | preserve display names and launch once using a durable ASCII session identifier | 13 genuine invalid-name RED cases followed by friendly-name, duplicate, persistence and command controls |
 | 2026-10-08 | declared normalization unit interface | actual own-rig unknown-unit refusal | help named an argument absent from the public wrapper | expose and forward the declared unit with schema documentation, provenance and unchanged bounds | server forwarding and full catalogue controls |
+| 2026-10-08 | ordered cockpit input and discovery override | inherited setup audit I09/I10 | split paste/Enter left prompts unsubmitted and custom discovery was dropped | native once-only submission and explicit path whitelist under existing guards |10 behavioral REDs; focused and isolated native herdr receipts |
+
+| 2026-10-08 | current-scene summary and compressed native intake | inherited audit I06/I07 | global objects crossed tabs and zstd modern headers were unknown | keep scene paging and certified hash, bounded decoded header validation and explicit runtime dependency | actual tab/source-file RED/GREEN and malformed/budget plants |

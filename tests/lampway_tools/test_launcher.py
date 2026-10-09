@@ -296,3 +296,17 @@ def test_the_server_gets_a_secrets_dir_outside_the_lampway_home(tree, env, tmp_p
     assert f"LAMPWAY_SECRETS_DIR={tmp_path}/xdgstate/lampway-secrets" in server_env
     plan = lampway(tree, e, "--env", "Prod", "--plan").stdout
     assert f"secrets_dir: {tmp_path}/xdgstate/lampway-secrets" in plan and f"keyring_file: {tmp_path}/xdgstate/lampway/keyring.json" in plan
+
+
+@pytest.mark.parametrize('flag', ['--help', '-h'])
+def test_help_is_successful_without_build_or_launch_and_prints_no_secret(tree, env, tmp_path, flag):
+    e, _ = env
+    shutil.rmtree(tree / 'build')
+    e['OPENROUTER_API_KEY'] = 'help-secret-fixture'
+    r = lampway(tree, e, flag)
+    assert r.returncode == 0, r.stdout + r.stderr
+    for option in ('--env', '--copy', '--provider', '--port', '--bridge-port', '--openrouter-key-file', '--budget', '--image-backend', '--no-server', '--system-keyring', '--plan', '--install-desktop', '--uninstall-desktop'):
+        assert option in r.stdout
+    assert 'Usage:' in r.stdout and 'help-secret-fixture' not in r.stdout + r.stderr
+    assert not (tmp_path / 'home').exists()
+    assert not (tmp_path / 'server.pid').exists() and not (tmp_path / 'app.txt').exists()

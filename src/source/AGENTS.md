@@ -52,6 +52,8 @@ a brand, host or login patch.
 
 Native targets with fork-only consumers own a conditional `PRIVATE LAMPWAY` compile definition after target creation. A cache flag or creator-local definition does not enable sibling editor libraries. Verify the actual consumer compile command after buildbox reconfiguration; retain the upstream branch for OFF builds. Source gates cannot replace native build or physical operator evidence.
 
+Native UI inspection reads the active edit buffer when present, with password redaction before selection and unchanged upstream OFF behavior. Save preserves an already selected format suffix, including leading-dot filenames and case; format changes still replace it. Compiled extracted routines are boundary controls, never a substitute for the maintained full build and physical rerun.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -61,3 +63,4 @@ Native targets with fork-only consumers own a conditional `PRIVATE LAMPWAY` comp
 | 2026-10-07 | compiled profile and viewport fork guards | captain: physical AC34 reported upstream URL operators | creator-local LAMPWAY definitions did not propagate to interface or viewport targets | each guarded editor owns its conditional private definition, with actual compile-command and physical verification | ON/OFF target guards and corruption controls |
 
 | 2026-10-08 | native screenshot offscreen readback | actual753 audit black operator frames and isolated hash-identical llvmpipe reproduction | native capability-selected frontbuffer reads returned all-zero images after screenshot redraw | route Lampway full-window reads through existing offscreen composition with drawable restoration and target-owned fork definition; retain upstream OFF and real pixel rerun requirements | compiled actual dispatcher ON/OFF RED/GREEN and exact black-frame reproduction; full native rebuild remains owed |
+| 2026-10-08 | native filename and active edit observation | additional914 audit I02 | leading-dot save names duplicated their suffix and uncommitted visible text was absent from observation | preserve selected suffix and inspect active edit buffers after secret refusal, retaining OFF behavior and full-build limits | compiled actual selectors/save routine RED/GREEN plus old-binary current-overlay exact filename reopen |

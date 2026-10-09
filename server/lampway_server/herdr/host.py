@@ -189,9 +189,14 @@ class Cockpit:
                 raise CockpitError("You are typing in this session: the agent's send is held back")
         if len(text) > 64000:
             raise CockpitError("input is limited to 64000 characters")
-        L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
         if submit:
-            L.run(self.root, ["pane", "send-keys", rec["pane_id"], "enter"])
+            # Herdr's native submission orders paste and Enter and acknowledges
+            # both writes. Split calls can lose Enter during paste acceptance.
+            # A failed/uncertain submission is never retried or given a fallback Enter.
+            command = ["agent", "prompt"] if rec["agent"] in ("claude", "codex", "opencode") else ["pane", "run"]
+            L.run(self.root, [*command, rec["pane_id"], text])
+        else:
+            L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
 
     def interrupt(self, sid: str) -> None:
         """One Ctrl+C into a live session (the cockpit's interrupt: a user request or the user's click)."""

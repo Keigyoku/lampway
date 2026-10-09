@@ -160,6 +160,8 @@ Main merges retain both the offline MCP wrappers and motion tool dispatch; gener
 
 Motion normative specifications are indexed in docs/canon/INDEX.md, with measured acceptance and review evidence in docs/reports/motion-graphics-acceptance.md. The repository has no parallel root specs tree for those contracts.
 
+Startup Quick Setup registers its Continue operator through the normal UI module owner before menus can draw it. Idle splash visibility follows the native popup lifetime; preserve early startup grace and report historical overlap/crash findings separately from proved regressions.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -174,3 +176,4 @@ Motion normative specifications are indexed in docs/canon/INDEX.md, with measure
 | 2026-10-07 | formal motion contracts indexed | captain authorizes writing the previously unwritten specs | implementation citations had no repository specification and could overstate acceptance | index the new contracts and require explicit behavior, gap and decision status with exact-head evidence | captain ruling, 2026-10-07 |
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
 | 2026-10-08 | motion documentation convention | captain: use canon and reports | root motion specs did not follow the repository convention | point the repository map and contracts at canon with separate acceptance reports | canon/docs indexes and complete relocated-link audit |
+| 2026-10-08 | initial splash and idle visibility | additional914 audit I11 and provisional overlap | deferred operator registration omitted Continue and timestamp-only idle visibility could release the bubble gate | register the critical operator with its normal owner before menus and use native lifetime without changing startup grace | genuine registration/idle RED controls and isolated current-overlay Save/reopen receipt |

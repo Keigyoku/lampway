@@ -84,6 +84,10 @@ Diagnostic source-integrity checks retain every loaded module pin, including rig
 
 Brand scans exclude only exact test/cache descendants of each configured production root. Ancestors named tests or testing must still expose production strings and planted offenders; retain both ancestor and nested-fixture controls.
 
+UI Save As evidence checks the exact chosen path, repeated Save, and reopened document content through the opted-in isolated interface. Native save-path and active-text controls compile maintained routine bodies against controlled boundaries, retain secret and OFF controls, and identify the separately owed full native build.
+
+Inherited animation controls use the exact supplied profiles and packets, true evaluated REST skin and source action/slot/pose/frame preservation. Keep exact inverse digests, oblique-basis controls and stale/wrong-binding refusals; successful mapped-joint agreement never overrides poor skin quality or unmapped weighted channels. Multipart normalization retains actual assembly coordinates, height and source bytes under the unchanged metric bar. Scene-summary tests model current-scene membership independently of global data and retain certified-body/forged-script controls.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -114,3 +118,6 @@ Brand scans exclude only exact test/cache descendants of each configured product
 | 2026-10-08 | native screenshot routing regressions | actual753 screenshot operator all-black output | successful save return hid zero-pixel frontbuffer output and a missing target definition could disable the fix | compile the actual dispatcher with ON/OFF, capability, context-switch and failed-read controls plus target-scope plants; require separate rebuilt native pixel evidence | two pre-fix failures, compiled dispatcher GREEN and hash-identical isolated RED |
 | 2026-10-08 | actual audit regression reconciliation | native diagnostic and cockpit audit | an outdated two-module expectation failed and friendly labels violated launcher grammar | retain all three source pins and verify distinct durable valid identifiers without hiding labels | genuine diagnostic and 13 invalid-name RED controls; isolated GREEN with platform evidence separate |
 | 2026-10-08 | root-relative brand scanner fixture admission | full client run under a tests-named ancestor | substring filtering hid every planted production offender | prune only exact tests/testing/cache child directories beneath each scan root | genuine StopIteration plus ancestor RED, all four brand controls GREEN |
+| 2026-10-08 | Save As and startup UI falsifiers | additional914 audit I02/I11 | delivery receipts and stale text could hide missing filename commits or initial Continue registration | require exact save/repeat/reopen content and registration order, plus native suffix/edit-buffer/secret controls | genuine pre-fix failures, compiled boundary GREEN and isolated old-native/current-Python receipt |
+
+| 2026-10-08 | inherited assembly and animation contract controls | actual additional audit I01/I03/I04/I05/I06 | synthetic success obscured assembly collapse, suffix crash, profile drift and wrong rest skin | require exact original-input RED/GREEN, exact digests and true rest/state conservation; report physical rejection independently | real54assembly, suppliedprofile/Walking inverse and73animation controls |

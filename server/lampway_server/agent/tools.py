@@ -32,7 +32,7 @@ ASK_USER = "ask_user"
 
 SCENE_SUMMARY_LIMIT = 100                     # audit F8: 1,016 objects answered 203 KB; a page is bounded, full=true is the caller's choice
 SCENE_SUMMARY_SCRIPT = '''import bpy
-_all = list(bpy.data.objects)
+_all = list(bpy.context.scene.objects)
 _page = _all if _FULL else _all[_OFFSET:_OFFSET + _LIMIT]
 _objects = []
 for _o in _page:
@@ -45,7 +45,7 @@ for _o in _page:
         "materials": [s.material.name for s in _o.material_slots if s.material],
         "hidden": bool(_o.hide_get()) if hasattr(_o, "hide_get") else False,
     })
-_mats = list(bpy.data.materials)
+_mats = sorted({_s.material.name: _s.material for _o in _all for _s in _o.material_slots if _s.material}.values(), key=lambda _m: _m.name)
 _materials = [{"name": _m.name, "users": _m.users} for _m in (_mats if _FULL else _mats[:_LIMIT])]
 _scene = bpy.context.scene
 __RESULT__ = {
