@@ -108,3 +108,26 @@ res({"angle": angle})
 ''')
     assert r.rc == 0, r.out[-2000:]
     assert abs(r.results[-1]["angle"] - 20.0) < 0.001
+
+
+def test_skin_quality_review_provides_callable_audit_and_copy_cleanup_without_assigning_cause():
+    r = run('''
+plate = tube("plate", r=0.05, z0=1.46, z1=1.7, seg=8, rings=3)
+weights(plate, tgt, lambda c: {"spine_01": 1.0})
+original_groups = [(v.index, [(g.group, g.weight) for g in v.groups]) for v in plate.data.vertices]
+objects = set(bpy.data.objects)
+out = api.animation_retarget("src", "tgt", check_objects=[plate.name])
+quality = out["quality"]
+steps = quality.get("next_steps", [])
+audit = next((s for s in steps if s["tool"] == "lampway_weight_audit"), None)
+audit_result = api.call(audit["tool"].removeprefix("lampway_"), json.dumps(audit["next_args"])) if audit else None
+res({"out": out, "audit": audit_result, "groups_unchanged": original_groups == [(v.index, [(g.group, g.weight) for g in v.groups]) for v in plate.data.vertices], "objects_unchanged": objects == set(bpy.data.objects)})
+''')
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    q = d["out"]["quality"]
+    assert q.get("skin_cause") == "unestablished", q
+    assert d["audit"]["ok"] and d["groups_unchanged"] and d["objects_unchanged"], d
+    candidate = q["candidate_next_steps"][0]
+    assert candidate["tool"] == "lampway_weight_cleanup" and candidate["review_required"]
+    assert candidate["next_args"]["ops"] == [{"op": "smooth", "iterations": 2, "factor": 0.5}]

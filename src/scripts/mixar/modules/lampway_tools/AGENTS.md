@@ -146,6 +146,11 @@ Automatic native fit-bone histograms exclude the exact verified auxiliary driver
 roles after complete-graph endpoint validation. Explicit caller bone choices
 remain available; a corrective helper is not an inferred anatomical fit target.
 
+Restrict matching selects the nearest normal-compatible triangle in the declared
+allowed region under the existing distance and angle bars. A nearer incompatible
+face must not hide it. Named fallback only remaps sampled influences; truly
+unseeded components retain zero-weight refusal.
+
 The captain admitted the ARAP-with-clearance candidate under canon03-H2 on2026-10-08 and delegated solver-default judgment. Composite conform requires canonical real-scale mesh admission, immutable source identities, persisted cloth/leather selections, a verified native sidecar and current sampled fit pose. Clearance/seam targets are caller-explicit. Solve creates a disposable candidate with numerical diagnostics and physical_status untested; only unchanged candidate/source/body/pose hashes plus genuine output-render review permit an accepted stage. Bind/weights must use that accepted candidate. Keep rigid metal/ornaments unchanged and refuse nonconvergence, unsafe opening-band signs and stale inputs before admission.
 
 Procedural material probe baking uses one EEVEE frame for three equal-resolution emission tiles only when its reachable coordinate graph is independent of world/camera/external-object state. Each tile retains identical local/object coordinates and the previous linear pixels. Unknown or coordinate-sensitive graphs keep isolated three-frame rendering. Preserve all55 preset tests, the existing240-second per-process limit, caller scene state and owned camera/world cleanup. Resource-profile passes remain distinct from matching-native aggregate acceptance.
@@ -155,6 +160,11 @@ Public stage descriptions keep detailed solver input contracts in the linked can
 Multipart normalize_mesh file imports preserve source relative world geometry under one shared declared/recipe turn and union bottom-centre origin. Freeze source world matrices before parent-first baking; record assembly scope in each member receipt. Plate-only multipart facing and animated/constrained assembly transforms refuse before normalization. Auto animation required labels split only terminal side suffixes. Retarget skin checks require target binding and an actual evaluated REST denominator. Bake execution is separate from quality acceptance: in-place treadmill displacement is not world contact, and unmapped weighted bones are named without promoting proposed thresholds. Quaternion publication follows a deterministic bounded normalize-round orbit for profile transform rotations and adapter basis; rebuilding remains exactly byte-equal and hash-checked. Native compare/verify keeps the unchanged A1 bars and numerical closeness does not establish pure packet identity.
 
 Canonical sample publication settles the bounded declared adapter inverse/forward quantized orbit using no retained native data and unchanged packet format, exact hashes and comparison bars. camera_shot render_guides parses its advertised comma-separated pass string and existing direct lists, validates nonempty known tokens before output, and produces only requested guide passes. Preserve omitted-pass defaults, two-pose prerequisite and caller frame/render cleanup. Actual-input pass selection does not certify PBR or fit acceptance.
+
+Weighted unmapped animation channels do not establish the cause of poor skin
+quality. Retain the true-rest measurements and explicit mapping, offer callable
+target-weight audit and copy-only cleanup previews, and keep role review and
+physical acceptance separate from those candidate operations.
 
 ## Anneal log
 
@@ -219,3 +229,5 @@ Canonical sample publication settles the bounded declared adapter inverse/forwar
 | 2026-10-09 | inherited assembly and animation audit contracts | supplied segmented and walking inputs I01/I03/I04/I05 | per-part pivots collapsed assemblies, unsided labels crashed mapping and quaternion republishing drifted while fit checks used animated baselines | shared assembly transform, strict label grammar, exact profile fixed-point and target/rest-bound quality diagnostics | genuine source/real-input REDs and isolated/native follow-up receipts |
 
 | 2026-10-09 | canonical inverse and advertised render passes | inherited audit I04/I08 | quantized inverse drifted exact hashes and string passes became characters | settle declared inverse orbit without hidden data; parse and validate tokens before rendering with caller restoration | actual packet/Walking exact inverse and two-pose clay/depth native receipts |
+| 2026-10-09 | compatible restricted surface matching | resumed actual cape binding audit | one nearer incompatible face hid valid region surfaces and left a disconnected component unseeded | choose the nearest compatible allowed triangle under unchanged bars; keep explicit fallback remapping and genuine zero-weight refusal | synthetic nearest-face RED and original cape component receipt |
+| 2026-10-09 | causal motion quality follow-up | resumed exact source and target replay | omitted channels could be mistaken for proof of distortion despite the original rig reproducing it | preserve explicit mapping, name unestablished cause and callable weight audit; candidate cleanup stays copied and unreviewed | original-versus-conformed skin covariance and callable audit RED/GREEN |

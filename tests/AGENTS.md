@@ -88,6 +88,16 @@ UI Save As evidence checks the exact chosen path, repeated Save, and reopened do
 
 Inherited animation controls use the exact supplied profiles and packets, true evaluated REST skin and source action/slot/pose/frame preservation. Keep exact inverse digests, oblique-basis controls and stale/wrong-binding refusals; successful mapped-joint agreement never overrides poor skin quality or unmapped weighted channels. Multipart normalization retains actual assembly coordinates, height and source bytes under the unchanged metric bar. Scene-summary tests model current-scene membership independently of global data and retain certified-body/forged-script controls.
 
+Provisional shutdown and overlap investigations retain the precise UI action, process exit, native popup lifetime, X11 map states and binary/source provenance. Compile platform-selection and dock-suppression controls separately; an older executable cannot certify a successor native patch or symbolicate a different build.
+
+The C02 exact inverse control supplies its unchanged authored weights on the
+disposable fit copy. Coincident vertices do not imply those weights survive the
+30-degree triangle-normal sampling gate. Verify actual transferred weights in a
+separate forward round-trip control under the same 1e-6 metre bar; never narrow
+compatible-surface matching to retain an incidental golden transfer result.
+
+Text-replacement controls model a prior native editor consuming the first outside press, no existing editor, and an already active target. Keep empty/Unicode replacements and SearchMenu/Num single-activation falsifiers, then verify exact Save As, repeat Save and reopened content on the isolated app; input timing experiments alone do not establish focus correction.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -121,3 +131,6 @@ Inherited animation controls use the exact supplied profiles and packets, true e
 | 2026-10-08 | Save As and startup UI falsifiers | additional914 audit I02/I11 | delivery receipts and stale text could hide missing filename commits or initial Continue registration | require exact save/repeat/reopen content and registration order, plus native suffix/edit-buffer/secret controls | genuine pre-fix failures, compiled boundary GREEN and isolated old-native/current-Python receipt |
 
 | 2026-10-08 | inherited assembly and animation contract controls | actual additional audit I01/I03/I04/I05/I06 | synthetic success obscured assembly collapse, suffix crash, profile drift and wrong rest skin | require exact original-input RED/GREEN, exact digests and true rest/state conservation; report physical rejection independently | real54assembly, suppliedprofile/Walking inverse and73animation controls |
+| 2026-10-09 | localized UI overlap and CtrlQ controls | additional914 provisional findings | Python popup gating hid missing native dock registration and unrelated symbol addresses could imply a false crash cause | record actual native map/registry states and fresh-region CtrlQ outcomes with explicit build identity; preserve source/physical evidence distinction | reopened mapped-island RED, platform-selection runtime RED,463 controls GREEN and isolated exit0 cases |
+| 2026-10-09 | independent inverse and compatible transfer controls | resumed cape repair and C02 regression | coincident vertices with incompatible face normals accidentally inherited the authored golden weights through inpainting | preserve authored weights and exact inverse expected values, and separately verify transferred-weight forward round trip | native incident-face diagnosis and unchanged golden/bar controls |
+| 2026-10-09 | native text focus acquisition | I02 repeated actual .mixar Save As failure | retained directory editing consumed the first filename click and text went to a highlighted field | establish Text-only focus through two bounded native clicks, retaining search/numeric activation and exact file/content evidence | GDB outside-press exit, three model REDs,77 focused and725 combined controls GREEN; matching native build remains separate |

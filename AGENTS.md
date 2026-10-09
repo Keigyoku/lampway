@@ -162,6 +162,11 @@ Motion normative specifications are indexed in docs/canon/INDEX.md, with measure
 
 Startup Quick Setup registers its Continue operator through the normal UI module owner before menus can draw it. Idle splash visibility follows the native popup lifetime; preserve early startup grace and report historical overlap/crash findings separately from proved regressions.
 
+Native set_text establishes its Text-field edit focus even when a prior field
+consumes the first outside press. Keep single activation for search and numeric
+fields. Input delivery alone is not filename persistence: verify exact Save,
+repeat Save and reopened content on an isolated document.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -177,3 +182,4 @@ Startup Quick Setup registers its Continue operator through the normal UI module
 | 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
 | 2026-10-08 | motion documentation convention | captain: use canon and reports | root motion specs did not follow the repository convention | point the repository map and contracts at canon with separate acceptance reports | canon/docs indexes and complete relocated-link audit |
 | 2026-10-08 | initial splash and idle visibility | additional914 audit I11 and provisional overlap | deferred operator registration omitted Continue and timestamp-only idle visibility could release the bubble gate | register the critical operator with its normal owner before menus and use native lifetime without changing startup grace | genuine registration/idle RED controls and isolated current-overlay Save/reopen receipt |
+| 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |

@@ -5,6 +5,8 @@
 """fit_bind (shelf/fit_bind.md): the plan with the user's weight laws (metal rigid, everything else by position, seams that cannot open), the weights, the return and the apply gate."""
 
 import sys
+
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -117,3 +119,54 @@ e = api.fit_bind("plan", piece="piece", armature="body_rig", roles={"plate": "me
 res({"e": e})
 ''')
     assert "spine_01" in r.results[-1]["e"] and "spine_1" in r.results[-1]["e"]
+
+
+@pytest.mark.parametrize("surface_height,expected",[(.04,True),(.6,False)])
+def test_restrict_chooses_the_nearest_normal_compatible_allowed_body_surface(surface_height,expected):
+    r = run('''
+import numpy as np
+arm = armature("body_rig", BONES)
+# The nearer vertical surface is incompatible with the upward cloth normal;
+# the farther horizontal surface is compatible and remains within the match bar.
+me = bpy.data.meshes.new("body_surface")
+me.from_pydata([(.01,-1,-1),(.01,1,-1),(.01,0,1),(-1,-1,SURFACE_HEIGHT),(1,-1,SURFACE_HEIGHT),(0,1,SURFACE_HEIGHT)], [], [(0,1,2),(3,4,5)])
+bd = bpy.data.objects.new("body_mesh", me); bpy.context.scene.collection.objects.link(bd)
+weights(bd, arm, lambda c: {"spine_03": 1.0})
+pm = bpy.data.meshes.new("cloth_surface")
+pm.from_pydata([(0,0,0),(.005,0,0),(0,.005,0)], [], [(0,1,2)])
+p = bpy.data.objects.new("cloth", pm); bpy.context.scene.collection.objects.link(p)
+g = p.vertex_groups.new(name="cape"); g.add([0,1,2],1.0,"REPLACE")
+bpy.context.view_layer.update()
+plan = api.fit_bind("plan", piece=p.name, armature=arm.name, roles={"cape":"cloth"},
+                    bind_overrides={"cape":{"bones":["spine_03"],"fallback":"spine_03"}},out_dir="fit/normal_query")
+w = api.fit_bind("weights", piece=p.name, armature=arm.name, body_object=bd.name,out_dir="fit/normal_query")
+res({"plan":plan.get("ok"),"weights":w.get("ok"),"error":w.get("error"),
+     "source_unchanged":list(p.vertex_groups.keys())==["cape"] and not p.modifiers})
+'''.replace('SURFACE_HEIGHT',str(surface_height)))
+    assert r.rc == 0, r.out[-2000:]
+    d = r.results[-1]
+    assert d["plan"] and d["weights"] is expected, d
+    if not expected:
+        assert "zero weight" in d["error"], d
+    assert d["source_unchanged"], d
+
+
+def test_compatible_surface_ties_use_face_identity_independent_of_bvh_traversal():
+    r = run('''
+import numpy as np
+from mathutils import Vector
+from mathutils.bvhtree import BVHTree
+from mixar.modules.lampway_tools.features import fit_bind as FB
+points=[(-1,-1,.04),(1,-1,.04),(0,1,.04)]
+tree=BVHTree.FromPolygons(points,[(0,1,2),(0,1,2)])
+class ReverseTraversal:
+    def find_nearest(self,point,distance):
+        # Both are genuine equally near native hits. Plant the other traversal order.
+        return max(tree.find_nearest_range(point,distance),key=lambda h:h[2])
+    def find_nearest_range(self,point,distance):
+        return tree.find_nearest_range(point,distance)
+hit=FB._nearest_compatible(ReverseTraversal(),Vector((0,0,0)),np.array([0.,0.,1.]),.5,np.cos(np.radians(30)))
+res({"face":int(hit[2]),"distance_m":float(hit[3])})
+''')
+    assert r.rc == 0, r.out[-2000:]
+    assert r.results[-1]["face"] == 0, r.results[-1]

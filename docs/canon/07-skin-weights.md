@@ -28,7 +28,7 @@ to 1, plus receipts.
    distance default is a fraction of the bounding-box diagonal (0.05 of it); state the absolute value in the receipt.
    **Region-constrained:** the query names the profile's body regions and requires normal compatibility, so "a closer incompatible
    surface cannot hide the correct one" (Titan `surface_query.py:131 nearest(regions=, normal=, min_normal_dot=)`): a sleeve
-   vertex 1 cm from the torso takes arm bones.
+   vertex 1 cm from the torso takes arm bones. Search the allowed region for the nearest normal-compatible triangle within the existing distance bar, even when the nearest triangle fails the normal bar. Equal measured distances use stable triangle identity, without an acceptance tolerance expansion. For a compatible nearest hit, a float32 BVH discovery radius may advance one representable step to avoid an inward-rounded boundary, capped by the declared distance; every discovered hit is then filtered against the original measured nearest distance and unchanged normal bar. A coincident body vertex does not guarantee its authored weights when every incident face fails the normal gate: C02's exact-inverse tool control supplies the golden's authored W explicitly, while a separate transferred-W control proves forward round-trip under the unchanged 1e-6 m bar.
 3. **Inpaint the unmatched** by the biharmonic energy with matched rows fixed:
    `min tr(Wᵀ Q W), Q = -L + L M⁻¹ L`, L, M the robust Laplacian and mass of Sharp & Crane 2020 ("A Laplacian for Nonmanifold
    Triangle Meshes", SGP; `robust_laplacian`), point-cloud or mesh mode; clamp >= 0, renormalise. Optional smoothing near the

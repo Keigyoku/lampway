@@ -54,6 +54,8 @@ Native targets with fork-only consumers own a conditional `PRIVATE LAMPWAY` comp
 
 Native UI inspection reads the active edit buffer when present, with password redaction before selection and unchanged upstream OFF behavior. Save preserves an already selected format suffix, including leading-dot filenames and case; format changes still replace it. Compiled extracted routines are boundary controls, never a substitute for the maintained full build and physical rerun.
 
+Lampway Linux bubble and pill windows register with the existing floating-dock registry on creation and restoration, before chrome/map operations. Reopened splash suppression must cover already existing islands; retain macOS marking, Windows behavior and Linux OFF behavior through a target-owned private definition.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -64,3 +66,4 @@ Native UI inspection reads the active edit buffer when present, with password re
 
 | 2026-10-08 | native screenshot offscreen readback | actual753 audit black operator frames and isolated hash-identical llvmpipe reproduction | native capability-selected frontbuffer reads returned all-zero images after screenshot redraw | route Lampway full-window reads through existing offscreen composition with drawable restoration and target-owned fork definition; retain upstream OFF and real pixel rerun requirements | compiled actual dispatcher ON/OFF RED/GREEN and exact black-frame reproduction; full native rebuild remains owed |
 | 2026-10-08 | native filename and active edit observation | additional914 audit I02 | leading-dot save names duplicated their suffix and uncommitted visible text was absent from observation | preserve selected suffix and inspect active edit buffers after secret refusal, retaining OFF behavior and full-build limits | compiled actual selectors/save routine RED/GREEN plus old-binary current-overlay exact filename reopen |
+| 2026-10-09 | Linux reopened splash dock registration | additional914 provisional overlap isolated reproduction | suppression depth1 enumerated zero docks because all marking calls were Apple-only | mark created/restored Linux bubble and pill under target-private LAMPWAY before mapping; retain OFF platform behavior and rebuilt-native rerun | mapped island RED with symbol-pinned empty registry, compiler platform/suppression GREEN; full build still owed |

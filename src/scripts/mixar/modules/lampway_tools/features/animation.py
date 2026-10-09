@@ -411,13 +411,16 @@ def _bake_impl(src, tgt, act, pairs, method, root_motion, scale, frame_range, fp
         if used:
             weighted_unmapped[o.name] = used
     if weighted_unmapped:
-        warnings.append("Checked skin has weighted target bones omitted by the mapping. Review unmapped_weighted_target and the supplied spine/neck/twist/helper mappings; these bones inherit their parent motion without source animation.")
+        warnings.append("Checked skin has weighted target bones omitted by the mapping. These bones inherit parent motion, which can be valid; omission alone does not establish the cause of skin distortion. Audit the target binding and authored weights before changing the supplied mapping.")
     if stretch:
-        warnings.append("max_edge_stretch is measured against the target's evaluated REST mesh. Inspect skin weights and unmapped weighted bones in representative rendered frames; no accepted stretch threshold or physical skin approval is established by this bake.")
+        warnings.append("max_edge_stretch is measured against the target's evaluated REST mesh. Inspect skin weights and unmapped weighted bones in representative rendered frames; Run lampway_weight_audit on the checked target skin before any copy-only weight cleanup; no accepted stretch threshold or physical skin approval is established by this bake.")
     if not objs:
         warnings.append("Skin deformation was not checked: supply check_objects bound to the target and inspect representative rendered frames.")
     result["quality"] = {"accepted": False, "status": "review_required", "foot_slide": {"space": root_motion, "status": foot_status, "threshold_m": slide_limit, "threshold_status": "proposed", "stance_reference": "clip_minimum_height"},
-                         "unmapped_weighted_target": weighted_unmapped, "skin_checked": [o.name for o in objs], "stretch_reference": "evaluated_target_rest", "stretch_threshold": None}
+                         "unmapped_weighted_target": weighted_unmapped, "skin_checked": [o.name for o in objs], "skin_cause": "unestablished", "stretch_reference": "evaluated_target_rest", "stretch_threshold": None,
+                         "next_steps": [{"tool": "lampway_weight_audit", "next_args": {"action": "audit", "object": o.name, "armature": tgt.name}} for o in objs],
+                         "candidate_next_steps": [{"tool": "lampway_weight_cleanup", "next_args": {"object": o.name, "armature": tgt.name, "ops": [{"op": "smooth", "iterations": 2, "factor": 0.5}]},
+                             "review_required": True, "scope": "optional graph-smoothing preview on a new copy; select a reviewed flexible region before repair, preserve rigid roles; not a positional seam-band repair or motion acceptance"} for o in objs]}
     result["warnings"] = warnings
     if result["rest_pose_difference_deg"]["max"] > 5 and method == "constraints":
         result["warning"] = f"the rests differ by up to {result['rest_pose_difference_deg']['max']} deg and method=constraints does not compensate them: use method=matrix"

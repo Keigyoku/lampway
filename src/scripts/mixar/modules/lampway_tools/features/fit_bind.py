@@ -249,6 +249,31 @@ def _allowed_ancestor(bone, allowed, parents):
     return bone if bone in allowed else None
 
 
+def _nearest_compatible(tree, point, normal, distance, cos_limit):
+    """Canon07 B.2: an incompatible nearer face cannot hide a valid region match."""
+    hit = tree.find_nearest(point, distance)
+    if hit[0] is None:
+        return None
+    compatible = abs(float(normal @ np.asarray(hit[1]))) >= cos_limit
+    if compatible:
+        # BVH distances/radii are float32. The reported sqrt can round inward:
+        # discover through its next representable radius, bounded by the caller,
+        # then accept only hits <= the original measured nearest distance.
+        radius = min(distance, float(np.nextafter(np.float32(hit[3]), np.float32(np.inf))))
+        candidates = [h for h in tree.find_nearest_range(point, radius) if h[3] <= hit[3]]
+        candidates.append(hit)
+    else:
+        candidates = [h for h in tree.find_nearest_range(point, distance) if h[3] <= distance]
+    if not candidates:
+        return None
+    dots = np.abs(np.asarray([h[1][:] for h in candidates]) @ normal)
+    good = np.flatnonzero(dots >= cos_limit)
+    if not len(good):
+        return None
+    k = min(good, key=lambda i: (candidates[i][3], candidates[i][2]))
+    return candidates[k]
+
+
 def _restrict_part(ob, idx, plan, part, parents, names, Wb, V, T, tri_bone):
     """One restrict part's rows over ``names`` (canon 07 B.1-B.4): welded vertices; the nearest point on the body's OWN
     REGION for the part (triangles whose dominant bone is an allowed bone or descends from one) within MATCH_MAX_DISTANCE
@@ -273,12 +298,11 @@ def _restrict_part(ob, idx, plan, part, parents, names, Wb, V, T, tri_bone):
     rows = np.zeros((len(idx), len(names)))
     matched = np.zeros(len(idx), bool)
     for k in np.unique(keys):
-        loc, nor, fi, dist = tree.find_nearest(Vector(P[k]), MATCH_MAX_DISTANCE)
-        if loc is None:
-            continue
         n = Nw[k] / max(float(np.linalg.norm(Nw[k])), 1e-12)
-        if abs(float(n @ np.array(nor[:]))) < cos_lim:
+        hit = _nearest_compatible(tree, Vector(P[k]), n, MATCH_MAX_DISTANCE, cos_lim)
+        if hit is None:
             continue
+        loc, nor, fi, dist = hit
         a, b, c = V[T[sel[fi]]]
         nrm = np.cross(b - a, c - a)
         q = np.array(loc[:])

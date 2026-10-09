@@ -49,3 +49,7 @@ retarget skin fit, original-piece physical fit, independent engine import and th
 ineffective actual GPU cube control remain explicit quality/live obligations.
 No public source includes original meshes, private bind tables, session data,
 account identifiers, private download links or provider credentials.
+
+The [resumed follow-up](issue-2-resumed-follow-up-20261009.md) supersedes the
+unlocalized Linux overlap and nearest-surface cape diagnosis and records the
+original-rig motion replay, while preserving the remaining physical obligations.

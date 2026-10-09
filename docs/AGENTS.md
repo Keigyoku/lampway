@@ -59,6 +59,11 @@ Normative motion method, scene and tool contracts belong in docs/canon/motion_gr
 
 Supplied-input follow-ups preserve older report head attribution and explicitly supersede corrected fixture claims. Distinguish independent-reference normalized copies from direct raw normalization, source/dispatcher checks from rebuilt pixels, and diagnostic hardening from unresolved physical GPU controls. Actual bind refusals remain evidence until their caller contracts and rendered fit are reviewed.
 
+Resumed investigations supersede only the causally localized conclusions, retain
+failed experimental candidates and original numerical bars, and state exact
+missing input or renderer interfaces. Original-rig replay and compiled native
+boundaries do not imply accepted skin quality or a matching complete build.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -78,3 +83,4 @@ Supplied-input follow-ups preserve older report head attribution and explicitly 
 | 2026-10-08 | supplied-input audit correction provenance | complete validation package | older missing-input claims obscured actual supplied fixtures and component passes risked implying physical acceptance | preserve prior receipts, identify corrected fixtures and predecessors, and keep source versus physical gates separate | private current receipts and source-hashed follow-up report |
 
 | 2026-10-08 | inherited audit evidence and live limits | captain assigns twelve inherited findings to PR1 | component receipts could erase poor motion quality or imply rebuilt native acceptance | retain per-finding code/test evidence, original verdicts and separate physical obligations | inherited audit follow-up report and private source-hashed package |
+| 2026-10-09 | resumed causal audit corrections | captain asks why unfinished work stopped | packet delivery obscured feasible surface and Linux dock defects while untested hypotheses survived | report causal source fixes, failed previews, unchanged bars and exact external interfaces without promoting aggregate acceptance | resumed follow-up and committed-head verification packet |
