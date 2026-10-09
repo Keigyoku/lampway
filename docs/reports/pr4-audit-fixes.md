@@ -33,3 +33,7 @@ records, private assets and local GPU validation were not rerun by this audit-fi
 remain historical and are not relabeled as acceptance of this change. Synthetic local providers grant no
 paid or outbound access. New exact-head normal-build/runtime receipts and physical wizard visibility
 results belong to the final integration evidence; source passes alone do not establish them.
+
+## Native paging correction
+
+The matching `84560502` native check exposed a second dialog when Next reinvoked onboarding from an inner button. Its recorded routes, agent and first capability page had visible navigation, but duplicate dialog regions fail acceptance. Paging now tags the existing native dialog for refresh through `Window.mixar_refresh_popups`; a causal callback RED becomes GREEN with zero new modal invocations and unchanged choices. The first physical fixture also incorrectly assumed the app had only one window; the corrected fixture pins the exact 1600×1000 main window and leaves the owned auxiliary bubble alone. Both failed attempts are retained. The server source remains byte-identical to the full-suite candidate; the corrected UI requires a new matching build and native run.

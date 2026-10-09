@@ -330,14 +330,17 @@ def test_paging_changes_no_server_choices_and_stale_page_action_is_refused(ui, m
     initial = dict(w.capability_chosen)
     invokes = []
     monkeypatch.setattr(ui.bpy.ops.lampway, "onboarding", lambda *args: invokes.append(args) or {'FINISHED'})
+    refreshes = []
+    window = SimpleNamespace(screen=SimpleNamespace(areas=[]), global_areas=[], mixar_refresh_popups=lambda: refreshes.append(True))
+    context = SimpleNamespace(window=window)
     op = ui.LAMPWAY_OT_onboarding_capability_page()
     op.direction = 1
-    assert op.execute(None) == {'FINISHED'} and ui.WALK["capability_page"] == 1
+    assert op.execute(context) == {'FINISHED'} and ui.WALK["capability_page"] == 1
     assert w.capability_chosen == initial and w.capability_clicks == []
-    assert invokes == [('INVOKE_DEFAULT',)]
+    assert refreshes == [True] and invokes == [], 'Paging must rebuild the original dialog without opening another modal'
     w.next()
     assert op.execute(None) == {'CANCELLED'}
-    assert ui.WALK["capability_page"] == 1 and len(invokes) == 1
+    assert ui.WALK["capability_page"] == 1 and refreshes == [True] and invokes == []
 
 
 def test_the_rail_lists_every_step_of_this_walk(ui):

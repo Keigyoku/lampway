@@ -361,7 +361,9 @@ class LAMPWAY_OT_onboarding_capability_page(Operator):
             return {'CANCELLED'}
         pages, index, _ = _capability_page(walk)
         WALK["capability_page"] = max(0, min(index + self.direction, len(pages) - 1))
-        return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+        _redraw_all(context)
+        context.window.mixar_refresh_popups()
+        return {'FINISHED'}
 
 
 class LAMPWAY_OT_onboarding_policy(Operator):

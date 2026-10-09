@@ -40,7 +40,8 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    every write behind `human_gate`; the first-run walk's step in `onboarding.py` writes only what the user ticked differently from the
    server's own defaults). The capability-enabled first-run walk sizes each current step from its actual content, and
    paginates the capability catalog within a fixed content-row budget. Its partition reserves possible warning rows so
-   ticking a choice cannot move it between pages; paging preserves choices and never writes settings. Legacy walks retain
+   ticking a choice cannot move it between pages; paging refreshes the original native dialog through
+   `Window.mixar_refresh_popups`, preserves choices and never opens a second modal or writes settings. Legacy walks retain
    their existing sizing behavior. Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
    (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
    Agent preferences exposes the same server-backed native Hermes delegation, cron and background choices. Every enable
@@ -82,3 +83,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-08 | Agent preferences for experimental native Hermes helpers | captain: default-off delegate, cron and background knobs with an explicit untested layering warning | preferences lacked these controls and generic capability warnings did not name experimental layering | invariant 9: cached server-backed switches, persistent warning, explicit human confirmation before each enable, no client defaults | six behavioral RED failures and focused client GREEN; native UI proof required |
 
 | 2026-10-08 | audit first-run capability pagination | supplied PR4 audit A06 | catalog row estimate inflated every page and hid navigation as capability counts grew | invariant 9: current-step content sizing, bounded stable capability pages, preserved ticks and no paging writes | three causal RED controls and 43 focused GREEN checks; matching native visibility proof required |
+
+| 2026-10-08 | capability paging keeps one native dialog | actual matching 84560502 UI Next produced two dialog regions | reinvoking from an inner page button stacked a modal over the original | invariant 9: refresh the original popup layout through the existing native window helper; no extra modal or changed choices | actual native RED and focused callback RED; new matching build proof required |
