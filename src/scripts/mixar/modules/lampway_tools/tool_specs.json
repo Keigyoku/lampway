@@ -2187,7 +2187,7 @@
   },
   {
    "name": "lampway_segment_mesh",
-   "description": "Mesh Segment: split a mesh into part objects in the collection `<object>_parts` (largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with (isolated ones into ONE remainder part). A split into more than max_parts (default 200) parts is refused before anything is made, naming the min_faces that fits. The original is hidden, never deleted. engine=studio:tripo is the part-detection slot (answers with action and price). labels instead NAMES the UV islands as vertex groups <object>_<label> (nothing is split), with the Client's own island enumeration (Mesh Segment's island_labels): mode map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), an island under min_share (0.6) unlabelled and named; labels outside the recipe's part names are refused, and more than max_unlabeled (0.3) of the faces unlabelled refuses to apply. Needs a UV map.",
+   "description": "Split into `<object>_parts`, largest first, UVs and materials kept). method: shells (connected pieces) | sharp (regions bounded by edges sharper than `angle` degrees) | uv_islands (needs a UV layer). Regions smaller than min_faces merge into the neighbour they share the longest border with (isolated ones into ONE remainder part). Excess max_parts refuses before output and names a fitting min_faces. The original is hidden, never deleted. studio:tripo quotes action/price. labels names UV islands as vertex groups <object>_<label> using enumeration: map takes island_labels {\"<island>\": label}; mode recipe gives each island the recipe part owning the majority of its faces in owner (a .npy per polygon, default the int face attribute 'part'), below min_share (0.6) is named unlabelled; out-of-recipe labels refuse, and more than max_unlabeled (0.3) unlabelled refuses. Both need UVs. separate_parts uses recipe + exact FACE INT face_attribute/part_names to prepare a combined disjoint ownership copy with original IDs/source seams; preserves geometry/UV/material and source normal vectors with measured native quantization, never accepts seam openings.",
    "batch": null,
    "api": "segment_mesh",
    "params": [
@@ -2242,7 +2242,7 @@
     {
      "name": "labels",
      "type": "object",
-     "desc": "{mode: map | recipe, island_labels: {island: label}, recipe: parts json, owner: .npy, min_share, max_unlabeled}",
+     "desc": "{mode: map | recipe | separate_parts, island_labels, recipe, owner, min_share, max_unlabeled; separate_parts: face_attribute, part_names {ID: recipe part}}",
      "required": false,
      "flag": null,
      "repeat": false
