@@ -69,6 +69,8 @@ def byoa_worker_readiness() -> dict:
             reason = f"{adapter.label} cannot run a worker: {adapter.worker_note}"
         elif adapter.locate() is None:
             reason = f"{adapter.label} is not installed: {adapter.install_hint}"
+        if not reason and hasattr(adapter, "compatibility_note"):
+            reason = adapter.compatibility_note()
         if reason:
             missing[f"byoa:{hid}"] = reason
     return missing

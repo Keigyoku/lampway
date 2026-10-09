@@ -281,6 +281,65 @@ def at_step(w, kind):
     return w
 
 
+def test_capability_catalog_does_not_pad_sparse_setup_pages(ui):
+    routes = [dict(ROUTES[0], id=f"route-{i}") for i in range(29)]
+    capabilities = [cap(f"action-{i}", "runs_code") for i in range(20)]
+    w = at_step(walk(capabilities=capabilities, routes=routes), "spending")
+    lay = Recorder()
+    ui.draw_step(lay, w, [], items(w))
+    assert not any(e[0] == "label" and e[1] == "" for e in lay.log), "A sparse page must not inherit capability-catalog padding"
+
+
+def test_disabled_capabilities_reserve_only_the_rows_actually_drawn(ui):
+    w = at_step(walk(capabilities=[cap(f"action-{i}", "runs_code") for i in range(20)]), "capabilities")
+    drawn = ui.draw_capabilities(Recorder(), w, items(w))
+    assert ui.capability_rows(w) == drawn, "Unticked warnings are not drawn and must not inflate the dialog"
+
+
+def test_capability_navigation_stays_bounded_as_the_catalog_grows(ui):
+    w = at_step(walk(capabilities=[cap(f"action-{i}", "runs_code", enabled=True,
+                                     routes=[{"id": "fal", "on": False}]) for i in range(100)]), "capabilities")
+    assert ui.draw_capabilities(Recorder(), w, items(w)) <= 28, "A growing catalog must not push navigation below the tested window"
+
+
+def test_capability_pages_keep_every_choice_once_when_warnings_change(ui):
+    caps = [cap(f"action-{i}", capabilities_face.RISK_ORDER[i % 6],
+                routes=[{"id": "fal", "on": False}]) for i in range(100)]
+    w = at_step(walk(capabilities=caps), "capabilities")
+    pages = ui.capability_pages(w)
+    expected = [c["id"] for g in capabilities_face.groups(w.capability_rows) for c in g["rows"]]
+    before = [[c["id"] for c in page] for page in pages]
+    assert sum(before, []) == expected and len(set(expected)) == 100
+    for c in caps:
+        w.click_capability(c["id"], True)
+    assert [[c["id"] for c in page] for page in ui.capability_pages(w)] == before
+    seen = []
+    for index in range(len(pages)):
+        ui.WALK["capability_page"] = index
+        lay = Recorder()
+        drawn = ui.draw_capabilities(lay, w, items(w))
+        assert drawn <= 28 and ui.capability_rows(w) == drawn
+        seen.extend(e[2] for e in lay.log if e[0] == "prop")
+    assert seen == expected
+    assert set(w.capabilities_on()) == set(expected)
+
+
+def test_paging_changes_no_server_choices_and_stale_page_action_is_refused(ui, monkeypatch):
+    w = at_step(walk(capabilities=[cap(f"action-{i}", "runs_code") for i in range(20)]), "capabilities")
+    ui.WALK["walk"] = w
+    initial = dict(w.capability_chosen)
+    invokes = []
+    monkeypatch.setattr(ui.bpy.ops.lampway, "onboarding", lambda *args: invokes.append(args) or {'FINISHED'})
+    op = ui.LAMPWAY_OT_onboarding_capability_page()
+    op.direction = 1
+    assert op.execute(None) == {'FINISHED'} and ui.WALK["capability_page"] == 1
+    assert w.capability_chosen == initial and w.capability_clicks == []
+    assert invokes == [('INVOKE_DEFAULT',)]
+    w.next()
+    assert op.execute(None) == {'CANCELLED'}
+    assert ui.WALK["capability_page"] == 1 and len(invokes) == 1
+
+
 def test_the_rail_lists_every_step_of_this_walk(ui):
     w = at_step(walk(), "capabilities")
     lay = Recorder()

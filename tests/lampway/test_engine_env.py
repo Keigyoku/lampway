@@ -35,6 +35,7 @@ def fake_root(tmp_path):
     _git(src, "init", "-q")
     (src / "pyproject.toml").write_text('[project]\nname = "hermes-agent"\nrequires-python = ">=3.11,<3.15"\n')
     (src / "uv.lock").write_text("version = 1\n")
+    (src / "package.json").write_text(json.dumps({"engines": {"npm": "<11.10.0 || >=11.17.0"}}))
     (src / "LICENSE").write_text("MIT License\n")
     _git(src, "add", "-A")
     _git(src, "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "release")
@@ -117,6 +118,7 @@ echo "uv $*" >> "$TOOL_LOG"
 """
 FAKE_NPM = """#!/bin/sh
 # npm, played: records where it ran; `run build` leaves the bundle
+if [ "$1" = "--version" ]; then echo 11.17.0; exit 0; fi
 echo "npm $* @ $(pwd)" >> "$TOOL_LOG"
 if [ "$1 $2" = "run build" ]; then mkdir -p dist && echo '// bundle' > dist/entry.js; fi
 """
@@ -162,7 +164,7 @@ def test_a_tui_build_that_leaves_no_bundle_is_refused_and_no_record_is_written(f
     _git(fake_root, "update-index", "--cacheinfo", f"160000,{_git(src, 'rev-parse', 'HEAD')},third_party/hermes-agent")
     tools = tmp_path / "tools"
     tools.mkdir()
-    for name, body in (("uv", FAKE_UV), ("npm", "#!/bin/sh\nexit 0\n"), ("node", "#!/bin/sh\necho v22.22.0\n")):
+    for name, body in (("uv", FAKE_UV), ("npm", "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then echo 11.17.0; fi\nexit 0\n"), ("node", "#!/bin/sh\necho v22.22.0\n")):
         (tools / name).write_text(body)
         (tools / name).chmod(0o755)
     engines = tmp_path / "engines"
@@ -182,3 +184,38 @@ def test_the_engine_record_names_the_entry_point(fake_root, tmp_path):
     assert record["engine"] == "hermes" and record["tag"] == "v2026.9.24"
     assert record["entry"] == "env/bin/hermes" and record["hermes"] == "env/bin/hermes" and record["source"] == "src"
     assert record["tui"] == "src/ui-tui", "the server finds the prebuilt TUI here (spec A1)"
+
+
+@pytest.mark.parametrize("version, accepted", [("11.9.9", True), ("11.10.0", False), ("11.16.0", False), ("11.17.0", True), ("12.0.0", True), ("11.17.0-beta.1", False), ("not-a-version", False)])
+def test_npm_engine_range_is_checked_before_any_build(fake_root, tmp_path, version, accepted):
+    tools = tmp_path / "tools"
+    tools.mkdir()
+    for name in ("uv", "node", "npm"):
+        body = "#!/bin/sh\n" + (f"echo {version}\n" if name == "npm" else "exit 0\n")
+        (tools / name).write_text(body)
+        (tools / name).chmod(0o755)
+    env = {"PATH": f"{tools}:/usr/bin:/bin", "LAMPWAY_ENGINES_DIR": str(tmp_path / "engines")}
+    result = run(fake_root, "--check-deps", env=env)
+    assert result.returncode == (0 if accepted else 2), result.stdout + result.stderr
+    if not accepted:
+        assert "npm" in result.stdout and "<11.10.0 || >=11.17.0" in result.stdout
+        result = run(fake_root, env=env)
+        assert result.returncode == 1 and "help[" in result.stdout
+        assert not (tmp_path / "engines").exists(), "incompatible npm is refused before build writes"
+
+
+def test_npm_constraint_matches_actual_pinned_package():
+    package = json.loads((REPO_ROOT / "third_party/hermes-agent/package.json").read_text())
+    assert package["engines"]["npm"] == "<11.10.0 || >=11.17.0"
+
+
+@pytest.mark.parametrize("constraint", ["garbage", "", "<11.10.0 || >=11.17.0 unexpected"])
+def test_unverifiable_npm_constraint_refuses_without_build(fake_root, tmp_path, constraint):
+    (fake_root / "third_party/hermes-agent/package.json").write_text(json.dumps({"engines": {"npm": constraint}}))
+    tools = tmp_path / "tools"
+    tools.mkdir()
+    for name in ("uv", "node", "npm"):
+        (tools / name).write_text("#!/bin/sh\necho 11.17.0\n")
+        (tools / name).chmod(0o755)
+    r = run(fake_root, "--check-deps", env={"PATH": f"{tools}:/usr/bin:/bin"})
+    assert r.returncode == 2 and "cannot verify" in r.stdout

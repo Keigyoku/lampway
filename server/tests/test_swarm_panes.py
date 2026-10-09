@@ -100,7 +100,7 @@ class Rig:
 
     # -- the worker panes
     def worker_panes(self):
-        return [s for s in self.cockpit.list_sessions() if s.get("created_by") == "swarm"]
+        return [s for s in self.cockpit.list_sessions() if s.get("created_by") == "swarm" and s.get("state") != "starting"]
 
     def worker_entry(self, rec):
         return json.loads(Path(rec["mcp_config_path"]).read_text())["mcpServers"]["lampway"]

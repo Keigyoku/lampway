@@ -8,6 +8,7 @@
 - Unbinding (the scene tab closed) never touches the pane (law 5): the pane is listed unbound and can be re-bound.
 herdr is faked; nothing is started."""
 import json
+import asyncio
 import os
 import stat
 from pathlib import Path
@@ -129,3 +130,104 @@ def test_the_binding_route_is_the_users_and_the_create_route_takes_the_scene(set
         assert r.status_code == 200 and r.json()["scene_session_id"] is None
         r = http.post(f"/app/workbench/sessions/{rec['id']}/binding", headers=h, json={"scene_session_id": "scene-2"})
         assert r.status_code == 200 and r.json()["scene_session_id"] == "scene-2"
+
+
+def test_first_codex_mcp_initialize_sees_the_durable_pane_before_launch_returns(settings, provider, herdr, tmp_path, monkeypatch):
+    from lampway_server.app import create_app
+    c = H.Cockpit(tmp_path / "herdr")
+    app = create_app(settings, provider=provider, cockpit=c)
+    initialized = []
+    with TestClient(app, base_url="http://127.0.0.1:8787") as http:
+        def launch(root, args, **kwargs):
+            if args[:2] == ["agent", "start"]:
+                key = next((c.root / "panes").glob("*/pane.key")).read_text()
+                durable = H.Cockpit(c.root).pane_for_key(key)
+                response = http.post("/api/v1/mcp/pane", headers={"Authorization": f"Bearer {key}"},
+                                     json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+                initialized.append(response.status_code)
+                assert response.status_code == 200, response.text
+                assert durable and durable["scene_session_id"] == "scene-first"
+                assert durable["pane_id"] == "p1" and durable["match"] == ["codex"]
+            return herdr(root, args, **kwargs)
+        monkeypatch.setattr(L, "run", launch)
+        rec = c.create_session("codex", "First initialization", str(tmp_path), scene_session_id="scene-first")
+    assert initialized == [200], "first init succeeds once, without retry"
+    assert len(c.list_sessions()) == 1 and c._get(rec["id"])["state"] == "live"
+
+
+@pytest.mark.parametrize("failure", [L.HerdrError("controlled launch failure"), asyncio.CancelledError("controlled launch failure")])
+def test_failed_harness_launch_revokes_the_registered_key_and_closes_only_its_pane(herdr, tmp_path, monkeypatch, failure):
+    c = H.Cockpit(tmp_path / "herdr")
+    c.pane_mcp_url = "http://127.0.0.1:8787/api/v1/mcp/pane"
+    keys = []
+    def launch(root, args, **kwargs):
+        if args[:2] == ["agent", "start"]:
+            key = next((c.root / "panes").glob("*/pane.key")).read_text()
+            keys.append(key)
+            assert H.Cockpit(c.root).pane_for_key(key), "authentication must already be durable"
+            raise failure
+        if args[:2] == ["pane", "close"]:
+            assert c.pane_for_key(keys[0]) is None, "revoke before rollback can race another request"
+        return herdr(root, args, **kwargs)
+    monkeypatch.setattr(L, "run", launch)
+    with pytest.raises(type(failure), match="controlled launch failure"):
+        c.create_session("codex", "Failed initialization", str(tmp_path), scene_session_id="scene-first")
+    assert c.pane_for_key(keys[0]) is None
+    assert len(c.list_sessions()) == 1 and c.list_sessions()[0]["state"] == "ended"
+    assert [call["args"] for call in herdr.calls if call["args"][:2] == ["pane", "close"]] == [["pane", "close", "p1"]]
+    assert c._opening == {}
+
+
+def test_a_registration_write_failure_never_starts_the_harness(herdr, tmp_path, monkeypatch):
+    c = H.Cockpit(tmp_path / "herdr")
+    def fail(data):
+        raise OSError("controlled durable write failure")
+    monkeypatch.setattr(c, "_save", fail)
+    with pytest.raises(OSError, match="controlled durable write failure"):
+        c.create_session("codex", "Unregistered pane", str(tmp_path), scene_session_id="scene-first")
+    assert not [call for call in herdr.calls if call["args"][:2] == ["agent", "start"]]
+    assert [call["args"] for call in herdr.calls if call["args"][:2] == ["pane", "close"]] == [["pane", "close", "p1"]]
+    assert c.list_sessions() == [] and c._opening == {}
+
+
+def test_reconcile_during_launch_preserves_registration_but_restart_judges_the_process(herdr, tmp_path, monkeypatch):
+    c = H.Cockpit(tmp_path / "herdr")
+    c.pane_mcp_url = "http://127.0.0.1:8787/api/v1/mcp/pane"
+    def launch(root, args, **kwargs):
+        if args[:2] == ["agent", "start"]:
+            key = next((c.root / "panes").glob("*/pane.key")).read_text()
+            assert c.pane_for_key(key)
+            c.reconcile()
+            assert c.pane_for_key(key), "in-flight startup is not a dead process"
+        if args[:2] == ["api", "snapshot"]:
+            return json.dumps({"result": {"snapshot": {"workspaces": [], "panes": [
+                {"pane_id": "p1", "terminal_id": "t1", "tab_id": "tab1"}]}}})
+        if args[:2] == ["pane", "process-info"]:
+            return json.dumps({"result": {"process_info": {"foreground_processes": []}}})
+        return herdr(root, args, **kwargs)
+    monkeypatch.setattr(L, "run", launch)
+    rec = c.create_session("codex", "Reconcile startup", str(tmp_path), scene_session_id="scene-first")
+    restarted = H.Cockpit(c.root)
+    restarted.reconcile()
+    assert restarted._get(rec["id"])["state"] == "ended", "no in-memory marker survives restart"
+    assert not [call for call in herdr.calls if call["args"][:2] == ["pane", "close"]]
+
+
+def test_repeated_launch_cancellation_still_revokes_before_rollback(herdr, tmp_path, monkeypatch):
+    c = H.Cockpit(tmp_path / "herdr")
+    c.pane_mcp_url = "http://127.0.0.1:8787/api/v1/mcp/pane"
+    keys, closed = [], []
+    def launch(root, args, **kwargs):
+        if args[:2] == ["agent", "start"]:
+            keys.append(next((c.root / "panes").glob("*/pane.key")).read_text())
+            raise asyncio.CancelledError("first cancellation")
+        if args[:2] == ["pane", "close"]:
+            closed.append(args[2])
+            assert H.Cockpit(c.root).pane_for_key(keys[0]) is None
+            raise asyncio.CancelledError("second cancellation")
+        return herdr(root, args, **kwargs)
+    monkeypatch.setattr(L, "run", launch)
+    with pytest.raises(asyncio.CancelledError, match="first cancellation"):
+        c.create_session("codex", "Cancelled startup", str(tmp_path), scene_session_id="scene-first")
+    assert closed == ["p1"] and c._opening == {}
+    assert c.list_sessions()[0]["state"] == "ended" and c.pane_for_key(keys[0]) is None

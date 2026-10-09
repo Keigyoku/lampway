@@ -106,6 +106,7 @@ class Cockpit:
         #: so the next worker finds the one before it in its unit's column.
         self._layout = threading.Lock()
         self._opening: dict = {}
+        self._revoked_starts: set = set()
         #: Spec A1: Lampway's own Mode 1 panes (``lampway_hermes``) are prepared by the server's engine (``engine/units.py``):
         #: ``prepare(**)`` writes the pane's home before herdr is asked and returns the record's fields; ``opened(rec)`` hears
         #: of the recorded pane; ``abandon(prepared)`` undoes a prepare whose pane never opened. None: no Mode 1 pane can start.
@@ -277,7 +278,9 @@ class Cockpit:
         try:
             with self._layout:
                 snap = self.snapshot()
-                sessions = self.list_sessions() + list(self._opening.values())
+                sessions = self.list_sessions()
+                recorded = {s["pane_id"] for s in sessions}
+                sessions += [s for pid, s in self._opening.items() if pid not in recorded]
                 ulabel = LY.unit_label(unit, unit_label or (LY.unit_main(unit, sessions, snap) or {}).get("unit_label")) if unit else None
                 label = ulabel if unit else name[:LY.LABEL_MAX]
                 pane = self._open(LY.place(role, unit, label, sessions, snap, swarm=LY.swarm_of(binding), planned=planned), snap, real, env,
@@ -290,34 +293,58 @@ class Cockpit:
                 self.mode1.abandon(prepared)
             raise
         try:
-            native_id = resume_id
-            tokens = []
+            native_id = (resume_id or sid) if ad is not None else resume_id
+            argv = ad.resume(resume_id, spec) if ad is not None and resume_id else (
+                ad.launch(spec, task=None if lampway else prompt) if ad is not None else None)
+            tokens = [ad.process_match or ad.binary] if ad is not None else (
+                [os.path.basename(shlex.split(command)[-1])] if agent == "command" else [])
+            rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
+                   "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
+                   "state": "starting", "adopted": False, "agent_sends": False, "created_at": opened, "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
+                   "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
+                   "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None,
+                   "unit": unit, "role": role, "unit_label": ulabel, **{k: v for k, v in (prepared or {}).items() if k in MODE1_FIELDS}}
+            # A harness may initialize MCP inside agent start: its authentication must already be durable.
+            self._update(lambda d: d["sessions"].append(rec))
             if agent == "command" or ad is not None:
                 self._wait_prompt(pane_id)
             if agent == "command":
                 L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
-                tokens = [os.path.basename(shlex.split(command)[-1])]
             elif ad is not None:
-                native_id = native_id or sid
-                argv = ad.resume(resume_id, spec) if resume_id else ad.launch(spec, task=None if lampway else prompt)
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", agent_name(rid), "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
-                tokens = [ad.process_match or ad.binary]
             self._report(pane_id, LY.metadata(ad.id if ad is not None else agent, role, unit_name=ulabel or "", name=name, task=task,
                                               display_agent=display_agent))
-            rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
-                   "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
-                   "state": "live", "adopted": True, "agent_sends": False, "created_at": opened, "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
-                   "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
-                   "swarm_binding": swarm_worker[0] if swarm_worker is not None else None, "pane_key_sha256": _sha(key) if key else None,
-                   "unit": unit, "role": role, "unit_label": ulabel, **{k: v for k, v in (prepared or {}).items() if k in MODE1_FIELDS}}
-            self._update(lambda d: d["sessions"].append(rec))
+            rec.update(state="live", adopted=True, updated_at=time.time())
+            def started(d):
+                for s in d["sessions"]:
+                    if s["id"] == rid:
+                        s.update(state="live", adopted=True, updated_at=rec["updated_at"])
+            self._update(started)
         except BaseException:
-            if prepared is not None:
-                self.mode1.abandon(prepared)
+            self._revoked_starts.add(rid)                      # fail closed even if the rollback's durable write fails
+            def revoke(d):
+                for s in d["sessions"]:
+                    if s["id"] == rid:
+                        s.update(state="ended", adopted=False, ended_at=time.time(), updated_at=time.time(),
+                                 end_reason="pane launch failed")
+            try:
+                if any(s["id"] == rid for s in self.list_sessions()):
+                    self._update(revoke)                       # revoke before rollback can race another MCP request
+            except BaseException as exc:
+                log.warning("failed pane %s's registration could not be ended (%s)", pane_id, exc)
+            try:
+                if prepared is not None:
+                    self.mode1.abandon(prepared)
+            except BaseException as exc:
+                log.warning("failed pane %s's preparation could not be abandoned (%s)", pane_id, exc)
+            try:
+                L.run(self.root, ["pane", "close", pane_id])   # only the pane allocated by this failed explicit start
+            except BaseException as exc:
+                log.warning("failed pane %s could not be rolled back (%s)", pane_id, exc)
             raise
         finally:
             self._opening.pop(pane_id, None)
@@ -398,7 +425,7 @@ class Cockpit:
         digest = _sha(key)
         for s in self.list_sessions():
             known = s.get("pane_key_sha256") or ""
-            if known and hmac.compare_digest(known, digest) and s.get("state") != "ended" and not s.get("swarm_binding"):
+            if known and hmac.compare_digest(known, digest) and s.get("state") != "ended" and not s.get("swarm_binding") and s["id"] not in self._revoked_starts:
                 return s
         return None
 
@@ -728,6 +755,8 @@ class Cockpit:
             if pane is None:
                 return None, "its pane is gone from the server"
             claimed.add(pane["pane_id"])
+            if rec["pane_id"] in self._opening:
+                return pane, ""                               # this host is still launching it; restart has no such marker
             why = self._agent_gone(rec, pane)
             return (None, why) if why else (pane, "")
 
@@ -743,6 +772,8 @@ class Cockpit:
                 else:
                     changed = rec.get("pane_id") != pane["pane_id"] or (pane.get("tab_id") and rec.get("tab_id") != pane["tab_id"])
                     rec.update(pane_id=pane["pane_id"], terminal_id=pane.get("terminal_id"), adopted=True)
+                    if rec.get("state") == "starting" and rec["pane_id"] not in self._opening:
+                        rec["state"] = "live"                  # only an inspected live process can finish a crashed start
                     if pane.get("tab_id"):
                         rec["tab_id"] = pane["tab_id"]
                     if changed:

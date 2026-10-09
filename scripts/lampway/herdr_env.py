@@ -35,6 +35,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,8 +80,20 @@ def resolve() -> dict:
     head = _git("rev-parse", "HEAD", cwd=src).stdout.strip()
     if head != commit:
         raise Refusal(f"{SUBMODULE} is at {head[:12] or 'nothing'}, not the pinned {commit[:12]}", [init, f"git -C {SUBMODULE} status"])
-    tags = [t for t in _git("tag", "--points-at", "HEAD", cwd=src).stdout.split() if t.startswith("v")]
-    tag = sorted(tags)[-1] if tags else commit[:12]
+    # A shallow checkout need not include tags. Cargo embeds this pinned package
+    # version in the stable binary; local tag names are not build identity.
+    manifest = _git("show", f"{commit}:Cargo.toml", cwd=src)
+    try:
+        text = (src / "Cargo.toml").read_text()
+        if manifest.returncode != 0 or text != manifest.stdout:
+            raise ValueError("Cargo.toml differs from the pin")
+        package = tomllib.loads(text)["package"]
+        version = package["version"]
+        if package["name"] != "herdr" or not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            raise ValueError("invalid herdr package version")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise Refusal("cannot resolve the pinned herdr Cargo.toml package version", [init, f"git -C {SUBMODULE} diff -- Cargo.toml"]) from exc
+    tag = f"v{version}"
     builds = Path(os.environ.get("LAMPWAY_HERDR_BUILDS") or ROOT / "build" / "herdr")
     rust = _rust_channel(src)
     record = {"tool": "herdr", "tag": tag, "commit": commit, "binary": "herdr", "rust": rust, "zig": ZIG_VERSION}
@@ -122,7 +135,7 @@ def build(p: dict) -> int:
     shutil.copy2(dest / "target" / "release" / "herdr", dest / "herdr")
     ver = subprocess.run([str(dest / "herdr"), "--version"], capture_output=True, text=True)
     want = p["tag"].lstrip("v")
-    if ver.returncode != 0 or want not in ver.stdout:
+    if ver.returncode != 0 or ver.stdout.strip() != f"herdr {want}":
         return refuse(f"the built herdr says {(ver.stdout + ver.stderr).strip()[:200]!r}, not {want}", ["scripts/lampway/herdr_env.py"])
     (dest / "herdr.json").write_text(p["record"] + "\n")
     print(f"built: {dest / 'herdr'}")

@@ -16,7 +16,7 @@ Nothing here reaches the network in a draw: the walk is read once, when the dial
 import textwrap
 
 import bpy
-from bpy.props import BoolProperty, CollectionProperty, EnumProperty, FloatProperty, StringProperty
+from bpy.props import BoolProperty, CollectionProperty, EnumProperty, FloatProperty, IntProperty, StringProperty
 from bpy.types import Operator, PropertyGroup
 
 from mixar.modules.lampway_tools import capabilities_face as face
@@ -32,8 +32,9 @@ def iface_(msgid):
     return out if isinstance(out, str) else msgid      # a stubbed bpy (the unit tests) translates nothing
 
 
-WALK = {"walk": None, "anchor": None}
+WALK = {"walk": None, "anchor": None, "capability_page": 0}
 WRAP = 60              # characters per body line: the body column holds about 78 at any UI scale (it scales with the text)
+CAPABILITY_PAGE_ROWS = 24  # content rows, leaving room for the introduction, page controls and dialog navigation at 1000px
 STEP_TEXT = {"agent": n_("The agent thinks with the provider you pick here; nothing is sent until you use it"),
              "routes": n_("Every route is off until you switch it on"),
              "capabilities": n_("Your agent can do only what you tick here. Change it any time in Choices and privacy."),
@@ -95,20 +96,56 @@ def _lines(text) -> int:
 
 
 def body_rows(walk) -> int:
-    """The tallest step's rows: every step is padded to it, so the dialog keeps one size and Continue one place (audit F23)."""
+    """Legacy walks keep their size; capability-enabled walks size each step to its actual content."""
     if not walk.online:
         return 1 + _lines(ob.OFFLINE) + _lines(OFFLINE_NEXT)
     refusal = max((_lines(why) for why in [walk.refusal()] if why), default=0)
+    if walk.capability_rows is not None:
+        return {"agent": _lines(STEP_TEXT["agent"]) + 1 + refusal,
+                "routes": _lines(STEP_TEXT["routes"]) + len(walk.routes),
+                "spending": _lines(STEP_TEXT["spending"]) + 3,
+                "capabilities": capability_rows(walk)}.get(walk.kind, 0)
     return max(_lines(STEP_TEXT["agent"]) + 1 + max(refusal, 1), _lines(STEP_TEXT["routes"]) + len(walk.routes),
-               _lines(STEP_TEXT["spending"]) + 3, capability_rows(walk))
+               _lines(STEP_TEXT["spending"]) + 3)
+
+
+def capability_pages(walk) -> list:
+    """Stable risk-ordered pages reserve possible warnings, without drawing empty padding.
+
+    Page membership depends on metadata, not ticks, so enabling a row cannot
+    move that row or another row onto a different page beneath the pointer.
+    """
+    pages, page, rows, risk = [], [], 0, None
+    for group in face.groups(walk.capability_rows):
+        for cap in group["rows"]:
+            cost = 1 + int(face.needs_confirm(cap)) + int(bool(cap.get("routes")))
+            heading = 2 if risk != group["risk"] else 0
+            if page and rows + heading + cost > CAPABILITY_PAGE_ROWS:
+                pages.append(page)
+                page, rows, risk = [], 0, None
+                heading = 2
+            page.append(cap)
+            rows += heading + cost
+            risk = group["risk"]
+    if page:
+        pages.append(page)
+    return pages
+
+
+def _capability_page(walk):
+    pages = capability_pages(walk)
+    index = max(0, min(int(WALK.get("capability_page", 0)), max(len(pages) - 1, 0)))
+    return pages, index, pages[index] if pages else []
 
 
 def capability_rows(walk) -> int:
-    """The capabilities step at its tallest (every row ticked, so every warning and route note shown); 0 when the walk has none."""
+    """Rows actually shown on this page; unticked warnings reserve no dialog height."""
     if walk.capability_rows is None:
         return 0
-    groups = face.groups(walk.capability_rows)
-    return _lines(STEP_TEXT["capabilities"]) + 2 * len(groups) + 3 * sum(len(g["rows"]) for g in groups)
+    pages, _, caps = _capability_page(walk)
+    return (_lines(STEP_TEXT["capabilities"]) + 2 * len(face.groups(caps)) + len(caps)
+            + sum(bool(walk.capability_warning(c["id"])) + bool(walk.capability_note(c["id"])) for c in caps)
+            + int(len(pages) > 1))
 
 
 def draw_routes(layout, walk, rows):
@@ -127,7 +164,8 @@ def draw_capabilities(layout, walk, cap_rows) -> int:
     items = {r.cap_id: r for r in cap_rows}
     wrapped(layout, STEP_TEXT["capabilities"])
     drawn = _lines(STEP_TEXT["capabilities"])
-    for group in face.groups(walk.capability_rows):
+    pages, page, caps = _capability_page(walk)
+    for group in face.groups(caps):
         layout.separator()
         layout.label(text=group["title"])
         drawn += 2
@@ -144,6 +182,16 @@ def draw_capabilities(layout, walk, cap_rows) -> int:
                 if text:
                     layout.label(text=text, icon=icon)
                     drawn += 1
+    if len(pages) > 1:
+        row = layout.row(align=True)
+        previous = row.row(align=True)
+        previous.enabled = page > 0
+        previous.operator("lampway.onboarding_capability_page", text="Previous").direction = -1
+        row.label(text=iface_(n_("Page {page} of {pages}")).format(page=page + 1, pages=len(pages)), translate=False)
+        following = row.row(align=True)
+        following.enabled = page + 1 < len(pages)
+        following.operator("lampway.onboarding_capability_page", text="Next").direction = 1
+        drawn += 1
     return drawn
 
 
@@ -228,6 +276,7 @@ class LampwayOnboardingCapability(PropertyGroup):
 def _begin(context):
     walk = ob.Walk.read(_door())
     WALK["walk"] = walk
+    WALK["capability_page"] = 0
     wm = context.window_manager
     wm.lampway_onboarding_routes.clear()
     for route in walk.routes:
@@ -284,7 +333,7 @@ class LAMPWAY_OT_onboarding(Operator):
             self.report({'ERROR'}, f"Lampway's server did not take the setup: {exc}")
             return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
         bpy.ops.wm.save_userpref()
-        WALK.update(walk=None, anchor=None)
+        WALK.update(walk=None, anchor=None, capability_page=0)
         self.report({'INFO'}, "Saved: " + ", ".join(saved))
         return {'FINISHED'}
 
@@ -297,6 +346,21 @@ class LAMPWAY_OT_onboarding_back(Operator):
     def execute(self, context):
         if WALK["walk"] is not None:
             WALK["walk"].back()
+        return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+
+
+class LAMPWAY_OT_onboarding_capability_page(Operator):
+    """Show another page of capabilities without changing any choices"""
+    bl_idname = "lampway.onboarding_capability_page"
+    bl_label = "More capabilities"
+    direction: IntProperty(default=1, min=-1, max=1, options={'SKIP_SAVE'})
+
+    def execute(self, context):
+        walk = WALK["walk"]
+        if walk is None or walk.kind != "capabilities":
+            return {'CANCELLED'}
+        pages, index, _ = _capability_page(walk)
+        WALK["capability_page"] = max(0, min(index + self.direction, len(pages) - 1))
         return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
 
 
@@ -336,7 +400,7 @@ class LAMPWAY_OT_onboarding_capability_info(Operator):
         return {'FINISHED'}
 
 
-classes = (LampwayOnboardingRoute, LampwayOnboardingCapability, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_policy,
+classes = (LampwayOnboardingRoute, LampwayOnboardingCapability, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_capability_page, LAMPWAY_OT_onboarding_policy,
            LAMPWAY_OT_onboarding_capability_info)
 _PROPS = ("lampway_onboarding_routes", "lampway_onboarding_caps", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_day_cap",
           "lampway_onboarding_above")
@@ -361,4 +425,4 @@ def unregister():
             delattr(bpy.types.WindowManager, name)
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
-    WALK.update(walk=None, anchor=None)
+    WALK.update(walk=None, anchor=None, capability_page=0)

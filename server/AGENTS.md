@@ -80,6 +80,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    isolation workaround. Cursor's
    supported per-pane plugin describes its account/tool execution as unverified. Pi reaches tools through Lampway's own Pi
    extension (`harnesses/lampway_pi_extension.js`, a wrapper only: it hands the pane's own 0600 config to Pi's MCP client).
+   Connector readiness requires a locally verified stable Pi 0.99.0 or newer, the API introduction in its changelog.
+   Unknown, prerelease or older versions receive an actionable refusal in discovery, Choices and launch before activation;
+   Lampway never upgrades the shared CLI.
+   An authenticated digest-only record is durable in state `starting` before harness launch can initialize MCP.
+   Launch success makes it `live`; failed or cancelled starts revoke admission before closing only their allocated pane.
+   Active starts remain distinct from launch-ready workers; reconciliation after restart inspects the process before adoption.
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
@@ -150,6 +156,8 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    a Mode 1 `agent.chat` or `agent.input` into a tab in Your agent mode is refused with `code: wrong_mode` before any turn starts.
    Only the user's Client switches a tab (`POST /app/workbench/mode` binds or unbinds, never touching a pane; agent callers refused).
    The island view (spec B4) tails a bound pane's own session file read-only (Claude Code, Codex: `herdr/observers/mirror.py`) and
+   supports current Codex raw messages and optional completed TurnItems as well as legacy events, deduplicating native IDs
+   and cross-format echoes while preserving distinct equal messages and tool-call identity. Task completion ends the turn. It
    streams it as observed turns in Mode 1's frames; history before the first observation is never replayed unless the client names
    its offset; a harness without a readable file is shown by its screen, and the user's own Hermes home is never read (E1.10).
    `agent.byoa.send` finds the pane from the binding, decides who typed from the socket, and holds an agent's send in the 2.5 s
@@ -294,6 +302,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 
 ## Test
 
+Install the declared test extra (`pip install -e '.[test]'` from `server/`) for the standalone suite.
+Its PyYAML dependency supports native Hermes policy fixtures; missing prerequisites never justify skipping policy assertions.
+
 ```bash
 cd server
 python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
@@ -410,3 +421,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | separate native MCP transport from herdr process ownership | existing single-launcher architecture gate rejected helper subprocess inside herdr | the standalone desktop MCP helper had been placed in the herdr package | invariant 6: herdr process launches stay in its one launcher; independent pane MCP transport lives in pane_mcp.py and has its own declared local desktop launch | unchanged architecture gate causal RED/GREEN; full corrected source gate required |
 
 | 2026-10-08 | MAIN connectivity does not imply worker readiness | host worker preflight causal RED; new MAIN direct endpoints | direct_ok alone made unsupported worker options appear ready and reached late adapter errors after creating owned files | invariant 6: separate worker readiness and actionable refusal in Choices, swarm preflight and host before activation or file creation | preserved MAIN and other-worker behavior plus causal refusal controls; full corrected source gate required |
+
+| 2026-10-08 | audit pane startup, Codex rollout and Pi compatibility | supplied PR4 audit A01-A03 and A07 | first MCP init raced its registration, current final text was absent, unsupported Pi was offered and policy test YAML was undeclared | invariant 6: durable starting admission, owned rollback, current and legacy observation and local Pi API readiness; Test declares complete extras | causal RED controls and focused source GREEN; account turns remain unverified |

@@ -14,6 +14,7 @@ no permission. Observation: its own session file (observers/mirror.py PiMirror).
 """
 import json
 import os
+import re
 from pathlib import Path
 
 from .base import Adapter, Observer, SERVER_NAME, ToolWiring, bearer_headers, direct_binding, mcp_entry
@@ -64,12 +65,31 @@ class Pi(Adapter):
         "images": "Pi's `read` tool reads supported images (docs/cli.md, 1.0.4): the image's path in the prompt",
     }
 
+    def compatibility_note(self, installed=None):
+        """Local version only; 0.99.0 introduced registerMcpServer (installed Pi changelog)."""
+        found = installed if installed is not None else self.detect()
+        if found is None:
+            return ""
+        match = re.fullmatch(r"(?:pi )?(\d+)\.(\d+)\.(\d+)", found.version or "")
+        if match and tuple(map(int, match.groups())) >= (0, 99, 0):
+            return ""
+        return (f"Pi {found.version or 'unknown version'} cannot use Lampway's connector: registerMcpServer requires "
+                "stable Pi 0.99.0 or newer (verified on 1.0.4). Select a compatible @earendil-works/pi-coding-agent "
+                "installation on PATH and retry; Lampway does not upgrade or change your shared Pi installation.")
+
+    def _require_compatible(self):
+        note = self.compatibility_note()
+        if note:
+            raise ValueError(note)
+
     def _args(self, pane, resume_id):
+        self._require_compatible()
         if resume_id:
             return ["--session", resume_id]
         return ["--session-id", pane.session_id] if pane.session_id else []
 
     def lampway_tools(self, pane):
+        self._require_compatible()
         path = pane.mcp_config_path
         servers = {SERVER_NAME: mcp_entry(pane)} if pane.desktop else {}
         for d in pane.direct:                  # spec S3: the bearer in this 0600 file only

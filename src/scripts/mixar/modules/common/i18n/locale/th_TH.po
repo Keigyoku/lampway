@@ -5618,6 +5618,9 @@ msgstr ""
 msgid "A stand-in that answers on this machine and thinks nothing"
 msgstr ""
 
+msgid "Page {page} of {pages}"
+msgstr ""
+
 msgid "Click above"
 msgstr ""
 
@@ -5643,6 +5646,12 @@ msgid "Set up where the agent thinks, what may leave this machine and what may b
 msgstr ""
 
 msgid "The step before"
+msgstr ""
+
+msgid "More capabilities"
+msgstr ""
+
+msgid "Show another page of capabilities without changing any choices"
 msgstr ""
 
 msgid "Route policy"

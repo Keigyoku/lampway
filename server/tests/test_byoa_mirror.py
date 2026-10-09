@@ -5,6 +5,7 @@ island already renders for Mode 1 (``run_status``, ``content.set``, ``steps``, t
 
 The converter is pure: it is fed records and returns operations; the hub (agent/byoa.py) numbers and sends them. Fixtures are
 the session files in tests/byoa_fixtures.py; no harness binary and no real file is involved."""
+import pytest
 from lampway_server.herdr.observers import mirror as M
 
 from .byoa_fixtures import CLAUDE_TURNS, CODEX_TURNS
@@ -91,6 +92,25 @@ def test_a_codex_rollout_renders_as_turns_bubbles_and_steps():
     assert "environment_context" not in repr(ops) and "thinking" not in repr(ops)
 
 
+def test_codex_0159_response_messages_render_the_recorded_commentary_and_final_once():
+    # Shape from the supplied sanitized Codex 0.159 audit rollout; text/ids are synthetic.
+    records = [
+        {"type": "event_msg", "payload": {"type": "task_started", "turn_id": "turn-current"}},
+        {"type": "response_item", "payload": {"type": "message", "id": "msg-comment", "role": "assistant",
+            "content": [{"type": "output_text", "text": "I will inspect the scene."}], "phase": "commentary",
+            "internal_chat_message_metadata_passthrough": {"turn_id": "turn-current"}}},
+        {"type": "response_item", "payload": {"type": "message", "id": "msg-final", "role": "assistant",
+            "content": [{"type": "output_text", "text": "The scene is unchanged."}], "phase": "final_answer",
+            "internal_chat_message_metadata_passthrough": {"turn_id": "turn-current"}}},
+        {"type": "event_msg", "payload": {"type": "task_complete", "turn_id": "turn-current",
+            "last_agent_message": "The scene is unchanged."}},
+    ]
+    ops = run(M.CodexMirror("current"), records)
+    assert turns(ops) == [("", "I will inspect the scene.\n\nThe scene is unchanged.", [], "completed")]
+    assert kinds(ops).count("start") == kinds(ops).count("end") == 1
+    assert len([d for k, _, d in ops if k == "event" and "content" in d]) == 2
+
+
 def test_a_pi_session_file_renders_as_turns_bubbles_and_steps():
     from .byoa_fixtures import PI_TURNS
     ops = run(M.PiMirror("pane7"), PI_TURNS)
@@ -100,6 +120,113 @@ def test_a_pi_session_file_renders_as_turns_bubbles_and_steps():
         ("Try again", "429 rate limited", [], "failed"),
     ]
     assert "expert coding assistant" not in repr(ops) and "the scene tool" not in repr(ops)      # system prompt and thinking stay out
+
+
+def test_codex_current_and_legacy_echoes_do_not_duplicate_turns():
+    # Optional TurnItem forms follow official rust-v0.159.0, not recorded paginated-history acceptance.
+    def event(kind, **data):
+        return {"type": "event_msg", "payload": {"type": kind, "turn_id": "turn-one", **data}}
+    def response(kind, **data):
+        return {"type": "response_item", "payload": {"type": kind, **data}}
+    records = [
+        event("task_started"),
+        response("message", id="user-one", role="user", content=[{"type": "input_text", "text": "Inspect the scene"}]),
+        event("user_message", message="Inspect the scene"),
+        event("item_completed", item={"type": "UserMessage", "id": "user-one", "content": [{"type": "text", "text": "Inspect the scene", "text_elements": []}]}),
+        response("function_call", call_id="call-one", name="lampway__scene_summary", arguments="{}"),
+        response("function_call", call_id="call-one", name="lampway__scene_summary", arguments="{}"),
+        response("function_call_output", call_id="call-one", output="{}"),
+        event("item_completed", item={"type": "FunctionCallOutput", "id": "call-one", "name": "lampway__scene_summary", "output": "{}"}),
+        response("message", id="answer-one", role="assistant", content=[{"type": "output_text", "text": "Scene inspected."}], phase="final_answer"),
+        event("agent_message", message="Scene inspected."),
+        event("item_completed", item={"type": "AgentMessage", "id": "answer-one", "content": [{"type": "Text", "text": "Scene inspected."}], "phase": "final_answer"}),
+        event("task_complete", last_agent_message="Scene inspected."),
+        event("task_complete", last_agent_message="Scene inspected."),
+    ]
+    ops = run(M.CodexMirror("mixed"), records)
+    assert turns(ops) == [("Inspect the scene", "Scene inspected.", [("scene_summary", "done")], "completed")]
+    assert kinds(ops).count("start") == kinds(ops).count("end") == 1
+    assert len([d for k, _, d in ops if k == "event" and "content" in d]) == 1
+    assert len([d for k, _, d in ops if k == "event" and "steps" in d]) == 2
+
+
+def test_codex_item_only_messages_and_task_fallback_preserve_completion():
+    def event(kind, **data):
+        return {"type": "event_msg", "payload": {"type": kind, "turn_id": "only", **data}}
+    records = [
+        event("task_started"),
+        event("item_completed", item={"type": "UserMessage", "id": "u", "content": [{"type": "text", "text": "Inspect", "text_elements": []}]}),
+        event("item_completed", item={"type": "AgentMessage", "id": "a", "content": [{"type": "Text", "text": "Inspecting."}], "phase": "commentary"}),
+        event("task_complete", last_agent_message="Done."),
+        event("item_completed", item={"type": "AgentMessage", "id": "final", "content": [{"type": "Text", "text": "Done."}], "phase": "final_answer"}),
+    ]
+    ops = run(M.CodexMirror("only"), records)
+    assert turns(ops) == [("Inspect", "Inspecting.\n\nDone.", [], "completed")]
+    assert kinds(ops).count("start") == kinds(ops).count("end") == 1
+
+
+@pytest.mark.parametrize("failed", [False, True])
+def test_codex_native_tool_items_share_the_raw_call_identity_and_complete_once(failed):
+    # Official core tools/events.rs and mcp_tool_call.rs map item.id from native call_id.
+    tool = {"type": "McpToolCall", "id": "call-mcp", "server": "lampway", "tool": "scene_summary", "arguments": {}, "status": "inProgress"}
+    command = {"type": "CommandExecution", "id": "call-shell", "command": ["echo", "synthetic"], "cwd": "/synthetic", "source": "agent", "parsed_cmd": [], "status": "inProgress"}
+    records = [{"type": "event_msg", "payload": {"type": "user_message", "message": "Inspect"}}]
+    for item, name, args in [(tool, "lampway__scene_summary", "{}"), (command, "shell", '{"command":["echo","synthetic"]}')]:
+        records += [
+            {"type": "response_item", "payload": {"type": "function_call", "call_id": item["id"], "name": name, "arguments": args}},
+            {"type": "event_msg", "payload": {"type": "item_started", "item": item}},
+            {"type": "event_msg", "payload": {"type": "item_completed", "item": {**item, "status": "failed" if failed else "completed", "exit_code": 1 if failed else 0}}},
+            {"type": "response_item", "payload": {"type": "function_call_output", "call_id": item["id"], "output": "{}"}},
+        ]
+    records += [{"type": "event_msg", "payload": {"type": "task_complete"}}]
+    ops = run(M.CodexMirror("tools"), records)
+    status = "failed" if failed else "done"
+    assert turns(ops) == [("Inspect", "", [("scene_summary", status), ("shell", status)], "completed")]
+    assert len([d for k, _, d in ops if k == "event" and "steps" in d]) == 4
+
+
+def test_codex_distinct_equal_messages_and_user_before_task_start_stay_separate():
+    def response(item_id, role, text):
+        return {"type": "response_item", "payload": {"type": "message", "id": item_id, "role": role,
+            "content": [{"type": "input_text" if role == "user" else "output_text", "text": text}]}}
+    records = [response("u1", "user", "Inspect"),
+        {"type": "event_msg", "payload": {"type": "task_started", "turn_id": "t1"}},
+        response("a1", "assistant", "Same text."), response("a2", "assistant", "Same text."),
+        {"type": "event_msg", "payload": {"type": "task_complete", "turn_id": "t1", "last_agent_message": "Same text."}},
+        response("u2", "user", "Inspect"),
+        {"type": "event_msg", "payload": {"type": "task_started", "turn_id": "t2"}},
+        {"type": "event_msg", "payload": {"type": "turn_aborted", "turn_id": "t2"}}]
+    ops = run(M.CodexMirror("repeat"), records)
+    assert turns(ops) == [("Inspect", "Same text.\n\nSame text.", [], "completed"), ("Inspect", "", [], "cancelled")]
+    assert kinds(ops).count("start") == kinds(ops).count("end") == 2
+
+
+def test_codex_completed_output_item_does_not_invent_a_second_tool_from_its_own_id():
+    records = [
+        {"type": "response_item", "payload": {"type": "function_call", "call_id": "call", "name": "shell", "arguments": "{}"}},
+        {"type": "response_item", "payload": {"type": "function_call_output", "id": "output-item", "call_id": "call", "output": "{}"}},
+        {"type": "event_msg", "payload": {"type": "item_completed", "item": {"type": "FunctionCallOutput", "id": "output-item", "name": "shell", "output": "{}"}}},
+        {"type": "event_msg", "payload": {"type": "item_completed", "item": {"type": "FunctionCallOutput", "id": "unrelated-output", "name": "shell", "output": "{}"}}},
+        {"type": "event_msg", "payload": {"type": "task_complete"}},
+    ]
+    ops = run(M.CodexMirror("output"), records)
+    assert turns(ops) == [("", "", [("shell", "done")], "completed")]
+    assert len([d for k, _, d in ops if k == "event" and "steps" in d]) == 2
+
+
+def test_codex_new_task_with_the_same_prompt_can_change_message_format():
+    def item(turn, role, text):
+        return {"type": "event_msg", "payload": {"type": "item_completed", "turn_id": turn,
+            "item": {"type": "UserMessage" if role == "user" else "AgentMessage", "id": turn + role,
+                     "content": [{"type": "text" if role == "user" else "Text", "text": text}]}}}
+    records = [
+        {"type": "event_msg", "payload": {"type": "user_message", "message": "Inspect"}},
+        {"type": "event_msg", "payload": {"type": "task_complete", "turn_id": "first"}},
+        {"type": "event_msg", "payload": {"type": "task_started", "turn_id": "second"}},
+        item("second", "user", "Inspect"), item("second", "assistant", "Done."),
+        {"type": "event_msg", "payload": {"type": "task_complete", "turn_id": "second"}},
+    ]
+    assert turns(run(M.CodexMirror("format"), records)) == [("Inspect", "", [], "completed"), ("Inspect", "Done.", [], "completed")]
 
 
 def test_pis_session_file_is_found_by_its_folder_and_the_id_lampway_chose(tmp_path):

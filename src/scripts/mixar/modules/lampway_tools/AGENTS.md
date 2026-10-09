@@ -38,7 +38,10 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
 9. **What an agent may do is the user's click, and the Client holds no default of its own.** A capability is switched, its approval or
    options changed and an agent's proposal accepted only by the user's click (`ui/capabilities.py` through `capabilities_client.py`,
    every write behind `human_gate`; the first-run walk's step in `onboarding.py` writes only what the user ticked differently from the
-   server's own defaults). Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
+   server's own defaults). The capability-enabled first-run walk sizes each current step from its actual content, and
+   paginates the capability catalog within a fixed content-row budget. Its partition reserves possible warning rows so
+   ticking a choice cannot move it between pages; paging preserves choices and never writes settings. Legacy walks retain
+   their existing sizing behavior. Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
    (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
    Agent preferences exposes the same server-backed native Hermes delegation, cron and background choices. Every enable
    action displays the explicit untested layering warning and requires user confirmation; all default off on the server.
@@ -77,3 +80,5 @@ page; the canon's open decisions are the captain's.
 
 | 2026-10-08 | original Context popout receives async state | actual production-panel loading RED and callback RED | Context response publication redrew areas but never rebuilt temporary popup layout | invariant 9: main-thread publication refreshes owned native popup layouts as well as areas, without networking from draw or altering user confirmation | callback RED/GREEN; matching native original-popout proof required |
 | 2026-10-08 | Agent preferences for experimental native Hermes helpers | captain: default-off delegate, cron and background knobs with an explicit untested layering warning | preferences lacked these controls and generic capability warnings did not name experimental layering | invariant 9: cached server-backed switches, persistent warning, explicit human confirmation before each enable, no client defaults | six behavioral RED failures and focused client GREEN; native UI proof required |
+
+| 2026-10-08 | audit first-run capability pagination | supplied PR4 audit A06 | catalog row estimate inflated every page and hid navigation as capability counts grew | invariant 9: current-step content sizing, bounded stable capability pages, preserved ticks and no paging writes | three causal RED controls and 43 focused GREEN checks; matching native visibility proof required |

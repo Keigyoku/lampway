@@ -162,10 +162,80 @@ class ClaudeMirror(_Mirror):
 
 
 class CodexMirror(_Mirror):
-    """The Codex CLI's rollout: ``event_msg`` records carry the conversation (``user_message``, ``agent_message``, the task's start,
-    end and abort); ``response_item`` records carry the tool calls and their outputs. The rollout writes each message twice (an
-    ``event_msg`` and a ``response_item``): only the ``event_msg`` is read, so nothing shows twice."""
+    """Codex rollouts include raw response messages, legacy events and optional completed TurnItems.
+    Message ids and matching cross-format echoes keep one island entry; task completion, not final phase, ends the turn."""
     harness = "codex"
+
+    def __init__(self, key):
+        super().__init__(key)
+        self._message_ids = set()
+        self._message_counts = {}
+        self._user_text = ""
+        self._task_id = None
+        self._finished_tasks = set()
+        self._output_calls = {}
+
+    def _start(self, at, user_text):
+        ops = super()._start(at, user_text)
+        self._message_counts = {}
+        self._user_text = user_text
+        return ops
+
+    def _message(self, role, text, source, at, item_id=None):
+        if not isinstance(text, str) or not text.strip():
+            return []
+        text = text.strip()
+        identity = (role, item_id) if item_id else None
+        if identity and identity in self._message_ids:
+            return []
+        if role == "user" and text.startswith(("<environment_context>", "<instructions>", "<developer_instructions>")):
+            return []
+        counts = self._message_counts.get((role, text), {})
+        next_count = counts.get(source, 0) + 1
+        echo = next_count <= max((n for s, n in counts.items() if s != source), default=0)
+        if echo:
+            counts[source] = next_count
+            if identity:
+                self._message_ids.add(identity)
+            return []
+        ops = self._start(at, text) if role == "user" else self._ensure(at)
+        counts = self._message_counts.setdefault((role, text), {})
+        counts[source] = counts.get(source, 0) + 1
+        if identity:
+            self._message_ids.add(identity)
+        return ops if role == "user" else ops + self._text(text)
+
+    def _step_start(self, call_id, name, arguments):
+        if call_id and any(s["id"] == str(call_id) for s in self._steps):
+            return []
+        return super()._step_start(call_id, name, arguments)
+
+    @staticmethod
+    def _content(items, kinds):
+        return "\n".join(i["text"] for i in (items or []) if isinstance(i, dict)
+                         and i.get("type") in kinds and isinstance(i.get("text"), str))
+
+    def _item(self, item, source, at):
+        t = item.get("type")
+        if t in ("AgentMessage", "UserMessage"):
+            role = "assistant" if t == "AgentMessage" else "user"
+            kinds = ("Text",) if role == "assistant" else ("text",)
+            return self._message(role, self._content(item.get("content"), kinds), source, at, item.get("id"))
+        if t in ("CommandExecution", "McpToolCall"):
+            ops = self._ensure(at)
+            name = "shell" if t == "CommandExecution" else f"{item.get('server', '')}__{item.get('tool', 'tool')}"
+            args = {"command": item.get("command")} if t == "CommandExecution" else item.get("arguments")
+            ops += self._step_start(item.get("id"), name, args)
+            status = item.get("status")
+            if status in ("completed", "failed", "declined"):
+                failed = status != "completed" or self._failed(item.get("result")) or self._failed(item)
+                ops += self._step_end(item.get("id"), failed)
+            return ops
+        if t == "FunctionCallOutput":
+            # A TurnItem's id need not be the raw call_id: never invent a second call from an output.
+            call_id = self._output_calls.get(item.get("id"), item.get("id"))
+            return self._step_end(call_id, self._failed(item.get("output"))) if self.turn else []
+        return []
 
     @staticmethod
     def _failed(output) -> bool:
@@ -186,19 +256,49 @@ class CodexMirror(_Mirror):
         p = record.get("payload") if isinstance(record.get("payload"), dict) else {}
         t = p.get("type")
         if record.get("type") == "event_msg":
+            native_turn = p.get("turn_id")
+            if native_turn and native_turn in self._finished_tasks:
+                return []
+            if t == "task_started":
+                ops = self._close("completed") if self._task_id and self._task_id != native_turn else []
+                if not self.turn:
+                    self._message_counts = {}
+                self._task_id = native_turn
+                return ops
             if t == "user_message":
-                return self._start(at, str(p.get("message") or "").strip())
+                return self._message("user", p.get("message"), "legacy", at)
             if t == "agent_message":
-                return self._ensure(at) + self._text(str(p.get("message") or ""))
+                return self._message("assistant", p.get("message"), "legacy", at)
+            if t in ("item_started", "item_completed") and isinstance(p.get("item"), dict):
+                return self._item(p["item"], "item", at)
             if t == "task_complete":
-                return self._close("completed")
+                last = p.get("last_agent_message")
+                ops = []
+                if isinstance(last, str) and last.strip() and (not self._texts or self._texts[-1] != last.strip()):
+                    ops = self._ensure(at) + self._text(last)
+                if native_turn:
+                    self._finished_tasks.add(native_turn)
+                self._task_id = None
+                return ops + self._close("completed")
             if t == "turn_aborted":
+                if native_turn:
+                    self._finished_tasks.add(native_turn)
+                self._task_id = None
                 return self._close("cancelled")
             return []
         if record.get("type") == "response_item":
+            meta = p.get("internal_chat_message_metadata_passthrough")
+            if isinstance(meta, dict) and meta.get("turn_id") in self._finished_tasks:
+                return []
+            if t == "message" and p.get("role") in ("user", "assistant") and p.get("phase") != "analysis":
+                role = p["role"]
+                kinds = ("input_text",) if role == "user" else ("output_text",)
+                return self._message(role, self._content(p.get("content"), kinds), "response", at, p.get("id"))
             if t in ("function_call", "custom_tool_call"):
                 return self._ensure(at) + self._step_start(p.get("call_id"), p.get("name"), p.get("arguments", p.get("input")))
             if t in ("function_call_output", "custom_tool_call_output") and self.turn:
+                if p.get("id"):
+                    self._output_calls[p["id"]] = p.get("call_id")
                 return self._step_end(p.get("call_id"), self._failed(p.get("output")))
         return []
 

@@ -119,3 +119,52 @@ def test_check_deps_refuses_a_zig_that_is_not_the_version_herdr_needs(fake_root,
 
 def test_an_unknown_flag_exits_2(fake_root):
     assert run(fake_root, "--frobnicate").returncode == 2
+
+
+@pytest.mark.parametrize("tags", [[], ["v99.0.0"], ["v0.9.3", "v99.0.0"]])
+def test_pinned_manifest_version_does_not_depend_on_local_release_tags(fake_root, tags):
+    src = fake_root / SUB
+    _git(src, "tag", "-d", "v0.9.3")
+    for tag in tags:
+        _git(src, "tag", tag)
+    p = plan(fake_root)
+    assert p["tag"] == "v0.9.3", "Cargo package version at the verified pin controls binary verification"
+    assert json.loads(p["record"])["commit"] == _git(src, "rev-parse", "HEAD")
+
+
+def test_uncommitted_cargo_version_is_refused(fake_root):
+    (fake_root / SUB / "Cargo.toml").write_text('[package]\nname = "herdr"\nversion = "99.0.0"\n')
+    r = run(fake_root, "--plan")
+    assert r.returncode == 1 and "Cargo.toml" in r.stdout and "help[" in r.stdout
+
+
+@pytest.mark.parametrize("binary_version, accepted", [("0.9.3", True), ("0.9.30", False)])
+def test_real_shallow_no_tag_checkout_build_checks_exact_cargo_version(fake_root, tmp_path, binary_version, accepted):
+    src = fake_root / SUB
+    origin = tmp_path / "origin"
+    src.rename(origin)
+    _git(fake_root, "clone", "--quiet", "--depth=1", "--no-tags", origin.as_uri(), str(src))
+    assert _git(src, "rev-parse", "--is-shallow-repository") == "true"
+    assert not _git(src, "tag", "--list")
+    tools = tmp_path / "tools"
+    tools.mkdir()
+    cargo = tools / "cargo"
+    cargo.write_text(f"""#!/bin/sh
+mkdir -p "$CARGO_TARGET_DIR/release"
+cat > "$CARGO_TARGET_DIR/release/herdr" <<'SCRIPT'
+#!/bin/sh
+echo "herdr {binary_version}"
+SCRIPT
+chmod +x "$CARGO_TARGET_DIR/release/herdr"
+""")
+    cargo.chmod(0o755)
+    zig = tools / "zig"
+    zig.write_text("#!/bin/sh\necho 0.16.0\n")
+    zig.chmod(0o755)
+    builds = tmp_path / "builds"
+    r = run(fake_root, env={"PATH": f"{tools}:/usr/bin:/bin", "LAMPWAY_HERDR_BUILDS": str(builds)})
+    assert r.returncode == (0 if accepted else 1), r.stdout + r.stderr
+    record = builds / "v0.9.3/herdr.json"
+    assert record.exists() == accepted, "wrong binary version never leaves a completed build record"
+    if accepted:
+        assert json.loads(record.read_text())["commit"] == _git(src, "rev-parse", "HEAD")

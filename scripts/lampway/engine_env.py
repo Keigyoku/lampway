@@ -28,6 +28,7 @@ Node is found at run time, never fetched.
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -86,6 +87,43 @@ def resolve() -> dict:
             "tui_build": " ".join(TUI_BUILD) + " (in src/ui-tui/)", "record": json.dumps(record, sort_keys=True)}
 
 
+def _npm_compatible(version: str, constraint: str) -> bool:
+    """The pin uses comparator unions, not arbitrary npm range syntax. Unknown syntax refuses."""
+    have = re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", version)
+    if not have:
+        return False
+    parsed = []
+    for alternative in constraint.split("||"):
+        terms = []
+        for term in alternative.split():
+            match = re.fullmatch(r"(<=|>=|<|>|=)?(\d+)\.(\d+)\.(\d+)", term)
+            if not match:
+                raise ValueError("unsupported npm engine constraint")
+            terms.append((match[1] or "=", tuple(map(int, match.groups()[1:]))))
+        if not terms:
+            raise ValueError("empty npm engine constraint")
+        parsed.append(terms)
+    actual = tuple(map(int, have.groups()))
+    return any(all({"<": actual < want, "<=": actual <= want, ">": actual > want,
+                    ">=": actual >= want, "=": actual == want}[op] for op, want in terms) for terms in parsed)
+
+
+def _npm_problem() -> str:
+    constraint = "the pinned package.json engines.npm"
+    try:
+        package = json.loads((ROOT / SUBMODULE / "package.json").read_text())
+        constraint = package["engines"]["npm"]
+        if not isinstance(constraint, str):
+            raise ValueError("npm constraint is not text")
+        result = subprocess.run(["npm", "--version"], capture_output=True, text=True, timeout=10)
+        have = result.stdout.strip()
+        if result.returncode == 0 and _npm_compatible(have, constraint):
+            return ""
+        return f"npm {have or 'not runnable'}: pinned Hermes requires {constraint}; use a compatible npm before building"
+    except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
+        return f"npm: cannot verify {constraint} ({type(exc).__name__}); inspect {SUBMODULE}/package.json and npm --version"
+
+
 def missing_deps() -> list:
     out = []
     if shutil.which("uv") is None:
@@ -96,6 +134,8 @@ def missing_deps() -> list:
         out.append("node (Node.js 22 or 24): Hermes's TUI runs on it in Lampway Agent's pane (spec A1)")
     if shutil.which("npm") is None:
         out.append("npm: the TUI is prebuilt at build time from Hermes's own package-lock.json (spec A1)")
+    elif problem := _npm_problem():
+        out.append(problem)
     return out
 
 

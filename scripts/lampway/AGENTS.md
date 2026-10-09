@@ -33,7 +33,11 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 6. **The engine build is finished or absent.** `engine_env.py` builds in a copy of the pinned source (never in `third_party/`):
    `uv sync --frozen --extra mcp`, then the TUI (`npm ci --workspace ui-tui` at the copy's root, `npm run build` in its `ui-tui`),
    and writes `engine.json` (naming `hermes` and `tui`) LAST, so a directory without it is an unfinished build the server ignores.
-   `--plan` lists the npm steps, `--check-deps` names a missing `uv`, `git`, `node` or `npm`; nothing at run time fetches or builds.
+   `--plan` lists the npm steps; `--check-deps` names missing tools and verifies installed npm against the pinned
+   package manifest before any build writes. Unknown versions or constraint syntax refuse with help. Nothing at run time fetches or builds.
+7. **herdr identity comes from the pin.** Resolve its stable package version from the verified commit's `Cargo.toml`, refusing
+   local manifest drift. A shallow checkout needs no release tag or broad history fetch; unrelated tags cannot set identity.
+   Require the exact binary version and write `herdr.json` last.
 
 ## Test
 
@@ -59,3 +63,5 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | the herdr build script | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | herdr had no pin and no build step: the cockpit ran whatever herdr was on PATH | `herdr_env.py` in the scripts list, in the AXI shape (`--plan`, `--check-deps` naming cargo and Zig 0.16.0), `herdr.json` written last, its test in the test command | captain ruling, 2026-10-07 |
 | 2026-10-07 | the TUI prebuild and the end of ACP (agent-modes spec A1, A5) | captain, 2026-10-07: Mode 1 runs Hermes's own TUI in its pane; coordinator brief for the A1-A3 lane | the engine build had the `acp` extra and an `hermes-acp` entry nothing will use, and no TUI: `hermes --tui` would have run npm at run time | invariant 6: `--extra mcp` only, the TUI prebuilt in the engine's own copy, `engine.json` naming `hermes` and `tui` written last, `--plan` and `--check-deps` naming the npm steps and Node | captain ruling, 2026-10-07 |
 | 2026-10-07 | merge: the TUI prebuild beside the herdr build script | coordinator integration of the A1-A3 lane | both sides rewrote the scripts list | the list names engine_env.py with the prebuilt TUI and herdr_env.py; both anneal rows kept | none |
+
+| 2026-10-08 | audit npm preflight and shallow herdr identity | supplied PR4 audit A04-A05 | dependency check accepted incompatible npm and missing release tag substituted a commit prefix for binary version | invariants 6-7: pinned manifest npm constraints before writes and verified Cargo version with exact binary check | causal RED/GREEN including real shallow no-tags fixture; compiler fixture is controlled |

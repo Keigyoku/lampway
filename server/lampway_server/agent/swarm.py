@@ -229,6 +229,9 @@ class SwarmManager:
                 adapter = HN.get(harness)
                 if harness not in HN.ADAPTERS or not adapter.direct_ok:
                     raise ValueError(f"{harness} cannot run a swarm worker: no supported per-pane tool endpoint")
+                compatibility = adapter.compatibility_note() if hasattr(adapter, "compatibility_note") else ""
+                if compatibility:
+                    raise ValueError(compatibility)
                 if not adapter.worker_ok:
                     raise ValueError(f"{adapter.label} cannot run a worker: {adapter.worker_note}")
             elif mode_choice.option == "local:lampway_hermes":
