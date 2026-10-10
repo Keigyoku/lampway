@@ -226,3 +226,21 @@ The historical tables and packets retain their then-current results; later resol
 and connector-approval gaps without rewriting the measurements. The known unchanged LP4 material calibration still failed
 at 240 seconds; no passing remedy is claimed. These statuses describe the candidate at this report's documentation freeze. A subsequent final-head receipt must identify the
 exact source/build it tested and preserve failures and unrun checks.
+
+## Native YAML readback repair
+
+The actual pinned native `/personality concise` command at source `b6bbea0c` wrote valid YAML that the server's JSON-scalar
+subset reader rejected. Production Context saves could fail before writes, and capability rerenders could keep stale config.
+The repair accepts safe mapping-only native YAML and declares PyYAML as a production dependency. Context edits preserve
+native settings and synthetic gateway/MCP tokens; rerenders retain `display`, root `personalities` and `agent.personalities`,
+including later-agent precedence, while rebuilding controlled policy from current choices. Unsafe tags, recursive aliases,
+unsupported data and malformed retained feature/personality mappings refuse before writes.
+
+Source controls retained seven causal failures, then four additional failures for agent-level personality definitions.
+The repaired focused packet passed **45 tests without failures or skips**, with process, socket and signal calls refused.
+Receipts are under `<workspace>/scratch/pr4-native-yaml-candidate` and `.../pr4-native-yaml-agent-personalities-followup`.
+This is source proof. The separate native-only packet at `b6bbea0c` retained **four failures in 138.61 seconds**: external and
+own-terminal Undo left stale rows, and the next model request after personality selection omitted Lampway guidance. All eight
+recorded process identities were absent after cleanup. Those failures are retained in
+`<workspace>/scratch/pr4-b6bbea0c-native-history-personality-diagnostic-attempt2`; this readback repair alone does not close them
+or qualify a matching application build, whole-client suite or account-backed acceptance.

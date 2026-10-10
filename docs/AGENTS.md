@@ -30,6 +30,10 @@ explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorith
    report to the upstream project's hosted services. Attribution uses the brand module's approved wording.
 6. **Licences:** every file carries SPDX lines (an HTML comment at the top of Markdown) or a `REUSE.toml` entry.
 
+Native-only diagnostics state their actual source and pinned engine identities, rendered observations and exact owned
+cleanup. Historical application binaries remain labelled historical; source controls and diagnostic observer corrections
+do not replace matching-build, whole-client or account acceptance. Preserve failed runs when a later repair passes.
+
 ## Test
 
 ```bash
@@ -50,3 +54,4 @@ writes its own report; the integration lane lands them. What the product promise
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the documentation rules (measured claims, generated pages, public paths, media metadata) were spread across the gate, the README and the reports | six invariants with their gates and the owner | captain ruling, 2026-10-05 |
 | 2026-10-06 | the canon beside the docs | coordinator: "GO for rail row 1" | a reader of docs/ could not tell the canon from the user docs | docs/canon named, with its own contract | captain ruling, 2026-10-06 |
+| 2026-10-10 | native diagnostics retain their acceptance limits | actual terminal undo/personality failures and valid-YAML observer correction | diagnostic source checks could be confused with matching application or account proof | native diagnostic paragraph: exact identities, failed runs, historical binaries and separate acceptance scopes | actual pinned native observations and process-refusing source controls retained |

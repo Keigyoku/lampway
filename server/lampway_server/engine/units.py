@@ -85,13 +85,10 @@ def write_private(path: Path, text: str) -> None:
 @HC.serialized_config
 def preserve_session_config(home: Path) -> None:
     """Pin preservation in an existing owned config, retaining all context and authentication settings."""
-    import yaml
     config = home / "config.yaml"
     if not config.is_file():
         return
-    cfg = yaml.safe_load(config.read_text())
-    if not isinstance(cfg, dict):
-        raise ValueError("pane config is not a mapping")
+    cfg = HC.read(home)
     policy = cfg.setdefault("sessions", {})
     if policy.get("auto_prune") is not False or policy.get("auto_archive") is not False:
         policy.update(auto_prune=False, auto_archive=False)

@@ -241,6 +241,13 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    a changed selected-service endpoint requires reselection; changing the parent service does not move the saved model. A worker summary alias additionally requires its live owned job binding and matching worker pane project;
    its normal model calls retain the worker's pinned service.
    Summary calls retain gateway admission/revocation, privacy/egress context and the existing spend ledger and app-owned auth.
+   Native Hermes may rewrite its owned config as safe block YAML, including bare strings, block lists and multiline scalars.
+   Readback accepts a mapping of string keys and supported scalar/list/mapping values, refuses unsafe tags and recursive
+   aliases, and rejects malformed retained native-feature choices before writes. PyYAML is a production dependency.
+   Context edits preserve native settings and gateway/MCP tokens. Capability rerenders retain only the audited native
+   `display`, root `personalities` and `agent.personalities` mappings, including native later-agent precedence, while rebuilding
+   tool, helper, route, model and Context authority from current choices. Invalid retained data refuses without overwrite.
+   Native persona selection is never reset to repair prompt composition.
    Context never restarts, closes or resumes a pane automatically. A main pane's config carries
    Lampway's guidance on its tools (`agent/prompt.py` `SYSTEM_PROMPT`) as Hermes's own `agent.system_prompt`, which Hermes
    appends to its system message (its identity kept; nothing written into the user's project); a worker's prompt comes with its
@@ -493,3 +500,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | Q1 human browser admission | raw loopback ASGI causal RED reached fixed probe without a human action | unauthenticated cookie/nonce minting treated an unlabelled local HTTP client as a human | invariant 10: authenticated human Client admission ticket before browser nonce, scope/model/expiry/one-use binding and native script refusal | synthetic source controls only; account and matching native Client execution remain unverified |
 | 2026-10-10 | Grok readiness fixture follows native lookup shape | complete b978 source suite: one tuple-index TypeError | the legacy success mock returned a tuple after production adopted the named path mapping | Test: success fixtures use the production mapping; malformed tuple refusal remains tested, with original assertions and timeout preserved | scratch causal RED one failure/five passes, corrected six passes; complete source rerun required |
 | 2026-10-10 | Cursor bibliography stays outside shipped source | exact 477 required-regression run: 60 passes and one shipped-host failure | a bibliographic Cursor URL in adapter FACTS introduced an unapproved shipped host despite needing no runtime retrieval | invariant 6: retain audited titles and installed-source evidence in FACTS; keep full bibliography in non-shipped reports without widening runtime hosts | existing site-link and worker-refusal controls: 25 passes, no failures or skips, with native process and outbound connection attempts refused; original 61-case RED retained |
+
+| 2026-10-10 | native YAML readback and persona preservation | actual pinned personality command wrote bare concise; seven source-control failures and four later-agent retention failures | valid native YAML blocked Context/capability updates and rerenders lost native personality choices | invariant 9: safe owned YAML and production parser dependency; preserve audited display/root/agent personality mappings while rebuilding capability authority; malformed retained data refuses before writes | 45 focused controls pass with process/socket/signal calls blocked; native prompt composition and matching final-build proof remain separate |

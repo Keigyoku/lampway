@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 license = {text = "GPL-3.0-or-later"}
 dependencies = [
     "starlette>=0.40",
+    "PyYAML>=6",                   # read owned native Hermes configuration after native CLI writes
     "uvicorn>=0.30",
     "websockets>=12",
     "anthropic>=0.60",
@@ -31,7 +32,6 @@ local-embeddings = [
 test = [
     "pytest>=8",
     "pytest-timeout>=2",
-    "PyYAML>=6",                  # native Hermes policy fixtures parse its YAML configuration
     "pyte>=0.8,<0.9",             # the real pane screen and transcript tests
     "websockets>=12",
 ]

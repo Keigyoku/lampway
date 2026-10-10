@@ -383,63 +383,42 @@ def _lines(node, indent: int) -> Iterable[str]:
 
 
 def to_yaml(config: dict) -> str:
-    """Deterministic block YAML (strings double-quoted as JSON, which YAML reads), so the server needs no YAML library."""
+    """Deterministic block YAML (strings double-quoted as JSON, which YAML reads), while native readback also accepts safe block YAML."""
     return "# Written by Lampway from your Capabilities; edits here are replaced at the next start.\n" + "\n".join(_lines(config, 0)) + "\n"
 
 
-_SPECIAL = {".nan": math.nan, ".inf": math.inf, "-.inf": -math.inf}
-
-
-def _unflow(text: str):
-    text = text.strip()
-    if text in _SPECIAL:
-        return _SPECIAL[text]
-    return json.loads(text)
-
-
 def from_yaml(text: str) -> dict:
-    """The dict ``to_yaml`` wrote: Lampway reads back only its own file (block mappings two spaces deep, ``- `` items, every value
-    in JSON's flow form), so no YAML library is needed; anything else is refused."""
-    root: dict = {}
-    stack = [(-1, root)]                                   # (indent, the mapping or list a deeper line goes into)
-    pending = None                                         # (indent, parent, key): a ``key:`` whose value is the next, deeper block
-    for raw in text.splitlines():
-        if not raw.strip() or raw.lstrip().startswith("#"):
-            continue
-        indent = len(raw) - len(raw.lstrip(" "))
-        line = raw.strip()
-        if pending is not None:
-            p_indent, parent, key = pending
-            pending = None
-            if indent <= p_indent:
-                raise Refused(f"refused: not Lampway's config (an empty block under {key!r})")
-            parent[key] = [] if line.startswith("- ") else {}
-            stack.append((p_indent, parent[key]))
-        while stack and indent <= stack[-1][0]:
-            stack.pop()
-        container = stack[-1][1]
-        if line.startswith("- "):
-            if not isinstance(container, list):
-                raise Refused("refused: not Lampway's config (a list item outside a list)")
-            container.append(_unflow(line[2:]))
-            continue
-        if not isinstance(container, dict):
-            raise Refused("refused: not Lampway's config (a key inside a list)")
-        if line.startswith('"'):
-            end = json.JSONDecoder().raw_decode(line)[1]
-            key, rest = json.loads(line[:end]), line[end:]
-        else:
-            key, sep, rest = line.partition(":")
-            rest = sep + rest
-        if not rest.startswith(":"):
-            raise Refused(f"refused: not Lampway's config ({line[:40]!r})")
-        value = rest[1:].strip()
-        if value:
-            container[key] = _unflow(value)
-        else:
-            pending = (indent, container, key)
-    if pending is not None:
-        raise Refused("refused: not Lampway's config (it ends inside a block)")
+    """Read the owned config, including safe block YAML written by native Hermes."""
+    import yaml
+    try:
+        root = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise Refused("refused: the owned Hermes config is invalid safe YAML") from exc
+    if not isinstance(root, dict):
+        raise Refused("refused: the owned Hermes config must be a mapping")
+    active = set()
+    def validate(node):
+        if isinstance(node, (dict, list)):
+            if id(node) in active:
+                raise Refused("refused: recursive aliases in the owned Hermes config")
+            active.add(id(node))
+            if isinstance(node, dict):
+                if any(not isinstance(key, str) for key in node):
+                    raise Refused("refused: Hermes config keys must be strings")
+                values = node.values()
+            else:
+                values = node
+            for value in values:
+                validate(value)
+            active.remove(id(node))
+        elif node is not None and type(node) not in (str, bool, int, float):
+            raise Refused("refused: unsupported scalar in the owned Hermes config")
+    validate(root)
+    if "lampway_features" in root:
+        flags = root["lampway_features"]
+        if (not isinstance(flags, dict) or set(flags) - {"subagents", "schedule", "background"}
+                or any(type(value) is not bool for value in flags.values())):
+            raise Refused("refused: retained native feature flags must be known boolean choices")
     return root
 
 
@@ -481,6 +460,23 @@ def write(home_dir, capabilities, project, gateway_base_url, gateway_token, mode
     if home == theirs or theirs in home.parents:
         raise Refused(f"refused: {home} is the user's own Hermes home; Lampway's engine never reads or writes it (E1.10)")
     config = render(capabilities, project, gateway_base_url, gateway_token, model_id, **kw)
+    # Native display/personality choices are not tool or route authority. Keep only
+    # these audited native roots; model, policy, capabilities and Context are rebuilt.
+    if (home / "config.yaml").exists():
+        retained = read(home)
+        for key in ("display", "personalities"):
+            if key in retained:
+                if not isinstance(retained[key], dict):
+                    raise Refused(f"refused: retained native {key} must be a mapping")
+                config[key] = retained[key]
+        native_agent = retained.get("agent")
+        if isinstance(native_agent, dict) and "personalities" in native_agent:
+            personalities = native_agent["personalities"]
+            if not isinstance(personalities, dict):
+                raise Refused("refused: retained native agent.personalities must be a mapping")
+            # Native personality definitions override same-named root definitions.
+            # Keep this field alone inside the freshly controlled agent policy.
+            config["agent"]["personalities"] = personalities
     if rendered is not None:
         rendered.update(config)
     home.mkdir(parents=True, exist_ok=True, mode=0o700)
