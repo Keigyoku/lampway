@@ -27,6 +27,9 @@ class OpenCode(Adapter):
     BYPASS = ("--auto",)
     task_flag = ("--prompt",)
     direct_ok = True                                                                   # a "remote" entry: url, headers
+    worker_note = ("OpenCode workers need exclusive MCP discovery. OPENCODE_CONFIG merges native global and project "
+                   "servers; its public configuration-hook replacement has not been qualified. Choose a qualified "
+                   "worker harness; Lampway preserves your saved choice and native main-agent configuration.")
     interrupt_keys = ("esc", "esc")
     takes_image_paths = True
     FACTS = {
@@ -35,6 +38,9 @@ class OpenCode(Adapter):
         "status": "`opencode auth list` in a signed-out HOME prints '0 credentials' and exits 0 (1.18.35): the count is the signal",
         "mcp_config": "with OPENCODE_CONFIG naming this pane's file, `opencode mcp list` (1.18.35, no login) connected the `local` entry "
                       "(a stand-in server saw LAMPWAY_BOUND_SESSION) and parsed the `remote` entry with its headers",
+        "worker_isolation": "1.18.35 config/index.ts merges global/custom/project MCP; plugin/index.ts has a supported config "
+                            "hook before bootstrap, but ignored hook errors and independent runtime MCP.add need fail-closed "
+                            "qualification. Additive MAIN wiring does not certify worker exclusion; workers refuse.",
         "interrupt": "Esc twice: the 1.18.35 binary's default keybind is session_interrupt 'escape', and its first press only arms "
                      "it ('esc again to interrupt', also in herdr 0.9.3's opencode.toml manifest)",
         "images": "OpenCode attaches a pasted image path. [UNVERIFIED on the installed copy: a turn needs an account]",

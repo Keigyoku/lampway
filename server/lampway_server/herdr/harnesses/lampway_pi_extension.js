@@ -9,6 +9,8 @@
 // the pane's own bearer). This file hands those entries to Pi's own MCP client (`pi.registerMcpServer`, Pi >= 1.0) for this session
 // only: nothing is written to the user's ~/.pi/agent/mcp.json or the project's .pi/mcp.json, and nothing else is read.
 // Pi then connects, lists and calls Lampway's tools itself, through its own tool pipeline and permission gates.
+// Workers instead disable the additive built-in with --no-mcp and instantiate Pi's public native MCP factory with only their
+// supplied config. Its public API view excludes other extensions' early and late server registrations; MAIN keeps the path above.
 import { readFileSync } from "node:fs";
 
 export default function lampway(pi) {
@@ -20,6 +22,19 @@ export default function lampway(pi) {
   } catch (err) {
     console.error(`lampway: the pane's MCP config ${path} could not be read (${err.message}); Lampway's tools are not available here`);
     return;
+  }
+  if (process.env.LAMPWAY_PI_WORKER_MCP === "1") {
+    // --no-mcp excludes the additive built-in before any session starts. Reuse
+    // Pi's public native MCP factory with only the owned config. Its initial
+    // and later registry reads see no unrelated extension registrations.
+    if (Object.keys(servers).length !== 1 || !servers.lampway) {
+      console.error("lampway: a worker requires exactly its own lampway MCP entry");
+      return;
+    }
+    const entries = [{ name: "lampway", config: { ...servers.lampway, exposure: "direct" }, source: path }];
+    return import("@earendil-works/pi-coding-agent").then(({ createMcpExtension }) => {
+      createMcpExtension({ loadConfig: () => ({ servers: entries, errors: [] }) })({ ...pi, getMcpServers: () => [] });
+    });
   }
   for (const [name, entry] of Object.entries(servers)) {
     pi.registerMcpServer(name, { exposure: "direct", ...entry });

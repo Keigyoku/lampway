@@ -73,11 +73,21 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    The listing and native menu retain the required setup note even when tool wiring is supported; account-backed execution
    stays unverified. Cancellation forwards the native request id and joins the owned child; it does not promise remote tool
    rollback or server-side abort. Its desktop subprocess is declared in `egress.LAUNCHES` as the existing local
-   scene launcher, with a scrubbed environment and no provider credentials; a declaration never adds an outbound route. Their workers refuse before launch until an exclusive native MCP route preserving the
-   agreed native-tool policy is proved and authorized. Worker readiness is independent of MAIN direct-tool support:
+   scene launcher, with a scrubbed environment and no provider credentials; a declaration never adds an outbound route.
+   Workers require an independently qualified exclusive native MCP route preserving native built-ins and persona.
+   Claude uses its native strict MCP config; Pi workers require stable 1.0.4 or newer and its public replacement MCP extension
+   with native MCP disabled and other extension registrations excluded. Hermes workers use an owned startup hook guarding
+   discovery, reload, reconnect and transport entry, after a native Python/gateway preflight; unsupported console scripts,
+   interpreter/source overrides, attached gateways or missing installed helper refuse. No native home is replaced.
+   Grok's preserving-home namespace boundary remains a candidate until the exact native policy and herdr/helper CI proof
+   succeeds; it never replaces occupied native policy slots or changes host namespace/security permissions. Its namespace
+   continuation belongs to the existing guarded Grok pane launch, not an additional egress grant. Codex, Cursor and OpenCode
+   workers remain refused where exclusive discovery is unqualified. Worker readiness is independent of MAIN direct-tool support:
    unsupported workers are refused in Choices, swarm preflight and host creation before a run, owned files or a pane exist. Hermes's built-in tool names also select same-named MCP servers;
    Grok's primary-agent overlay retains inherited MCP sources and can replace the configured persona. Neither is an
-   isolation workaround. Cursor's
+   isolation workaround. Readiness is checked again before activation and owned file/pane creation; a stale Choices snapshot
+   cannot bypass runtime qualification. The adapters delegate read-only startup qualification to the host utility and sole
+   launcher; they never inspect native credentials or install connectors. Cursor's
    supported per-pane plugin describes its account/tool execution as unverified. Pi reaches tools through Lampway's own Pi
    extension (`harnesses/lampway_pi_extension.js`, a wrapper only: it hands the pane's own 0600 config to Pi's MCP client).
    Connector readiness requires a locally verified stable Pi 0.99.0 or newer, the API introduction in its changelog.
@@ -186,6 +196,14 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    experimental choices for the main Mode 1 agent. Agent preferences warns of untested layering before enabling them.
    The owned native-entry bootstrap gates commands, RPC and spawn paths as well as advertised tools; memory or skill writes
    alone cannot enable background review or curator work. Mode 1 swarm workers keep all three disabled.
+   Q8 keeps native `skills.write_approval` enabled even when `skills.write` is on. The island's human-only
+   `/skills pending`, `/skills diff <id>`, `/skills approve <id>` and `/skills reject <id>` use existing native `slash.exec`
+   and its pending store, with the output shown in the normal transcript. IDs are exactly eight lowercase hex characters;
+   aliases, bulk approval, gate toggles and extra arguments refuse before native forwarding. Agent/MCP/worker and cross-origin
+   sockets cannot review or approve. Busy turns and outstanding questions refuse before review text can become steer or an answer.
+   Applying a pending write additionally requires `skills.write` in force at the bound pane record's project, checked again after
+   connection and capability refresh; pending, diff and reject remain available when it is off. No second skill or approval store,
+   generic slash gateway or agent approval path is introduced.
    Native child admission preserves the `subprocess.Popen` class identity, imported aliases and annotation behavior;
    replacing a native class with a function is not a compatible wrapper.
    The engine's Hermes config is rendered from the same board (`engine/hermes_config.py`, spec E1.3): the model is the loopback
@@ -234,6 +252,15 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     while its TCP peer remains connected; it leaves other panes' calls running and admits no call after revocation.
     Owned worker shutdown and confirmed user close of a Lampway Mode 1 worker forget its key before asking herdr to close its pane;
     an unconfirmed close remains refused. Serve's Ollama probe (`POST /api/show`) gets a harmless 404.
+    Native user attachments and screenshot tool-result images retain typed bytes, MIME, captions and content ordering through
+    provider-neutral messages. Vision support follows the selected service/model: MAIN is request-scoped; worker and named-summary
+    selections capture it independently without mutating a shared provider. Only verified support forwards images;
+    otherwise this request receives an honest omission note, leaving native history unchanged. Known Anthropic defaults to vision
+    support when older saved settings omit the flag; a matching explicit false is honored. Unknown provider support leaves the
+    native model flag unset while gateway image admission and advertisement still require explicit true. Unrelated providers
+    do not read BYOK configuration. ChatGPT-plan vision remains false
+    until a consented live probe is recorded. Anthropic and OpenAI-compatible adapters preserve their native multimodal formats;
+    OpenAI tool replies acknowledge every parallel call before labeled image content, in one request without mutation retry.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
     connection through `Egress.begin`. It is the one module that opens an outbound stream outside the httpx hook
@@ -423,3 +450,7 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-08 | MAIN connectivity does not imply worker readiness | host worker preflight causal RED; new MAIN direct endpoints | direct_ok alone made unsupported worker options appear ready and reached late adapter errors after creating owned files | invariant 6: separate worker readiness and actionable refusal in Choices, swarm preflight and host before activation or file creation | preserved MAIN and other-worker behavior plus causal refusal controls; full corrected source gate required |
 
 | 2026-10-08 | audit pane startup, Codex rollout and Pi compatibility | supplied PR4 audit A01-A03 and A07 | first MCP init raced its registration, current final text was absent, unsupported Pi was offered and policy test YAML was undeclared | invariant 6: durable starting admission, owned rollback, current and legacy observation and local Pi API readiness; Test declares complete extras | causal RED controls and focused source GREEN; account turns remain unverified |
+
+| 2026-10-09 | exclusive worker MCP qualification | native CLI causal baselines and worker audit | additive native/global/project/plugin discovery and stale readiness admitted foreign MCP servers; generic tests assumed unsafe Codex readiness | invariant 6: qualified worker-only routes, startup checks before activation/files, native-tool and persona preservation, explicit unsupported-worker refusal; generic positive fixtures use qualified workers and retain Codex refusal coverage | Claude/Pi native discovery and Hermes discovery/reload/reconnect/TUI-gateway receipts; Grok candidate CI and final-head source/build gates remain required; account turns unverified |
+| 2026-10-10 | selected vision and human native skill review | Q1 image omission causal controls and Q8 native staging/approval RED | gateway flattened verified images, shared provider state could leak selection, and enabling skill writes bypassed review while island commands became agent prompts | invariant 10: request-scoped MAIN and independently captured worker/summary vision with typed native image parts; invariant 9: retained native staging and human-only single-ID slash review with bound-project capability checks before forwarding | 155 focused image passes; 101 focused skill/front/config passes; actual pinned Hermes slash review across two owned units with no live recorded descendants; final source/build and account gates remain separate |
+| 2026-10-10 | unknown provider configuration remains compatible | incomplete source run caught original Context and native exact-config assertions | unrelated settings access raised AttributeError and unknown support became an explicit native false instead of remaining unset | invariant 10: restrict BYOK reads and retain unknown native omission with strict gateway admission | 170 focused passes and all 13 original Context/first-native checks pass unchanged; incomplete failed source receipt retained |

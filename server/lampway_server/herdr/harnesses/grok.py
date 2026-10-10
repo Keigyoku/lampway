@@ -9,8 +9,9 @@ all native policy/configuration is unproved. Observation is the screen. Checked 
 """
 import json
 from pathlib import Path
+import sys
 
-from .base import Adapter, Observer, ToolWiring, bearer_headers
+from .base import Adapter, Observer, ToolWiring, bearer_headers, direct_binding
 from ...pane_mcp import CONFIG_ENV, ROOT_ENV
 
 
@@ -83,7 +84,32 @@ class Grok(Adapter):
 
     def _main_only(self, pane):
         if not pane.desktop:
-            raise ValueError(self.worker_note)
+            if not self.worker_ok:
+                raise ValueError(self.worker_note)
+            binding = direct_binding(pane) or ""
+            if (not pane.mcp_config_path or len(pane.direct) != 1 or pane.direct[0].name != "lampway"
+                    or pane.launcher or not binding.startswith("swarm:")
+                    or (pane.scene_session_id and pane.scene_session_id != binding)):
+                raise ValueError("Grok worker requires one owned direct-only swarm MCP binding")
+
+    def worker_compatibility_note(self):
+        from ...native_worker_readiness import grok_worker_note
+        return grok_worker_note(self.locate())
+
+    def launch(self, pane, task=None):
+        if pane.desktop:
+            return super().launch(pane, task)
+        self._main_only(pane)
+        if not isinstance(task, str) or not task or "\0" in task:
+            raise ValueError("Grok worker requires a nonempty literal task")
+        if pane.bypass:
+            raise ValueError("Grok worker boundary does not support an approval bypass")
+        return [self.binary, *self.lampway_tools(pane).argv, "--task=" + task]
+
+    def resume(self, native_id, pane):
+        if not pane.desktop:
+            raise ValueError("Grok worker boundary supports new worker tasks only")
+        return super().resume(native_id, pane)
 
     def _args(self, pane, resume_id):
         self._main_only(pane)
@@ -94,15 +120,26 @@ class Grok(Adapter):
     def lampway_tools(self, pane):
         self._main_only(pane)
         path = pane.mcp_config_path
-        binding = pane.scene_session_id or ""
+        binding = pane.scene_session_id or direct_binding(pane) or ""
         desktop = ({"command": pane.launcher[0], "args": list(pane.launcher[1:]),
                     "env": {"LAMPWAY_BOUND_SESSION": binding}}
-                   if binding and pane.launcher else None)
+                   if binding and pane.desktop and pane.launcher else None)
         direct = [{"url": entry.url, "headers": bearer_headers(entry)} for entry in pane.direct] if binding else []
         body = json.dumps({"version": 1, "binding": binding, "desktop": desktop, "direct": direct}, indent=2)
-        return ToolWiring("symbolic_stdio", (),
-                          {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {},
-                          {path: body} if path else {}, tuple(pane.launcher), binding or None, False, self.tools_note)
+        env = {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {}
+        files = {path: body} if path else {}
+        argv = ()
+        if not pane.desktop:
+            from ...native_worker_readiness import grok_worker_description
+            metadata = Path(path).with_name("grok-worker.json")
+            description = grok_worker_description(self.locate(), cwd=pane.cwd)
+            description.update(version=1, root=env[ROOT_ENV], cwd=pane.cwd,
+                               inner_socket=str(metadata.with_name("grok-inner.sock")),
+                               outer_socket=str(metadata.with_name("grok-outer.sock")))
+            files[str(metadata)] = json.dumps(description, indent=2)
+            argv = ("--leader-socket", description["outer_socket"], "wrap", "--", sys.executable,
+                    "-m", "lampway_server.grok_worker", "--config", str(metadata))
+        return ToolWiring("symbolic_stdio", argv, env, files, tuple(pane.launcher), binding or None, False, self.tools_note)
 
     def observe(self, record):
         return Observer("screen", None, True, "the pane's screen (Grok's updates.jsonl is an ACP stream Lampway does not mirror yet)")

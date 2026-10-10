@@ -71,10 +71,10 @@ def test_saved_unsupported_worker_refuses_before_activation_even_with_stale_read
 
 
 def test_supported_worker_stays_ready_and_resolves_saved_choice(tmp_path, monkeypatch):
-    selected(tmp_path, monkeypatch, 'codex')
-    assert 'byoa:codex' not in byoa_worker_readiness()
-    assert HN.get('codex').worker_ok
+    selected(tmp_path, monkeypatch, 'claude')
+    assert 'byoa:claude' not in byoa_worker_readiness()
+    assert HN.get('claude').worker_ok
     manager = SwarmManager(None)
     manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
     brain = manager.worker_brain(SwarmContext(None, 'scene', 'turn', 'call', project_root=str(tmp_path)))
-    assert brain.harness == 'codex' and brain.mode_choice.option == 'byoa:codex'
+    assert brain.harness == 'claude' and brain.mode_choice.option == 'byoa:claude'

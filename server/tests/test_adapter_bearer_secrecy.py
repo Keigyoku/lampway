@@ -12,8 +12,10 @@ from lampway_server.mcp import McpServer
 
 
 @pytest.mark.parametrize("harness", [*HN.ADAPTERS, *HN.LAMPWAY_ADAPTERS])
-def test_direct_bearer_never_appears_on_an_adapters_command_line(harness, tmp_path):
+def test_direct_bearer_never_appears_on_an_adapters_command_line(harness, tmp_path, monkeypatch):
     adapter = HN.get(harness)
+    if harness == "pi":
+        monkeypatch.setattr(adapter, "detect", lambda: HN.Installed("pi", "pi", str(tmp_path / "fixture-pi"), "1.0.4"))
     secret = "fixture-worker-bearer-value"
     # Hermes/Grok expose the supported scene-bound main route; their worker
     # refusals are covered independently. Every original secrecy assertion runs.
@@ -39,7 +41,7 @@ def test_the_check_rejects_a_planted_bearer_on_the_command_line(harness, tmp_pat
     adapter = HN.get(harness)
     monkeypatch.setattr(adapter, "launch", lambda pane: [adapter.binary, pane.direct[0].token])
     with pytest.raises(AssertionError):
-        test_direct_bearer_never_appears_on_an_adapters_command_line(harness, tmp_path)
+        test_direct_bearer_never_appears_on_an_adapters_command_line(harness, tmp_path, monkeypatch)
 
 
 @pytest.mark.parametrize("peer", ["203.0.113.5", "2001:db8::5"])

@@ -136,10 +136,10 @@ def test_skills_write_off_stages_every_skill_write_and_stops_the_curator(board):
     assert cfg["skills"]["write_approval"] is True and cfg["curator"]["enabled"] is False
     board.set("skills.write", enabled=True)
     cfg = _render(board)
-    assert cfg["skills"]["write_approval"] is False and cfg["curator"]["enabled"] is False
+    assert cfg["skills"]["write_approval"] is True and cfg["curator"]["enabled"] is False
     board.set("background", enabled=True)
     cfg = _render(board)
-    assert cfg["skills"]["write_approval"] is False and cfg["curator"]["enabled"] is True
+    assert cfg["skills"]["write_approval"] is True and cfg["curator"]["enabled"] is True
     board.set("skills.use", enabled=False)
     board.set("skills.write", enabled=False)
     assert "skills" not in _acp(_render(board))

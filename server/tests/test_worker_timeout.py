@@ -16,7 +16,7 @@ from .worker_choice_support import install_worker_harness
 
 
 def brain(cockpit=None, **kwargs):
-    return SB.PaneBrain(cockpit, "codex", cwd=".", project_root=None, bindings=SB.WorkerBindings(), **kwargs)
+    return SB.PaneBrain(cockpit, "claude", cwd=".", project_root=None, bindings=SB.WorkerBindings(), **kwargs)
 
 
 def test_environment_sets_worker_timeout_before_a_pane_starts(monkeypatch):
@@ -38,13 +38,15 @@ def test_invalid_environment_refuses_a_worker_before_start(monkeypatch, value):
 
 def test_manager_override_reaches_the_brain_and_wins_over_environment(tmp_path, monkeypatch):
     monkeypatch.setenv("LAMPWAY_PANE_WORKER_TIMEOUT_S", "100")
-    install_worker_harness(tmp_path, monkeypatch, "codex")
+    install_worker_harness(tmp_path, monkeypatch, "claude")
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
-    EG.ACTIVE.set_route("byoa:codex", True)
-    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    EG.ACTIVE.set_route("byoa:claude", True)
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     manager = SwarmManager(None, worker_timeout_s=7.5)
     manager.cockpit = SimpleNamespace(project_root=".")
-    assert manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="byoa", harness="codex")).timeout_s == 7.5
+    pane = manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="byoa", harness="codex"))
+    assert pane.harness == "claude" and pane.mode_choice.option == "byoa:claude"
+    assert pane.timeout_s == 7.5
 
 
 def test_short_deadline_is_not_delayed_by_the_poll_and_revokes_binding(monkeypatch):

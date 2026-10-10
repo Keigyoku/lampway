@@ -50,6 +50,22 @@ def get(hid: str) -> Adapter:
         raise KeyError(f"no harness {hid!r}: the harnesses are {', '.join(ADAPTERS)}") from None
 
 
+def worker_problem(adapter) -> str:
+    """Worker qualification is distinct from MAIN connectivity and rechecked before activation."""
+    if not adapter.direct_ok:
+        return adapter.tools_note or "no supported per-pane worker endpoint"
+    if not adapter.worker_ok:
+        return adapter.worker_note or "exclusive worker MCP discovery has not been qualified"
+    check = getattr(adapter, "worker_compatibility_note", None)
+    if check is None:
+        return ""
+    try:
+        note = check()
+    except (OSError, ValueError, RuntimeError):
+        return "installed worker startup qualification failed; retry with a supported native installation"
+    return note if isinstance(note, str) else "installed worker startup returned no valid qualification"
+
+
 def worker_adapter(mode: str, parent_harness=None) -> str:
     """Legacy mode-to-adapter mapping retained for compatibility.
 

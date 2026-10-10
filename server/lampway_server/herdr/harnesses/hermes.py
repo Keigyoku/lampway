@@ -16,10 +16,13 @@ in the user's Hermes home). Checked on Hermes Agent v0.21.5 (2026.9.24) with a t
 import os
 import json
 from pathlib import Path
+import sys
 
 
 from .base import Adapter, Observer, ToolWiring, bearer_headers, direct_binding
 from ...pane_mcp import CONFIG_ENV, ROOT_ENV
+from ...hermes_worker import POLICY_ENV, canonical_entry, startup_source
+from ...native_worker_readiness import HERMES_REFUSAL
 
 ENGINE_MARK = ("engines", "hermes")
 
@@ -43,10 +46,8 @@ class Hermes(Adapter):
     task_flag = ("chat", "-q")
     tools_reachable = True
     direct_ok = True
-    worker_ok = False
-    worker_note = ("Your Hermes needs an explicit connector-only worker policy before it can run a Lampway worker. "
-                   "Its native --toolsets filter also replaces native tools; adding built-in names can expose "
-                   "unrelated MCP servers with those names. Choose another supported worker harness meanwhile.")
+    worker_ok = True
+    worker_note = HERMES_REFUSAL
     tools_note = ("Your own Hermes loads configured MCP servers and enabled portable plugins. Lampway never writes your shared "
                   "configuration (agent-modes spec E1.10). Its native --toolsets filter can select a dedicated connector, but "
                   "install lampway_pane once with your own Hermes MCP command; Lampway supplies a "
@@ -70,9 +71,12 @@ class Hermes(Adapter):
                               "confirmed empty unbound discovery. Two concurrent pinned discovery clients then called "
                               "separate pane bindings and adopted rebind/unbind without credential-file changes. "
                               "Account-backed user-TUI scene calls remain unverified.",
-        "worker_filter": "Actual pinned discovery with terminal,lampway_pane also connected an unrelated MCP server "
-                         "named terminal. Generic built-in declarations do not establish isolation; workers are refused "
-                         "pending explicit connector-only policy selection.",
+        "worker_filter": "Hermes 0.21.5 (2026.9.24): owned Python startup guard replaces only native MCP discovery with "
+                         "the canonical pane connector and guards native reload, reconnect and transport admission. "
+                         "Native console and local gateway preflight, real herdr TUI/gateway startup and offline "
+                         "discovery passed; native built-ins, persona and synthetic auth remain intact. Readiness "
+                         "refuses unsupported entry scripts, interpreters, helper installations or gateway overrides. "
+                         "Account-backed tool execution remains unverified.",
         "profile_auth": "hermes_cli/auth.py _load_provider_state_with_source can fall back to the root profile's login store for "
                         "some OAuth state; profile configuration and environment files remain separate. Native refresh can write "
                         "the root login store (auth_xai.py). This is not a general login-preserving scoped-config route",
@@ -93,7 +97,20 @@ class Hermes(Adapter):
 
     def _require_main(self, pane):
         if not pane.desktop:
-            raise ValueError(self.worker_note)
+            if not self.worker_ok:
+                raise ValueError(self.worker_note)
+            binding = direct_binding(pane) or ""
+            if (not pane.mcp_config_path or len(pane.direct) != 1 or pane.direct[0].name != "lampway"
+                    or pane.launcher or not binding.startswith("swarm:")
+                    or (pane.scene_session_id and pane.scene_session_id != binding)):
+                raise ValueError("Your Hermes connector-only worker policy requires one owned direct-only swarm MCP binding")
+            problem = self.worker_compatibility_note()
+            if problem:
+                raise ValueError(problem)
+
+    def worker_compatibility_note(self):
+        from ...native_worker_readiness import hermes_worker_note
+        return hermes_worker_note(self.locate())
 
     def lampway_tools(self, pane):
         self._require_main(pane)
@@ -104,8 +121,21 @@ class Hermes(Adapter):
                    if binding and pane.desktop and pane.launcher else None)
         direct = [{"url": entry.url, "headers": bearer_headers(entry)} for entry in pane.direct] if binding else []
         body = json.dumps({"version": 1, "binding": binding, "desktop": desktop, "direct": direct}, indent=2)
-        return ToolWiring("symbolic_stdio", (), {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {}, {path: body} if path else {},
-                          tuple(pane.launcher), binding or None, False,
+        env = {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {}
+        files = {path: body} if path else {}
+        if not pane.desktop:
+            if not path or not pane.direct or not binding:
+                raise ValueError("Your Hermes worker requires its owned direct MCP binding")
+            # Metadata only: the host validates the installed helper and native Python startup before launch.
+            helper = str(Path(sys.executable).with_name("lampway-pane-mcp"))
+            entry = canonical_entry(helper, path, env[ROOT_ENV])
+            startup = Path(path).parent / "hermes-worker"
+            files[str(startup / "sitecustomize.py")] = startup_source()
+            previous = os.environ.get("PYTHONPATH")
+            env["PYTHONPATH"] = str(startup) + (os.pathsep + previous if previous is not None else "")
+            env[POLICY_ENV] = json.dumps(entry, separators=(",", ":"))
+        return ToolWiring("symbolic_stdio", (), env, files,
+                          tuple(pane.launcher), binding or None, not pane.desktop,
                           "Install the dedicated lampway_pane connector once using your own Hermes MCP command. "
                           "Only this pane-owned file supplies Lampway binding; HOME/provider settings remain unchanged. "
                           "Account-backed user-Hermes execution remains unverified.")

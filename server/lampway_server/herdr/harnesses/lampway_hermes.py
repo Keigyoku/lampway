@@ -35,6 +35,7 @@ class LampwayHermes(Adapter):
     route = None                                  # Lampway's own engine: no byoa route (see the module docstring)
     built = True
     direct_ok = True                              # a worker's one MCP server is the pane endpoint, in its own config.yaml (S3)
+    worker_ok = True                              # qualified pinned engine and owned worker home, never native user config
     process_match = WRAPPER.name                  # what reconcile looks for among the pane's foreground processes
     interpreter = sys.executable                  # the server's own interpreter runs the wrapper
 

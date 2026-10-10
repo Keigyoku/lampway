@@ -45,6 +45,7 @@ class Pi(Adapter):
     picks_session_id = True
     task_flag = ()                             # `pi [messages...]`: the first prompt
     direct_ok = True                           # an http entry {url, headers} through the extension
+    worker_ok = True                           # public createMcpExtension replacement, offline exclusion proved on 1.0.4
     interrupt_keys = ("esc",)
     takes_image_paths = True
     FACTS = {
@@ -58,6 +59,9 @@ class Pi(Adapter):
         "extension": "`pi --mode rpc -e lampway_pi_extension.js` with LAMPWAY_PI_MCP naming a pane config (throwaway HOME, no provider, "
                      "PI_OFFLINE=1) answered `/mcp` with 'lampway: connected, 1 tools (direct)', and the stand-in server saw "
                      "LAMPWAY_BOUND_SESSION",
+        "worker_mcp": "Pi 1.0.4 offline RPC: baseline connected global/project/extension/late-registration sentinels plus worker; "
+                      "--no-mcp with public createMcpExtension loadConfig and filtered getMcpServers connected only worker. "
+                      "Synthetic auth/settings/persona/MCP files unchanged; AF_INET/AF_INET6 denied by seccomp; no model turn",
         "session_file": "`get_state` over RPC (1.0.4) names the file: <sessions dir>/--<cwd without its leading '/', '/' -> '-'>--/"
                         "<ISO time, ':' and '.' -> '-'>_<session id>.jsonl; its records are docs/session-format.md's",
         "herdr": "herdr 0.9.3 starts it itself: `agent start <name> --kind pi --pane <p> -- <args>` ran Pi 1.0.4 to 'idle' (live)",
@@ -82,21 +86,48 @@ class Pi(Adapter):
         if note:
             raise ValueError(note)
 
+    def worker_compatibility_note(self, installed=None):
+        found = installed if installed is not None else self.detect()
+        connector_note = self.compatibility_note(found) if found else ""
+        if connector_note:
+            return connector_note
+        match = re.fullmatch(r"(?:pi )?(\d+)\.(\d+)\.(\d+)", found.version or "") if found else None
+        if match and tuple(map(int, match.groups())) >= (1, 0, 4):
+            return ""
+        return "Pi workers require stable Pi 1.0.4 or newer for the qualified public native MCP replacement; select a compatible installation and retry."
+
+    def _require_worker_compatible(self, pane):
+        if not pane.desktop:
+            if not pane.mcp_config_path or len(pane.direct) != 1 or pane.direct[0].name != SERVER_NAME:
+                raise ValueError("Pi worker requires its owned MCP config with exactly one lampway server")
+            note = self.worker_compatibility_note()
+            if note:
+                raise ValueError(note)
+
     def _args(self, pane, resume_id):
         self._require_compatible()
+        self._require_worker_compatible(pane)
         if resume_id:
             return ["--session", resume_id]
         return ["--session-id", pane.session_id] if pane.session_id else []
 
     def lampway_tools(self, pane):
         self._require_compatible()
+        self._require_worker_compatible(pane)
         path = pane.mcp_config_path
         servers = {SERVER_NAME: mcp_entry(pane)} if pane.desktop else {}
         for d in pane.direct:                  # spec S3: the bearer in this 0600 file only
             servers[d.name] = {"url": d.url, "headers": bearer_headers(d)}
         body = json.dumps({"mcpServers": servers}, indent=2)
-        return ToolWiring("extension", ("-e", str(EXTENSION)) if path else (), {MCP_ENV: path} if path else {}, {path: body} if path else {},
+        argv = ("-e", str(EXTENSION)) if path else ()
+        env = {MCP_ENV: path} if path else {}
+        if not pane.desktop and path:
+            argv = ("--no-mcp",) + argv
+            env["LAMPWAY_PI_WORKER_MCP"] = "1"
+        return ToolWiring("extension", argv, env, {path: body} if path else {},
                           tuple(pane.launcher), pane.scene_session_id or direct_binding(pane), True,
+                          "Lampway's worker extension uses Pi's public native MCP factory with only the supplied worker config; "
+                          "global, project and extension registrations are excluded (offline Pi 1.0.4)" if not pane.desktop else
                           "Lampway's Pi extension (-e) hands this pane's own MCP entries to Pi's MCP client for this session only "
                           "(checked on Pi 1.0.4); the user's ~/.pi/agent/mcp.json and the project's .pi/mcp.json are left alone")
 

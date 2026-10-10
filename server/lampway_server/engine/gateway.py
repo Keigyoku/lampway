@@ -18,14 +18,18 @@ clients only, for the pinned Hermes of Lampway's own Mode 1 panes (``hermes serv
 * E1.3's start-up check: ``Registry.first_check`` (set by ``engine/wiring.py``) judges the tool list of a token's first request
   that carries tools; a refusal is an OpenAI-style 400 (``engine_tools_mismatch``) for that request and every later one of the token.
 * Not carried, because the neutral request has no field for it: ``temperature``, ``max_tokens``, ``stop``, ``tool_choice``, ``usage``
-  accounting. Image parts become a text placeholder (the neutral message is text and tool parts).
+  accounting. Attachment and native screenshot images retain typed neutral parts; the selected provider must explicitly
+  advertise vision, otherwise this request substitutes an honest omission note without altering native history.
 
-[UNVERIFIED] against the pinned Hermes beyond the coordinator's measured calls: whether it needs ``usage`` in responses, whether it
-sends image parts, and how it reacts to a mid-stream ``error`` event (the OpenAI SDK raises on one).
+[UNVERIFIED] against the pinned Hermes beyond the coordinator's measured calls: whether it needs ``usage`` in responses,
+  how it reacts to a mid-stream ``error`` event (the OpenAI SDK raises on one). Image wire translation is mock-transport tested;
+  account-backed vision execution is not claimed.
 """
 from __future__ import annotations
 
 import asyncio
+import base64
+import copy
 import hashlib
 import ipaddress
 import json
@@ -49,7 +53,7 @@ CHAT_PATH = "/engine/v1/chat/completions"
 MODELS_PATHS = ("/engine/v1/models", "/api/v1/models")
 MODELS_DEV_PATH = "/engine/v1/models-dev.json"   # hermes_config points ``models_dev.url`` here (E1.3)
 OLLAMA_PROBE_PATH = "/api/show"                   # the pinned serve's Ollama probe at the base_url's origin (A1): a harmless 404
-IMAGE_NOTE = "[image omitted: the engine gateway carries text only]"
+IMAGE_NOTE = "[image omitted: the selected provider has no verified image support]"
 
 
 class Registry:
@@ -346,6 +350,83 @@ def _text_of(content) -> str:
     raise BadRequest("message content must be a string or a list of content parts")
 
 
+def _parts_of(content) -> list:
+    """Preserve native attachment/screenshot order in the provider-neutral image shape."""
+    if not isinstance(content, list):
+        return [{"type": "text", "text": _text_of(content)}]
+    parts = []
+    for part in content:
+        if isinstance(part, dict) and part.get("type") in ("image_url", "input_image", "image"):
+            source = part.get("source") if part.get("type") == "image" else None
+            detail = part.get("detail")
+            if source is None:
+                url = part.get("image_url")
+                if isinstance(url, dict):
+                    detail = url.get("detail", detail)
+                    url = url.get("url")
+                if not isinstance(url, str):
+                    raise BadRequest("an image part needs an image URL or typed source")
+                if url.startswith("data:"):
+                    header, separator, data = url.partition(",")
+                    if not separator or not header.endswith(";base64"):
+                        raise BadRequest("an image data URL must contain base64 data")
+                    source = {"type": "base64", "media_type": header[5:-7], "data": data}
+                else:
+                    source = {"type": "url", "url": url}
+            if not isinstance(source, dict):
+                raise BadRequest("an image source must be an object")
+            if source.get("type") == "base64":
+                if not isinstance(source.get("media_type"), str) or source["media_type"] not in {"image/png", "image/jpeg", "image/gif", "image/webp"}:
+                    raise BadRequest("unsupported image media type")
+                try:
+                    if not base64.b64decode(source.get("data", ""), validate=True):
+                        raise ValueError
+                except (ValueError, TypeError):
+                    raise BadRequest("an image source needs valid nonempty base64 data") from None
+                source = {"type": "base64", "media_type": source["media_type"], "data": source["data"]}
+            elif source.get("type") == "url":
+                from urllib.parse import urlsplit
+                url = source.get("url")
+                try:
+                    parsed = urlsplit(url) if isinstance(url, str) else None
+                except ValueError:
+                    raise BadRequest("an image URL must be an HTTP or HTTPS URL") from None
+                if parsed is None or parsed.scheme not in {"http", "https"} or not parsed.hostname:
+                    raise BadRequest("an image URL must be an HTTP or HTTPS URL")
+                source = {"type": "url", "url": url}
+            else:
+                raise BadRequest("unsupported image source type")
+            image = {"type": "image", "source": copy.deepcopy(source)}
+            if detail is not None:
+                if not isinstance(detail, str) or detail not in {"auto", "low", "high"}:
+                    raise BadRequest("unsupported image detail")
+                image["detail"] = detail
+            parts.append(image)
+        else:
+            text = _text_of([part])
+            if text:
+                parts.append({"type": "text", "text": text})
+    return parts
+
+
+_VISION_UNSET = object()
+
+
+def _provider_images(req: ModelRequest, provider, vision=_VISION_UNSET) -> None:
+    """Gate this request only, after main/worker/summary selection; never alter stored history."""
+    if vision is _VISION_UNSET:
+        vision = getattr(provider, "supports_vision", None)
+    if getattr(provider, "name", "") != "chatgpt_plan" and vision is True:
+        return
+    def without_images(parts):
+        return [{"type": "text", "text": IMAGE_NOTE} if p.get("type") == "image" else p for p in parts]
+    for message in req.messages:
+        message.content = without_images(message.content)
+        for part in message.content:
+            if part.get("type") == "tool_result" and isinstance(part.get("content"), list):
+                part["content"] = "".join(p.get("text", "") for p in without_images(part["content"]))
+
+
 def _arguments(raw) -> dict:
     if isinstance(raw, dict):
         return raw
@@ -372,7 +453,7 @@ def to_request(body: dict, session_id: str) -> ModelRequest:
         if role in ("system", "developer"):
             system.append(_text_of(m.get("content")))
         elif role == "user":
-            out.append(Message("user", [{"type": "text", "text": _text_of(m.get("content"))}]))
+            out.append(Message("user", _parts_of(m.get("content"))))
         elif role == "assistant":
             parts = [{"type": "text", "text": _text_of(m.get("content"))}] if _text_of(m.get("content")) else []
             for call in m.get("tool_calls") or []:
@@ -385,7 +466,9 @@ def to_request(body: dict, session_id: str) -> ModelRequest:
             call_id = m.get("tool_call_id")
             if not isinstance(call_id, str) or not call_id:
                 raise BadRequest("a tool message needs its tool_call_id")
-            part = {"type": "tool_result", "tool_call_id": call_id, "content": _text_of(m.get("content")), "is_error": False}
+            content = _parts_of(m.get("content"))
+            content = content if any(p.get("type") == "image" for p in content) else _text_of(m.get("content"))
+            part = {"type": "tool_result", "tool_call_id": call_id, "content": content, "is_error": False}
             last = out[-1] if out else None
             if last is not None and last.role == "user" and last.content and all(p.get("type") == "tool_result" for p in last.content):
                 last.content.append(part)                                   # the results of one assistant turn travel together, in order
@@ -463,15 +546,18 @@ class _Completion:
 DEFAULT_CONTEXT = 200000          # Hermes's own fallback for an uncatalogued model (agent/models_dev.py at the pin)
 
 
-def models_dev_registry(provider, model_id: str = "lampway") -> dict:
+def models_dev_registry(provider, model_id: str = "lampway", *, vision=_VISION_UNSET) -> dict:
     """The smallest registry Hermes's ``agent/models_dev.py`` accepts (a non-empty ``{provider: {..., "models": {...}}}``), naming
     the gateway's model ids: the one the engine's config asks for and the current provider's own."""
     window = getattr(provider, "context_length", None)
     window = window if isinstance(window, int) and window > 0 else DEFAULT_CONTEXT
     models = {}
+    if vision is _VISION_UNSET:
+        vision = getattr(provider, "supports_vision", None)
+    vision = getattr(provider, "name", "") != "chatgpt_plan" and vision is True
     for mid in dict.fromkeys((model_id, _model_of(provider))):
-        models[mid] = {"id": mid, "name": mid, "family": "lampway", "tool_call": True, "reasoning": False, "attachment": False,
-                       "temperature": True, "modalities": {"input": ["text"], "output": ["text"]}, "limit": {"context": window},
+        models[mid] = {"id": mid, "name": mid, "family": "lampway", "tool_call": True, "reasoning": False, "attachment": vision,
+                       "temperature": True, "modalities": {"input": ["text", "image"] if vision else ["text"], "output": ["text"]}, "limit": {"context": window},
                        "cost": {"input": 0, "output": 0}}
     return {"lampway": {"id": "lampway", "name": "Lampway gateway", "env": [], "api": "", "doc": "", "models": models}}
 
@@ -549,7 +635,10 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         model's name and context window only, no secret."""
         if not _loopback_client(request):
             return JSONResponse(error_body("the engine gateway answers loopback clients only", type="permission_error", code="not_loopback"), status_code=403)
-        return JSONResponse(models_dev_registry(provider_getter()))
+        provider = provider_getter()
+        capability = getattr(provider_getter, "vision_for", None)
+        vision = capability(None, provider) if capability is not None else _VISION_UNSET
+        return JSONResponse(models_dev_registry(provider, vision=vision))
 
     async def chat(request: Request):
         session_id, refused = admit(request)
@@ -571,6 +660,9 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         provider, refused = provider_or_error(session_id, body.get("model"))
         if refused is not None:
             return refused
+        capability = getattr(provider_getter, "vision_for", None)
+        vision = capability(session_id, provider) if capability is not None else _VISION_UNSET
+        _provider_images(req, provider, vision)
         for observer in list(registry.observers):                      # e.g. the island's one-time "Using your ChatGPT plan" notice
             try:
                 observer(session_id, getattr(provider, "name", ""))

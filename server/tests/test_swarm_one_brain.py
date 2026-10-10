@@ -59,6 +59,14 @@ def test_saved_worker_mode_picks_the_adapter_independently_of_the_parent(tmp_pat
     for parent_mode, parent_harness in (("runtime", None), ("runtime", "codex"), ("byoa", "codex"),
                                         ("byoa", "claude"), ("byoa", None)):
         ctx = SwarmContext(None, "scene", "turn", "call", mode=parent_mode, harness=parent_harness)
+        if expected == "codex":
+            # Saved selection stays independent, but additive MAIN wiring cannot
+            # certify exclusive worker discovery or permit a parent fallback.
+            with pytest.raises(SwarmError, match="cannot run a worker") as refused:
+                mgr.worker_brain(ctx)
+            assert HN.get("codex").worker_note in str(refused.value)
+            assert CH.preferred("agent.worker_mode") == worker_mode
+            continue
         brain = mgr.worker_brain(ctx)
         assert brain.harness == expected, "the saved worker mode wins over the parent's mode and harness"
         assert brain.mode_choice.option == worker_mode
@@ -84,13 +92,14 @@ def test_the_swarm_manager_builds_a_pane_brain_on_the_saved_workers_adapter(tmp_
     from lampway_server.herdr.swarm_brain import PaneBrain
     mgr = SwarmManager(run_script=None)
     mgr.cockpit = H.Cockpit(tmp_path / "herdr", project_root=str(tmp_path))
-    install_worker_harness(tmp_path, monkeypatch, "codex")
+    install_worker_harness(tmp_path, monkeypatch, "claude")
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
-    EG.ACTIVE.set_route("byoa:codex", True)
-    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    EG.ACTIVE.set_route("byoa:claude", True)
+    CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     byoa = SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c", mode="byoa", harness="codex", cwd=str(tmp_path))
     brain = mgr.worker_brain(byoa)
-    assert isinstance(brain, PaneBrain) and brain.kind == "pane" and brain.harness == "codex" and brain.bindings is mgr.bindings
+    assert isinstance(brain, PaneBrain) and brain.kind == "pane" and brain.harness == "claude" and brain.bindings is mgr.bindings
+    assert brain.mode_choice.option == "byoa:claude", "the qualified saved worker differs from its Codex parent"
     CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "local:lampway_hermes"}, by="user")
     with pytest.raises(SwarmError, match=re.escape(A1)):
         mgr.worker_brain(SwarmContext(socket=None, session_id="scene-1", turn_id="t", call_id="c"))     # Mode 1 by default

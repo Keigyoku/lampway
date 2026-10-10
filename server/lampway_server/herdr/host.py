@@ -208,8 +208,8 @@ class Cockpit:
         if swarm_worker is not None:
             if by != "swarm":
                 raise CockpitError("only a swarm opens a worker pane")
-            if ad is None or not ad.direct_ok or not getattr(ad, "worker_ok", True):
-                note = getattr(ad, "worker_note", "") if ad is not None else ""
+            if ad is None or (note := HN.worker_problem(ad)):
+                note = note if ad is not None else ""
                 raise CockpitError(note or f"{agent} cannot run a swarm worker yet: no recorded way to point it at Lampway's own endpoint")
             if not self.pane_mcp_url:
                 raise CockpitError("the server's pane endpoint is not known here: no worker pane can be opened")

@@ -78,6 +78,24 @@ def act(command):
         rpc.command(command['method'], command['payload'], lambda result: reply(rid, result))
     elif action == 'undo':
         assert bpy.ops.ed.undo() == {'FINISHED'}
+    elif action == 'save_before_new':
+        path = ROOT / 'before-new.blend'
+        assert bpy.ops.wm.save_as_mainfile(filepath=str(path), copy=True) == {'FINISHED'}
+        assert path.is_file()
+        reply(command['id'], {'file': str(path), 'sid': sc.mixie_session_id,
+                             'conversation': str(sc.get('mixie_pane_conversation') or '')})
+    elif action == 'open_history':
+        assert bpy.ops.mixie_chat.show_history() == {'FINISHED'}
+        wm = bpy.context.window_manager
+        assert wm.mixie_chat_history_visible
+        entries = [entry.session_id for entry in wm.mixie_chat_history_entries]
+        assert command['session_id'] in entries, entries
+        assert bpy.ops.mixie_chat.open_history_session(session_id=command['session_id']) == {'FINISHED'}
+        assert not wm.mixie_chat_history_visible
+        reply(command['id'], {'entries': entries, 'sid': sc.mixie_session_id,
+                             'messages': [{'sender': m.sender, 'text': m.text, 'content': m.content,
+                                           'bubble_id': m.bubble_id} for m in sc.mixie_chat_messages],
+                             'media': [a.image_path for m in sc.mixie_chat_messages for a in m.attachments]})
     elif action == 'seed_media_checkpoint':
         from mixar.modules.space_mixie_chat.core import chat_history as CH, checkpoint_store as CS
         media = ROOT / 'fixture.png'
@@ -120,6 +138,8 @@ def tick():
                 if bootstrap._load_ui_batch_tick() is None: break
             from mixar.modules.lampway_tools import api
             assert api.status()['ok']
+            # Observe persisted RNA before auth/connect can reconcile /new.
+            (ROOT / 'loaded-before-connect.json').write_text(json.dumps(snapshot()))
             from mixar.modules.auth.core import auth
             answer = auth.login('owner@lampway.local', 'correct-horse')
             assert answer['success'], {k:v for k,v in answer.items() if k != 'token'}

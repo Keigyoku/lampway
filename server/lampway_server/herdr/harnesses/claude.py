@@ -25,6 +25,7 @@ class Claude(Adapter):
     BYPASS = ("--dangerously-skip-permissions",)
     task_flag = ()                            # `claude [prompt]`: the interactive session starts with it
     direct_ok = True                          # an mcpServers entry {"type": "http", "url", "headers"} (Claude Code's documented shape)
+    worker_ok = True                          # --strict-mcp-config: offline global/project/plugin exclusion proved on 2.1.293
     interrupt_keys = ("esc",)
     takes_image_paths = True
     FACTS = {
@@ -42,10 +43,20 @@ class Claude(Adapter):
         "images": "a pasted image path is attached (Claude Code's documented 'give Claude an image path'). [UNVERIFIED on the "
                   "installed copy: a turn needs an account]",
         "mcp_entry": "the stdio entry {command, args, env} and the http entry {type: http, url, headers} are Claude Code's documented "
-                     "mcpServers shape. [UNVERIFIED by a connection: `claude mcp list` reads only its own scopes]",
+                     "mcpServers shape. Stdio initialize/tools/list verified with synthetic offline sentinels on 2.1.293. "
+                     "[UNVERIFIED: account-backed HTTP tool execution]",
+        "worker_mcp": "Claude Code 2.1.293 offline synthetic startup: global, project and plugin stdio sentinels initialized and "
+                      "listed tools with --mcp-config; adding --strict-mcp-config initialized/listed only the supplied worker. "
+                      "Native tools and the plugin stayed loaded; synthetic persona/auth files and user MCP entries were preserved. "
+                      "AF_INET/AF_INET6 sockets were denied by seccomp; no account/model acceptance was tested",
     }
 
+    def _require_worker_config(self, pane):
+        if not pane.desktop and (not pane.mcp_config_path or len(pane.direct) != 1 or pane.direct[0].name != SERVER_NAME):
+            raise ValueError("Claude worker requires its owned MCP config with exactly one lampway server")
+
     def _args(self, pane, resume_id):
+        self._require_worker_config(pane)
         a = ["--resume", resume_id] if resume_id else (["--session-id", pane.session_id] if pane.session_id else [])
         a += self._bypass(pane)
         if pane.effort:
@@ -64,13 +75,17 @@ class Claude(Adapter):
         return LoginState("signed_in" if code == 0 else "signed_out", _first_line(out))
 
     def lampway_tools(self, pane):
+        self._require_worker_config(pane)
         path = pane.mcp_config_path
         servers = {SERVER_NAME: mcp_entry(pane)} if pane.desktop else {}
         for d in pane.direct:                 # spec S3: Lampway's own endpoint, the bearer in this 0600 file only
             servers[d.name] = {"type": "http", "url": d.url, "headers": bearer_headers(d)}
         body = json.dumps({"mcpServers": servers}, indent=2)
-        return ToolWiring("mcp_config_file", ("--mcp-config", path) if path else (), {}, {path: body} if path else {}, tuple(pane.launcher),
+        argv = (("--strict-mcp-config",) if not pane.desktop else ()) + ("--mcp-config", path) if path else ()
+        return ToolWiring("mcp_config_file", argv, {}, {path: body} if path else {}, tuple(pane.launcher),
                           pane.scene_session_id or direct_binding(pane), True,
+                          "--strict-mcp-config confines this worker to its supplied MCP config (Claude Code 2.1.293 offline sentinel "
+                          "connections); native tools, persona and login remain native" if not pane.desktop else
                           "--mcp-config <file> adds this pane's own server entry (Claude Code 2.1.293's --help); the user's own user-scope "
                           "entries are left alone")
 

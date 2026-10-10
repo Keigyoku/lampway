@@ -58,7 +58,8 @@ PINNED_TAG = "v2026.9.24"
 #: Capability -> the Hermes toolsets it turns on (toolsets.py ``TOOLSETS`` at the pin, lines 77-256; the configurable ones are
 #: hermes_cli/tools_config.py:53-82 ``CONFIGURABLE_TOOLSETS``). ``skills.write`` shares the ``skills`` toolset with ``skills.use``:
 #: Hermes registers ``skill_manage`` in ``skills`` (tools/skill_manager_tool.py:927) and has no toolset with only the read tools,
-#: so without ``skills.write`` the config stages every skill write for the user's approval instead (``skills.write_approval``).
+#: so the config stages every skill write with native ``skills.write_approval``. Q8 keeps that review when writes are ON;
+#: applying a pending write from the island additionally requires skills.write for the pane's bound project.
 HERMES_TOOLSETS = {
     "files.project": ("file",),
     "terminal": ("terminal",),
@@ -273,8 +274,8 @@ def render(capabilities, project, gateway_base_url, gateway_token, model_id, *, 
         # config_defaults.py:1289-1305, read by agent/agent_init.py:1259-1296: the built-in store and the user profile follow
         # ``memory``; no external memory provider.
         "memory": {"memory_enabled": memory, "user_profile_enabled": memory, "provider": ""},
-        # config_defaults.py:1456-1459: without ``skills.write`` every skill_manage write is staged for the user's approval.
-        "skills": {"write_approval": not skills_write},
+        # Q8: even with skills.write ON, keep native staging and explicit human review in the pane or island.
+        "skills": {"write_approval": True},
         # config_defaults.py:1475-1476: the curator rewrites agent-created skills in the background.
         "curator": {"enabled": skills_write and background},
         # Native background forks require their separate default-off Agent preference, even when memory/skill writes are on.

@@ -105,9 +105,9 @@ def _spawn(cmd: list, env: dict, timeout=30, input=None, detached=False):
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, input=input)
 
 
-def _probe_spawn(argv: list, env: dict, timeout: float):
-    """A harness's own version flag (harnesses/: Adapter.detect). Local: it prints a version and sends nothing."""
-    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+def _probe_spawn(argv: list, env: dict, timeout: float, cwd=None):
+    """Local version, startup or MCP identity qualification; no model turn or login command."""
+    return subprocess.run(argv, env=env, cwd=cwd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
 
 
 def probe(argv: list, timeout: float = 10) -> tuple:
@@ -117,6 +117,16 @@ def probe(argv: list, timeout: float = 10) -> tuple:
     except (OSError, subprocess.TimeoutExpired):
         return None, ""
     return r.returncode, r.stdout or r.stderr or ""
+
+
+def worker_probe(argv: list, env: dict, timeout: float = 10, *, cwd=None) -> tuple:
+    """Local startup/identity qualification; never a provider turn, login or frontend command."""
+    try:
+        args = ([str(a) for a in argv], {**scrubbed_base(), **env}, timeout)
+        r = _probe_spawn(*args, cwd=cwd) if cwd is not None else _probe_spawn(*args)
+    except (OSError, subprocess.TimeoutExpired):
+        return None, ""
+    return r.returncode, (r.stdout or "")[:16384]
 
 
 def _status_spawn(argv: list, env: dict, timeout: float):

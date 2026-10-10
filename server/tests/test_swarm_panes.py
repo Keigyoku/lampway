@@ -364,7 +364,7 @@ def test_a_pane_reaches_only_the_swarms_it_started(rig):
     assert res["isError"] is True and "not started by this pane" in res["content"][0]["text"]
 
 
-def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane_environment(rig):
+def test_a_codex_parent_keeps_native_wiring_but_unsupported_workers_refuse_before_spawn(rig):
     from lampway_server import choices as CH
     CH.active_store().set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
     rig.egress.set_route("byoa:codex", True)
@@ -374,24 +374,10 @@ def test_a_codex_parent_gets_codex_workers_whose_bearers_live_only_in_their_pane
     assert key not in json.dumps(pargv) and 'mcp_servers.lampway_swarm.bearer_token_env_var="LAMPWAY_PANE_KEY"' in pargv
     assert key not in Path(parent["mcp_config_path"]).read_text()
     res = rig.rpc(PANE_URL, {"Authorization": f"Bearer {key}"}, "tools/call", {"name": "swarm_start", "arguments": {"tasks": tasks("boots")}}).json()["result"]
-    assert res["isError"] is False, res
-    sid = json.loads(res["content"][0]["text"])["swarm_id"]
-    worker = wait_for(lambda: rig.worker_panes() and rig.worker_panes()[0])
-    assert worker and worker["agent"] == "codex"                                         # Q10: the user's saved worker mode
-    token = rig.herdr.env_of(worker["pane_id"])["LAMPWAY_WORKER_TOKEN"]
-    wargv = rig.herdr.start_of(worker["pane_id"])["args"]
-    wargv = wargv[wargv.index("--") + 1:]
-    assert token not in json.dumps(wargv) and token not in Path(worker["mcp_config_path"]).read_text()
-    assert not [a for a in wargv if "mcp_servers.lampway.command" in a or "lampway_swarm" in a], "a worker has only its own entry"
-    assert f'mcp_servers.lampway.url="{PANE_URL}"' in wargv
-    assert f'mcp_servers.lampway.http_headers={{"X-Mixar-Session-Id" = "{worker["swarm_binding"]}"}}' in wargv
-    assert next(a for a in wargv if a.startswith("You are worker-1")) and wargv.index(next(a for a in wargv if a.startswith("You are"))) < wargv.index("-c")
-    head = {"Authorization": f"Bearer {token}", "X-Mixar-Session-Id": worker["swarm_binding"]}
-    done = rig.rpc(PANE_URL, head, "tools/call", {"name": "lampway_worker_done", "arguments": {"summary": "worker-1 made nothing"}}).json()["result"]
-    assert done["isError"] is False
-    out = json.loads(rig.rpc(PANE_URL, {"Authorization": f"Bearer {key}"}, "tools/call",
-                             {"name": "swarm_collect", "arguments": {"swarm_id": sid}}).json()["result"]["content"][0]["text"])
-    assert [w["status"] for w in out["workers"]] == ["done"]
+    assert res["isError"] is True and "exclusive MCP discovery" in res["content"][0]["text"]
+    assert rig.worker_panes() == []
+    assert CH.preferred("agent.worker_mode") == "byoa:codex"
+    assert not [rec for rec in rig.cockpit.list_sessions() if rec.get("created_by") == "swarm"]
 
 
 # ------------------------------------------------------------------------------------------------------------- the parts
@@ -421,7 +407,8 @@ def test_a_bound_pane_gets_a_swarm_entry_whose_key_only_its_own_config_holds(rig
     assert unbound["mcp_config_path"] is None and not unbound.get("pane_key_sha256")
 
 
-def test_the_adapters_put_the_task_on_the_command_line_only_where_herdr_starts_the_harness(tmp_path):
+def test_the_adapters_put_the_task_on_the_command_line_only_where_herdr_starts_the_harness(tmp_path, monkeypatch):
+    monkeypatch.setattr(HN.get("pi"), "detect", lambda: HN.Installed("pi", "pi", str(tmp_path / "fixture-pi"), "1.0.4"))
     claude, codex, opencode = HN.get("claude"), HN.get("codex"), HN.get("opencode")
     pane = HN.PaneSpec(cwd=str(tmp_path), session_id="s-1")
     assert claude.launch(pane, task="Do the thing") == ["claude", "--session-id", "s-1", "Do the thing"]

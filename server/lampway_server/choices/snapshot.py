@@ -53,7 +53,7 @@ def live_world(hub=None, egress=None, spend=None, enforce_private: bool = False,
 
 
 def byoa_worker_readiness() -> dict:
-    """Local installation and opt-in facts only: no version process, login probe or credential file."""
+    """Local installation, bounded startup qualification and opt-in facts; no login or credential-file inspection."""
     from .. import choices as CH
     from ..herdr import harnesses as HN
     state_dir = getattr(CH.active_store(), "state_dir", None)
@@ -65,8 +65,8 @@ def byoa_worker_readiness() -> dict:
             reason = "your own agents in Lampway's panes are off: enable Bring Your Own Agent first"
         elif not adapter.direct_ok:
             reason = f"{adapter.label} cannot run a worker: {adapter.tools_note or 'no supported per-pane tool endpoint'}"
-        elif not adapter.worker_ok:
-            reason = f"{adapter.label} cannot run a worker: {adapter.worker_note}"
+        elif (problem := HN.worker_problem(adapter)):
+            reason = f"{adapter.label} cannot run a worker: {problem}"
         elif adapter.locate() is None:
             reason = f"{adapter.label} is not installed: {adapter.install_hint}"
         if not reason and hasattr(adapter, "compatibility_note"):

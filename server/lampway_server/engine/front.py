@@ -10,6 +10,8 @@ end. ``AgentHub.engine`` is a ``HermesFront``; the hub keeps the client protocol
   (``node_missing``), no herdr (``herdr_not_built``) or no running herdr server (``herdr_not_running``) the chat is refused before
   any turn starts, with the exact build command or setting (and the switch to Your agent where that would help);
 * **``agent.chat``** -> ``image.attach_bytes`` per image, then ``prompt.submit`` with R3's context blocks (``turn_context``);
+* **human ``/skills pending|diff|approve|reject``** -> native ``slash.exec`` and its output in the island; one pending ID,
+  no model turn, no review while busy or answering a question, and skills.write in force at the bound project for approve (Q8);
 * **a chat while a turn runs** -> ``session.steer`` (the hub answers ``{ok: true, joined: true}``, R4);
 * **``agent.cancel``** -> ``session.interrupt``;
 * **events** -> the turn's slots: ``message.delta`` and ``reasoning.delta`` -> ``ephemeral.append``; ``tool.start`` /
@@ -43,6 +45,7 @@ with or without an island turn; with no client connected it is refused ("Lampway
 import asyncio
 import json
 import logging
+import re
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -156,6 +159,34 @@ class HermesFront:
         self.feed = None                                     # history.Feed: the client's archive (R2), made on its first poll
 
     # ------------------------------------------------------------------------------------------------- the hub's side
+    def skill_review_refusal(self, socket, unit: str, text: str):
+        """Human-only native pending-write commands; never an agent prompt or a question answer."""
+        from ..agent.byoa import origin_of
+        if origin_of(socket) != "user":
+            return _refusal("agent_origin", "Only your own message in Lampway can review or approve pending skill writes.",
+                            ["Review from the island of the scene tab"])
+        command = skill_review_command(text)
+        if command is None:
+            return _refusal("skills_review_command", "Use /skills pending, or /skills diff, approve or reject followed by one pending ID.",
+                            ["Copy the eight-character ID from /skills pending"])
+        if self.is_running(unit) or self.has_question(unit):
+            return _refusal("skills_review_busy", "Finish or stop the current turn before reviewing pending skill writes.",
+                            ["Answer its question or press Stop, then send the review command again"])
+        if command.split()[1] == "approve":
+            from .. import capabilities as CAP
+            link = self.links.get(unit)
+            info = link.info if link is not None else None
+            if info is None:
+                info = self.units.known(unit)                 # the live bound pane can predate this island attachment
+            records = self.units.cockpit.list_sessions()
+            rec = next((r for r in records if info is not None and r.get("id") == info.record_id
+                        and r.get("unit") == unit), None)
+            project = (rec.get("project_root") or rec.get("cwd")) if rec else None
+            if not project or CAP.ACTIVE is None or not CAP.ACTIVE.effective("skills.write", project)[0]:
+                return _refusal("skills_write_off", "Enable skills.write for this pane's project before approving a pending skill write.",
+                                ["Turn on Write and improve its own skills in Capabilities; pending, diff and reject remain available"])
+        return None
+
     def _link(self, unit: str) -> Link:
         link = self.links.get(unit)
         if link is None:
@@ -203,8 +234,25 @@ class HermesFront:
     async def drive(self, socket, session, turn, stream, bubble_id, steps, user_text: Optional[str], context=None) -> str:
         """Run (or continue, ``user_text`` None after the island answered) the unit's Hermes turn for this island turn. Returns the
         turn's status; returns early, the Hermes turn still running, when it stops for a question (``turn.asked``)."""
+        review = is_skill_review(user_text)
+        if review and (refused := self.skill_review_refusal(socket, session.session_id, user_text)) is not None:
+            await stream.emit_quietly({"bubble_id": bubble_id, "content": {"set": refused["result"]["message"]}})
+            return "failed"
         link = await self._ensure(session.session_id, open_pane=user_text is not None, label=(context or {}).get("scene_name"))
         turn.conversation_id = self.conversation_of(session.session_id) or ""
+        if review:
+            settled = getattr(self.units, "settled", None)
+            if settled is not None:
+                await settled()
+            # Binding, capability and busy state may have changed while connecting or refreshing.
+            if (refused := self.skill_review_refusal(socket, session.session_id, user_text)) is not None:
+                output, status = refused["result"]["message"], "failed"
+            else:
+                result = await link.client.call("slash.exec", {"session_id": link.live_id,
+                                                               "command": skill_review_command(user_text)})
+                output, status = str(result.get("output") or "(no output)"), "completed"
+            await stream.emit_quietly({"bubble_id": bubble_id, "content": {"set": output}})
+            return status
         sink = Sink(socket, session, turn, stream, bubble_id, steps, done=asyncio.get_running_loop().create_future(),
                     asked=asyncio.Event())
         if user_text is not None and self._retry_click(socket, session.session_id, user_text):
@@ -1071,6 +1119,18 @@ def _turn_key(message: dict) -> str:
 
 def _rewind_refusal(code: str, message: str) -> dict:
     return {"ok": False, "code": code, "message": message}
+
+
+def is_skill_review(text: Optional[str]) -> bool:
+    parts = str(text or "").strip().split()
+    return bool(parts and parts[0].lower() == "/skills" and (len(parts) == 1 or parts[1].lower() in
+                {"pending", "diff", "approve", "reject", "apply", "deny", "drop", "approval", "mode"}))
+
+
+def skill_review_command(text: str) -> Optional[str]:
+    """Native IDs are uuid.hex[:8]; validate before native pending-path interpolation."""
+    text = str(text).strip()
+    return text if re.fullmatch(r"/skills (?:pending|(?:diff|approve|reject) [0-9a-f]{8})", text) else None
 
 
 def _refusal(code: str, message: str, help_: list) -> dict:

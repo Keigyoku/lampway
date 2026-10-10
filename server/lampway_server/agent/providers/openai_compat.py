@@ -8,7 +8,7 @@ from typing import AsyncIterator, Optional
 
 import httpx
 
-from .base import Message, ModelRequest, ProviderEvent, Stop, Text, ToolCall, ToolSpec
+from .base import Message, ModelRequest, ProviderEvent, Stop, Text, ToolCall, ToolSpec, image_url
 
 
 class OpenAICompatProvider:
@@ -16,9 +16,10 @@ class OpenAICompatProvider:
     connection = "custom_llm"                 # the Connections row a real call's outcome is reported to
 
     def __init__(self, base_url: str, model: str, api_key: str = "", *, transport=None,
-                 http_client: Optional[httpx.AsyncClient] = None, timeout: float = 600.0):
+                 http_client: Optional[httpx.AsyncClient] = None, timeout: float = 600.0, supports_vision: bool = False):
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self.supports_vision = supports_vision is True
         self._api_key = api_key or ""
         self.client = http_client or httpx.AsyncClient(transport=transport, timeout=timeout)
 
@@ -123,8 +124,23 @@ class OpenAICompatProvider:
             if calls:
                 out["tool_calls"] = calls
             return [out]
-        results = [{"role": "tool", "tool_call_id": p["tool_call_id"], "content": p.get("content", "")}
-                   for p in message.content if p.get("type") == "tool_result"]
+        results, images = [], []
+        for part in message.content:
+            if part.get("type") != "tool_result":
+                continue
+            content = part.get("content", "")
+            if isinstance(content, list) and any(p.get("type") == "image" for p in content):
+                call_id = part["tool_call_id"]
+                results.append({"role": "tool", "tool_call_id": call_id,
+                                "content": f"Multimodal result for tool call {call_id} follows in user content."})
+                images.append({"role": "user", "content": [{"type": "text", "text": f"Result from tool call {call_id}:"}]
+                               + [image_url(p) if p.get("type") == "image" else p for p in content]})
+            else:
+                results.append({"role": "tool", "tool_call_id": part["tool_call_id"], "content": content})
         if results:
-            return results
+            # All parallel tool calls are acknowledged before any synthetic user image block.
+            return results + images
+        if any(p.get("type") == "image" for p in message.content):
+            return [{"role": "user", "content": [image_url(p) if p.get("type") == "image" else p
+                                                    for p in message.content]}]
         return [{"role": "user", "content": message.text()}]

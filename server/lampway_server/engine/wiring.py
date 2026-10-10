@@ -155,6 +155,41 @@ def is_worker_session(session_id) -> bool:
     return len(parts) == 3 and parts[0] == "swarm" and all(parts)
 
 
+def selected_vision(provider, agent, resolution=None) -> Optional[bool]:
+    """Vision belongs to this selected model/endpoint, never a different parent or saved model."""
+    name = getattr(provider, "name", "")
+    if name == "chatgpt_plan":
+        return False  # R0a: no live vision probe has been approved and recorded.
+    model = getattr(provider, "model", None)
+    params = getattr(resolution, "params", {}) if resolution is not None else {}
+    if "supports_vision" in params:
+        matched = (params.get("model", getattr(resolution, "model", None)) == model)
+        if name in {"openai", "openai_compat"}:
+            matched = matched and str(params.get("base_url", "")).rstrip("/") == str(getattr(provider, "base_url", "")).rstrip("/")
+        return matched and params["supports_vision"] is True
+    store = getattr(agent, "settings_store", None)
+    read_byok = getattr(store, "byok", None) if name in {"anthropic", "openai", "openai_compat"} else None
+    byok = read_byok() if callable(read_byok) else None
+    if isinstance(byok, dict) and byok.get("provider") == name:
+        matched = byok.get("model") == model
+        if name in {"openai", "openai_compat"}:
+            matched = matched and str(byok.get("base_url") or "").rstrip("/") == str(getattr(provider, "base_url", "")).rstrip("/")
+        if matched and "supports_vision" in byok:
+            return byok["supports_vision"] is True
+        return name == "anthropic"
+    return True if name == "anthropic" else getattr(provider, "supports_vision", None)
+
+
+def _resolution_vision(agent, resolution) -> Optional[bool]:
+    """Read resolved metadata without constructing a provider or inspecting credentials."""
+    from types import SimpleNamespace
+    params = resolution.params
+    metadata = SimpleNamespace(name=resolution.provider,
+        model=params.get("model") if resolution.provider == "openai" else resolution.model,
+        base_url=params.get("base_url", ""))
+    return selected_vision(metadata, agent, resolution)
+
+
 def provider_getter(agent, *, settings=None, chatgpt_auth=None):
     """The gateway's provider for a pane, decided from its token's session (spec S2 as superseded by A):
 
@@ -192,7 +227,8 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
         if not is_worker_session(session_id):
             return agent.provider
         key = str(session_id)
-        provider = workers.get(key)
+        cached = workers.get(key)
+        provider = cached[0] if cached is not None else None
         if provider is None:
             factory = getattr(agent, "swarm_provider_factory", None)
             bindings = getattr(getattr(agent, "swarm", None), "bindings", None)
@@ -208,10 +244,21 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
             else:
                 raise ValueError("the pinned worker choice is unavailable after this server restart; "
                                  "this pane cannot make model calls. Start a new swarm using your saved Choices")
-            workers[key] = provider
+            workers[key] = (provider, selected_vision(provider, agent, choice))
             while len(workers) > WORKER_PROVIDERS_KEPT:
                 workers.popitem(last=False)
         return provider
+
+    def vision_for(session_id, provider):
+        # Capability is request metadata, not a mutation of potentially shared providers.
+        if isinstance(provider, _SummaryProvider):
+            return provider.supports_vision
+        if not is_worker_session(session_id):
+            return selected_vision(provider, agent)
+        cached = workers.get(str(session_id))
+        return cached[1] if cached is not None and cached[0] is provider else False
+
+    get.vision_for = vision_for
     return get
 
 
@@ -308,7 +355,13 @@ class EngineWiring:
         from ..agent.prompt import SYSTEM_PROMPT
         from .context_settings import Store as ContextStore
         project = project or CAP.project()
-        path = HC.write(home, board, project, gateway_url, token, model_id, supports_vision=sees_images(self.agent), rendered=rendered,
+        vision = selected_vision(self.agent.provider, self.agent)
+        if worker:
+            binding = (mcp_headers or {}).get("X-Mixar-Session-Id")
+            bindings = getattr(getattr(self.agent, "swarm", None), "bindings", None)
+            choice = bindings.choice_for(binding) if bindings is not None else None
+            vision = _resolution_vision(self.agent, choice) if choice is not None else False
+        path = HC.write(home, board, project, gateway_url, token, model_id, supports_vision=vision if isinstance(vision, bool) else None, rendered=rendered,
                         mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker,
                         instructions=None if worker else SYSTEM_PROMPT,
                         context=ContextStore(self.settings.state_dir).config(project))     # a worker's prompt comes with its task (S3)
@@ -371,6 +424,7 @@ class _SummaryProvider:
         self.settings, self.agent, self.resolution = settings, agent, resolution
         self.name = resolution.provider
         self.model = resolution.params.get("model") if resolution.provider == "openai" else resolution.model
+        self.supports_vision = _resolution_vision(agent, resolution)
 
     async def stream(self, request):
         from ..agent.providers import make_provider, ResolvedWorkerProvider

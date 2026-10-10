@@ -209,6 +209,11 @@ class AgentHub:
             return refused
         if self.engine is None:
             return self.engine_refusal()
+        from ..engine.front import is_skill_review
+        if is_skill_review(message):
+            if (refused := self.engine.skill_review_refusal(socket, session_id, message)) is not None:
+                return refused
+            return await self._message(socket, command_id, session_id, message)
         if self.engine.has_question(session_id) and message.strip():
             # A new message while the pane's Hermes waits on the island's question: the message is the answer (a permission card
             # takes it as deny unless it names a choice), and the turn goes on in this command's turn (spec A2).
@@ -241,6 +246,11 @@ class AgentHub:
             return refused
         if self.engine is None:
             return self.engine_refusal()
+        from ..engine.front import is_skill_review
+        if is_skill_review(text):
+            if (refused := self.engine.skill_review_refusal(socket, session_id, text)) is not None:
+                return refused
+            return await self._message(socket, command_id, session_id, text)
         answers = payload.get("answers")
         session = self._session(session_id)
         pending = session.pending_question

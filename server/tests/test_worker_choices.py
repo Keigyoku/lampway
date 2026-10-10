@@ -71,11 +71,11 @@ def test_byoa_mode_facts_never_describe_a_login_as_a_lampway_model():
 def test_saved_byoa_mode_runs_from_a_mode1_parent_without_resolving_api_service(saved_choices, tmp_path, monkeypatch):
     from lampway_server import egress as EG
     from .worker_choice_support import install_worker_harness
-    install_worker_harness(tmp_path, monkeypatch, "codex")
+    install_worker_harness(tmp_path, monkeypatch, "claude")
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
     monkeypatch.setattr(CH, "WORLD_FACTORY", None)
-    EG.ACTIVE.set_route("byoa:codex", True)
-    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    EG.ACTIVE.set_route("byoa:claude", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     seen = []
     resolve = CH.resolve
 
@@ -88,8 +88,8 @@ def test_saved_byoa_mode_runs_from_a_mode1_parent_without_resolving_api_service(
     manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=None)
     brain = manager.worker_brain(SwarmContext(None, "scene", "turn", "call", mode="runtime",
                                             project_root=str(tmp_path)))
-    assert brain.harness == "codex" and brain.choice is None
-    assert brain.mode_choice.option == "byoa:codex" and brain.mode_choice.scope == "global"
+    assert brain.harness == "claude" and brain.choice is None
+    assert brain.mode_choice.option == "byoa:claude" and brain.mode_choice.scope == "global"
     assert seen == ["agent.worker_mode"]
 
 
@@ -98,7 +98,7 @@ def test_byoa_refuses_before_activation_when_local_or_route_fact_is_missing(save
     from lampway_server import egress as EG
     from .worker_choice_support import install_worker_harness
     if failure != "installation":
-        install_worker_harness(tmp_path, monkeypatch, "codex")
+        install_worker_harness(tmp_path, monkeypatch, "claude")
     else:
         monkeypatch.setenv("PATH", str(tmp_path / "empty-vendor-bin"))
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "0" if failure == "opt_in" else "1")
@@ -106,8 +106,8 @@ def test_byoa_refuses_before_activation_when_local_or_route_fact_is_missing(save
     strict = EG.Egress(tmp_path / "strict-egress")
     monkeypatch.setattr(EG, "ACTIVE", strict)
     if failure != "route":
-        strict.set_route("byoa:codex", True)
-    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+        strict.set_route("byoa:claude", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     asked = []
 
     class Socket:
@@ -168,16 +168,16 @@ def test_only_the_users_explicit_mode_fallback_chain_can_switch_modes(saved_choi
 def test_running_worker_mode_remains_pinned_after_saved_mode_changes(saved_choices, tmp_path, monkeypatch):
     from lampway_server import egress as EG
     from .worker_choice_support import install_worker_harness
-    install_worker_harness(tmp_path, monkeypatch, "codex")
+    install_worker_harness(tmp_path, monkeypatch, "claude")
     monkeypatch.setenv("LAMPWAY_LOCAL_CLI", "1")
     monkeypatch.setattr(CH, "WORLD_FACTORY", None)
-    EG.ACTIVE.set_route("byoa:codex", True)
-    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:codex"}, by="user")
+    EG.ACTIVE.set_route("byoa:claude", True)
+    saved_choices.set("agent.worker_mode", "global", None, {"preferred": "byoa:claude"}, by="user")
     manager = SwarmManager(None)
     manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
     brain = manager.worker_brain(SwarmContext(None, "scene", "turn", "call"))
     saved_choices.set("agent.worker_mode", "global", None, {"preferred": "local:lampway_hermes"}, by="user")
-    assert brain.harness == "codex" and brain.mode_choice.record()["option"] == "byoa:codex" and brain.choice is None
+    assert brain.harness == "claude" and brain.mode_choice.record()["option"] == "byoa:claude" and brain.choice is None
     assert CH.preferred("agent.worker_mode") == "local:lampway_hermes"
 
 

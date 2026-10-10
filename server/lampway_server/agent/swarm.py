@@ -232,8 +232,8 @@ class SwarmManager:
                 compatibility = adapter.compatibility_note() if hasattr(adapter, "compatibility_note") else ""
                 if compatibility:
                     raise ValueError(compatibility)
-                if not adapter.worker_ok:
-                    raise ValueError(f"{adapter.label} cannot run a worker: {adapter.worker_note}")
+                if (problem := HN.worker_problem(adapter)):
+                    raise ValueError(f"{adapter.label} cannot run a worker: {problem}")
             elif mode_choice.option == "local:lampway_hermes":
                 choice = CH.resolve("agent.worker", CH.Job(project=ctx.project_root, origin="agent"))
                 if choice.provider not in ("chatgpt_plan", "anthropic", "openrouter", "openai", "mock"):

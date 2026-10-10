@@ -28,6 +28,9 @@ class Codex(Adapter):
     BYPASS = ("--dangerously-bypass-approvals-and-sandbox",)
     task_flag = ()                            # `codex [PROMPT]`: the TUI starts with it
     direct_ok = True                          # a streamable-HTTP entry: url, bearer_token_env_var, http_headers
+    worker_note = ("Codex workers need exclusive MCP discovery. Codex's -c overrides merge with inherited MCP servers and "
+                   "do not exclude plugin servers. Choose a qualified worker mode in Agent preferences; Codex MAIN panes "
+                   "keep their native configuration and login.")
     interrupt_keys = ("esc",)
     takes_image_paths = True
     FACTS = {
@@ -38,6 +41,10 @@ class Codex(Adapter):
         "mcp_overrides": "`codex <these -c overrides> mcp list --json` (0.161.0, no login) lists `lampway` as a stdio server with this "
                          "pane's command, args and LAMPWAY_BOUND_SESSION, tool_timeout_sec 610, and the swarm entry as streamable "
                          "HTTP with its bearer variable and headers (tests/test_byoa_harnesses.py pins the argv)",
+        "worker_isolation": "0.161.0 pinned source: config/src/merge.rs recursively merges override tables; "
+                            "core/src/config/mod.rs separately admits plugin MCP servers. Adding Lampway's entry, or "
+                            "-c mcp_servers={}, does not prove exclusive worker discovery. Workers are refused; MAIN "
+                            "keeps additive native wiring. Source: https://github.com/openai/codex/tree/rust-v0.161.0/codex-rs",
         "session_file": "rollouts under $CODEX_HOME/sessions (default ~/.codex), matched by session_meta (observers/native.py); still "
                         "the default store in 0.161.0: `codex features list` shows background_paginated_rollout_migration 'under "
                         "development, false' and `codex migrate-rollouts` calls rollouts the legacy sessions it would move. When that "
