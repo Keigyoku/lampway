@@ -5,6 +5,16 @@
 
 Behavior follows the [agent wrapper](../../server/lampway_server/agent/motion_tools.py) and [renderer](../../server/lampway_server/motion/__init__.py) on this branch. This describes current behavior and remaining boundaries; it does not introduce an alternate executable schema.
 
+## Entry points
+
+- The agent tool `lampway_motion_graphics` takes the JSON inputs below and returns JSON.
+- The AXI CLI `python -m lampway_server.motion` ([cli.py](../../server/lampway_server/motion/cli.py)) is a thin layer over the same `_work` (the same checks, receipt and Vault filing). The project is `LAMPWAY_PROJECT_ROOT` or the working directory.
+  - With no arguments it prints `bin`, a one-line `description`, `project`, `scenes[N]{name}` and the newest ten `runs[N]{run_id,ok,warn}` (`0 scenes`/`0 runs` when there are none).
+  - `render --scene <dir> [--width --height --fps --duration --template id@v --var k=v --no-vault --full]` and `verify --receipt <path> [--full]`.
+  - Output is TOON (`compute/toon_out.py`) with minimal default fields (findings as `{frame,check,severity}`, at most ten rows with a `_shown` count); `--full` adds every row, finding details, hashes, outputs and timings. Every output ends in `help[]`.
+  - Errors print `error:` and `help[]` on stdout and exit 1 (a refusal, a failing self-check, a render that does not reproduce); a usage error (unknown flag, missing argument) exits 2. There are no prompts.
+- Every refusal from either entry point carries `help` next steps: no browser points at BUILD-LAMPWAY.md section 8, a size out of bounds gives the bounds.
+
 ## Inputs
 
 The declared JSON object rejects additional properties. Render properties are:

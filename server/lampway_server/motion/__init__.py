@@ -519,10 +519,14 @@ def summary(receipt: dict) -> dict:
         out["inputs"] = [{"name": k, "value": receipt["inputs"][k], "source": sources[k]} for k in RESOLVED if k in sources]
     if receipt.get("error"):
         out["error"] = receipt["error"]
-    out["help"] = list(receipt.get("help") or []) + [
-        f"look at {receipt['files']['contact']} yourself and watch the video: some defects only an eye sees",
-        f"verify the render: action verify, receipt {receipt['files']['receipt']}"]
+    out["help"] = list(receipt.get("help") or []) + next_steps(receipt)
     return out
+
+
+def next_steps(receipt: dict) -> list:
+    """The agent's generic next steps after a render (the CLI words its own)."""
+    return [f"look at {receipt['files']['contact']} yourself and watch the video: some defects only an eye sees",
+            f"verify the render: action verify, receipt {receipt['out_dir']}/receipt.json"]
 
 
 def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None, defaults=None) -> dict:
