@@ -29,6 +29,9 @@ class _RecordingCDP:
         self.sent.append((method, params, session))
         return {}
 
+    def keep_request(self, url, request_id, session):
+        pass
+
 
 def _attach(cap, kind, url):
     cap._event({"method": "Target.attachedToTarget",
@@ -150,3 +153,62 @@ def test_a_declared_size_that_differs_is_a_warning(tmp_path):
 def test_a_matching_or_absent_declared_size_is_silent(tmp_path, declared):
     res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _Declares(declared))
     assert not [f for f in res["self_check"]["findings"] if f["check"] == "size"]
+
+
+# containment: an out-of-scene file request is refused at once, not deferred to the next check
+def test_an_outside_file_request_is_failed_and_refused_at_once(tmp_path):
+    scene = tmp_path / "scene"
+    scene.mkdir()
+    (tmp_path / "private.svg").write_text("<svg/>")
+    cap = F.Chromium("/nonexistent/chrome", tmp_path / "browser")
+    cap.cdp, cap.scene_root = _RecordingCDP(), scene.resolve()
+    with pytest.raises(F.SceneError, match="file outside the scene folder"):
+        cap._event({"method": "Fetch.requestPaused", "sessionId": "s1",
+                    "params": {"requestId": "r1", "request": {"url": (tmp_path / "private.svg").as_uri()}}})
+    assert cap.cdp.sent == [("Fetch.failRequest", {"requestId": "r1", "errorReason": "AccessDenied"}, "s1")]
+
+
+def test_a_scene_file_request_is_still_fulfilled(tmp_path):
+    scene = tmp_path / "scene"
+    scene.mkdir()
+    (scene / "ok.svg").write_text("<svg/>")
+    cap = F.Chromium("/nonexistent/chrome", tmp_path / "browser")
+    cap.cdp, cap.scene_root = _RecordingCDP(), scene.resolve()
+    cap._event({"method": "Fetch.requestPaused", "sessionId": "s1",
+                "params": {"requestId": "r1", "request": {"url": (scene / "ok.svg").as_uri()}}})
+    assert [m for m, _p, _s in cap.cdp.sent] == ["Fetch.fulfillRequest"] and cap.violation is None
+
+
+@pytest.fixture
+def live_browser(tmp_path, monkeypatch):
+    import os
+    binary = os.environ.get("LAMPWAY_CHROMIUM")
+    if not binary or not os.path.isfile(binary):
+        pytest.skip("set LAMPWAY_CHROMIUM to a headless Chromium; navigation containment UNVERIFIED")
+    monkeypatch.setattr(F, "CHROME_FLAGS", [*F.CHROME_FLAGS, "--no-sandbox"])    # container only, as in the containment suite
+    cap = F.Chromium(binary, tmp_path / "browser")
+    yield cap
+    cap.close()
+
+
+@pytest.mark.parametrize("when", ["setup", "frame"])
+def test_navigating_the_scene_to_an_outside_file_is_a_prompt_containment_refusal(live_browser, tmp_path, when):
+    import time
+    outside = tmp_path / "private.html"
+    outside.write_text("<body style='background:red'>")
+    scene = tmp_path / "scene"
+    scene.mkdir()
+    go = f"location.href='{outside.as_uri()}'"
+    setup = f"window.__setup=async()=>{{{go};await new Promise(r=>setTimeout(r,400));return {{fonts:[],images:[]}}}};" if when == "setup" else \
+        "window.__setup=async()=>({fonts:[],images:[]});"
+    frame = f"window.__frame=(t)=>{{if(!window.gone){{window.gone=1;{go}}}}};" if when == "frame" else "window.__frame=()=>{};"
+    (scene / "index.html").write_text("<!doctype html><body><script>window.__audit=()=>({text:[],marks:[]});" + setup + frame + "</script>")
+    live_browser.scene_root = scene
+    t0 = time.monotonic()
+    with pytest.raises(F.SceneError, match="file outside the scene folder"):
+        live_browser.open(scene / "index.html", 64, 64)
+        live_browser.setup()
+        for i in range(5):
+            live_browser.frame(i / 10)
+            time.sleep(0.2)
+    assert time.monotonic() - t0 < 30

@@ -273,7 +273,7 @@ class Chromium:
                 if not allowed_file_url(url, self.scene_root):
                     self.violation = "file outside the scene folder: use only scene-local assets"
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
-                    return
+                    raise SceneError(self.violation)     # refuse now: a deferred check loses it to a navigation's CDP error or hang
                 try:
                     path = Path(unquote(urlsplit(url).path, errors="strict"))
                     # Fulfill the checked bytes, never let Chromium reopen the pathname. Verify the opened inode as well
@@ -287,7 +287,7 @@ class Chromium:
                 except SceneError as exc:
                     self.violation = str(exc)
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
-                    return
+                    raise
                 except OSError:
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
                     return
