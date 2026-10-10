@@ -221,6 +221,48 @@ def bone_direction(joint, joints):
     return d / n if n > 1e-9 else None
 
 
+def centre_rays(point, along, ray_cast, reach, minimum, *, rays=CENTRE_RAYS, iters=CENTRE_ITERS):
+    """16 rays, three mean-hit passes; callback returns world-metre hit or None."""
+    point, along = np.asarray(point, float), np.asarray(along, float)
+    if point.shape != (3,) or not np.isfinite(point).all():
+        raise ValueError("joint position must be a finite 3-vector")
+    if along.shape != (3,) or not np.isfinite(along).all() or np.linalg.norm(along) == 0:
+        raise ValueError("joint cross-section axis must be finite and nonzero")
+    along = along / np.linalg.norm(along)
+    hint = np.array([1.0, 0, 0] if abs(along[0]) < 0.9 else [0, 1.0, 0])
+    across = np.cross(along, hint)
+    across /= np.linalg.norm(across)
+    other = np.cross(along, across)
+    if not np.isfinite(reach) or reach <= 0:
+        raise ValueError("ray reach must be positive finite metres")
+    current = point.copy()
+    passes = []
+    skipped = None
+    for _ in range(iters):
+        hits = []
+        for angle in np.arange(rays) * (2 * np.pi / rays):
+            direction = np.cos(angle) * across + np.sin(angle) * other
+            hit = ray_cast(current, direction, reach)
+            if hit is not None:
+                hit = np.asarray(hit, float)
+                if hit.shape != (3,) or not np.isfinite(hit).all():
+                    raise ValueError("surface ray hit must be a finite 3-vector")
+                hits.append(hit)
+        row = {"hits": len(hits), "origin_m": current.tolist()}
+        passes.append(row)
+        if len(hits) < minimum:
+            skipped = f"open cross-section ring: {len(hits)}/{rays} hits, minimum {minimum}"
+            current = point.copy()
+            break
+        delta = np.mean(hits, axis=0) - current
+        delta -= along * np.dot(delta, along)
+        current += delta
+        row["shift_m"] = delta.tolist()
+    return {"position": current.tolist(), "passes": passes, "skipped": skipped,
+            "reach_m": reach, "minimum_hits": minimum,
+            "displacement_m": float(np.linalg.norm(current-point))}
+
+
 def centre_joint(V, T, p, d, reach, min_hits=12, rays=CENTRE_RAYS, iters=CENTRE_ITERS):
     """(point, hits, why): ``p`` moved to the mean of the first surface hits of ``rays`` rays in the plane across ``d`` (``iters``
     passes); ``why`` names a ring that is not closed (fewer than ``min_hits`` hits within ``reach``), and then ``p`` is returned as is."""
@@ -230,18 +272,18 @@ def centre_joint(V, T, p, d, reach, min_hits=12, rays=CENTRE_RAYS, iters=CENTRE_
     v = np.cross(d, u)
     L = (np.asarray(V, float) - p) @ np.stack([u, v, d], 1)
     segs = G.slice_segments(L, T, 0.0, axis=2)
-    th = 2 * math.pi * np.arange(rays) / rays
-    dirs = np.stack([np.cos(th), np.sin(th)], 1)
-    c = np.zeros(2)
-    hits = 0
-    for _ in range(iters):
-        t = np.array([G.first_hit(segs, c, e) for e in dirs])
-        ok = ~np.isnan(t) & (t <= reach)
-        hits = int(ok.sum())
-        if hits < min_hits:
-            return p, hits, f"the ring is not closed: {hits} of {rays} rays meet the surface within {reach * 100:.0f} cm (needs {min_hits})"
-        c = (c + t[ok, None] * dirs[ok]).mean(0)
-    return p + c[0] * u + c[1] * v, hits, None
+    def ray_cast(origin, direction, distance):
+        local_origin = np.array([(origin-p) @ u, (origin-p) @ v])
+        local_direction = np.array([direction @ u, direction @ v])
+        t = G.first_hit(segs, local_origin, local_direction)
+        if np.isnan(t) or t > distance:
+            return None
+        return origin + t * direction
+    measured = centre_rays(p, d, ray_cast, reach, min_hits, rays=rays, iters=iters)
+    hits = measured["passes"][-1]["hits"] if measured["passes"] else 0
+    why = (f"the ring is not closed: {hits} of {rays} rays meet the surface within {reach * 100:.0f} cm (needs {min_hits})"
+           if measured["skipped"] else None)
+    return np.asarray(measured["position"]), hits, why
 
 
 def detect(mesh, detector):

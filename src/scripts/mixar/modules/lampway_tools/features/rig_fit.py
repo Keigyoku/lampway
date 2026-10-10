@@ -57,10 +57,18 @@ def _example(example, root):
     return ob, canon_io.geometry_sha256(ob), "geometry"
 
 
-def _joints(joints, ob, sha, root, template):
+def _joints(joints, ob, sha, root, template, hidden=None):
     if joints == "views":
         raise C.FeatureError("joints from views need the pose environment (canon 11: a 2D keypoint detector, the captain's choice, is not installed "
                              "here): measure the joints elsewhere and pass a titan.rig-joints/1 file")
+    if joints.startswith("centre:rig:"):
+        from . import rig_fit_measure as RM
+        arm = C.need_object(joints[len("centre:rig:"):], "ARMATURE")
+        doc = RM.measure_own_rig(ob, arm, hidden=HIDDEN_DEFAULT if hidden is None else hidden)
+        if doc["example_sha256"] != sha:
+            raise C.FeatureError("centred own-rig measurement does not match the example SHA256; use the scene mesh object")
+        raw = json.dumps(doc, sort_keys=True, allow_nan=False).encode()
+        return doc["joints"], {"source": joints, "example_sha256": sha, "measurement": doc["measurement"]}, _sha_bytes(raw)
     if joints.startswith("rig:"):
         arm = C.need_object(joints[4:], "ARMATURE")
         if not any(m.type == "ARMATURE" and m.object is arm for m in ob.modifiers):
@@ -202,7 +210,7 @@ def fit(example, joints, root, template="", hands="none", hidden=None, conventio
         tpl = RF.reference_rig(Path(root, template) if template and not os.path.isabs(template) else template, probe)
     finally:
         bpy.data.objects.remove(probe)
-    J, src, joints_sha = _joints(joints, ob, sha, root, tpl)
+    J, src, joints_sha = _joints(joints, ob, sha, root, tpl, hidden)
     required = [n for n in RC.REQUIRED_JOINTS if n in tpl["heads"]]
     try:
         f = RC.fit_template(tpl, J, required)

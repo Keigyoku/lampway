@@ -24,6 +24,7 @@ import numpy as np
 
 from . import common as C
 from . import weights as WT
+from . import fit_articulated_contacts as AC
 from .. import canon_geom as G
 from ..pipeline import validate as V
 
@@ -185,6 +186,47 @@ def _apply_seam_bands(ob, parts, plan_parts, bands, W, names):
     return dict(receipt, vertices=changed)
 
 
+def _articulated_plan(ob, parts, plan_parts, declaration, root):
+    """Validate source authority and all current contacts before any publication."""
+    if declaration is None:
+        return None, None
+    from .authored_parts import source_seams
+    from .workflows import mesh_hash
+    from mathutils import kdtree
+    original, ids = source_seams(ob, root)
+    measured = {}
+    if isinstance(declaration, dict) and isinstance(declaration.get("contacts"), list):
+        P = np.array([(ob.matrix_world @ v.co)[:] for v in ob.data.vertices])
+        for row in declaration["contacts"]:
+            pair = row.get("parts") if isinstance(row, dict) else None
+            if not isinstance(pair, list) or len(pair) != 2 or any(not isinstance(p, str) or p not in parts for p in pair):
+                continue  # pure admission reports the malformed declaration
+            a, b = sorted(pair)
+            kd = kdtree.KDTree(len(parts[b]))
+            for v in parts[b]:
+                kd.insert(P[v], int(v))
+            kd.balance()
+            measured[(a, b)] = {(int(v), int(w)) for v in parts[a]
+                                for _, w, _ in kd.find_range(P[v], G.WELD_M * 2)
+                                if np.linalg.norm(P[v] - P[w]) <= G.WELD_M}
+    provenance = json.loads(ob.get("lw_authored_part_copy", "{}"))
+    try:
+        admitted = AC.validate(declaration, source_hash=provenance.get("source_sha256"),
+                               prepared_hash=mesh_hash(ob), prepared_identity=_band_identity(ob, parts),
+                               original_seams=original, source_ids=ids, parts=parts, plan_parts=plan_parts,
+                               measured_pairs=measured)
+    except ValueError as e:
+        raise C.FeatureError(str(e)) from e
+    return admitted, ids
+
+
+def _recheck_articulated(ob, parts, pl, root):
+    declaration = pl.get("articulated_contacts")
+    if declaration is not None and AC.digest(declaration, pl["parts"]) != pl.get("articulated_contacts_sha256"):
+        raise C.FeatureError("articulated contact declaration or binding changed since plan; review and rerun plan")
+    return _articulated_plan(ob, parts, pl["parts"], declaration, root)
+
+
 def plan(piece, armature, roles, bind_overrides, out_dir, root):
     ob = C.need_object(piece)
     arm = C.need_object(armature, "ARMATURE")
@@ -223,6 +265,13 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
             raise C.FeatureError(f"part {name}: the fallback {fallback!r} must be one of its bones {bones}")
         out[name] = {"role": role, "mode": mode, "bones": bones, "group": name, "reason": reason, "vertices": int(len(idx)), "fallback": fallback}
     bands = _seam_band_plan(ob, arm, parts, out, (bind_overrides or {}).get("_seam_bands", []))
+    articulated, _ = _articulated_plan(ob, parts, out, (bind_overrides or {}).get("_articulated_contacts"), root)
+    if articulated:
+        for contact in articulated["contacts"]:
+            for p in contact["parts"]:
+                if out[p]["mode"] == "rigid" and (bind_overrides or {}).get(p, {}).get("bones") != out[p]["bones"]:
+                    raise C.FeatureError("articulated rigid endpoints need an explicitly reviewed bone in bind_overrides; proximity is not shoulder motion authority")
+    released = AC.released_pairs(articulated)
     names = sorted(out)
     seams, opens = [], []
     P = np.array([(ob.matrix_world @ v.co)[:] for v in ob.data.vertices])
@@ -247,7 +296,7 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
             if source_count:
                 row = {"parts": [a, b], "vertices": int(source_count), "bones": [out[a]["bones"][0] if out[a]["mode"] == "rigid" else None, out[b]["bones"][0] if out[b]["mode"] == "rigid" else None]}
                 seams.append(row)
-                if out[a]["mode"] == "rigid" and out[b]["mode"] == "rigid" and out[a]["bones"] != out[b]["bones"]:
+                if out[a]["mode"] == "rigid" and out[b]["mode"] == "rigid" and out[a]["bones"] != out[b]["bones"] and (a, b) not in released:
                     opens.append({"parts": [a, b], "bones": sorted({out[a]["bones"][0], out[b]["bones"][0]}), "vertices": int(source_count),
                                   "why": "two rigid parts of one shell on different bones: the seam opens when the bones move"})
     parent = {n: n for n in names}
@@ -266,14 +315,15 @@ def plan(piece, armature, roles, bind_overrides, out_dir, root):
     rigid_groups = sorted(sorted(g) for g in groups.values() if len(g) > 1)
     d = Path(root) / out_dir
     d.mkdir(parents=True, exist_ok=True)
-    (d / "bind_plan.json").write_text(json.dumps({"piece": ob.name, "parts": out, "rigid_groups": rigid_groups, "seam_bands": bands}, indent=1))
+    (d / "bind_plan.json").write_text(json.dumps({"piece": ob.name, "parts": out, "rigid_groups": rigid_groups, "seam_bands": bands, "articulated_contacts": AC.receipt(articulated)}, indent=1))
     (d / "seams.json").write_text(json.dumps({"seams": seams, "seam_opens": opens}, indent=1))
     state = _load(root, out_dir)
     state["plan"] = {"piece": ob.name, "armature": arm.name, "parts": out, "seam_opens": opens, "rigid_groups": rigid_groups, "roles": roles,
                      "seam_bands": bands, "seam_band_identity": _band_identity(ob, parts) if bands else None,
+                     "articulated_contacts": articulated, "articulated_contacts_sha256": AC.digest(articulated, out) if articulated else None,
                      "seam_band_recipe_sha256": hashlib.sha256(json.dumps(bands, sort_keys=True).encode()).hexdigest() if bands else None}
     _save(root, out_dir, state)
-    return {"ok": True, "parts": out, "seams": seams, "seam_opens": opens, "rigid_groups": rigid_groups, "seam_bands": bands, "files": ["bind_plan.json", "seams.json"]}
+    return {"ok": True, "parts": out, "seams": seams, "seam_opens": opens, "rigid_groups": rigid_groups, "seam_bands": bands, "articulated_contacts": AC.receipt(articulated), "files": ["bind_plan.json", "seams.json"]}
 
 
 MATCH_MAX_DISTANCE = 0.5                # m: the reach of a part's match on its own body region (receipt states it)
@@ -322,12 +372,13 @@ def _sidecar_regions(package, arm, names, root):
     return Wb, V, T, np.where(has, dom, -1), rec["package_sha256"]
 
 
-def _rigid_fade(ob, parts, plan_parts, W, names):
+def _rigid_fade(ob, parts, plan_parts, W, names, exclusions=None):
     """canon 07 B.5: every non-rigid vertex within PLATE_FADE_M of a rigid part's surface blends toward that part's bone
     (canon_geom.rigid_blend, strict); a distance within the weld tolerance is the seam itself (distance 0: the bone alone).
     Returns the number of rows changed; two different rigid bones anchoring one vertex are refused by vertex."""
     from mathutils import Vector
     from mathutils.bvhtree import BVHTree
+    exclusions = exclusions or {}
     by_bone = {}
     for p, r in plan_parts.items():
         if r["mode"] == "rigid":
@@ -339,18 +390,22 @@ def _rigid_fade(ob, parts, plan_parts, W, names):
     P = [tuple(mw @ v.co) for v in ob.data.vertices]
     ob.data.calc_loop_triangles()
     trees = {}
-    for bone, vs in by_bone.items():
+    surfaces = {(p, r["bones"][0]): set(int(i) for i in parts[p]) for p, r in plan_parts.items() if r["mode"] == "rigid"} if exclusions else {(None, b): vs for b, vs in by_bone.items()}
+    for surface, vs in surfaces.items():
         tris = [tuple(t.vertices) for t in ob.data.loop_triangles if all(v in vs for v in t.vertices)]
         if tris:
-            trees[bone] = BVHTree.FromPolygons(P, tris)
+            trees[surface] = BVHTree.FromPolygons(P, tris)
     ix = {b: i for i, b in enumerate(names)}
     changed = 0
     for i in soft:
         near = {}
-        for bone, tree in trees.items():
+        for (part, bone), tree in trees.items():
+            if part in exclusions.get(i, set()):
+                continue
             hit = tree.find_nearest(Vector(P[i]), PLATE_FADE_M)
             if hit[0] is not None:
-                near[bone] = 0.0 if hit[3] <= G.WELD_M else float(hit[3])
+                distance = 0.0 if hit[3] <= G.WELD_M else float(hit[3])
+                near[bone] = min(near.get(bone, distance), distance)
         if not near:
             continue
         field = {names[j]: float(W[i, j]) for j in np.flatnonzero(W[i] > WT.EPS)}
@@ -472,6 +527,7 @@ def weights(piece, armature, out_dir, body_object, root, body=""):
         raise C.FeatureError("name body: the fit_body package whose native sidecar holds the engine's weights (canon 07 INV-07.3); "
                              "a scene body_object is accepted as an approximation")
     parts = _parts(ob)
+    articulated, articulated_ids = _recheck_articulated(ob, parts, pl, root)
     bands = pl.get("seam_bands", [])
     if bands:
         recipe_hash = hashlib.sha256(json.dumps(bands, sort_keys=True).encode()).hexdigest()
@@ -509,7 +565,8 @@ def weights(piece, armature, out_dir, body_object, root, body=""):
         for p in restrict:
             W[parts[p]] = _restrict_part(ob, parts[p], pl["parts"][p], p, parents, names, tri_W, tri_V, tri_T, tri_bone)
         band_receipt = _apply_seam_bands(ob, parts, pl["parts"], bands, W, names)
-        faded = _rigid_fade(ob, parts, pl["parts"], W, names)
+        exclusions = AC.fade_exclusions(articulated, parts, pl["parts"], articulated_ids)
+        faded = _rigid_fade(ob, parts, pl["parts"], W, names, exclusions)
     for p, r in pl["parts"].items():
         if r["mode"] == "rigid":
             idx = parts[p]
@@ -525,10 +582,11 @@ def weights(piece, armature, out_dir, body_object, root, body=""):
     mod = fit.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
     state["weights"] = {"object": fit.name, "body_object": body_object or None, "body": body or None, "body_package_sha256": pkg_sha,
-                        "pose": _pose_record(arm), "seam_bands": band_receipt if restrict else None}
+                        "pose": _pose_record(arm), "seam_bands": band_receipt if restrict else None,
+                        "articulated_contacts": AC.receipt(articulated)}
     _save(root, out_dir, state)
     return {"ok": True, "object": fit.name, "weights_source": source, "groups": len(keep), "rigid_fade_m": PLATE_FADE_M, "faded_vertices": faded,
-            "body_package_sha256": pkg_sha, "seam_bands": band_receipt if restrict else None}
+            "body_package_sha256": pkg_sha, "seam_bands": band_receipt if restrict else None, "articulated_contacts": AC.receipt(articulated)}
 
 
 def _pose_record(arm):
@@ -554,6 +612,7 @@ def return_report(piece, armature, out_dir, root):
         raise C.FeatureError("run stage weights first")
     ob = C.need_object(piece)
     arm = C.need_object(armature, "ARMATURE")
+    _recheck_articulated(ob, _parts(ob), state["plan"], root)
     fit = C.need_object(state["weights"]["object"])
     if (state["weights"].get("pose") or {}).get("sha256") != _pose_record(arm)["sha256"]:
         raise C.FeatureError("the weights were sampled at another pose: put the armature back in the fit pose, or re-run stage weights at it")
@@ -606,14 +665,16 @@ def apply(piece, armature, out_dir, accept_seam_gap_mm, root):
     state = _load(root, out_dir)
     if "weights" not in state:
         raise C.FeatureError("run stage weights first")
+    ob = C.need_object(piece)
+    articulated, _ = _recheck_articulated(ob, _parts(ob), state["plan"], root)
     opens = state["plan"]["seam_opens"]
     if opens and accept_seam_gap_mm is None:
         raise C.FeatureError(f"{len(opens)} seam(s) open ({opens[0]['parts']} on {opens[0]['bones']}): two rigid parts of one shell on different bones tear it; rebind them to one bone, or pass accept_seam_gap_mm to accept a gap")
     fit = C.need_object(state["weights"]["object"])
     fit["lw_bound"] = True
-    state["apply"] = {"accepted_seam_gap_mm": accept_seam_gap_mm}
+    state["apply"] = {"accepted_seam_gap_mm": accept_seam_gap_mm, "articulated_contacts": AC.receipt(articulated)}
     _save(root, out_dir, state)
-    return {"ok": True, "object": fit.name, "accepted_seam_gap_mm": accept_seam_gap_mm, "seam_opens": opens}
+    return {"ok": True, "object": fit.name, "accepted_seam_gap_mm": accept_seam_gap_mm, "seam_opens": opens, "articulated_contacts": AC.receipt(articulated)}
 
 
 def report(out_dir, root):

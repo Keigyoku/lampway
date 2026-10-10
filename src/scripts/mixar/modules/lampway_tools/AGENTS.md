@@ -190,7 +190,15 @@ authoritative prior-art radius and blending rules, original authored vertex
 identities and genuine outside-joint refusals; algorithm controls do not certify
 the supplied example's physical motion quality.
 
+The public template tool's `centre:rig:<armature>` measurement shares canon11
+B8 with the view tool. Only the example's own deforming rig supplies REST base
+heads; open rings and hidden joints retain them. Pin the measured geometry,
+record all passes and restore source state on every exit. Manual view corrections
+remain unreviewed candidates and do not bypass outside or copied-fit refusals.
+
 Explicit generated same-shell flexible planar cuts enter fit_bind through bind_overrides._seam_bands. Pin working mesh/world/positive memberships and complete original contact pairs before weights; revalidate before sampling or publication. Use canon07 positional bands before strict rigid fade; no rigid role or source seam acceptance changes. weight_transfer preserves all native influences by default; positive requested caps remain explicit.
+
+Articulated contacts in fit_bind require the source-bound typed declaration and validated authored-part copy. Admit only complete named pair closure under unchanged weld/fade bars, retain undeclared contact domains and rigid one-bone rows, and recheck source/frame/membership/recipe at weights, return and apply. The captain's2026-10-10 shoulder ruling authorizes derived candidate work; full-fit review remains unreviewed until supplied.
 
 ## Anneal log
 
@@ -261,3 +269,5 @@ Explicit generated same-shell flexible planar cuts enter fit_bind through bind_o
 | 2026-10-09 | authored FACE ownership and source seam transport | supplied part groups overlapped at rigid boundaries | shared rows overwrote rigid bindings and packed normal values changed meaning after smoothing-fan separation | make explicit authored copies with stable IDs, original seam ledgers and exact source corner vectors; report native normal quantization separately | native preparation and shifted-seam RED controls plus copied original-input measurements |
 | 2026-10-09 | complete own-example procedural rig weighting | canonical template route and original skin audit | pose/rest inside mismatch, duplicate bindings, inherited armature parenting and global falloff violated the example-body route | REST-aligned rays with finally restoration, independent replacement binding and canonical ray-sized body transfer with joint-owned widths | native binding/parent REDs and independent Titan finger-weight comparison under unchanged source/quality gates |
 | 2026-10-09 | canonical positional bands and uncapped native transfer | canon07 B.6/B.9 and implementation item3 | pure band primitive was disconnected and the public transfer silently dropped native influences | source-bound planar recipes, endpoint/identity refusals, native positional C03 and twelve-influence controls | real C03 tear and stale/authority/default-cap REDs; isolated native regression receipts |
+| 2026-10-10 | bounded articulated contact domains | captain authorizes independent shoulder motion on copies | off-axis fused contacts conflict with independent rigid pauldrons | pinned pair closure and strict undeclared domains through bind plan, weights, return and apply | native authorized/three-way/stale/incomplete controls; physical fit pending |
+| 2026-10-10 | geometry-bound own-rig remeasurement | original I05 source has twenty-six outside joints | existing base measurements were passed unchanged and procedural weighting fixes alone could not fit the original pair | share canon11 B8 through the public template selector, record geometry-bound corrections and retain strict inside/source-state gates | pure centering/open-ring controls and isolated public/state regressions; candidate physical review remains separate |

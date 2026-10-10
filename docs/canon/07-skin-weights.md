@@ -47,7 +47,7 @@ to 1, plus receipts.
      the leather (2026-09-29).
 5. **Rigid parts fused to cloth/leather:** each hard part's rigidity `r = smoothstep(1 - d/fade)` (fade 5 mm) takes its bone; the
    field keeps what remains (`hand_pose.py:226 rigid_blend`); strict form refuses two different rigid anchors at one point
-   (`rigid_blend_strict`, :244).
+   (`rigid_blend_strict`, :244). Only the source-bound articulated contacts ruled below may separate contact domains; the retained third pairing at a three-way contact remains strict.
 6. **Seam band** (one shell cut into parts): the blend across a cut is a function of POSITION only (a band about the cut line);
    measured on the rigged warrior: a 5 cm band cut seam drift p95 2.47 -> 0.27 cm in the walk, pairs over 2 cm 5.62 % -> 1.24 %
    (`<shelf-scratch>/grt/gap_seam0.log` vs `gap_seam5all.log`, 2026-09-29).
@@ -60,7 +60,7 @@ to 1, plus receipts.
 
 ## C. Invariants
 
-- **INV-07.1** Weights depend on position alone for a genned piece; duplicates are bit-identical.
+- **INV-07.1** Weights depend on position alone within each closed contact domain of a genned piece; duplicates are bit-identical. The narrowly source-bound articulated-contact exception below separates only explicitly authorized contact pairs on a derived copy. Undeclared pairs remain in the same domain.
 - **INV-07.2** Metal parts: one bone at weight 1.0 per part (per rigid group).
 - **INV-07.3** Weights come from the native body (sidecar), never a GLB copy (4 influences).
 - **INV-07.4** Never "transfer then hope": every vertex is matched or inpainted; zero rows refuse.
@@ -132,6 +132,16 @@ The historical gaps above describe `b806617f`. `fit_bind` now composes the exist
 The bounded interface admits explicit flexible planar cuts with disjoint ownership and compatible endpoint fields. Complete contact pairs must match the source within the unchanged weld bar and lie on the declared plane. Rigid/metal ownership, ambiguous or overlapping bands, invalid endpoints, and changed source/frame/membership/recipe refuse before publication. Plan and weights retain the input identities and pair count; band composition precedes the unchanged strict rigid fade. It does not authorize any seam opening or certify physical quality. The source remains intact and physical review remains separate.
 
 `weight_transfer` now uses `limit_groups=0` by default, preserving native influences. A positive caller-requested cap is still applied and recorded; it is never selected implicitly as four. This does not change the engine's own export constraints or the explicit cleanup limit operation.
+
+## Authorized articulated shoulder contacts (2026-10-10)
+
+The captain authorized the proposed bounded shoulder-contact exception: “If this is what it takes to match the movement in the ref videos, do it.” The proposal keeps the torso plates and roundels rigid together, releases only the identified off-axis pauldron bridge contacts on derived copies, and retains the sleeve-to-torso pairing at the left three-way contact. The reviewed inventory identifies thirteen source vertices and fourteen released pair rows. This ruling authorizes implementation and candidate measurement; it does not select a physically verified carrier, hinge, final fit or acceptable gap.
+
+The optional `bind_overrides._articulated_contacts` declaration uses schema `lampway.articulated-contacts/1`. It pins the authored `source_sha256`, working `prepared_sha256` and complete `prepared_identity`; its `contacts` rows name `parts: [a,b]`, released `source_vertices` and `retained_source_vertices`. Their disjoint union must equal the complete contact closure for that part pairing. The `authorization` object records `decision: release_derived_contacts`, `scope: contact_pairs_only` and the actual approving declaration. Original-file provenance and the source-bound inventory are retained in the private candidate package; source geometry and owner assets do not enter this repository.
+
+Admission requires the existing authored FACE-part copy and its validated original identity/ownership/seam ledger. Every declared part pairing must partition its complete measured and original contact closure into released and retained original IDs. Retained IDs remain strict; a partially released rigid pairing cannot bypass the remaining seam-open refusal. Reject omitted or extra IDs, repeated pair rows, stale geometry/frame/part membership, unknown fields and unsupported endpoint ownership before publication. Recheck the declaration at weights, return and apply. Rigid endpoints require explicit one-bone choices; implicit proximity defaults cannot select an articulated carrier. A flexible endpoint may ignore only the explicitly released rigid surface at the named source vertices; undeclared rigid anchors, nearby vertices and retained three-way pairings keep the existing strict fade and weight rules. Keep released contacts visible in diagnostic receipts, separately from closed seam metrics.
+
+This interface changes weight-domain coupling on copied ownership boundaries. It preserves source faces, corner identities, UVs, material assignments and original scene data. It introduces no global seam waiver, substitute geometry, numerical tolerance or automatic full-fit approval. Canon05 deformation/clearance checks, bind/return, output review and physical motion acceptance remain required. A reference-video semantic review establishes the intended movement, not a measured three-dimensional hinge or bone choice.
 
 ## H. Decisions owed by the captain
 

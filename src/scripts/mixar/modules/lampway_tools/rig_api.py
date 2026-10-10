@@ -73,7 +73,9 @@ def rig_fit_template(example, joints, template="", hands="none", hidden=None, co
                      dry_run=False):
     """Rig the fitted example at its OWN joints (canon 20): the template's heads written to the joints measured on the example (residual 0),
     the other bones placed by their measured segments, frames by canon 17, six axis rays per joint inside the example, the example's own
-    weights from the fitted segments on a copy; refuses copied joints (copied_not_fitted), a joints file from another mesh, a missing joint."""
+    weights from the fitted procedural body on a copy. joints='centre:rig:<armature>' centres the example's own REST heads by canon11 B8,
+    recording geometry SHA, closed/open ray rings and hidden bases; open rings retain their base measurement. Refuses copied joints
+    (copied_not_fitted), a joints file from another mesh, a missing joint and unaccepted outside joints."""
     from .features import rig_fit as _RF
     return _RF.fit(example, joints, str(_settings().project_root), template, hands, hidden, convention, weights, allow_outside, out, dry_run)
 

@@ -100,6 +100,14 @@ physical motion acceptance gates.
 
 Canon07 current implementation documents explicit source-bound planar flexible seam recipes and preserves all native influences by default. Keep historical gap lists pinned to their original commits, require complete source contact authority, and retain strict rigid-anchor and physical review gates.
 
+Canon07 permits only explicitly authorized source-bound articulated contact domains on validated derived FACE-part copies. Recheck full pair closure, identities and membership at plan/weights/return/apply; preserve the retained third pairing, undeclared strict anchors and physical review. The2026-10-10 shoulder ruling permits candidate implementation, never automatic fit acceptance.
+
+Canon20's own-rig measurement correction shares the existing canon11 B8 engine
+through `centre:rig:<armature>`. Keep open-ring and hidden base heads, bind the
+receipt to the example's geometry, restore source state and retain independent
+outside-joint checks. A manually corrected view candidate does not establish
+detector calibration, anatomical authority or accepted physical motion.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -135,3 +143,5 @@ Canon07 current implementation documents explicit source-bound planar flexible s
 | 2026-10-08 | exact generated animation profile publication | I04 actual generated profile self-refusal | nine-decimal quaternion normalization moved two components on rebuild | publish a bounded exact rotation fixed point for profile transforms and basis; settle the coupled declared adapter orbit for canonical samples; retain exact hashes and corruption refusals | supplied profile RED, synthetic exact rebuild controls and actual Walking profile/extract/normalize/adapt/compare/verify GREEN |
 | 2026-10-09 | authored source seam and canonical example-body implementation | actual labelled gear and template quality follow-up | copied topology could hide seams and constant global falloff omitted the canonical procedural body | preserve source identity and normal provenance; implement referenced joint-owned widths without turning measured ranges into thresholds or waiving physical gates | authored preparation/stale-seam controls and independent native procedural weight comparison |
 | 2026-10-09 | canonical seam engine and native influence defaults | canon07 B.6/B.9 implementation review | historical method claims obscured disconnected public band composition and silent four-influence cap | document the bounded cut interface and uncapped default with guarded physical status | C03/native transfer RED/GREEN and unchanged canon goldens |
+| 2026-10-10 | bounded shoulder-contact ruling | captain authorizes proposed exception to match generated reference motion | global positional coupling blocked independent pauldrons at thirteen source bridge vertices | authorize only pinned complete pair declarations on derived copies, retain third-party contacts and all physical gates | source-bound contact and stale/incomplete/undeclared falsifiers |
+| 2026-10-10 | shared own-rig centering contract | original I05 outside-joint replay | disconnected base-head measurement could not complete a geometry-bound fit | specify the existing canon11 B8 correction through the public selector with unchanged source and inside gates | pure ring controls and native public/state receipts; physical candidate status remains explicit |

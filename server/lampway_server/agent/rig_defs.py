@@ -109,17 +109,19 @@ RIG_DEFS = [
         api="rig_export_ue"),
     Def("lampway_rig_fit_template", "Rig the fitted example at its OWN joints, the rig step of the three-input pipeline (canon 20; TITAN rig-axi's "
         "design): joints from a titan.rig-joints/1 file MEASURED on the example (its example_sha256 must equal the example's: the scene mesh's "
-        "geometry sha256, or the file's when example is a .glb/.fbx/.obj) or 'rig:<armature>' (the example's own deforming rig); the template "
+        "geometry sha256, or the file's when example is a .glb/.fbx/.obj), 'rig:<armature>' (the example's own deforming rig), or "
+        "'centre:rig:<armature>' (own REST heads centred by canon11 B8: 16 rays, three projected hit-mean passes, 12 hits or 10 for fingers; "
+        "open rings and hidden joints retain their base, geometry SHA and ray diagnostics recorded). The template "
         "(default the UE5 Manny profile, 161 bones) gets its heads written to the measured joints (residual 0), every other bone placed by its "
         "nearest measured segment (twists, metacarpals, correctives, ik bones on their targets; parentless ones by the similarity of all joints), "
         "frames by canon 17 (blender | ue_axes), an inside check of six axis rays per joint, and the example's OWN weights on the body grammar "
-        "from the fitted segments (canon 07 falloff, 3 cm margin; never copied from the native body). Writes <example>_rig and a weighted copy "
+        "from the fitted procedural body (canon07 quarter-shorter-bone joint blends and nearest-face transfer; never copied from the native body). Writes <example>_rig and a weighted copy "
         "<example>_rigged (the example is untouched) and saves both to out (.blend). Refused: copied_not_fitted (every bone length within 0.1 % "
         "of the template's: joints taken from the template's body, the 2026-09-28 defect), a joints file measured on another mesh, a required "
         "joint missing (TITAN's 55: body + fingers), joints outside the example unless allow_outside names them, joints or hands from views (the "
         "pose environment is not installed), an existing output. The receipt: residual, ratios, synthesized with their rule, hidden, outside, "
         "rays per joint, weights, sha256 of example, joints, template and out." + _PATHS,
-        [P("example", required=True, desc="the example mesh object, or a .glb/.fbx/.obj"), P("joints", required=True, desc="joints.json | rig:<armature> | views"),
+        [P("example", required=True, desc="the example mesh object, or a .glb/.fbx/.obj"), P("joints", required=True, desc="joints.json | rig:<armature> | centre:rig:<armature> | views"),
          P("template", desc="a titan.animation-profile/1; default UE5 Manny"), P("hands", desc="none (views needs the pose environment)"),
          P("hidden", "array", "joints under armour or cloth to name (default pelvis, thigh_l, thigh_r)"), P("convention", desc="blender (default) | ue_axes"),
          P("weights", desc="procedural (default) | none"), P("allow_outside", "array", "joints allowed outside the example"),

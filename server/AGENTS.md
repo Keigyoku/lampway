@@ -93,6 +93,8 @@ Scene summary reads the current scene object roster and its material slots while
 
 fit_bind describes source-bound flexible planar _seam_bands through its existing bind_overrides object; detailed recipes live in canon07. weight_transfer describes default limit_groups=0, preserving all influences, with positive caller caps retained. Regenerate both shared catalogues and retain the unchanged full catalogue byte ceiling.
 
+fit_bind exposes only canon07's pinned copied-contact declaration through existing bind_overrides; descriptions keep released/retained closure and full-fit review separate. The own-rig geometry centering selector uses the existing canon11 B8 method, preserving all fit provenance, outside-joint and physical-review refusals. Regenerate both catalogues and preserve the full byte ceiling.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -124,3 +126,4 @@ fit_bind describes source-bound flexible planar _seam_bands through its existing
 
 | 2026-10-08 | current-scene summary and compressed native intake | inherited audit I06/I07 | global objects crossed tabs and zstd modern headers were unknown | keep scene paging and certified hash, bounded decoded header validation and explicit runtime dependency | actual tab/source-file RED/GREEN and malformed/budget plants |
 | 2026-10-09 | canonical seam and transfer registry contracts | canon07 B.6/B.9 implementation review | agent descriptions hid the seam interface and advertised a lossy default | document existing bounded recipe input and uncapped default; regenerate catalogues | native source controls and unchanged registry/catalogue gates |
+| 2026-10-10 | source-bound fit candidate interfaces | captain authorizes shoulder contact exception and requires original I05 work | models lacked copied-contact partition and geometry-bound own-rig measurement routes | describe exact source-pinned interfaces with unchanged physical and outside gates; regenerate catalogues | native contact/centering and complete server registry controls |
