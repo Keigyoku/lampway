@@ -40,7 +40,7 @@ For reproduction of the detail gate, resize to half-resolution with bilinear fil
 
 ## Template contract
 
-All seven builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9`, `min_text_px=28`; these are authoring guidance, not renderer configuration. Runtime minimum remains 22 px. Five non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
+All seven builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9`, `min_text_px=28`; resolution, aspect and duration are render defaults (below explicit arguments, above `__scene`), `min_text_px` is authoring guidance. Runtime minimum remains 22 px. Five non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
 
 | ID | Duration guidance | Required variables | Additional defaults (abbreviated prose values) |
 |---|---|---|---|
@@ -52,7 +52,7 @@ All seven builtins are version `1.0.0`, purpose `motion-graphics`, media `video`
 | `mg-titan-animatic` | 30 s | `sequence`, `shot_list` | `shot_count=6`, `aspect=16:9` |
 | `mg-titan-ui-motion` | 12 s | `element`, `states`, `tokens_source` | `state_s=1`, `transition_ms=200` |
 
-The tool checks template purpose, resolves version and stores effective variables/prompt provenance. Reference-image and template gate declarations guide authoring; the tool does not receive/validate required reference images or turn those declarations into runtime thresholds. Templates do not promise a verified finished output.
+The tool checks template purpose, resolves version, stores effective variables/prompt provenance and warns (with a help line) about a path-like `*_dir`/`*_source` variable that names nothing under the project. Reference-image and template gate declarations guide authoring; the tool does not receive/validate required reference images or turn those declarations into runtime thresholds. Templates do not promise a verified finished output.
 
 ## End-to-end workflow
 

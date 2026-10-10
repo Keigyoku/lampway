@@ -1698,8 +1698,8 @@ Inputs:
 - `height` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160, so 2160x3840 is allowed (default: the template's, then window.__scene.height, then 1080)
 - `formats` (array): a non-empty subset of mp4, webm (default both)
 - `samples` (array): seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)
-- `template` (string): provenance only: the motion-graphics prompt template id@version the scene was written from
-- `variables` (object): provenance only: that template's variables
+- `template` (string): the motion-graphics prompt template id@version the scene was written from: recorded as provenance, and its defaults (resolution, aspect_ratio, duration) rank below explicit arguments and above window.__scene
+- `variables` (object): provenance: that template's variables; a *_dir or *_source path missing under the project is a warning
 - `vault` (boolean): file an accepted render in the Asset Vault (default true)
 - `receipt` (string): verify: the project-relative path of the render's receipt.json
 

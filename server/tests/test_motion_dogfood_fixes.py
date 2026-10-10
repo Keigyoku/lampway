@@ -211,6 +211,39 @@ def test_an_unreadable_template_resolution_is_refused():
         M.template_defaults({"resolution": "huge", "aspect_ratio": "16:9"})
 
 
+# 7. a template's defaults flow into the tool; its path-like variables are checked against the project
+def _tool(project, arguments):
+    import asyncio
+    text, is_error = asyncio.run(MT.call(None, project, MT.NAME, arguments, capture=FakeCapture))
+    return json.loads(text), is_error
+
+
+def test_template_defaults_flow_into_the_tool_below_explicit_arguments(tmp_path):
+    project = _project(tmp_path)
+    out, is_error = _tool(project, {"scene": "motion/scenes/vert", "width": 180, "fps": 10, "duration_s": 0.2, "template": "mg-site-clip@1.0.0", "vault": False})
+    assert not is_error, out
+    assert _sources(out) == {"width": (180, "explicit"), "height": (1080, "template"), "fps": (10, "explicit"), "duration_s": (0.2, "explicit")}
+
+
+def test_missing_template_paths_are_warned_about_with_a_help_line(tmp_path):
+    project = _project(tmp_path)
+    (project / "public" / "assets").mkdir(parents=True)
+    out, _ = _tool(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.2, "template": "mg-site-clip@1.0.0", "vault": False,
+                             "variables": {"media_dir": "../elsewhere"}})
+    assert out["warnings"] == ["mg-site-clip@1.0.0: copy_source=public/index.html does not exist under the project",
+                               "mg-site-clip@1.0.0: media_dir=../elsewhere is outside the project"]
+    assert 'pass variables {"copy_source": "<project-relative path>"} naming the real copy the scene was built from' in out["help"]
+
+
+def test_prose_path_variables_and_untemplated_renders_carry_no_path_warning(tmp_path):
+    project = _project(tmp_path)
+    out, _ = _tool(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.2, "template": "mg-tutorial@1.0.0", "vault": False,
+                             "variables": {"task": "open a project"}})
+    assert "warnings" not in out                                                   # steps_source is prose ("the tutorial page's numbered list")
+    out, _ = _tool(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.2, "vault": False})
+    assert "warnings" not in out and all(row["source"] != "template" for row in out["inputs"])
+
+
 # containment: an out-of-scene file request is refused at once, not deferred to the next check
 def test_an_outside_file_request_is_failed_and_refused_at_once(tmp_path):
     scene = tmp_path / "scene"

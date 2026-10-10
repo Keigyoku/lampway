@@ -16,13 +16,13 @@ The declared JSON object rejects additional properties. Render properties are:
 | `html` | Inline HTML instead of folder, needs `name`; written to `motion/scenes/<name>/index.html`. A differing existing entry is refused. |
 | `entry` | Scene-contained HTML entry; default `index.html` |
 | `name` | Lowercase kebab-case; defaults to scene directory name |
-| `fps` | Integer, excluding booleans, 1–60; default: template, then `__scene.fps`, then 30 |
+| `fps` | Integer, excluding booleans, 1–60; default: `__scene.fps`, then 30 (templates set no fps) |
 | `width`, `height` | Even integers, excluding booleans; long edge 16–3840, short edge 16–2160 (3840 × 2160 and 2160 × 3840 both allowed); default: template, then `__scene`, then 1920 × 1080 |
 | `duration_s` | Numeric, excluding booleans, `(0,120]`; default: template, then `__scene.duration_s` |
 | `formats` | Nonempty unique list drawn from `mp4`, `webm`; missing means both; empty/null refused |
 | `samples` | Optional nonempty list of 1–24 finite nonnegative numeric seconds, excluding booleans; positions rounded, deduplicated and clamped to final frame |
-| `template` | Optional motion-graphics template `id` or `id@version`; unversioned resolves to a version |
-| `variables` | Finite JSON template variable object with string keys; defaults filled by prompt renderer; provenance only |
+| `template` | Optional motion-graphics template `id` or `id@version`; unversioned resolves to a version. Its `defaults` (`resolution` + `aspect_ratio` → width × height, `duration` → `duration_s`) rank below explicit arguments and above `__scene` |
+| `variables` | Finite JSON template variable object with string keys; defaults filled by prompt renderer; provenance. A `*_dir` or `*_source` value without whitespace that names nothing under the project (or lies outside it) adds a `warnings` line and a `help` line |
 | `vault` | Boolean only, default true; false disables filing |
 | `receipt` | Verify requires a saved project-contained receipt path |
 

@@ -53,8 +53,8 @@ SPEC = ToolSpec(NAME, (
         "formats": {"type": "array", "items": {**_S, "enum": list(E.FORMATS)}, "description": "a non-empty subset of mp4, webm (default both)"},
         "samples": {"type": "array", "items": {**_N, "minimum": 0}, "maxItems": M.MAX_SAMPLES,
                     "description": "seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)"},
-        "template": {**_S, "description": "provenance only: the motion-graphics prompt template id@version the scene was written from"},
-        "variables": {**_O, "description": "provenance only: that template's variables"},
+        "template": {**_S, "description": "the motion-graphics prompt template id@version the scene was written from: recorded as provenance, and its defaults (resolution, aspect_ratio, duration) rank below explicit arguments and above window.__scene"},
+        "variables": {**_O, "description": "provenance: that template's variables; a *_dir or *_source path missing under the project is a warning"},
         "vault": {**_B, "description": "file an accepted render in the Asset Vault (default true)"},
         "receipt": {**_S, "description": "verify: the project-relative path of the render's receipt.json"}}})
 
@@ -75,6 +75,26 @@ def _prompt_provenance(template, variables):
     if t["purpose"] != "motion-graphics":
         raise M.Refused(f"{template}: purpose is {t['purpose']}, not motion-graphics: choose a motion-graphics template")
     return PR.render(lib, tid, variables or {}, version=t["version"])
+
+
+PATH_VARS = ("_dir", "_source")
+
+
+def _template_paths(root: Path, prompt: dict) -> tuple:
+    """(warnings, help) for a rendered template's path-like variables (``*_dir``, ``*_source``) that name nothing under the project.
+    A value with whitespace is prose ("the tutorial page's numbered list"), not a path, and is not checked."""
+    warnings, helps = [], []
+    for name, value in (prompt.get("variables") or {}).items():
+        if not name.endswith(PATH_VARS) or not isinstance(value, str) or not value or any(c.isspace() for c in value):
+            continue
+        try:
+            where = "does not exist under the project" if not M._jail(root, value).exists() else None
+        except M.Refused:
+            where = "is outside the project"
+        if where:
+            warnings.append(f"{prompt['template']}: {name}={value} {where}")
+            helps.append(f"pass variables {{\"{name}\": \"<project-relative path>\"}} naming the real {name.rsplit('_', 1)[0]} the scene was built from")
+    return warnings, helps
 
 
 def _capture():
@@ -99,7 +119,13 @@ def _work(vault, root: Path, a: dict, new_capture, cancel=None):
         if receipt["ok"] and a.get("vault", True) is not False and vault is not None:
             bundle.update(R.seal(receipt, pinned_out, root, cancel=cancel))
 
-    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff)
+    defaults = M.template_defaults(prompt["params"]) if prompt is not None else None
+    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff, defaults=defaults)
+    if prompt is not None:
+        warnings, helps = _template_paths(root, prompt)
+        if warnings:
+            out["warnings"] = warnings
+            out["help"] = helps + out["help"]
     checkpoint(cancel)
     filed = {"assets": [], "spooled": False, "filed": False}
     if out["ok"] and a.get("vault", True) is not False and vault is not None:
