@@ -101,3 +101,21 @@ def test_a_16_9_contact_sheet_is_unchanged(tmp_path):
     d = _samples(tmp_path, 1920, 1080)
     C.contact_sheet(d, tmp_path / "contact.png")
     assert Image.open(tmp_path / "contact.png").size == (1920, 388)
+
+
+# 5. vertical 4K has the landscape ceiling
+@pytest.mark.parametrize("w,h", [(2160, 3840), (3840, 2160), (1080, 1920), (16, 3840), (3840, 16)])
+def test_long_edge_3840_and_short_edge_2160_either_way(w, h):
+    a = M.inputs({"scene": "x", "width": w, "height": h})
+    assert (a["width"], a["height"]) == (w, h)
+
+
+@pytest.mark.parametrize("w,h", [(3840, 3840), (2162, 3840), (3842, 2160), (14, 1080), (1919, 1080)])
+def test_out_of_range_sizes_are_still_refused(w, h):
+    with pytest.raises(M.Refused, match="long edge 16..3840, short edge 16..2160"):
+        M.inputs({"scene": "x", "width": w, "height": h})
+
+
+def test_the_tool_schema_allows_vertical_4k():
+    props = MT.SPEC.parameters["properties"]
+    assert props["width"]["maximum"] == 3840 and props["height"]["maximum"] == 3840

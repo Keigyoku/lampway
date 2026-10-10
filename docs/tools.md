@@ -1694,8 +1694,8 @@ Inputs:
 - `name` (string): kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>-<unique-run>/
 - `duration_s` (number): seconds, (0, 120]; default: the scene's own window.__scene.duration_s
 - `fps` (integer): frames per second, 1..60 (default 30)
-- `width` (integer): even, 16..3840 (default 1920)
-- `height` (integer): even, 16..2160 (default 1080)
+- `width` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160 (default 1920)
+- `height` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160, so 2160x3840 is allowed (default 1080)
 - `formats` (array): a non-empty subset of mp4, webm (default both)
 - `samples` (array): seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)
 - `template` (string): provenance only: the motion-graphics prompt template id@version the scene was written from

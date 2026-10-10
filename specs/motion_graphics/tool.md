@@ -17,7 +17,7 @@ The declared JSON object rejects additional properties. Render properties are:
 | `entry` | Scene-contained HTML entry; default `index.html` |
 | `name` | Lowercase kebab-case; defaults to scene directory name |
 | `fps` | Integer, excluding booleans, 1–60; default 30 |
-| `width`, `height` | Even integers, excluding booleans; 16–3840 × 16–2160; defaults 1920 × 1080 |
+| `width`, `height` | Even integers, excluding booleans; long edge 16–3840, short edge 16–2160 (3840 × 2160 and 2160 × 3840 both allowed); defaults 1920 × 1080 |
 | `duration_s` | Numeric, excluding booleans, `(0,120]`; otherwise scene duration |
 | `formats` | Nonempty unique list drawn from `mp4`, `webm`; missing means both; empty/null refused |
 | `samples` | Optional nonempty list of 1–24 finite nonnegative numeric seconds, excluding booleans; positions rounded, deduplicated and clamped to final frame |

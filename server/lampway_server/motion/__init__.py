@@ -33,6 +33,7 @@ from .cancellation import checkpoint
 INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt")
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
+MAX_LONG_EDGE, MAX_SHORT_EDGE = 3840, 2160
 
 
 class Refused(ValueError):
@@ -80,8 +81,9 @@ def inputs(args: dict) -> dict:
     fps, w, h = _int(a["fps"]), _int(a["width"]), _int(a["height"])
     if fps is None or not 1 <= fps <= 60:
         raise Refused(f"fps {a['fps']} out of range 1..60: pass fps between 1 and 60")
-    if w is None or h is None or w % 2 or h % 2 or not 16 <= w <= 3840 or not 16 <= h <= 2160:
-        raise Refused(f"size {a['width']}x{a['height']}: width and height must be even, 16..3840 x 16..2160")
+    # the ceiling is by edge, not by axis: 2160x3840 (vertical 4K) is the same frame as 3840x2160
+    if (w is None or h is None or w % 2 or h % 2 or min(w, h) < 16 or max(w, h) > MAX_LONG_EDGE or min(w, h) > MAX_SHORT_EDGE):
+        raise Refused(f"size {a['width']}x{a['height']}: width and height must be even, long edge 16..{MAX_LONG_EDGE}, short edge 16..{MAX_SHORT_EDGE}")
     if a["duration_s"] is not None:
         _duration(a["duration_s"])
     if not isinstance(a["formats"], list) or not a["formats"] or not all(isinstance(f, str) for f in a["formats"]) or not set(a["formats"]) <= set(E.FORMATS) or len(set(a["formats"])) != len(a["formats"]):

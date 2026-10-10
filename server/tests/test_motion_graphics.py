@@ -222,7 +222,7 @@ def test_the_tool_is_registered_and_runs_on_the_server():
 
 @pytest.mark.parametrize("args, message", [
     ({"fps": 90}, "fps 90 out of range 1..60: pass fps between 1 and 60"),
-    ({"width": 1919}, "size 1919x1080: width and height must be even, 16..3840 x 16..2160"),
+    ({"width": 1919}, "size 1919x1080: width and height must be even, long edge 16..3840, short edge 16..2160"),
     ({"duration_s": 300}, "duration 300 s out of range (0, 120]: split the video or shorten the scene"),
     ({"scene": "../outside"}, "../outside is outside the project root"),
     ({"scene": "motion/scenes/x", "entry": "nope.html"}, "no scene entry nope.html in motion/scenes/x: pass entry"),
