@@ -207,7 +207,7 @@ def test_mp4_bytes_depend_on_thread_count_so_receipt_pins_it(tmp_path):
 def test_out_of_order_render_is_not_offered(tmp_path):
     spec = next(t for t in TOOLS if t.name == "lampway_motion_graphics")
     assert set(spec.parameters["properties"]) == {"action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples",
-                                                  "template", "variables", "vault", "receipt"}
+                                                  "template", "variables", "vault", "receipt", "audit_every_s"}
     assert spec.parameters["additionalProperties"] is False
     project = tmp_path / "project"
     out, is_error = tool(project, {"scene": put_scene(project, "x", RAMP), "frame_range": [100, 200]}, capture=FakeCapture)

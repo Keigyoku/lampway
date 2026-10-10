@@ -30,7 +30,9 @@ from . import frames as F
 from . import receipt as R
 from .cancellation import checkpoint
 
-INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt")
+INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt",
+          "audit_every_s")
+OPTIONAL_SAVED = ("audit_every_s",)                   # receipt inputs added after the first receipts: absent means not used
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
 MAX_LONG_EDGE, MAX_SHORT_EDGE = 3840, 2160
@@ -80,7 +82,8 @@ def inputs(args: dict) -> dict:
          "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": args.get("fps"),
          "width": args.get("width"), "height": args.get("height"),
          "formats": args.get("formats", ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
-         "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt")}
+         "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt"),
+         "audit_every_s": args.get("audit_every_s")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
     if a["fps"] is not None:
@@ -95,6 +98,10 @@ def inputs(args: dict) -> dict:
         s = a["samples"]
         if not isinstance(s, list) or not s or len(s) > MAX_SAMPLES or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and (isinstance(x, int) or math.isfinite(x)) and x >= 0 for x in s):
             raise Refused(f"samples: pass 1 to {MAX_SAMPLES} times in seconds (>= 0) to self-check, or none for {DEFAULT_SAMPLES} evenly spaced plus the first and last frame")
+    if a["audit_every_s"] is not None:
+        v = a["audit_every_s"]
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 < v <= 120:
+            raise Refused(f"audit_every_s {v!r}: pass seconds in (0, 120] between audit-only rows (rounded to whole frames, at least one frame)")
     if a["name"] is not None and not (isinstance(a["name"], str) and KEBAB.match(a["name"])):
         raise Refused(f"name {a['name']!r} is not kebab-case: pass a name of a-z, 0-9 and single hyphens")
     if a["action"] == "verify":
@@ -278,6 +285,14 @@ def _sample_frames(n: int, samples, fps: int) -> list:
     return sorted({0, n - 1} | {int(round(k * (n - 1) / (DEFAULT_SAMPLES + 1))) for k in range(1, DEFAULT_SAMPLES + 1)})
 
 
+def _stream_frames(n: int, every_s, fps: int) -> tuple:
+    """(stride in frames, audited frames) for the audit-only stream: every ``every_s`` seconds rounded to whole frames, plus the last frame."""
+    if not every_s:
+        return 0, set()
+    stride = max(1, int(round(every_s * fps)))
+    return stride, set(range(0, n, stride)) | {n - 1}
+
+
 def _probe_frames(n: int) -> list:
     return sorted({int(round(k * (n - 1) / (PROBE_FRAMES - 1))) for k in range(PROBE_FRAMES)}) if n > 1 else [0]
 
@@ -436,6 +451,8 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
         samples = set(_sample_frames(n, a["samples"], fps))
+        stride, streamed = _stream_frames(n, a["audit_every_s"], fps)
+        stream = []
         t_setup = time.monotonic() - t_start
         checkpoint(cancel)
         out, out_rel, out_fd = _output_directory(root, out_root, f"{name}-{code_sha[:8]}-", stack)
@@ -457,9 +474,13 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 raise Refused(f"frame {i} is {size[0]}x{size[1]}, not {W}x{H}: the scene must not resize the page")
             rows.append(R.row(i, t, pix))
             enc.write(png)
-            if i in samples:
+            audit = None
+            if i in samples or i in streamed:
                 audit = capture.audit()
                 C.validate_audit(audit)
+            if i in streamed:                                              # audit-only: authored geometry, no PNG, no pixel checks
+                stream.append({"frame": i, "t": round(t, 4), "audit": audit})
+            if i in samples:
                 im, stats = C.frame_stats(png)
                 found = C.opening_grace(C.findings(im, stats, audit, W, H), t, opening)
                 stem = f"f{i:04d}"
@@ -480,12 +501,16 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         capture.close()
     probe, differ, probe_frames, t_probe, probe_requests = _probe_frames(n), [], 0, 0.0, []
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir, cancel=cancel)
+        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples | streamed, scene_root=scene_dir, cancel=cancel)
     checkpoint(cancel)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
     artifact_hashes = {}
     C.contact_sheet(out / "samples", out / "contact.png", hashes=artifact_hashes)
+    if stream:
+        data = "".join(json.dumps(row, separators=(",", ":")) + "\n" for row in stream).encode("utf-8")
+        (out / "audit.jsonl").write_bytes(data)
+        artifact_hashes["audit"] = hashlib.sha256(data).hexdigest()
     if page_errors:                                                        # an error that did not stop the render still deserves a look
         size_notes = size_notes + [{"check": "page_error", "severity": "warn",
                                     "detail": f"the page reported {len(page_errors)} script error(s); the first: {page_errors[0]}"}]
@@ -501,11 +526,14 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     run_id = f"mg-{Path(out_rel).name}"
     files_out = {fmt: f"{out_rel}/{p.name}" for fmt, p in paths.items()}
     files_out.update(contact=f"{out_rel}/contact.png", receipt=f"{out_rel}/receipt.json", frames=f"{out_rel}/frames.sha256")
+    if stream:
+        files_out["audit"] = f"{out_rel}/audit.jsonl"
     receipt = {
         "ok": ok, "tool": "motion_graphics", "run_id": run_id, "out_dir": out_rel, "files": files_out,
         "inputs": {"scene": scene_rel, "entry": a["entry"] if a["html"] is None else "index.html", "name": name, "fps": fps, "width": W, "height": H,
                    "duration_s": duration, "formats": [f for f in E.FORMATS if f in a["formats"]], "samples": a["samples"], "template": a["template"],
-                   "variables": a["variables"]},
+                   "variables": a["variables"], "audit_every_s": a["audit_every_s"]},
+        "audit_stream": {"every_frames": stride, "audits": len(stream)} if stream else None,
         "input_sources": sources, "help": override_help, "opening_s": opening,
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],
         "engine": {"chromium": capture.product, "chrome_flags": list(capture.flags), "ffmpeg": ffmpeg,
@@ -535,7 +563,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
 def summary(receipt: dict) -> dict:
     """The tool's answer (specs/motion_graphics/tool.md, Outputs) from a receipt."""
     out = {"ok": receipt["ok"], "run_id": receipt["run_id"], "out_dir": receipt["out_dir"],
-           "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact")}, "code_sha256": receipt["code_sha256"],
+           "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact", "audit")}, "code_sha256": receipt["code_sha256"],
            "frames": receipt["frames"], "frames_sha256_digest": receipt["frames_sha256_digest"],
            "outputs": {k: {"sha256": v["sha256"], "bytes": v["bytes"]} for k, v in receipt["outputs"].items()},
            "self_check": {k: receipt["self_check"][k] for k in ("fail", "warn", "findings")}, "network": receipt["network"],
@@ -593,7 +621,7 @@ def _receipt_inputs(receipt):
     require(all(text(saved[field]) for field in ("scene", "entry", "name")), "saved scene, entry and name")
     require(saved["duration_s"] is not None, "saved duration_s")
     try:
-        a = inputs({field: saved[field] for field in fields if saved[field] is not None})
+        a = inputs({field: saved[field] for field in fields + tuple(f for f in OPTIONAL_SAVED if f in saved) if saved[field] is not None})
     except Refused as exc:
         raise Refused(f"invalid motion receipt inputs: {exc}") from None
     require(_int(receipt.get("frames")) is not None and receipt["frames"] >= 1, "frames")

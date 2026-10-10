@@ -57,6 +57,7 @@ def _parser() -> _Parser:
     r.add_argument("--height", type=int)
     r.add_argument("--fps", type=int)
     r.add_argument("--duration", type=float, help="seconds; default: the template's, then window.__scene.duration_s")
+    r.add_argument("--audit-every", type=float, metavar="SECONDS", help="also audit every SECONDS into audit.jsonl (no PNGs)")
     r.add_argument("--template", help="a motion-graphics template id@version (provenance and defaults)")
     r.add_argument("--var", action="append", default=[], metavar="KEY=VALUE", help="a template variable (repeatable; a value that parses as JSON is JSON)")
     r.add_argument("--no-vault", action="store_true", help="do not file the render in the Asset Vault")
@@ -182,7 +183,7 @@ def main(argv=None, ctx: Optional[Context] = None, out=None) -> int:
         root = Path(ctx.root)
         if a.cmd == "render":
             args = {"scene": a.scene, "width": a.width, "height": a.height, "fps": a.fps, "duration_s": a.duration, "template": a.template,
-                    "variables": _variables(a.var) or None, "vault": False if a.no_vault else None}
+                    "variables": _variables(a.var) or None, "audit_every_s": a.audit_every, "vault": False if a.no_vault else None}
         else:
             args = {"action": "verify", "receipt": a.receipt}
         inputs = M.inputs({k: v for k, v in args.items() if v is not None})

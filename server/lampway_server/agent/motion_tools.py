@@ -53,6 +53,8 @@ SPEC = ToolSpec(NAME, (
         "formats": {"type": "array", "items": {**_S, "enum": list(E.FORMATS)}, "description": "a non-empty subset of mp4, webm (default both)"},
         "samples": {"type": "array", "items": {**_N, "minimum": 0}, "maxItems": M.MAX_SAMPLES,
                     "description": "seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)"},
+        "audit_every_s": {**_N, "exclusiveMinimum": 0, "maximum": 120,
+                          "description": "also record window.__audit() every this many seconds (whole frames) in audit.jsonl: authored geometry for the whole timeline, no PNGs"},
         "template": {**_S, "description": "the motion-graphics prompt template id@version the scene was written from: recorded as provenance, and its defaults (resolution, aspect_ratio, duration) rank below explicit arguments and above window.__scene"},
         "variables": {**_O, "description": "provenance: that template's variables; a *_dir or *_source path missing under the project is a warning"},
         "vault": {**_B, "description": "file an accepted render in the Asset Vault (default true)"},

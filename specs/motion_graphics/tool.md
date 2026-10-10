@@ -31,6 +31,7 @@ The declared JSON object rejects additional properties. Render properties are:
 | `duration_s` | Numeric, excluding booleans, `(0,120]`; default: template, then `__scene.duration_s` |
 | `formats` | Nonempty unique list drawn from `mp4`, `webm`; missing means both; empty/null refused |
 | `samples` | Optional nonempty list of 1–24 finite nonnegative numeric seconds, excluding booleans; positions rounded, deduplicated and clamped to final frame |
+| `audit_every_s` | Optional seconds in (0, 120], rounded to whole frames (at least one): `window.__audit()` is also recorded at every such frame and the last one, in `audit.jsonl` (`{frame, t, audit}` per line, hashed as `artifact_hashes.audit`), with no PNG and no pixel checks. The probe audits the same frames. Receipts without it verify as before |
 | `template` | Optional motion-graphics template `id` or `id@version`; unversioned resolves to a version. Its `defaults` (`resolution` + `aspect_ratio` → width × height, `duration` → `duration_s`) rank below explicit arguments and above `__scene` |
 | `variables` | Finite JSON template variable object with string keys; defaults filled by prompt renderer; provenance. A `*_dir` or `*_source` value without whitespace that names nothing under the project (or lies outside it) adds a `warnings` line and a `help` line |
 | `vault` | Boolean only, default true; false disables filing |
@@ -58,7 +59,7 @@ A completed receipt is `receipt.json`, with:
 | Engine | Chromium product/flags, ffmpeg version, encoder threads/args, driver SHA-256 |
 | Frames | Count, `frame_hash` description, `frames_sha256_digest` |
 | Outputs | Per requested format SHA-256, bytes and ffprobe result; artifact_hashes.contact covers the generated PNG, whose tiles keep the render's aspect (long edge 640 px; 16:9 stays 640 × 360) |
-| Audit | `self_check` counts/findings/samples; `determinism_probe` positions/differences/rendered frame count/timing |
+| Audit | `audit_stream` (`every_frames`, `audits`; null without `audit_every_s`); `self_check` counts/findings/samples; `determinism_probe` positions/differences/rendered frame count/timing |
 | Operational | `network`, `timing_s`, optional forbidden-request error |
 
 `frames.sha256` uses one `index t sha256` row per captured frame, five-digit minimum index, six-decimal timestamp, trailing newline; digest is SHA-256 of that UTF-8 file. Frame hash is SHA-256 of decoded RGB pixel bytes. Samples have PNG and JSON (frame/time/stats/authored audit/findings). `contact.png` labels sample index/time/finding count. Encoded hashes cover final metadata-cleaned files.

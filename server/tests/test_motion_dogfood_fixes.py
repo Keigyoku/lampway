@@ -451,3 +451,55 @@ def test_the_opening_ends_where_declared_and_empty_still_fails(tmp_path):
 def test_an_opening_beyond_bounds_is_refused(tmp_path, bad):
     with pytest.raises(M.Refused, match="opening_s"):
         M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _DrawOn(opening=bad))
+
+
+# 15. an audit-only stride records authored geometry for the whole timeline, without a PNG per row
+class _Counting(FakeCapture):
+    audits = 0
+
+    def audit(self):
+        type(self).audits += 1
+        return {"text": [{"sel": "#t", "text": "hi", "box": [40, 40, 120, 70], "font_px": 28, "opacity": 1}], "marks": []}
+
+
+def test_audit_every_s_writes_a_stream_without_extra_pngs(tmp_path):
+    project = _project(tmp_path)
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 2, "samples": [0], "audit_every_s": 0.5}, _Counting)
+    out = project / res["out_dir"]
+    rows = [json.loads(line) for line in (out / "audit.jsonl").read_text().splitlines()]
+    assert [r["frame"] for r in rows] == [0, 5, 10, 15, 19] and rows[1]["t"] == 0.5 and rows[1]["audit"]["text"][0]["text"] == "hi"
+    assert len(list((out / "samples").glob("*.png"))) == 1                       # one sample, five audit rows
+    receipt = json.loads((out / "receipt.json").read_text())
+    assert receipt["audit_stream"] == {"every_frames": 5, "audits": 5} and receipt["inputs"]["audit_every_s"] == 0.5
+    assert receipt["artifact_hashes"]["audit"] and res["files"]["audit"].endswith("/audit.jsonl")
+
+
+def test_without_a_stride_nothing_changes(tmp_path):
+    project = _project(tmp_path)
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.2}, FakeCapture)
+    out = project / res["out_dir"]
+    assert not (out / "audit.jsonl").exists() and "audit" not in res["files"]
+    assert json.loads((out / "receipt.json").read_text())["audit_stream"] is None
+
+
+def test_the_probe_audits_the_stream_frames_as_the_first_pass_did(tmp_path):
+    _Counting.audits = 0
+    M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL, "duration_s": 2, "samples": [0], "audit_every_s": 0.5}, _Counting)
+    first_pass = 5                                                                # frames 0, 5, 10, 15, 19 (frame 0 is also the sample)
+    assert _Counting.audits == 2 * first_pass                                    # the probe renders 0..19 too and audits the same frames
+
+
+@pytest.mark.parametrize("bad", [0, -1, 121, "1", True, float("nan")])
+def test_a_bad_stride_is_refused(bad):
+    with pytest.raises(M.Refused, match="audit_every_s"):
+        M.inputs({"scene": "x", "audit_every_s": bad})
+
+
+def test_a_stream_render_verifies_and_an_old_receipt_still_reads(tmp_path):
+    project = _project(tmp_path)
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.5, "audit_every_s": 0.2}, FakeCapture)
+    v = M.verify(project, {"receipt": f"{res['out_dir']}/receipt.json"}, FakeCapture)
+    assert v["reproduced"] is True
+    receipt = json.loads((project / res["out_dir"] / "receipt.json").read_text())
+    del receipt["inputs"]["audit_every_s"]
+    assert M._receipt_inputs(receipt)["audit_every_s"] is None
