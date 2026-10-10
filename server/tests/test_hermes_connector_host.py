@@ -10,10 +10,11 @@ import pytest
 from lampway_server.herdr import harnesses as HN
 from lampway_server.herdr import host as H
 from .test_byoa_binding import herdr, _envs
+from .launch_notice_support import retained_human_disclosure  # noqa: F401
 
 
 @pytest.mark.parametrize('harness', ['hermes', 'grok'])
-def test_unbound_symbolic_harness_starts_with_empty_owned_binding_for_later_rebind(herdr, tmp_path, harness):
+def test_unbound_symbolic_harness_starts_with_empty_owned_binding_for_later_rebind(retained_human_disclosure, herdr, tmp_path, harness):
     cockpit = H.Cockpit(tmp_path / 'herdr')
     rec = cockpit.create_session(harness, 'Owned synthetic pane', str(tmp_path), by='user')
     assert rec['mcp_config_path'], 'symbolic connector needs its path before the native pane starts'

@@ -58,6 +58,10 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    displays safe native status or UNKNOWN; slow preparation and launch stay off the app thread. A script cannot confirm,
    a cancelled or failed dialog discards its nonce, and stale scene validation refuses before launch. Failed queue callbacks
    cannot strand later owned responses. Neither notice preparation nor cancellation changes capabilities or login.
+   ChatGPT image qualification opens only from the human Agent preferences action. It obtains an authenticated one-use
+   browser admission off-thread, opens only the fixed local consent page on main-thread publication, and refuses scripts
+   both before scheduling and on publication. The browser form separately confirms the fixed probe. Draw is cache-only;
+   failed browser opening reports a visible error without automatic retry or retaining an ended operator RNA instance.
 
 ## Test
 
@@ -92,3 +96,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-08 | capability paging keeps one native dialog | actual matching 84560502 UI Next produced two dialog regions | reinvoking from an inner page button stacked a modal over the original | invariant 9: refresh the original popup layout through the existing native window helper; no extra modal or changed choices | actual native RED and focused callback RED; new matching build proof required |
 
 | 2026-10-10 | first human native-agent disclosure | agent-modes spec B5 | cockpit and scene launch had no independent first-account warning, and failed popup/queue callbacks retained pending requests | invariant 9: explicit human notice, cached draw, off-thread preparation and cancellation/stale-scene cleanup | four causal client dialog REDs; 30 focused client checks pass; matching physical native dialog proof remains required |
+
+| 2026-10-10 | Q1 native human browser admission | raw loopback cookie/nonce causal RED bypassed explicit human consent | browser-only nonce minting could not distinguish a native agent HTTP client | invariant 9: authenticated ticket from a human-gated native action, off-thread transport/main-thread browser publication and visible non-retrying failures | pure client controls only; matching native execution remains unverified |

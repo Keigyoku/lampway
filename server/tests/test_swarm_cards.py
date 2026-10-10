@@ -35,6 +35,7 @@ from .fake_harness import FakeFleet
 from .mode1_support import units_for
 from .test_swarm_panes import SCENE, rig, serve_parent, strict, tasks, wait_for  # noqa: F401  (the Mode 2 rig and its fixtures)
 from .herdr_support import PaneHerdr
+from .launch_notice_support import retained_human_disclosure  # noqa: F401
 from .mode1_support import fake_engine, mcp_entry
 
 
@@ -142,7 +143,7 @@ def island_send(rig, text, rid):
 
 
 # ------------------------------------------------------------------------------------------------------------- Mode 2
-def test_a_swarm_a_bound_pane_starts_shows_its_workers_as_parallel_agents_cards_in_its_scene_tab(rig):
+def test_a_swarm_a_bound_pane_starts_shows_its_workers_as_parallel_agents_cards_in_its_scene_tab(retained_human_disclosure, rig):
     sid = one_done_one_failed(rig)
     started, events, ended = wait_for(lambda: (r := card_turn(rig.fleet, sid))[2] and r) or card_turn(rig.fleet, sid)
     assert started is not None, "the island got no card turn for the pane's swarm, so no Parallel Agents card appears"
@@ -159,7 +160,7 @@ def test_a_swarm_a_bound_pane_starts_shows_its_workers_as_parallel_agents_cards_
     assert ended is not None and ended["last_seq"] == len(events) - 1
 
 
-def test_retry_from_the_cards_reruns_the_failed_tasks_on_the_users_click_and_tells_the_pane(rig):
+def test_retry_from_the_cards_reruns_the_failed_tasks_on_the_users_click_and_tells_the_pane(retained_human_disclosure, rig):
     sid = one_done_one_failed(rig)
     reply = island_send(rig, Q.CONTINUE_MESSAGE, "retry-1")                  # the chip's click: the user's "continue"
     assert reply and reply["result"]["result"] == {"ok": True, "pane": rig.parent["id"], "retry": True}
@@ -181,7 +182,7 @@ def test_retry_from_the_cards_reruns_the_failed_tasks_on_the_users_click_and_tel
     assert "retry" not in again["result"]["result"], "a task is retried once per click; nothing is left to retry"
 
 
-def test_a_continue_from_an_agent_socket_never_retries(rig, settings):
+def test_a_continue_from_an_agent_socket_never_retries(retained_human_disclosure, rig, settings):
     one_done_one_failed(rig)
     now = int(time.time())
     token = mint_jwt(settings.jwt_secret, {"sub": settings.user_email, "iat": now, "exp": now + 600, "origin": "agent"})

@@ -86,6 +86,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    waiting for a deliberately denied model turn. Its enabled synthetic user-plugin baseline must initialize before exclusion
    can count as proof; a default-disabled fixture proves nothing about plugin exclusion. Native first-start cache changes
    are recorded separately; auth and persona must remain intact, and the restricted route must preserve the warmed baseline.
+   Readiness consumes candidate paths by their named mapping keys, never by mapping iteration. Native pane qualification
+   uses the production lookup with owned PATH links and verifies exact native, namespace and installed-helper hashes before
+   herdr starts; a tuple-shaped mock must not stand in for that lookup or conceal a launcher path-contract failure.
    The namespace continuation belongs to the existing guarded Grok pane launch, not an additional egress grant. Codex, Cursor and OpenCode
    workers remain refused where exclusive discovery is unqualified. Worker readiness is independent of MAIN direct-tool support:
    unsupported workers are refused in Choices, swarm preflight and host creation before a run, owned files or a pane exist. Hermes's built-in tool names also select same-named MCP servers;
@@ -274,7 +277,13 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     do not read BYOK configuration. ChatGPT-plan images remain withheld until the current account/client/login, selected model,
     direct route and format match a successful human-consented vision-check receipt. The final provider rechecks this receipt
     independently of vision flags. Pending, failed, unknown or mismatched checks and unsuccessful image requests withdraw
-    qualification. Timestamps are audit-only; the fixed synthetic browser check is separate from normal model turns. Anthropic and OpenAI-compatible adapters preserve their native multimodal formats;
+    qualification. The browser form requires an opaque one-use admission ticket minted by an authenticated human Client
+    action; native scripts cannot prepare it. Admission lasts at most 120 seconds and the form at most 600 seconds, both
+    bounded by the original user bearer expiry and bound to the captured ChatGPT account scope/model. The session digest
+    attributes the authenticated mint; it does not imply a separate active-session revocation registry. Raw loopback,
+    engine/MCP bearers and agent/cross-origin callers cannot mint tickets. Cookie/nonce replay checks remain independent,
+    and browser responses prohibit caching and referrer disclosure. Timestamps are audit-only; the fixed synthetic browser
+    check is separate from normal model turns. Anthropic and OpenAI-compatible adapters preserve their native multimodal formats;
     OpenAI tool replies acknowledge every parallel call before labeled image content, in one request without mutation retry.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
@@ -474,3 +483,7 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | Grok namespace devices and model-free MCP qualification | exact native CI failed before restricted policy; retained direct-call causal native control | nodev root bind denied `/dev/null`, model retry prevented offline prompt completion, and a disabled toy plugin supplied no positive control | invariant 6: private standard devices in both namespace descriptions, native session MCP without model warmups and mandatory active-plugin baseline | exact failed CI, native direct-call and plugin initialization controls retained; cold-cache preservation failure retained; 63 focused checks pass; complete repaired native CI remains required |
 
 | 2026-10-10 | first human BYOA launch disclosure (B5) | agent-modes spec B5 first-launch warning | an enabled route could start a harness before disclosing native login and UNKNOWN account identity; malformed ack data and independent writers could lose the disclosure boundary | invariant 6: human one-use disclosure before launch or binding changes, route-before-status, minimal crash-safe locked acknowledgement and explicit UNKNOWN; subsequent permitted agent launch retains existing authority | five initial causal REDs, five retained-store/caller REDs; focused synthetic admission and concurrent-store controls; native UI proof remains separate |
+
+| 2026-10-10 | named Grok executable path contract | production mapping inspection and six causal pure-control failures | readiness iterated mapping keys as executable paths, while the native QA tuple override concealed the mismatch | invariant 6: keyed consumer, real production lookup and exact native/namespace/helper hash checks before herdr | six causal REDs retained; ten path controls and 73 focused regressions pass; repaired complete native CI and worker enablement remain separate |
+
+| 2026-10-10 | Q1 human browser admission | raw loopback ASGI causal RED reached fixed probe without a human action | unauthenticated cookie/nonce minting treated an unlabelled local HTTP client as a human | invariant 10: authenticated human Client admission ticket before browser nonce, scope/model/expiry/one-use binding and native script refusal | synthetic source controls only; account and matching native Client execution remain unverified |

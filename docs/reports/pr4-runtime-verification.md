@@ -2,6 +2,43 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # PR4 runtime verification
 
+## Latest complete source-suite result
+
+Committed source `404476557584d1e2297013b1780a9828022e1ebe` completed the full server suite with **3,149 PASS,
+27 FAIL and 31 SKIP/NOT RUN** in **1,242.051 seconds**. No cases were left unstarted. The source fingerprints held unchanged,
+and recorded owned cleanup had no survivors. Exact failure accounting is
+`<workspace>/scratch/pr4-exact-final-head-full-server-20261011/final-failure-accounting.json`.
+
+Twenty-five failures were legacy pane fixtures missing the required prior human harness acknowledgement. Two were long-
+basetemp socket-path assertions: `test_existing_outer_socket_requires_the_exact_native_wrap_parent` and
+`test_user_config_untouched`. This failed snapshot remains retained without subtracting later repairs. Q1/B5 changes
+previously described as uncommitted preparation are committed at this source snapshot.
+
+Subsequent uncommitted fixture repairs passed all 25 notice cases plus 36 fresh controls with assertions preserved. The
+original two socket-path cases passed with a short temporary root: **2 PASS in 0.19 seconds**, retained in
+`<workspace>/scratch/pr4-short-basetemp-original-tests.xml`. No repaired-candidate full-suite receipt exists yet. A separate
+actual-app Q1 loopback-consent audit retained **1 FAIL, 2 PASS** in
+`<workspace>/scratch/pr4-q1-consent-boundary-audit`. The subsequent authenticated human-client ticket/admission and UI
+repairs are applied, uncommitted and frozen: **85 server PASS in 2.53 seconds**, **39 client PASS in 1.58 seconds**, with no
+failures or skips, retained as `server-freeze.{log,xml}` and `client-freeze.{log,xml}` in that directory. This is focused
+source proof, not a full-suite, new-build or account receipt.
+
+Ticket/admission lifetime is 120 seconds; the browser form lasts at most 600 seconds and remains bounded by the original
+JWT expiry. Scope/model binding and one-use admission are enforced; no active-JWT revocation is claimed. The client requires
+its human gate, opens only the fixed local URL off-thread, uses cache-only state, surfaces errors and avoids ended-scene RNA.
+Canonical i18n is frozen for three new messages across 48 PO files; all **411,057 retained translations** are unchanged,
+recorded in `<workspace>/scratch/pr4-q1-i18n-20261010/receipt.json`.
+
+The suite used the historical `84d896f3` binary. A repaired-candidate full server receipt, matching new build, complete
+built-client run, final published-head CI and real-account qualification remain owed. Grok's production path-mapping repair
+is now applied but uncommitted, with **73 focused PASS**; readiness remains false and no complete repaired native Grok CI
+is claimed. Actual project-native Grok baseline positives failed for both fresh and Git workspaces within their bounds:
+normal native startup requested `_x.ai/folder_trust/request` for the exact synthetic workspace with `configKinds=["mcp"]`.
+The diagnostic rejected it and granted no trust. A source-proof proposal remains pending root/user authority; worker
+readiness stays false. These later focused results do not change the failed 404 snapshot.
+The earlier passing `7bf02b8c` receipt is historical and does not override this failed result. This is not acceptance.
+
+
 This is a partial verification report for the continued agent-modes work. It is not an acceptance receipt or permission to
 merge. The governing scope is [agent-modes-spec.md](agent-modes-spec.md), including the captain's decisions. Account-backed
 adapter execution and exact final-head verification remain required. Historical short commit IDs below name the
@@ -9,9 +46,9 @@ pre-publication checkpoints; those unpublished commits were replayed with the re
 
 ## Status at this documentation freeze
 
-Latest published PR4 is `7b5faed6`; its runtime is identical to the frozen `7bf02b8c` checkpoint. That checkpoint's
+The earlier published PR4 `7b5faed6` had runtime identical to the frozen `7bf02b8c` checkpoint. That checkpoint's
 full server run passed **3,073**, with **31 NOT RUN**, in **1,089.575 seconds**. This is a source-suite receipt for that
-checkpoint, not proof of subsequent uncommitted repairs or a matching final native build. The existing `84d896f3` application
+checkpoint, not proof of the later 404 snapshot, subsequent repairs or a matching final native build. The existing `84d896f3` application
 binary is historical. Final exact published-head server/client suites, matching build and required native checks remain pending.
 
 The native-helper ruling is settled: main Mode 1 has three separate experimental preferences for delegation, cron and
@@ -27,11 +64,11 @@ service/harness remains **NOT RUN**.
 The Sign in with ChatGPT terms were successfully fetched and read; the former research/fetch gap is closed. The reading
 receipt is `<workspace>/scratch/pr4-siwc-terms-reading.md`. It does not establish the captain's acceptance of those terms or
 account authorization. Q1 consent, fixed synthetic vision probe, scoped receipt validation and serializer controls are
-applied but uncommitted at this freeze: **167 focused checks**, then **98 pinned checks**, passed. The later applied-source
+committed at `40447655`. Earlier **167 focused checks**, then **98 pinned checks**, passed. The later applied-source
 Q1 run passed **211 checks in 12.29 seconds**, retained in `<workspace>/scratch/pr4-q1-final-source-focused-retry.xml`.
 These runs overlap and are not added as unique checks. Its first attempt retained two collection import errors; relative
 fixture imports were corrected for the successful retry. Final full-source/new-build qualification and every real-account
-probe remain pending. B5's first-launch disclosure is now implemented and frozen but uncommitted; offline client controls
+probe remain pending. B5's first-launch disclosure is implemented and committed at `40447655`; offline client controls
 passed 58 checks, with final source/native/account qualification still pending.
 
 The actual TUI/native-MCP follow-up passed **two tests in 19.78 seconds**, with all five recorded owned process identities
@@ -55,20 +92,20 @@ played herdr, synthetic auth/providers/receipts and local fixtures, not a built-
 Grok's subsequent toy-plugin probe reached actual native MCP `initialize` successfully. Its overall probe still failed:
 vendor cold-start modified its native cache/config, so production QA now compares the warmed baseline. This initialization
 control does not replace the failed CI packet or establish the complete exclusive worker catalogue, cleanup or account route.
-No full repaired CI has completed; readiness remains false. B5's causal nonce defects are repaired in the frozen uncommitted
+No full repaired CI has completed; readiness remains false. B5's causal nonce defects are repaired in the committed `40447655`
 candidate; the offline qualification below does not replace final full-source/server, matching build, whole-client or account proof.
 
 ## B5 disclosure candidate at this freeze
 
-B5 first-launch disclosure is implemented but uncommitted. Retained causal REDs exposed nonce reuse on an existing pane and
+B5 first-launch disclosure is implemented and committed at `40447655`. Retained causal REDs exposed nonce reuse on an existing pane and
 cross-endpoint/scope reuse; both are repaired. Route-off and readiness checks precede the account-notice guard, preserving
 actionable refusals before owned writes. Prior human acknowledgement persists per harness. New acknowledgements require an
 auth/path/project/operation-bound, one-use nonce; native UI controls cover cancel, script origin and stale scene identity.
 The client controls passed **58 checks**. The final synthetic server focus passed **178**, with zero failures or skips,
 recorded in `<workspace>/scratch/pr4-b5-launch-notice/server-focused.xml`. A separate admission recheck after printable
 identity hardening passed **28**, with zero failures or skips, in `admission-final.xml` in that evidence directory. These
-focused runs overlap and are not added as unique coverage. Native UI/account execution and final full-source/server/build/
-whole-client qualification remain NOT RUN.
+focused runs overlap and are not added as unique coverage. Native UI/account, matching build and whole-client qualification remain NOT RUN; the complete `40447655` source suite
+failed as recorded above, and the repaired-candidate full rerun is pending.
 
 Claude Code 2.1.293 exposes only a confirmed signed-in email from its status JSON, with bounded printable output. Other
 identities are displayed as UNKNOWN. Synthetic status fixtures are not evidence of an actual person's signed-in session.
@@ -231,9 +268,9 @@ not passing acceptance; a skipped default opt-in does not erase the separately o
   artifact is under diagnosis; readiness is not enabled. None of these offline checks grants real
   account execution or proves provider-backed worker calls. Codex bearer transport is the established environment seam.
 * The Sign in with ChatGPT terms reading is complete. Captain acceptance and real-account authorization are separate and
-  are not inferred. Q1's uncommitted consent/probe/serializer candidate has the overlapping focused, pinned and 211-check
+  are not inferred. Q1's consent/probe/serializer implementation, committed at `40447655`, has the overlapping focused, pinned and 211-check
   applied-source passes stated above; final full-source/new-build and real-account execution remain pending. B5 disclosure
-  is implemented in the frozen uncommitted candidate; its native/account proof is still NOT RUN.
+  is implemented in the committed `40447655` candidate; its native/account proof is still NOT RUN.
 * R3/Q3 Context now has typed explicit project overrides, exact pinned defaults, user-only guarded client controls, no default
   writes, and model-window provenance. The native pin synchronizes compression settings before the next normal turn and
   rereads auxiliary compression routing per call; the earlier blanket live-reload blocker was incorrect. Context writes are

@@ -66,12 +66,20 @@ def nonce(page):
     return re.search('name="consent" value="([^"]+)"', page.text)[1]
 
 
+async def admitted_page(x, client):
+    """Prepare the browser entry through the authenticated human Client."""
+    token = x.app.state.auth.issue_pair()['access_token']
+    response = await client.post('/app/chatgpt/vision/ticket', json={}, headers={'Authorization': 'Bearer ' + token})
+    assert response.status_code == 200, response.text
+    return await client.get(response.json()['path'])
+
+
 def test_actual_app_lifecycle_consent_probe_and_refresh(integrated):
     x = integrated
     async def run():
         async with x.app.router.lifespan_context(x.app):
             async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
-                page = await c.get('/app/chatgpt/vision')
+                page = await admitted_page(x, c)
                 ticket = nonce(page)
                 assert not x.requests and not x.vision._path(x.auth, 'synthetic-model').exists()
                 result = await c.post('/app/chatgpt/vision', data={'consent': ticket}, headers={'Origin': 'http://127.0.0.1:8787'})
@@ -100,14 +108,14 @@ def test_actual_app_model_selection_invalidates_displayed_consent(integrated):
     async def run():
         async with x.app.router.lifespan_context(x.app):
             async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
-                ticket = nonce(await c.get('/app/chatgpt/vision'))
+                ticket = nonce(await admitted_page(x, c))
                 token = x.app.state.auth.issue_pair()['access_token']
                 update = await c.put('/app/provider-settings', json={'values': {'chatgpt_model': 'other-model'}}, headers={'Authorization': 'Bearer ' + token})
                 assert update.status_code == 200, update.text
                 assert x.app.state.agent.provider.model == 'other-model'
                 assert (await c.post('/app/chatgpt/vision', data={'consent': ticket})).status_code == 409
                 assert not x.requests
-                ticket = nonce(await c.get('/app/chatgpt/vision'))
+                ticket = nonce(await admitted_page(x, c))
                 assert (await c.post('/app/chatgpt/vision', data={'consent': ticket})).status_code == 200
                 assert x.requests[0]['model'] == 'other-model'
                 assert x.vision.admitted(x.auth, 'other-model') and not x.vision.admitted(x.auth, 'synthetic-model')
@@ -119,7 +127,7 @@ def test_actual_app_scope_change_refuses_preexisting_consent(integrated):
     async def run():
         async with x.app.router.lifespan_context(x.app):
             async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
-                ticket = nonce(await c.get('/app/chatgpt/vision'))
+                ticket = nonce(await admitted_page(x, c))
                 state = x.auth._read(); state['accounts'][state['selected']]['vision_login_id'] = 'different-login'; x.auth._write(state)
                 assert (await c.post('/app/chatgpt/vision', data={'consent': ticket})).status_code == 409
     asyncio.run(run())
@@ -135,10 +143,114 @@ def test_actual_app_signout_revokes_admission_and_pending_consent(integrated):
     async def run():
         async with x.app.router.lifespan_context(x.app):
             async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
-                ticket = nonce(await c.get('/app/chatgpt/vision'))
+                ticket = nonce(await admitted_page(x, c))
                 assert x.vision.admitted(x.auth, 'synthetic-model')
                 assert (await c.post('/app/chatgpt/signout')).status_code == 303
                 assert not x.vision.admitted(x.auth, 'synthetic-model')
                 assert (await c.post('/app/chatgpt/vision', data={'consent': ticket})).status_code == 403
     asyncio.run(run())
     assert not x.requests
+
+
+def test_raw_loopback_cannot_mint_consent(integrated):
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                assert (await c.get('/app/chatgpt/vision')).status_code == 403
+                assert (await c.post('/app/chatgpt/vision/ticket', json={})).status_code == 403
+                assert (await c.post('/app/chatgpt/vision', data={'consent': 'not-issued'})).status_code == 403
+                assert not x.requests and not x.vision._path(x.auth, 'synthetic-model').exists()
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize('origin', ['agent', 'mcp'])
+def test_authenticated_agent_claims_cannot_prepare_admission(integrated, origin):
+    from lampway_server.auth import mint_jwt
+    import time
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                token = mint_jwt(x.app.state.auth._secret, {'sub': 'synthetic-agent', 'exp': time.time() + 3600, 'origin': origin})
+                assert (await c.post('/app/chatgpt/vision/ticket', json={}, headers={'Authorization': 'Bearer ' + token})).status_code == 403
+                assert not x.requests
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize('headers', [{'X-Lampway-Origin': 'agent'}, {'X-Mixar-Job-Origin': 'mcp'}, {'Origin': 'http://127.0.0.1:9999'}])
+def test_human_bearer_does_not_override_declared_agent_or_cross_origin(integrated, headers):
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                token = x.app.state.auth.issue_pair()['access_token']
+                assert (await c.post('/app/chatgpt/vision/ticket', json={}, headers={**headers, 'Authorization': 'Bearer ' + token})).status_code == 403
+                assert not x.requests
+    asyncio.run(run())
+
+
+def test_admission_exchange_is_one_use_and_account_bound(integrated):
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                token = x.app.state.auth.issue_pair()['access_token']
+                async def entry():
+                    response = await c.post('/app/chatgpt/vision/ticket', json={}, headers={'Authorization': 'Bearer ' + token})
+                    assert response.status_code == 200 and response.headers['cache-control'] == 'no-store'
+                    assert token not in response.text and 'synthetic-account' not in response.text
+                    from lampway_server.logredact import redact_text
+                    path = response.json()['path']
+                    assert path.split('ticket=')[1] not in redact_text(path)
+                    return path
+                path = await entry()
+                page = await c.get(path)
+                assert page.status_code == 200 and page.headers['referrer-policy'] == 'no-referrer'
+                assert "form-action 'self'" in page.headers['content-security-policy']
+                assert (await c.get(path)).status_code == 403
+                path = await entry()
+                state = x.auth._read(); state['accounts'][state['selected']]['vision_login_id'] = 'changed-login'; x.auth._write(state)
+                assert (await c.get(path)).status_code == 409
+                assert (await c.get(path)).status_code == 403
+                assert not x.requests
+    asyncio.run(run())
+
+
+def test_admission_expiry_is_bound_to_authenticated_session(integrated, monkeypatch):
+    from lampway_server import chatgpt_vision_routes as routes
+    from lampway_server.auth import mint_jwt
+    import time
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                now = time.time()
+                token = mint_jwt(x.app.state.auth._secret, {'sub': 'synthetic-user', 'exp': now + 30})
+                response = await c.post('/app/chatgpt/vision/ticket', json={}, headers={'Authorization': 'Bearer ' + token})
+                assert response.status_code == 200
+                with monkeypatch.context() as patch:
+                    patch.setattr(routes.time, 'time', lambda: now + 31)
+                    assert (await c.get(response.json()['path'])).status_code == 403
+                assert not x.requests
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("late_claims", [None, {}, {"exp": "bad"}, {"exp": float("inf")}, {"exp": True}])
+def test_auth_expiry_between_ticket_guard_reads_fails_closed(integrated, monkeypatch, late_claims):
+    x = integrated
+    async def run():
+        async with x.app.router.lifespan_context(x.app):
+            async with x.client(transport=httpx.ASGITransport(x.app, client=('127.0.0.1', 1234)), base_url='http://127.0.0.1:8787') as c:
+                auth = x.app.state.auth
+                token = auth.issue_pair()['access_token']
+                claims = auth.verify_access(token)
+                reads = []
+                def expiry_race(value):
+                    reads.append(value)
+                    return claims if len(reads) <= 3 else late_claims
+                monkeypatch.setattr(auth, 'verify_access', expiry_race)
+                response = await c.post('/app/chatgpt/vision/ticket', json={}, headers={'Authorization': 'Bearer ' + token})
+                assert response.status_code == 403, response.text
+                assert not x.requests
+    asyncio.run(run())

@@ -279,7 +279,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         if st["signed_in"] and st["plan_usage_enabled"]:
             return (BP.status(f"({st['email'] or 'signed in'}).", strong="Using ChatGPT plan", link=("Manage usage", st["manage_usage_url"])),
                     BP.form("/app/chatgpt/signout", "Sign out", primary=False),
-                    BP.status("", link=("Check image support", "/app/chatgpt/vision")))
+                    BP.status("To check image support, use Check ChatGPT image support in Lampway's Agent preferences."))
         if st["signed_in"]:
             return (BP.status("Signed in, but ChatGPT plan usage is not enabled for this sign-in: enable it, or use an API key."),
                     BP.form("/app/chatgpt/start", "Enable ChatGPT plan usage"))
@@ -1546,9 +1546,23 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         units = getattr(engine_wiring, "units", None)
         if units is not None:
             units.capabilities_changed()  # existing coalesced native config refresh; never starts a pane or model turn
+    def chatgpt_vision_human_session(request):
+        if _wb(request) is not None or _wb_origin(request) != "user":
+            return None
+        token = bearer_token(request)
+        claims = auth.verify_access(token)
+        import hashlib
+        import math
+        import time
+        if not isinstance(claims, dict):
+            return None
+        expires = claims.get("exp")
+        if type(expires) not in (int, float) or not math.isfinite(expires) or expires <= time.time():
+            return None
+        return hashlib.sha256(token.encode()).hexdigest(), expires
     routes += chatgpt_vision_routes(chatgpt,
         lambda: agent.provider.model if getattr(agent.provider, "name", "") == "chatgpt_plan" else settings.chatgpt_model,
-        _wb_origin, on_change=chatgpt_vision_changed)
+        _wb_origin, human_session=chatgpt_vision_human_session, on_change=chatgpt_vision_changed)
     from .engine.mcp_endpoint import engine_mcp_routes
     routes += engine_mcp_routes(lambda: agent.engine)                        # spec E1.6: the engine's own MCP endpoint
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback

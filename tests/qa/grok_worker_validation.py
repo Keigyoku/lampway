@@ -568,12 +568,12 @@ class Validator:
         from lampway_server.herdr.harnesses.grok import Grok
         from lampway_server.herdr.harnesses.base import PaneSpec, DirectServer
         from lampway_server import grok_worker as G
-        from unittest.mock import patch
         self.check('pinned herdr supplied', self.options.herdr is not None)
         self.receipt['versions']['herdr'] = self.run([str(self.options.herdr), '--version'])
         herdr_root = self.output / 'herdr'
         tools = self.output / 'native-bin'; tools.mkdir()
         (tools / 'grok').symlink_to(self.options.grok.resolve())
+        (tools / 'bwrap').symlink_to(self.options.bwrap.resolve())
         old_env = dict(os.environ)
         os.environ.update(env)
         os.environ['PATH'] = str(tools) + os.pathsep + env['PATH']
@@ -594,6 +594,17 @@ class Validator:
             return not any(still_alive(r) for r in rows)
         panes = []
         try:
+            candidate = G.candidate_paths(str(self.options.grok.resolve()))
+            self.receipt['candidate_paths'] = candidate; self.save()
+            self.check('production lookup pins native artifact',
+                Path(candidate['native']).resolve() == self.options.grok.resolve() and
+                digest(Path(candidate['native'])) == GROK_SHA256)
+            self.check('production lookup pins ordinary namespace executable',
+                Path(candidate['bwrap']).resolve() == self.options.bwrap.resolve() and
+                digest(Path(candidate['bwrap'])) == config['bwrap_sha256'])
+            self.check('production lookup pins installed helper',
+                Path(candidate['connector']).resolve() == Path(config['connector']['command']).resolve() and
+                digest(Path(candidate['connector'])) == config['connector']['sha256'])
             L.start_server(herdr_root, method='setsid')
             server_pid = L.server_info(herdr_root)['pid']
             self.receipt['herdr_identity'] = process_rows()[server_pid]; self.save()
@@ -614,11 +625,8 @@ class Validator:
                 # Native list, strict preflight and the namespace probe remain real.
                 adapter.worker_ok = True
                 adapter.locate = lambda: str(self.options.grok.resolve())
-                candidate = (self.options.grok.resolve(), self.options.bwrap.resolve(),
-                             Path(config['connector']['command']))
-                with patch.object(G, 'candidate_paths', return_value=candidate):
-                    wiring = adapter.lampway_tools(spec)
-                    launch = adapter.launch(spec, 'synthetic_no_data_probe')
+                wiring = adapter.lampway_tools(spec)
+                launch = adapter.launch(spec, 'synthetic_no_data_probe')
                 for name, body in wiring.files.items():
                     target = Path(name); target.write_text(body); target.chmod(0o600)
                 metadata = pane_dir / 'grok-worker.json'

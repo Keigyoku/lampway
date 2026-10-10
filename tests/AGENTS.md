@@ -65,11 +65,17 @@ original twenty-second response bound, retaining every baseline and exclusion as
 enabled in their original fixture config; actual native initialization is required before their exclusion is credited.
 Record native first-start config/cache changes separately, require original auth/persona preservation, and compare restricted
 execution with the warmed native baseline without claiming cold-byte preservation.
+Native pane qualification exercises production candidate-path lookup with owned executable links and checks exact artifact,
+namespace and installed-helper hashes before herdr starts. Pure path-contract controls refuse process, socket, signal and
+launcher seams; retain malformed-mapping and changed-hash failures without substituting a tuple for the production mapping.
 
 B5 launch disclosure tests use synthetic status and recording launch seams. Downstream launch fixtures may seed an explicit
 minimal prior human acknowledgement; they never disable the production admission guard. Keep fresh-first-launch, agent nonce,
 malformed retained-file and independent-store update controls separate. A skipif alias is not a pytest marker: select exact
 synthetic node IDs when native execution is prohibited, and preserve accidentally broader receipts with their actual scope.
+An imported downstream fixture does not import its defining module's autouse fixtures. Each consumer declares retained
+disclosure explicitly; mixed modules use a non-autouse dependency only on post-disclosure cases, leaving fresh worker and
+first-launch refusal cases unseeded. Preserve the original test bodies, assertions and time limits.
 
 ## Test
 
@@ -107,3 +113,7 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | model-free native MCP fixtures and exact adopted-child reaping | failed native Grok CI and process-local denied-network reproduction | blocked model retries stalled policy proof, orphan zombies outlived the parent, and default-disabled plugins could not establish discovery | keep native session MCP assertions and response bounds, exact adopted zombie waits and explicitly enabled toy-plugin baselines | retained native timeout, direct-call, plugin initialization and cold-cache failure; 63 focused checks pass; repaired full native CI remains unverified |
 
 | 2026-10-10 | distinguish synthetic notice checks from native herdr | B5 verification and owned-process discipline | a skipif alias was incorrectly supplied as -m exclusion and a broader 23-pass run included real herdr | test body: exact synthetic node selection and honestly qualified receipts; no unsupported all-reaped claim | retained mixed-scope 23-pass evidence; fixture cleanup calls documented without PID identity proof |
+
+| 2026-10-10 | inherited downstream fixtures retain explicit disclosure | frozen 40447655 full suite: 25 NoticeRequired failures | imported island/connector/card fixtures lacked their defining module's autouse disclosure record | test body: explicit consumer fixture import, non-autouse dependency only on positive mixed-module cases, fresh refusals unchanged | full frozen causal RED receipt and exact 25 focused recheck; original test body AST preservation retained |
+
+| 2026-10-10 | production Grok path lookup reaches native QA | six causal mapping/hash failures in guarded scratch control | a tuple-shaped candidate mock bypassed the real consumer and hid key iteration as launch paths | offline QA body: actual owned PATH lookup, exact prelaunch hashes and process-refusing malformed-map controls; dedicated workflow watches and runs consumer tests | six causal REDs retained; ten path controls and 73 focused regressions pass; no native or account acceptance claimed |

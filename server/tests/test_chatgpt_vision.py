@@ -155,10 +155,12 @@ def test_browser_disclosure_one_use_and_no_arbitrary_payload(stack):
     calls=[]
     async def run_probe(auth,model,**kwargs):calls.append((model,kwargs));return {"images_enabled":False,"status":"failed","model":model}
     def origin(request):return "agent" if request.headers.get("x-lampway-origin") in {"agent","mcp"} else "user"
-    app=Starlette(routes=routes(auth,lambda:"synthetic-model",origin,run_probe=run_probe))
+    app=Starlette(routes=routes(auth,lambda:"synthetic-model",origin,human_session=lambda r:("synthetic-user-session",time.time()+3600) if r.headers.get("authorization")=="Bearer synthetic-user" else None,run_probe=run_probe))
     async def run():
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app,client=("127.0.0.1",1234)),base_url="http://127.0.0.1:8787") as c:
-            page=await c.get("/app/chatgpt/vision");assert V.DISCLOSURE in page.text
+            entry=await c.post("/app/chatgpt/vision/ticket",json={},headers={"Authorization":"Bearer synthetic-user"})
+            assert entry.status_code==200
+            page=await c.get(entry.json()["path"]);assert V.DISCLOSURE in page.text
             nonce=re.search('name="consent" value="([^"]+)"',page.text)[1]
             assert "HttpOnly" in page.headers["set-cookie"] and "SameSite=strict" in page.headers["set-cookie"]
             for headers in [{"x-lampway-origin":"agent"},{"x-lampway-origin":"mcp"},{"authorization":"Bearer synthetic"},{"origin":"http://127.0.0.1:9999"}]:
@@ -233,10 +235,12 @@ def test_browser_result_requests_existing_native_refresh_without_a_turn(stack):
     from lampway_server.chatgpt_vision_routes import routes
     changes=[]
     async def fail(auth,model,**kwargs):raise httpx.ConnectError("synthetic failure")
-    app=Starlette(routes=routes(auth,lambda:"synthetic-model",lambda request:"user",run_probe=fail,on_change=lambda:changes.append("refresh")))
+    app=Starlette(routes=routes(auth,lambda:"synthetic-model",lambda request:"user",human_session=lambda r:("synthetic-user-session",time.time()+3600) if r.headers.get("authorization")=="Bearer synthetic-user" else None,run_probe=fail,on_change=lambda:changes.append("refresh")))
     async def run():
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app,client=("127.0.0.1",1234)),base_url="http://127.0.0.1:8787") as c:
-            page=await c.get("/app/chatgpt/vision");nonce=re.search('name="consent" value="([^"]+)"',page.text)[1]
+            entry=await c.post("/app/chatgpt/vision/ticket",json={},headers={"Authorization":"Bearer synthetic-user"})
+            assert entry.status_code==200
+            page=await c.get(entry.json()["path"]);nonce=re.search('name="consent" value="([^"]+)"',page.text)[1]
             assert not changes
             assert (await c.post("/app/chatgpt/vision",data={"consent":nonce})).status_code==502
     asyncio.run(run());assert changes==["refresh"]

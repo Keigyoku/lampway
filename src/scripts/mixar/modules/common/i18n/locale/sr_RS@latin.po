@@ -6479,6 +6479,15 @@ msgstr ""
 msgid "MiB"
 msgstr ""
 
+msgid "Check ChatGPT image support"
+msgstr ""
+
+msgid "A human click prepares the browser form; the form's separate consent runs the check."
+msgstr ""
+
+msgid "The vision check could not open; try again from Agent preferences."
+msgstr ""
+
 msgid "Hide this note (the pill stays off; the preference brings it back)"
 msgstr ""
 

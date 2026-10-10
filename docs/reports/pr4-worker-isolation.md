@@ -2,10 +2,45 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # PR4 worker qualification, images and native skill review
 
-This report distinguishes the documentation-freeze candidate from historical receipts. Latest published PR4 is `7b5faed6`,
-whose runtime is identical to frozen `7bf02b8c`: full server **3,073 PASS, 31 NOT RUN**, in **1,089.575 seconds**.
-The existing `84d896f328512d438bcc9d88f71e7cf9f8ea10de` application binary is explicitly historical. Later uncommitted Q1
-consent/probe/serializer repairs passed 167 focused, 98 pinned, then 211 applied-source checks in 12.29 seconds. The runs
+## Latest complete source-suite result
+
+Committed source `404476557584d1e2297013b1780a9828022e1ebe` completed the full server suite with **3,149 PASS,
+27 FAIL and 31 SKIP/NOT RUN** in **1,242.051 seconds**. No cases were left unstarted. The source fingerprints held unchanged,
+and recorded owned cleanup had no survivors. Exact failure accounting is
+`<workspace>/scratch/pr4-exact-final-head-full-server-20261011/final-failure-accounting.json`.
+
+Twenty-five failures were legacy pane fixtures missing the required prior human harness acknowledgement. Two were long-
+basetemp socket-path assertions: `test_existing_outer_socket_requires_the_exact_native_wrap_parent` and
+`test_user_config_untouched`. This failed snapshot remains retained without subtracting later repairs. Q1/B5 changes
+previously described as uncommitted preparation are committed at this source snapshot.
+
+Subsequent uncommitted fixture repairs passed all 25 notice cases plus 36 fresh controls with assertions preserved. The
+original two socket-path cases passed with a short temporary root: **2 PASS in 0.19 seconds**, retained in
+`<workspace>/scratch/pr4-short-basetemp-original-tests.xml`. No repaired-candidate full-suite receipt exists yet. A separate
+actual-app Q1 loopback-consent audit retained **1 FAIL, 2 PASS** in
+`<workspace>/scratch/pr4-q1-consent-boundary-audit`. The subsequent authenticated human-client ticket/admission and UI
+repairs are applied, uncommitted and frozen: **85 server PASS in 2.53 seconds**, **39 client PASS in 1.58 seconds**, with no
+failures or skips, retained as `server-freeze.{log,xml}` and `client-freeze.{log,xml}` in that directory. This is focused
+source proof, not a full-suite, new-build or account receipt.
+
+Ticket/admission lifetime is 120 seconds; the browser form lasts at most 600 seconds and remains bounded by the original
+JWT expiry. Scope/model binding and one-use admission are enforced; no active-JWT revocation is claimed. The client requires
+its human gate, opens only the fixed local URL off-thread, uses cache-only state, surfaces errors and avoids ended-scene RNA.
+Canonical i18n is frozen for three new messages across 48 PO files; all **411,057 retained translations** are unchanged,
+recorded in `<workspace>/scratch/pr4-q1-i18n-20261010/receipt.json`.
+
+The suite used the historical `84d896f3` binary. A repaired-candidate full server receipt, matching new build, complete
+built-client run, final published-head CI and real-account qualification remain owed. Grok's production path-mapping repair
+is now applied but uncommitted, with **73 focused PASS**; readiness remains false and no complete repaired native Grok CI
+is claimed. Actual project-native Grok baseline positives failed for both fresh and Git workspaces within their bounds:
+normal native startup requested `_x.ai/folder_trust/request` for the exact synthetic workspace with `configKinds=["mcp"]`.
+The diagnostic rejected it and granted no trust. A source-proof proposal remains pending root/user authority; worker
+readiness stays false. These later focused results do not change the failed 404 snapshot.
+The earlier passing `7bf02b8c` receipt is historical and does not override this failed result. This is not acceptance.
+
+
+This report distinguishes the documentation-freeze candidate from historical receipts. Earlier published PR4 `7b5faed6` had runtime identical to frozen `7bf02b8c`: full server **3,073 PASS, 31 NOT RUN**, in **1,089.575 seconds**.
+The existing `84d896f328512d438bcc9d88f71e7cf9f8ea10de` application binary is explicitly historical. Q1 consent/probe/serializer changes, subsequently committed at `40447655`, passed 167 focused, 98 pinned, then 211 applied-source checks in 12.29 seconds. The runs
 overlap and are not summed as unique checks. Final full-source/new-build verification remains pending.
 Final published-head source, CI, matching build and complete client receipts are separate acceptance evidence. Earlier native
 receipts are not relabelled as proof of the changed candidate.
@@ -88,13 +123,13 @@ failed cleanup/zombie packets remain retained separately. This used the historic
 with played herdr and offline synthetic fixtures; it proves neither a new build nor a real account.
 
 The Sign in with ChatGPT terms were fetched and read, closing the former fetch/research gap. The retained reading is
-`<workspace>/scratch/pr4-siwc-terms-reading.md`; captain acceptance and account authorization are not implied. The uncommitted
-Q1 candidate includes separate human consent, a fixed synthetic vision request, scope-bound receipts and serializer controls.
+`<workspace>/scratch/pr4-siwc-terms-reading.md`; captain acceptance and account authorization are not implied. The Q1
+implementation committed at `40447655` includes separate human consent, a fixed synthetic vision request, scope-bound receipts and serializer controls.
 Its 167 focused and 98 pinned passes are offline evidence. The later applied-source Q1 run passed **211 checks in 12.29
 seconds**, retained in `<workspace>/scratch/pr4-q1-final-source-focused-retry.xml`; these overlapping runs are not added.
 The first attempt's two collection import errors remain retained; the retry corrected relative fixture imports. Final
 full-source/new-build checks and every real-account probe remain **NOT RUN**.
-B5's first-launch disclosure is now implemented and frozen but uncommitted; its offline controls and pending final proof are
+B5's first-launch disclosure is implemented and committed at `40447655`; its offline controls and pending final proof are
 recorded below.
 
 The later actual pinned-native receipt-adoption scenario passed **one test in 23.47 seconds** at the reviewed local
@@ -116,19 +151,20 @@ remains separately qualified and is not relabelled as typed promotion.
 Grok's later toy-plugin probe reached actual native MCP `initialize` successfully. The overall probe failed because vendor
 cold-start modified native cache/config; production QA now compares a warmed baseline. Initialization alone does not prove
 the exclusive catalogue, boundary, cleanup or account path. No full repaired CI has completed, and worker readiness remains
-false. B5's causal nonce defects are repaired in the frozen uncommitted candidate; this does not establish native/account
+false. B5's causal nonce defects are repaired in the committed `40447655` candidate; this does not establish native/account
 first-launch qualification.
 
 ## B5 first-launch disclosure
 
-The frozen uncommitted source now implements the notice and durable per-harness human acknowledgement. Causal REDs for
+Committed `40447655` now implements the notice and durable per-harness human acknowledgement. Causal REDs for
 existing-pane nonce reuse and cross-endpoint/scope reuse were repaired. Route-off and readiness refusals happen before the
 notice guard and owned writes. Fresh acknowledgements require an auth/path/project/operation-bound, one-use nonce; client
 controls cover native UI cancel, script origin and stale scene identity. **58 client checks passed**. The final synthetic
 server focus passed **178**, with zero failures or skips, recorded in
 `<workspace>/scratch/pr4-b5-launch-notice/server-focused.xml`. A separate printable-identity admission recheck passed **28**,
 with zero failures or skips, in `admission-final.xml` in that directory. These focused runs overlap and are not summed.
-Native first-launch UI/account execution and final full-source/server, matching build and whole-client checks remain NOT RUN.
+Native first-launch UI/account, matching build and whole-client checks remain NOT RUN. The `40447655` full-source suite
+failed as recorded above; the repaired-candidate rerun is pending.
 
 Only Claude Code 2.1.293's confirmed signed-in status-JSON email is displayed, bounded to printable output; other harness
 identities are UNKNOWN. Offline synthetic identity fixtures do not establish real-account acceptance.
@@ -165,7 +201,7 @@ native process evidence for the review seam, not built Blender presentation or r
 
 | Check | Current candidate status |
 |---|---|
-| Final full server suite after all repairs and documentation freeze | **NOT RUN** for the later uncommitted candidate; frozen `7bf02b8c` separately passed 3,073 with 31 NOT RUN. |
+| Complete source server suite | **FAIL** at committed `40447655`: 3,149 PASS, 27 FAIL, 31 SKIP/NOT RUN, 1,242.051 seconds. Repaired-candidate rerun remains NOT RUN; frozen `7bf02b8c` is historical. |
 | Matching final build and complete built-client suite | **NOT RUN** for this candidate; the published-head receipts are historical. |
 | Native Hermes images and receipt adoption | Attachment/TUI/generic-MCP, pinned receipt adoption, supported native `vision_analyze` and direct unavailable-tool controls **PASS** only in their stated offline scopes. Generic MCP typed promotion is absent. Matching build, actual Blender screenshot turn and account vision remain **NOT RUN**. |
 | Account-backed tool calls, vision, interruption and session records across selected services/harnesses | **NOT RUN**; no provider/account or paid call was made by these fixtures. |

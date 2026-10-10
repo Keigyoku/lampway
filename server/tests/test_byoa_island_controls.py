@@ -22,6 +22,7 @@ import pytest
 from lampway_server.auth import mint_jwt
 
 from .byoa_fixtures import PI_SESSION, PI_TURNS, jsonl
+from .launch_notice_support import prior_human_disclosure  # noqa: F401
 from .test_byoa_view import SCENE, append, claude_pane, observe, reply_to, stack, until  # noqa: F401 - stack is a fixture
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + b"\x00" * 32

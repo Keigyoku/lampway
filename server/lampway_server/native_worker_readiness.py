@@ -133,7 +133,8 @@ def hermes_worker_note(binary) -> str:
 def grok_worker_description(binary, *, cwd=None) -> dict:
     """Native read-only identity query and no-op namespace qualification, before any pane files."""
     from . import grok_worker as G
-    native, bwrap, connector = G.candidate_paths(binary)
+    paths = G.candidate_paths(binary)
+    native, bwrap, connector = (paths[key] for key in ('native', 'bwrap', 'connector'))
     project = str(Path(cwd or os.getcwd()).resolve())
     code, listing = L.worker_probe([str(native), "mcp", "list", "--json"], {}, cwd=project)
     if code != 0:
