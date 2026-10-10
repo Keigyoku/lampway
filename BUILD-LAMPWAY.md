@@ -238,3 +238,23 @@ LAMPWAY_MIN_FREE_GB=10 scripts/lampway/build_linux.sh   # the default 100 GB flo
 A single foreground or background command is capped at 2 h, so a clean compile can be cut off during install; re-running
 the script resumes there. Windowed start works under a plain `Xvfb` with `LIBGL_ALWAYS_SOFTWARE=1`. Capture it with
 ImageMagick's `import -window root` on that display; `bpy.ops.screen.screenshot` returns an all-black image on llvmpipe.
+
+## 8. The motion-graphics browser
+
+The server's `lampway_motion_graphics` tool renders scenes in a headless Chromium it does not ship. Point `LAMPWAY_CHROMIUM` at
+Chrome for Testing's **chrome-headless-shell** (tested: 155.0.8059.39, the version in `specs/motion_graphics/acceptance.md`):
+
+```bash
+v=155.0.8059.39
+mkdir -p "$HOME/.local/opt" && cd "$HOME/.local/opt"
+curl -fLO "https://storage.googleapis.com/chrome-for-testing-public/$v/linux64/chrome-headless-shell-linux64.zip"
+unzip -q chrome-headless-shell-linux64.zip
+export LAMPWAY_CHROMIUM="$HOME/.local/opt/chrome-headless-shell-linux64/chrome-headless-shell"
+"$LAMPWAY_CHROMIUM" --version          # Google Chrome for Testing 155.0.8059.39
+```
+
+(`npx @puppeteer/browsers install chrome-headless-shell@<version>` fetches the same build.) A full Google Chrome or Chromium is
+refused: it starts its own component extensions even with `--disable-extensions`, and their service workers cannot be held to the
+scene folder, so the tool names the wrong browser instead. Without `LAMPWAY_CHROMIUM` the tool refuses and the server suite's
+real-browser motion tests SKIP (unverified, not passed): `cd server && LAMPWAY_CHROMIUM=... .venv/bin/python -m pytest -q
+tests/test_motion_graphics.py tests/test_motion_browser_containment.py tests/test_motion_setup_review.py`.

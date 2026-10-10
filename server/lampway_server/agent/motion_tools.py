@@ -6,6 +6,7 @@ receipt and proves it reproduces. It runs here on the server (never in Blender),
 and the call returns the paths. It is not a job service: the job registry takes only the Mixar client's wire job types."""
 import asyncio
 import json
+import logging
 from pathlib import Path
 
 from .. import config
@@ -16,6 +17,8 @@ from ..motion import receipt as R
 from ..motion.cancellation import Cancellation, MotionCancelled, checkpoint
 from .providers.base import ToolSpec
 
+log = logging.getLogger("lampway.motion")
+
 NAME = "lampway_motion_graphics"
 NAMES = {NAME}
 
@@ -23,7 +26,8 @@ _S, _I, _N, _B, _O = {"type": "string"}, {"type": "integer"}, {"type": "number"}
 SPEC = ToolSpec(NAME, (
     "Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in "
     "order from frame 0), encode it to MP4 and WebM, self-check sampled frames (empty frame, text outside title-safe, text under 22 px, contrast, "
-    "text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), "
+    "text over a figure or card, a mark cut by the edge, text outside an optional safe_zone; with audit_every_s also reading time and near-blank "
+    "runs over the whole timeline; and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), "
     "write a receipt (code hash, "
     "every frame's hash, output hashes) under motion/out/<name>-<code8>-<unique-run>/, and file an accepted render in the Asset Vault as kind video. Look at "
     "contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() "
@@ -39,22 +43,26 @@ SPEC = ToolSpec(NAME, (
     "folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify "
     "re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd "
     "or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), "
-    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize. Spends nothing; nothing leaves the machine."),
+    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize; a refusal returns ok false, error and help (the next steps). A render returns inputs (each of width, height, fps, duration_s with its source), progress (frames and seconds per phase) and help. The same render and verify run from a shell: python -m lampway_server.motion. Spends nothing; nothing leaves the machine."),
     {"type": "object", "additionalProperties": False, "required": [], "properties": {
         "action": {**_S, "enum": ["render", "verify"], "description": "render (default) or verify (re-render a receipt and compare)"},
         "scene": {**_S, "description": "render: the scene folder, project-relative (e.g. motion/scenes/spend-gate)"},
         "html": {**_S, "description": "render: a single-file scene instead of a folder; written to motion/scenes/<name>/index.html first (needs name)"},
         "entry": {**_S, "description": "the scene's HTML entry inside its folder (default index.html)"},
         "name": {**_S, "description": "kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>-<unique-run>/"},
-        "duration_s": {**_N, "exclusiveMinimum": 0, "maximum": 120, "description": "seconds, (0, 120]; default: the scene's own window.__scene.duration_s"},
-        "fps": {**_I, "minimum": 1, "maximum": 60, "description": "frames per second, 1..60 (default 30)"},
-        "width": {**_I, "minimum": 16, "maximum": 3840, "description": "even, 16..3840 (default 1920)"},
-        "height": {**_I, "minimum": 16, "maximum": 2160, "description": "even, 16..2160 (default 1080)"},
+        "duration_s": {**_N, "exclusiveMinimum": 0, "maximum": 120, "description": "seconds, (0, 120]; default: the template's, then the scene's own window.__scene.duration_s"},
+        "fps": {**_I, "minimum": 1, "maximum": 60, "description": "frames per second, 1..60 (default: window.__scene.fps, then 30)"},
+        "width": {**_I, "minimum": 16, "maximum": 3840, "description": "even, 16..3840; the long edge at most 3840, the short edge at most 2160 (default: the template's, then window.__scene.width, then 1920)"},
+        "height": {**_I, "minimum": 16, "maximum": 3840, "description": "even, 16..3840; the long edge at most 3840, the short edge at most 2160, so 2160x3840 is allowed (default: the template's, then window.__scene.height, then 1080)"},
         "formats": {"type": "array", "items": {**_S, "enum": list(E.FORMATS)}, "description": "a non-empty subset of mp4, webm (default both)"},
         "samples": {"type": "array", "items": {**_N, "minimum": 0}, "maxItems": M.MAX_SAMPLES,
                     "description": "seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)"},
-        "template": {**_S, "description": "provenance only: the motion-graphics prompt template id@version the scene was written from"},
-        "variables": {**_O, "description": "provenance only: that template's variables"},
+        "audit_every_s": {**_N, "exclusiveMinimum": 0, "maximum": 120,
+                          "description": "also record window.__audit() every this many seconds (whole frames) in audit.jsonl: authored geometry for the whole timeline, no PNGs"},
+        "safe_zone": {"type": "array", "items": {**_N, "minimum": 0, "maximum": 1}, "minItems": 4, "maxItems": 4,
+                      "description": "[x0, y0, x1, y1] fractions of the frame visible text must stay inside (fail), e.g. [0.05, 0.12, 0.95, 0.8] for a phone feed; checked at samples and the audit stream"},
+        "template": {**_S, "description": "the motion-graphics prompt template id@version the scene was written from: recorded as provenance, and its defaults (resolution, aspect_ratio, duration) rank below explicit arguments and above window.__scene"},
+        "variables": {**_O, "description": "provenance: that template's variables; a *_dir or *_source path missing under the project is a warning"},
         "vault": {**_B, "description": "file an accepted render in the Asset Vault (default true)"},
         "receipt": {**_S, "description": "verify: the project-relative path of the render's receipt.json"}}})
 
@@ -77,17 +85,63 @@ def _prompt_provenance(template, variables):
     return PR.render(lib, tid, variables or {}, version=t["version"])
 
 
+PATH_VARS = ("_dir", "_source")
+
+
+def _template_paths(root: Path, prompt: dict) -> tuple:
+    """(warnings, help) for a rendered template's path-like variables (``*_dir``, ``*_source``) that name nothing under the project.
+    A value with whitespace is prose ("the tutorial page's numbered list"), not a path, and is not checked."""
+    warnings, helps = [], []
+    for name, value in (prompt.get("variables") or {}).items():
+        if not name.endswith(PATH_VARS) or not isinstance(value, str) or not value or any(c.isspace() for c in value):
+            continue
+        try:
+            where = "does not exist under the project" if not M._jail(root, value).exists() else None
+        except M.Refused:
+            where = "is outside the project"
+        if where:
+            warnings.append(f"{prompt['template']}: {name}={value} {where}")
+            helps.append(f"pass variables {{\"{name}\": \"<project-relative path>\"}} naming the real {name.rsplit('_', 1)[0]} the scene was built from")
+    return warnings, helps
+
+
+BROWSER_HELP = "install Chrome for Testing's chrome-headless-shell and set LAMPWAY_CHROMIUM to it: BUILD-LAMPWAY.md section 8, The motion-graphics browser"
+
+
+def refusal_help(exc) -> list:
+    """help[] next steps for a refusal (the AXI rule: every error says what to do next). Shared with the motion CLI."""
+    text = str(exc)
+    if isinstance(exc, F.ChromiumMissing) or "chrome-headless-shell" in text:
+        return [BROWSER_HELP]
+    if isinstance(exc, E.FfmpegMissing):
+        return ["install ffmpeg so it is on PATH (e.g. apt install ffmpeg), then call again"]
+    if text.startswith("size "):
+        return [f"width and height: even integers, long edge 16..{M.MAX_LONG_EDGE}, short edge 16..{M.MAX_SHORT_EDGE} "
+                f"(e.g. 1920x1080, 1080x1920, {M.MAX_LONG_EDGE}x{M.MAX_SHORT_EDGE}, {M.MAX_SHORT_EDGE}x{M.MAX_LONG_EDGE})"]
+    if text.startswith("fps "):
+        return ["fps: an integer 1..60"]
+    if text.startswith("duration "):
+        return ["duration_s: seconds in (0, 120], passed or set in window.__scene.duration_s"]
+    return ["change what the error names and call again"]
+
+
 def _capture():
     return F.Chromium(F.chromium_binary(), config.state_dir() / "motion" / "chromium-home")
 
 
-def _work(vault, root: Path, a: dict, new_capture, cancel=None):
+def progress_line(row: dict) -> str:
+    """One progress row as a line: ``render 120/450 frames, 48.1 s, eta 132.3 s``."""
+    eta = f", eta {row['eta_s']:g} s" if row.get("eta_s") is not None else ""
+    return f"{row['phase']} {row['frame']}/{row['frames']} frames, {row['elapsed_s']:g} s{eta}"
+
+
+def _work(vault, root: Path, a: dict, new_capture, cancel=None, progress=None):
     checkpoint(cancel)
     if new_capture is None:
         F.chromium_binary()                                                # refuse before anything is written when there is no browser
         new_capture = _capture
     if a["action"] == "verify":
-        return M.verify(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel)
+        return M.verify(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, progress=progress)
     prompt = _prompt_provenance(a["template"], a["variables"])
     if prompt is not None:
         a = dict(a, template=prompt["template"], variables=prompt["variables"])
@@ -99,7 +153,14 @@ def _work(vault, root: Path, a: dict, new_capture, cancel=None):
         if receipt["ok"] and a.get("vault", True) is not False and vault is not None:
             bundle.update(R.seal(receipt, pinned_out, root, cancel=cancel))
 
-    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff)
+    defaults = M.template_defaults(prompt["params"]) if prompt is not None else None
+    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff, defaults=defaults,
+                   progress=progress)
+    if prompt is not None:
+        warnings, helps = _template_paths(root, prompt)
+        if warnings:
+            out["warnings"] = warnings
+            out["help"] = helps + out["help"]
     checkpoint(cancel)
     filed = {"assets": [], "spooled": False, "filed": False}
     if out["ok"] and a.get("vault", True) is not False and vault is not None:
@@ -112,15 +173,21 @@ def _work(vault, root: Path, a: dict, new_capture, cancel=None):
     return out
 
 
-async def call(vault, project_root, name: str, arguments: dict, capture=None) -> tuple:
-    """(JSON text, is_error). ``capture`` is a factory of fresh capture adapters (the tests' fake); by default the user's headless Chromium."""
+async def call(vault, project_root, name: str, arguments: dict, capture=None, progress=None) -> tuple:
+    """(JSON text, is_error). ``capture`` is a factory of fresh capture adapters (the tests' fake); by default the user's headless Chromium.
+    Progress (motion/progress.py) goes to the server log (``lampway.motion``) and to ``progress``, a callable of one row, when given: it runs
+    on the render thread, so a caller on the event loop hands it on with ``loop.call_soon_threadsafe``. The answer lists the phases."""
     if name != NAME:
         return json.dumps({"ok": False, "error": f"unknown tool {name!r}"}), True
     root = Path(project_root)
     try:
         a = M.inputs(arguments)
         cancel = Cancellation()
-        worker = asyncio.create_task(asyncio.to_thread(_work, vault, root, a, capture, cancel))
+        def report(row):
+            log.info("%s %s", NAME, progress_line(row))
+            if progress is not None:
+                progress(row)
+        worker = asyncio.create_task(asyncio.to_thread(_work, vault, root, a, capture, cancel, progress=report))
         try:
             out = await asyncio.shield(worker)
         except asyncio.CancelledError:
@@ -140,8 +207,10 @@ async def call(vault, project_root, name: str, arguments: dict, capture=None) ->
                     pass
             return json.dumps({"ok": False, "cancelled": True, "error": "motion graphics cancelled",
                                "vault": cancel.snapshot_filing()}), True
-    except (MotionCancelled, M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
+    except MotionCancelled as exc:
         return json.dumps({"ok": False, "error": str(exc)}), True
+    except (M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
+        return json.dumps({"ok": False, "error": str(exc), "help": refusal_help(exc)}), True
     except Exception as exc:  # noqa: BLE001 - reported to the model
         return json.dumps({"ok": False, "error": f"{type(exc).__name__}: {exc}"}), True
     if "reproduced" in out:

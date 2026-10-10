@@ -13,7 +13,7 @@
 #      copy of the owner's recorded fixtures; test_all requires its placement fixtures (test_all.py SHELF_FILES), fails a shelf test that
 #      would skip, and fails a run that wrote to it. The path is the machine's: it is never written in the repository.
 #   4. the i18n template (src/scripts/mixar/modules/common/i18n/locale/mixar.pot, git-ignored) is written from the source and upstream/.
-#   5. test_all.py --verify-env must then pass.
+#   5. test_all.py --verify-env must then pass (after the motion-browser notice, 6).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${LAMPWAY_TEST_PYTHON:-python3}"
@@ -61,4 +61,11 @@ PYEOF
 "$PY" -m pip install -q -r "$ROOT/tests/requirements-test.txt" -r "$SERVER_REQS"
 # the i18n template is git-ignored (generated from the source and upstream/): tests/i18n reads it, so the environment writes it
 "$PY" "$ROOT/scripts/i18n/extract_messages.py" > /dev/null
+# 6. the motion-graphics real-browser tests need a headless Chromium (BUILD-LAMPWAY.md section 8); without one they skip inside the server's
+#    skip count, so say so here. A notice, never a failure: the rest of the suite does not need it.
+if [ -n "${LAMPWAY_CHROMIUM:-}" ] && [ -x "$LAMPWAY_CHROMIUM" ]; then
+  echo "motion: headless Chromium at LAMPWAY_CHROMIUM=$LAMPWAY_CHROMIUM"
+else
+  echo "motion: LAMPWAY_CHROMIUM is unset or not executable: the real-browser motion tests will SKIP (BUILD-LAMPWAY.md section 8)" >&2
+fi
 "$PY" "$ROOT/scripts/lampway/test_all.py" --verify-env

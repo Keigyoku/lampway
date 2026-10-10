@@ -13,7 +13,7 @@ The recovered BUILD_ORDER directive calls for a 10–15 second site teaser from 
 
 The [October article](https://aiblewmymind.substack.com/p/claude-opus-5-5-video-animations) supplies design inspiration: code-driven frames, browser rendering and visual checks. Its readable article body was inspected; the subscriber prompt library and embedded video assets were not inspected. Its optional external services do not authorize integrations, uploads, paid generation or additional features.
 
-The delivered interface is one local server-side agent tool, `lampway_motion_graphics`, with `render` and `verify` actions. It is unavailable over MCP. Output is silent video. Audio, external generation, a video job service, timeline editor, sharding and arbitrary frame ranges are outside the implemented contract. Existing platform scope is unchanged; available execution evidence is platform-specific. Any extension requires a separate scope decision.
+The delivered interface has two local entry points over the same code: the server-side agent tool `lampway_motion_graphics`, with `render` and `verify` actions, and the AXI CLI `python -m lampway_server.motion` (`render`, `verify`, and a no-arguments view of the project's scenes and runs; see [tool.md](tool.md#entry-points)). Neither is offered over MCP. Output is silent video. Audio, external generation, a video job service, timeline editor, sharding and arbitrary frame ranges are outside the implemented contract. Existing platform scope is unchanged; available execution evidence is platform-specific. Any extension requires a separate scope decision.
 
 ## 2. Timeline, rendering and export
 

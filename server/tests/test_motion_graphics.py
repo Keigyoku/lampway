@@ -11,7 +11,7 @@ from lampway_server.prompts import library as PL
 from lampway_server.prompts import render as PR
 from lampway_server.prompts import schema as PS
 
-MG_TEMPLATES = ("mg-site-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
+MG_TEMPLATES = ("mg-site-clip", "mg-social-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
 
 
 def _value_for(spec: dict):
@@ -92,7 +92,7 @@ from .fake_motion import FakeCapture  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 CHROMIUM = os.environ.get("LAMPWAY_CHROMIUM") or ""
 TEASER = os.environ.get("LAMPWAY_MOTION_TEASER") or ""
-needs_chromium = pytest.mark.skipif(not (CHROMIUM and os.path.isfile(CHROMIUM)), reason="no headless Chromium: set LAMPWAY_CHROMIUM (motion_graphics.md section 13)")
+needs_chromium = pytest.mark.skipif(not (CHROMIUM and os.path.isfile(CHROMIUM)), reason="no headless Chromium: set LAMPWAY_CHROMIUM (BUILD-LAMPWAY.md section 8)")
 needs_teaser = pytest.mark.skipif(not (TEASER and os.path.isfile(os.path.join(TEASER, "teaser.html"))),
                                   reason="the spike's teaser fixture is outside the repository: set LAMPWAY_MOTION_TEASER to its folder")
 TEASER_CODE = "4b30a23cf619b197f67974f1b6ce70de95c6b0b9fb7d83d2abbfaaaec1e3337c"
@@ -207,7 +207,7 @@ def test_mp4_bytes_depend_on_thread_count_so_receipt_pins_it(tmp_path):
 def test_out_of_order_render_is_not_offered(tmp_path):
     spec = next(t for t in TOOLS if t.name == "lampway_motion_graphics")
     assert set(spec.parameters["properties"]) == {"action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples",
-                                                  "template", "variables", "vault", "receipt"}
+                                                  "template", "variables", "vault", "receipt", "audit_every_s", "safe_zone"}
     assert spec.parameters["additionalProperties"] is False
     project = tmp_path / "project"
     out, is_error = tool(project, {"scene": put_scene(project, "x", RAMP), "frame_range": [100, 200]}, capture=FakeCapture)
@@ -222,7 +222,7 @@ def test_the_tool_is_registered_and_runs_on_the_server():
 
 @pytest.mark.parametrize("args, message", [
     ({"fps": 90}, "fps 90 out of range 1..60: pass fps between 1 and 60"),
-    ({"width": 1919}, "size 1919x1080: width and height must be even, 16..3840 x 16..2160"),
+    ({"width": 1919}, "size 1919x1080: width and height must be even, long edge 16..3840, short edge 16..2160"),
     ({"duration_s": 300}, "duration 300 s out of range (0, 120]: split the video or shorten the scene"),
     ({"scene": "../outside"}, "../outside is outside the project root"),
     ({"scene": "motion/scenes/x", "entry": "nope.html"}, "no scene entry nope.html in motion/scenes/x: pass entry"),
@@ -239,7 +239,8 @@ def test_no_chromium_and_no_ffmpeg_are_refused_with_their_fix(tmp_path, monkeypa
     put_scene(project, "x", RAMP)
     monkeypatch.delenv("LAMPWAY_CHROMIUM", raising=False)
     out, is_error = tool(project, {"scene": "motion/scenes/x"})
-    assert is_error and out["error"] == "no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary"
+    assert is_error and out["error"] == ("no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary (Chrome for Testing's "
+                                         "chrome-headless-shell, tested 155.0.8059.39; BUILD-LAMPWAY.md, 'The motion-graphics browser')")
     monkeypatch.setenv("PATH", str(tmp_path / "empty"))
     out, is_error = tool(project, {"scene": "motion/scenes/x"}, capture=FakeCapture)
     assert is_error and out["error"] == "ffmpeg not found on PATH: install ffmpeg"
@@ -249,7 +250,7 @@ def test_a_scene_without_frame_and_a_page_resize_are_refused(tmp_path):
     project = tmp_path / "project"
     scene = put_scene(project, "x", RAMP)
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(has_frame=False))
-    assert out["error"] == "the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4"
+    assert out["error"] == "the scene does not define window.__frame: see the scene contract in specs/motion_graphics/scene.md"
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(size=(320, 200)))
     assert out["error"] == "frame 0 is 320x200, not 320x180: the scene must not resize the page"
 

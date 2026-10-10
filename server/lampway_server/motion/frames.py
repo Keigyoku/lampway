@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (motion_graphics.md section 6).
+"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (specs/motion_graphics/motion_graphics.md sections 2 and 4).
 
 ``Chromium`` is the capture adapter the tool runs (the tests' fake is the other one): it launches the user's headless shell (LAMPWAY_CHROMIUM)
 niced, with its own HOME, XDG dirs, TZ=UTC and a fresh profile, opens ONE page at the requested size (DPR 1) with the network blocked, loads the
@@ -44,7 +44,11 @@ CHROME_FLAGS = [
     "--host-resolver-rules=MAP * ~NOTFOUND", "--proxy-server=127.0.0.1:9", "--proxy-bypass-list=<-loopback>",
 ]
 BLOCKED_URLS = ["http://*", "https://*", "ws://*", "wss://*"]
-NO_CHROMIUM = "no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary"
+NO_CHROMIUM = ("no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary (Chrome for Testing's chrome-headless-shell, "
+               "tested 155.0.8059.39; BUILD-LAMPWAY.md, 'The motion-graphics browser')")
+WRONG_BROWSER = ("LAMPWAY_CHROMIUM must be chrome-headless-shell: this browser started its own component extension ({kind} {url}), "
+                 "which the scene-file containment cannot guard; a full Google Chrome or Chromium does this even with --disable-extensions. "
+                 "Install Chrome for Testing's chrome-headless-shell (BUILD-LAMPWAY.md, 'The motion-graphics browser')")
 
 
 class ChromiumMissing(RuntimeError):
@@ -228,6 +232,7 @@ class Chromium:
         self.proc = self.cdp = self.session = None
         self.product = None
         self.scene_root, self.violation = None, None
+        self.page_errors = []                                            # the page's uncaught exceptions and console.error lines, in order
         self._target_sessions = {}
         self.cancel, self._unregister = None, None
         self.profile = self.home / f"profile-{os.getpid()}-{time.monotonic_ns()}"
@@ -250,11 +255,24 @@ class Chromium:
                 return
             if params["targetInfo"]["type"] not in ("page", "iframe"):
                 # Worker targets do not expose Fetch. Keep them paused and close rather than allow an unguarded loader.
-                self.violation = "worker may read files outside the scene folder: use the main-page scene driver"
+                url = str(params["targetInfo"].get("url") or "")
+                if url.startswith("chrome-extension://"):
+                    # Not the scene's: a full Chrome starts its component extensions even with --disable-extensions. Same refusal, named.
+                    self.violation = WRONG_BROWSER.format(kind=params["targetInfo"]["type"], url=url)
+                else:
+                    self.violation = "worker may read files outside the scene folder: use the main-page scene driver"
                 self.cdp.send("Target.closeTarget", {"targetId": params["targetInfo"]["targetId"]})
                 raise SceneError(self.violation)
             self._configure_target(child)
             self.cdp.send("Runtime.runIfWaitingForDebugger", session=child)
+        elif method == "Runtime.exceptionThrown":
+            d = params.get("exceptionDetails") or {}
+            text = (d.get("exception") or {}).get("description") or d.get("text") or "an exception"
+            self.page_errors.append(f"{self._where(d.get('url'), d.get('lineNumber'), d.get('columnNumber'))}{text.splitlines()[0][:300]}")
+        elif method == "Runtime.consoleAPICalled" and params.get("type") == "error":
+            args = " ".join(str(a.get("value", a.get("description", ""))) for a in params.get("args") or [])
+            frame = ((params.get("stackTrace") or {}).get("callFrames") or [{}])[0]
+            self.page_errors.append(f"{self._where(frame.get('url'), frame.get('lineNumber'), frame.get('columnNumber'))}console.error: {args[:300]}")
         elif method == "Fetch.requestPaused":
             url, request_id = params["request"]["url"], params["requestId"]
             session = event.get("sessionId")
@@ -264,7 +282,7 @@ class Chromium:
                 if not allowed_file_url(url, self.scene_root):
                     self.violation = "file outside the scene folder: use only scene-local assets"
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
-                    return
+                    raise SceneError(self.violation)     # refuse now: a deferred check loses it to a navigation's CDP error or hang
                 try:
                     path = Path(unquote(urlsplit(url).path, errors="strict"))
                     # Fulfill the checked bytes, never let Chromium reopen the pathname. Verify the opened inode as well
@@ -278,7 +296,7 @@ class Chromium:
                 except SceneError as exc:
                     self.violation = str(exc)
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
-                    return
+                    raise
                 except OSError:
                     self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
                     return
@@ -290,6 +308,18 @@ class Chromium:
                 self.cdp.send("Fetch.continueRequest", {"requestId": request_id}, session)
             else:
                 self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
+
+    def _where(self, url, line, col) -> str:
+        """``scene.js:3:12: `` for a scene file (1-based, scene-relative: no absolute path in a refusal), else nothing."""
+        if not url or line is None:
+            return ""
+        root = self.scene_root.as_uri() + "/" if self.scene_root else None
+        name = unquote(url[len(root):]) if root and url.startswith(root) else url
+        return f"{name}:{int(line) + 1}:{int(col or 0) + 1}: "
+
+    def errors(self) -> list:
+        """The page's script errors so far (uncaught exceptions, then console.error, in arrival order)."""
+        return list(self.page_errors)
 
     def _check_containment(self):
         checkpoint(self.cancel)
@@ -329,6 +359,7 @@ class Chromium:
         self.cdp.send("Target.getTargets")
         s = self.session = self._target_sessions[tgt["targetId"]]
         self.cdp.send("Page.enable", session=s)
+        self.cdp.send("Runtime.enable", session=s)                     # Runtime.exceptionThrown: a scene's syntax error is reported, not guessed at
         self.cdp.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": False}, s)
         self.cdp.send("Emulation.setTimezoneOverride", {"timezoneId": "UTC"}, s)
         # Discard the initial about:blank load before waiting for this navigation.

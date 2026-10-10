@@ -918,6 +918,8 @@ path = [
   "server/lampway_server/prompts/builtin/mg-release@1.0.0.json",
   "server/lampway_server/prompts/builtin/mg-report-card@1.0.0.json",
   "server/lampway_server/prompts/builtin/mg-site-clip@1.0.0.json",
+  "server/lampway_server/prompts/builtin/mg-site-clip@1.0.1.json",
+  "server/lampway_server/prompts/builtin/mg-social-clip@1.0.0.json",
   "server/lampway_server/prompts/builtin/mg-titan-animatic@1.0.0.json",
   "server/lampway_server/prompts/builtin/mg-titan-ui-motion@1.0.0.json",
   "server/lampway_server/prompts/builtin/mg-tutorial@1.0.0.json",

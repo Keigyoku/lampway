@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The self-check of a sampled frame and the labelled contact sheet (motion_graphics.md section 6), ported from the spike's driver.
+"""The self-check of a sampled frame and the labelled contact sheet (specs/motion_graphics/scene.md, Self-check contract), ported from the spike's driver.
 
 Per sampled frame: ``empty`` (fail) when under 0.01 % of pixels carry a local luminance step (a background-only frame measures 0.000 %),
 ``sparse`` (warn) under 0.1 %; authored text outside the 5 % title-safe area (fail); text under 22 px (fail); measured contrast of fully
@@ -92,10 +92,24 @@ def text_contrast(im, box, pad=10):
     return float((a + 0.05) / (b + 0.05))
 
 
-def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
-    """The findings for one sampled frame (each {check, severity, detail}); ``audit`` is the scene's __audit() at this t, or empty."""
+def _outside_zone(audit: dict, W: int, H: int, zone) -> list:
+    """Visible text rows (opacity > 0) whose box leaves ``zone`` = [x0, y0, x1, y1] as fractions of the frame."""
+    if not zone:
+        return []
+    zx0, zy0, zx1, zy1 = zone[0] * W, zone[1] * H, zone[2] * W, zone[3] * H
+    return [t for t in audit.get("text") or [] if t["opacity"] > 0 and t["text"].strip()
+            and (t["box"][0] < zx0 or t["box"][1] < zy0 or t["box"][2] > zx1 or t["box"][3] > zy1)]
+
+
+def _zone_detail(t, zone) -> str:
+    return f"text outside the safe zone {[round(v, 4) for v in zone]}: {t['text']!r} box {t['box']}"
+
+
+def findings(im, stats: dict, audit: dict, W: int, H: int, safe_zone=None) -> list:
+    """The findings for one sampled frame (each {check, severity, detail}); ``audit`` is the scene's __audit() at this t, or empty.
+    ``safe_zone`` (the caller's, e.g. a phone feed's UI-free band) fails visible text outside it."""
     validate_audit(audit, require_arrays=False)
-    f = []
+    f = [{"check": "safe_zone", "severity": "fail", "detail": _zone_detail(t, safe_zone)} for t in _outside_zone(audit, W, H, safe_zone)]
     if stats["detail_share"] < EMPTY:
         f.append({"check": "empty", "severity": "fail", "detail": f"detail share {stats['detail_share'] * 100:.4f}% (< 0.01%): nothing is visible"})
     elif stats["detail_share"] < SPARSE:
@@ -130,9 +144,93 @@ def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
     return f
 
 
-def contact_sheet(samples_dir: Path, out_png: Path, tile=(640, 360), cols=3, hashes=None) -> int:
-    """The sampled frames on one labelled sheet (frame, t, finding count per tile). Returns the tile count."""
+# A draw-on opening (a mark stroking in from nothing) is sparse by intent. The scene may declare it, window.__scene.opening_s, and a
+# sampled frame inside it then reports `sparse` as info. `empty` still fails: frame 0 must show a mark (the template contract).
+OPENING_MAX_S = 3.0                     # longer than a few seconds is a section, not an opening: the poster-frame warning stays
+
+
+def opening_grace(found: list, t: float, opening_s: float) -> list:
+    """``found`` for a frame at ``t``: inside the declared opening a ``sparse`` warning becomes info, saying why."""
+    if not opening_s or t >= opening_s:
+        return found
+    return [dict(f, severity="info", detail=f"{f['detail']}; inside the scene's declared opening (window.__scene.opening_s {opening_s:g} s)")
+            if f["check"] == "sparse" else f for f in found]
+
+
+# Timeline checks over the audit stream (audit_every_s): what single sampled frames cannot see.
+READ_WPS = 3.0          # 180 words a minute, the top of the 160-180 wpm reading rate of the BBC Subtitle Guidelines
+MIN_HOLD_S = 1.0        # even one word: a shorter full-opacity hold is a flash, not a read
+LOW_CONTENT_S = 1.0     # the v1 review's near-blank beats between sections were about 1 s; shorter is a transition
+VISIBLE = 0.5           # a text row at this opacity or more counts as content on screen
+FULL = 0.95             # ... and at this or more as fully visible (the contrast check's own threshold)
+
+
+def stream_findings(stream: list, stride_s: float, duration: float, W: int, H: int, safe_zone=None, opening_s=0.0, skip=()) -> list:
+    """Findings over the audit stream ({frame, t, audit} rows in time order, ``stride_s`` apart): ``reading`` (warn) for a text fully visible
+    shorter than its words need; ``low_content`` (warn) for a run of at least LOW_CONTENT_S with no readable text after the declared opening;
+    ``safe_zone`` (fail) once per text, with the frames it covers, for frames not in ``skip`` (the samples report their own)."""
+    out, runs, zone = [], {}, {}
+
+    def close(key, run):
+        (sel, text), (frame, t0, t1) = key, run
+        hold = min(t1 + stride_s, duration) - t0
+        words = len(text.split())
+        need = max(MIN_HOLD_S, words / READ_WPS)
+        if hold + 1e-9 < need:
+            out.append({"frame": frame, "check": "reading", "severity": "warn",
+                        "detail": f"{text!r} fully visible about {hold:.2f} s from {t0:.2f} s; {words} word{'s' if words != 1 else ''} need {need:.2f} s "
+                                  f"({READ_WPS:g} words/s, at least {MIN_HOLD_S:g} s): hold it longer"})
+
+    def gap(frame, t0, t1):
+        if t1 - t0 + 1e-9 >= LOW_CONTENT_S:
+            out.append({"frame": frame, "check": "low_content", "severity": "warn",
+                        "detail": f"no readable text from {t0:.2f} s to {t1:.2f} s ({t1 - t0:.2f} s >= {LOW_CONTENT_S:g} s): "
+                                  "a near-blank beat; tighten the transition or give the section a line"})
+
+    blank = None                                                          # (first frame, first t, last t) of the current run without text
+    for row in stream:
+        t, frame, text = row["t"], row["frame"], row["audit"].get("text") or []
+        full = {(r["sel"], r["text"]) for r in text if r["opacity"] >= FULL and r["text"].strip()}
+        for key in [k for k in runs if k not in full]:
+            close(key, runs.pop(key))
+        for key in full:
+            runs[key] = (runs[key][0], runs[key][1], t) if key in runs else (frame, t, t)
+        if t >= opening_s and not any(r["opacity"] >= VISIBLE and r["text"].strip() for r in text):
+            blank = (blank[0], blank[1], t) if blank else (frame, t, t)
+        elif blank:
+            gap(blank[0], blank[1], t)                                     # the gap ends where text is back
+            blank = None
+        if frame not in skip:
+            for r in _outside_zone(row["audit"], W, H, safe_zone):
+                k = (r["sel"], r["text"])
+                zone.setdefault(k, {"frame": frame, "first": r, "frames": 0})["frames"] += 1
+    if blank:
+        gap(blank[0], blank[1], min(blank[2] + stride_s, duration))
+    for key, run in runs.items():
+        close(key, run)
+    for z in zone.values():
+        out.append({"frame": z["frame"], "check": "safe_zone", "severity": "fail",
+                    "detail": f"{_zone_detail(z['first'], safe_zone)} ({z['frames']} audited frame{'s' if z['frames'] != 1 else ''} from frame {z['frame']})"})
+    return sorted(out, key=lambda f: (f["frame"], f["check"]))
+
+
+TILE_LONG_EDGE = 640
+
+
+def tile_size(width: int, height: int, long_edge: int = TILE_LONG_EDGE) -> tuple:
+    """A contact-sheet tile with the frame's own aspect, its long edge ``long_edge`` (16:9 stays 640x360; 9:16 is 360x640)."""
+    if width >= height:
+        return long_edge, max(1, int(round(long_edge * height / width)))
+    return max(1, int(round(long_edge * width / height))), long_edge
+
+
+def contact_sheet(samples_dir: Path, out_png: Path, tile=None, cols=3, hashes=None) -> int:
+    """The sampled frames on one labelled sheet (frame, t, finding count per tile). Returns the tile count. The tile keeps the frames'
+    aspect unless ``tile`` is given (a vertical render squashed into 16:9 tiles cannot be judged by eye)."""
     files = sorted(Path(samples_dir).glob("f*.png"))
+    if tile is None:
+        with Image.open(files[0]) if files else Image.new("RGB", (16, 9)) as first:
+            tile = tile_size(*first.size)
     tw, th = tile
     rows = max(1, (len(files) + cols - 1) // cols)
     sheet = Image.new("RGB", (cols * tw, rows * (th + 28)), (40, 40, 40))

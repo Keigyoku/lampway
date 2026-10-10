@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The encoder: ONE ffmpeg process, the captured PNGs on stdin (image2pipe), an MP4 and a WebM out (motion_graphics.md section 6).
+"""The encoder: ONE ffmpeg process, the captured PNGs on stdin (image2pipe), an MP4 and a WebM out (specs/motion_graphics/motion_graphics.md section 2).
 
 MP4: libx264 -preset slow -crf 18 -profile:v high, BT.709 limited range tagged (``setparams``: without it the transfer and primaries came out
 ``unknown``), x264's settings SEI dropped (``filter_units=remove_types=6``), faststart. WebM: libvpx-vp9 constant quality. Both: no metadata, no

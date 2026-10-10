@@ -29,10 +29,19 @@ from . import encode as E
 from . import frames as F
 from . import receipt as R
 from .cancellation import checkpoint
+from .progress import Progress
 
-INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt")
+INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt",
+          "audit_every_s", "safe_zone")
+OPTIONAL_SAVED = ("audit_every_s", "safe_zone")                   # receipt inputs added after the first receipts: absent means not used
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
+MAX_LONG_EDGE, MAX_SHORT_EDGE = 3840, 2160
+# One defaults order for every rendered dimension (scene.md): an explicit argument, then the template's defaults, then the scene's own
+# window.__scene, then the tool's fallback. Each resolved value records where it came from.
+RESOLVED = ("width", "height", "fps", "duration_s")
+FALLBACK = {"width": 1920, "height": 1080, "fps": 30}
+SOURCES = ("explicit", "template", "scene", "tool default")
 
 
 class Refused(ValueError):
@@ -44,7 +53,7 @@ def _int(v):
 
 
 def inputs(args: dict) -> dict:
-    """The validated inputs (section 4): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
+    """The validated inputs (specs/motion_graphics/tool.md, Inputs): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
     (measured), so the only order is from frame 0."""
     if not isinstance(args, dict):
         raise Refused("motion arguments must be a JSON object")
@@ -71,17 +80,17 @@ def inputs(args: dict) -> dict:
     if args.get("html") is not None and args.get("scene") is not None:
         raise Refused("pass one scene source: scene or html, not both")
     a = {"action": args.get("action") or "render", "scene": args.get("scene"), "html": args.get("html"), "entry": args.get("entry") or "index.html",
-         "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": 30 if args.get("fps") is None else args["fps"],
-         "width": 1920 if args.get("width") is None else args["width"], "height": 1080 if args.get("height") is None else args["height"],
+         "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": args.get("fps"),
+         "width": args.get("width"), "height": args.get("height"),
          "formats": args.get("formats", ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
-         "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt")}
+         "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt"),
+         "audit_every_s": args.get("audit_every_s"), "safe_zone": args.get("safe_zone")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
-    fps, w, h = _int(a["fps"]), _int(a["width"]), _int(a["height"])
-    if fps is None or not 1 <= fps <= 60:
-        raise Refused(f"fps {a['fps']} out of range 1..60: pass fps between 1 and 60")
-    if w is None or h is None or w % 2 or h % 2 or not 16 <= w <= 3840 or not 16 <= h <= 2160:
-        raise Refused(f"size {a['width']}x{a['height']}: width and height must be even, 16..3840 x 16..2160")
+    if a["fps"] is not None:
+        _check_fps(a["fps"])
+    if a["width"] is not None or a["height"] is not None:          # a lone explicit edge is checked with the fallback for the other
+        _check_size(FALLBACK["width"] if a["width"] is None else a["width"], FALLBACK["height"] if a["height"] is None else a["height"])
     if a["duration_s"] is not None:
         _duration(a["duration_s"])
     if not isinstance(a["formats"], list) or not a["formats"] or not all(isinstance(f, str) for f in a["formats"]) or not set(a["formats"]) <= set(E.FORMATS) or len(set(a["formats"])) != len(a["formats"]):
@@ -90,6 +99,16 @@ def inputs(args: dict) -> dict:
         s = a["samples"]
         if not isinstance(s, list) or not s or len(s) > MAX_SAMPLES or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and (isinstance(x, int) or math.isfinite(x)) and x >= 0 for x in s):
             raise Refused(f"samples: pass 1 to {MAX_SAMPLES} times in seconds (>= 0) to self-check, or none for {DEFAULT_SAMPLES} evenly spaced plus the first and last frame")
+    if a["audit_every_s"] is not None:
+        v = a["audit_every_s"]
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 < v <= 120:
+            raise Refused(f"audit_every_s {v!r}: pass seconds in (0, 120] between audit-only rows (rounded to whole frames, at least one frame)")
+    if a["safe_zone"] is not None:
+        z = a["safe_zone"]
+        if (not isinstance(z, list) or len(z) != 4 or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and 0 <= v <= 1 for v in z)
+                or not (z[0] < z[2] and z[1] < z[3])):
+            raise Refused(f"safe_zone {z!r}: pass [x0, y0, x1, y1] as fractions of the frame with x0 < x1 and y0 < y1, "
+                          "e.g. [0.05, 0.12, 0.95, 0.8] to keep text off a phone feed's interface")
     if a["name"] is not None and not (isinstance(a["name"], str) and KEBAB.match(a["name"])):
         raise Refused(f"name {a['name']!r} is not kebab-case: pass a name of a-z, 0-9 and single hyphens")
     if a["action"] == "verify":
@@ -101,6 +120,86 @@ def inputs(args: dict) -> dict:
     if a["html"] is None and not a["scene"]:
         raise Refused("pass scene (a project-relative folder) or html (a single-file scene) with a name")
     return a
+
+
+def _check_fps(fps) -> None:
+    if _int(fps) is None or not 1 <= fps <= 60:
+        raise Refused(f"fps {fps} out of range 1..60: pass fps between 1 and 60")
+
+
+def _check_size(w, h) -> None:
+    # the ceiling is by edge, not by axis: 2160x3840 (vertical 4K) is the same frame as 3840x2160
+    if (_int(w) is None or _int(h) is None or w % 2 or h % 2 or min(w, h) < 16 or max(w, h) > MAX_LONG_EDGE or min(w, h) > MAX_SHORT_EDGE):
+        raise Refused(f"size {w}x{h}: width and height must be even, long edge 16..{MAX_LONG_EDGE}, short edge 16..{MAX_SHORT_EDGE}")
+
+
+_RESOLUTION = re.compile(r"^(\d{3,4})p$", re.IGNORECASE)
+_NAMED = {"hd": 720, "fhd": 1080, "2k": 1440, "4k": 2160, "uhd": 2160}
+_ASPECT = re.compile(r"^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$")
+
+
+def template_defaults(params) -> dict:
+    """A motion template's ``defaults`` (resolution + aspect_ratio, duration) as tool inputs: the short edge from the resolution
+    ("1080p", "4k"), the long edge from the aspect ("16:9" -> 1920x1080, "9:16" -> 1080x1920), both rounded to even pixels."""
+    params = params if isinstance(params, dict) else {}
+    out = {}
+    res, aspect = params.get("resolution"), params.get("aspect_ratio")
+    if res is not None or aspect is not None:
+        m = _RESOLUTION.match(str(res or "1080p"))
+        short = int(m.group(1)) if m else _NAMED.get(str(res).lower())
+        a = _ASPECT.match(str(aspect or "16:9"))
+        if short is None or a is None or float(a.group(1)) <= 0 or float(a.group(2)) <= 0:
+            raise Refused(f"template defaults resolution {res!r} / aspect_ratio {aspect!r}: use a resolution like 1080p and an aspect like 16:9 or 9:16")
+        rw, rh = float(a.group(1)), float(a.group(2))
+        long_ = 2 * round(short * max(rw, rh) / min(rw, rh) / 2)
+        out["width"], out["height"] = (long_, short) if rw >= rh else (short, long_)
+    if params.get("duration") is not None:
+        out["duration_s"] = params["duration"]
+    return out
+
+
+def _declared(scene) -> dict:
+    """The scene's own window.__scene values that can serve as defaults (well-typed ones only)."""
+    scene = scene if isinstance(scene, dict) else {}
+    out = {k: scene[k] for k in ("width", "height", "fps") if _int(scene.get(k)) is not None}
+    d = scene.get("duration_s")
+    if isinstance(d, (int, float)) and not isinstance(d, bool):
+        out["duration_s"] = d
+    return out
+
+
+def _opening(scene, duration: float) -> float:
+    """The scene's declared draw-on opening (window.__scene.opening_s), 0 when absent."""
+    v = (scene if isinstance(scene, dict) else {}).get("opening_s")
+    if v is None:
+        return 0.0
+    cap = min(C.OPENING_MAX_S, duration / 2)
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 <= v <= cap:
+        raise Refused(f"window.__scene.opening_s {v!r}: declare seconds from 0 to {cap:g} (at most {C.OPENING_MAX_S:g} s and half the duration)")
+    return float(v)
+
+
+def _resolve(a: dict, template: dict, declared: dict) -> tuple:
+    """(values, sources) for width, height, fps and duration_s in the one order: explicit, template, scene, tool default."""
+    values, sources = {}, {}
+    for key in RESOLVED:
+        for source, layer in (("explicit", {key: a.get(key)}), ("template", template or {}), ("scene", declared), ("tool default", FALLBACK)):
+            if layer.get(key) is not None:
+                values[key], sources[key] = layer[key], source
+                break
+        else:
+            values[key], sources[key] = None, None
+    return values, sources
+
+
+def _overrides(values: dict, sources: dict, declared: dict) -> tuple:
+    """(findings, help): one warning when an explicit or template value overrides a differing window.__scene value."""
+    over = [k for k in RESOLVED if sources.get(k) in ("explicit", "template") and k in declared and declared[k] != values[k]]
+    if not over:
+        return [], []
+    detail = ", ".join(f"{k} {values[k]:g} ({sources[k]}) over the scene's {declared[k]:g}" for k in over)
+    return ([{"check": "scene_override", "severity": "warn", "detail": f"window.__scene is overridden: {detail}"}],
+            [f"to render the scene's own {', '.join(over)}: omit {' and '.join(over)} (and any template default for {'it' if len(over) == 1 else 'them'}), or change window.__scene"])
 
 
 def _json_value(value):
@@ -193,6 +292,14 @@ def _sample_frames(n: int, samples, fps: int) -> list:
     return sorted({0, n - 1} | {int(round(k * (n - 1) / (DEFAULT_SAMPLES + 1))) for k in range(1, DEFAULT_SAMPLES + 1)})
 
 
+def _stream_frames(n: int, every_s, fps: int) -> tuple:
+    """(stride in frames, audited frames) for the audit-only stream: every ``every_s`` seconds rounded to whole frames, plus the last frame."""
+    if not every_s:
+        return 0, set()
+    stride = max(1, int(round(every_s * fps)))
+    return stride, set(range(0, n, stride)) | {n - 1}
+
+
 def _probe_frames(n: int) -> list:
     return sorted({int(round(k * (n - 1) / (PROBE_FRAMES - 1))) for k in range(PROBE_FRAMES)}) if n > 1 else [0]
 
@@ -200,6 +307,15 @@ def _probe_frames(n: int) -> list:
 def _pixels(png: bytes):
     im = Image.open(io.BytesIO(png))
     return im.size, hashlib.sha256(im.convert("RGB").tobytes()).hexdigest()
+
+
+SCENE_DOC = "specs/motion_graphics/scene.md"
+
+
+def _page_error(capture) -> str:
+    """The page's first script error, for a refusal: a syntax error leaves __frame undefined, and the parse error is the cause."""
+    errors = capture.errors() if hasattr(capture, "errors") else []
+    return f" (the page reported {len(errors)} script error{'s' if len(errors) != 1 else ''}; the first: {errors[0]})" if errors else ""
 
 
 class EngineDiffers(Exception):
@@ -215,7 +331,7 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         k = 0 if here[0] != there[0] else 1
         raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
     if not capture.has_frame():
-        raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
+        raise Refused(f"the scene does not define window.__frame{_page_error(capture)}: see the scene contract in {SCENE_DOC}")
     ready = capture.setup()
     if not isinstance(ready, dict):
         raise Refused("window.__setup() must return an object with fonts and images arrays")
@@ -231,14 +347,14 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
             if report["ok"] is False:
                 misses.append(report[label])
     if hasattr(capture, "has_audit") and not capture.has_audit():
-        raise Refused("the scene does not define window.__audit: return text and marks arrays (motion_graphics.md section 4)")
+        raise Refused(f"the scene does not define window.__audit{_page_error(capture)}: return text and marks arrays ({SCENE_DOC})")
     if misses:
         raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")
     if capture.animations():
         raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
 
 
-def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None, cancel=None) -> tuple:
+def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None, cancel=None, progress=None) -> tuple:
     """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
     as the first pass ran them), each probe frame compared exactly with the first pass."""
     t0, differ, requests = time.monotonic(), [], []
@@ -256,6 +372,8 @@ def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None,
                 C.validate_audit(cap.audit())
             if i in want and _pixels(png)[1] != rows[i].split()[2]:
                 differ.append(i)
+            if progress is not None:
+                progress.report("probe", i + 1, max(probe) + 1)
         requests = cap.requests()
     finally:
         cap.close()
@@ -291,13 +409,15 @@ def _output_directory(root, parent, prefix, stack):
         raise Refused("output directory changed or contains a symlink: use real project directories") from None
 
 
-def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None) -> dict:
+def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None, defaults=None,
+         progress=None) -> dict:
     checkpoint(cancel)
     with ExitStack() as stack:
-        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff)
+        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff, defaults, progress)
 
 
-def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None) -> dict:
+def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None, defaults=None,
+                progress=None) -> dict:
     """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
     and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
     checkpoint(cancel)
@@ -310,7 +430,10 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     name = a["name"] or scene_dir.name
     if not KEBAB.match(name):
         raise Refused(f"name {name!r} (the scene folder's) is not kebab-case: pass name")
-    W, H, fps = a["width"], a["height"], a["fps"]
+    template = defaults or {}
+    provisional, _ = _resolve(a, template, {})                              # the page must be opened at a size before __scene can be read
+    W, H = provisional["width"], provisional["height"]
+    _check_size(W, H)
     enc = None
     checkpoint(cancel)
     capture = new_capture()
@@ -318,11 +441,29 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     try:
         _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
         checkpoint(cancel)
-        duration = _duration(a["duration_s"] if a["duration_s"] is not None else (capture.scene() or {}).get("duration_s"))
+        scene_meta = capture.scene()
+        declared = _declared(scene_meta)
+        resolved, sources = _resolve(a, template, declared)
+        _check_fps(resolved["fps"])
+        _check_size(resolved["width"], resolved["height"])
+        duration = _duration(resolved["duration_s"])
+        fps = resolved["fps"]
+        if (resolved["width"], resolved["height"]) != (W, H):                # the scene's own size: render it in a FRESH browser opened at that size
+            capture.close()
+            W, H = resolved["width"], resolved["height"]
+            capture = new_capture()
+            capture.cancel = cancel
+            _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)
+            checkpoint(cancel)
+        resolved["duration_s"] = duration
+        opening = _opening(scene_meta, duration)
+        size_notes, override_help = _overrides(resolved, sources, declared)
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
         samples = set(_sample_frames(n, a["samples"], fps))
+        stride, streamed = _stream_frames(n, a["audit_every_s"], fps)
+        stream = []
         t_setup = time.monotonic() - t_start
         checkpoint(cancel)
         out, out_rel, out_fd = _output_directory(root, out_root, f"{name}-{code_sha[:8]}-", stack)
@@ -344,15 +485,21 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 raise Refused(f"frame {i} is {size[0]}x{size[1]}, not {W}x{H}: the scene must not resize the page")
             rows.append(R.row(i, t, pix))
             enc.write(png)
-            if i in samples:
+            audit = None
+            if i in samples or i in streamed:
                 audit = capture.audit()
                 C.validate_audit(audit)
+            if i in streamed:                                              # audit-only: authored geometry, no PNG, no pixel checks
+                stream.append({"frame": i, "t": round(t, 4), "audit": audit})
+            if i in samples:
                 im, stats = C.frame_stats(png)
-                found = C.findings(im, stats, audit, W, H)
+                found = C.opening_grace(C.findings(im, stats, audit, W, H, a["safe_zone"]), t, opening)
                 stem = f"f{i:04d}"
                 (out / "samples" / f"{stem}.png").write_bytes(png)
                 (out / "samples" / f"{stem}.json").write_text(json.dumps({"frame": i, "t": t, "stats": stats, "audit": audit, "findings": found}, indent=1), encoding="utf-8")
                 checks.append({"frame": i, "t": round(t, 4), "stats": stats, "findings": found})
+            if progress is not None:
+                progress.report("render", i + 1, n)
         t_render = time.monotonic() - t_loop
         e0 = time.monotonic()
         enc.finish()
@@ -360,19 +507,29 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         t_encode_tail = time.monotonic() - e0
         enc = None
         requests = capture.requests()
+        page_errors = capture.errors() if hasattr(capture, "errors") else []
     finally:
         if enc is not None:
             enc.abort()
         capture.close()
     probe, differ, probe_frames, t_probe, probe_requests = _probe_frames(n), [], 0, 0.0, []
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=scene_dir, cancel=cancel)
+        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples | streamed, scene_root=scene_dir, cancel=cancel,
+                                                                       progress=progress)
     checkpoint(cancel)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
     artifact_hashes = {}
     C.contact_sheet(out / "samples", out / "contact.png", hashes=artifact_hashes)
-    findings = [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
+    if stream:
+        data = "".join(json.dumps(row, separators=(",", ":")) + "\n" for row in stream).encode("utf-8")
+        (out / "audit.jsonl").write_bytes(data)
+        artifact_hashes["audit"] = hashlib.sha256(data).hexdigest()
+    if page_errors:                                                        # an error that did not stop the render still deserves a look
+        size_notes = size_notes + [{"check": "page_error", "severity": "warn",
+                                    "detail": f"the page reported {len(page_errors)} script error(s); the first: {page_errors[0]}"}]
+    findings = [{"frame": 0, **f} for f in size_notes] + [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
+    findings += C.stream_findings(stream, stride / fps, duration, W, H, a["safe_zone"], opening, skip=samples) if stream else []
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
     non_file = list(dict.fromkeys(u for u in requests + probe_requests
                                   if not (u.startswith("data:") or F.allowed_file_url(u, scene_dir))))
@@ -384,11 +541,15 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     run_id = f"mg-{Path(out_rel).name}"
     files_out = {fmt: f"{out_rel}/{p.name}" for fmt, p in paths.items()}
     files_out.update(contact=f"{out_rel}/contact.png", receipt=f"{out_rel}/receipt.json", frames=f"{out_rel}/frames.sha256")
+    if stream:
+        files_out["audit"] = f"{out_rel}/audit.jsonl"
     receipt = {
         "ok": ok, "tool": "motion_graphics", "run_id": run_id, "out_dir": out_rel, "files": files_out,
         "inputs": {"scene": scene_rel, "entry": a["entry"] if a["html"] is None else "index.html", "name": name, "fps": fps, "width": W, "height": H,
                    "duration_s": duration, "formats": [f for f in E.FORMATS if f in a["formats"]], "samples": a["samples"], "template": a["template"],
-                   "variables": a["variables"]},
+                   "variables": a["variables"], "audit_every_s": a["audit_every_s"], "safe_zone": a["safe_zone"]},
+        "audit_stream": {"every_frames": stride, "audits": len(stream)} if stream else None,
+        "input_sources": sources, "help": override_help, "opening_s": opening,
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],
         "engine": {"chromium": capture.product, "chrome_flags": list(capture.flags), "ffmpeg": ffmpeg,
                    "encoder": {"threads": threads, "args": E.receipt_args(argv)}, "driver_sha256": F.sha256_file(F.__file__)},
@@ -415,23 +576,40 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
 
 
 def summary(receipt: dict) -> dict:
-    """The tool's answer (section 5) from a receipt."""
+    """The tool's answer (specs/motion_graphics/tool.md, Outputs) from a receipt."""
     out = {"ok": receipt["ok"], "run_id": receipt["run_id"], "out_dir": receipt["out_dir"],
-           "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact")}, "code_sha256": receipt["code_sha256"],
+           "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact", "audit")}, "code_sha256": receipt["code_sha256"],
            "frames": receipt["frames"], "frames_sha256_digest": receipt["frames_sha256_digest"],
            "outputs": {k: {"sha256": v["sha256"], "bytes": v["bytes"]} for k, v in receipt["outputs"].items()},
            "self_check": {k: receipt["self_check"][k] for k in ("fail", "warn", "findings")}, "network": receipt["network"],
            "timing_s": {k: receipt["timing_s"][k] for k in ("wall", "wall_per_video_second", "capture_ms_per_frame")}}
+    sources = receipt.get("input_sources") or {}
+    if sources:
+        out["inputs"] = [{"name": k, "value": receipt["inputs"][k], "source": sources[k]} for k in RESOLVED if k in sources]
+    if receipt.get("opening_s"):
+        out["opening_s"] = receipt["opening_s"]
     if receipt.get("error"):
         out["error"] = receipt["error"]
+    out["help"] = list(receipt.get("help") or []) + next_steps(receipt)
     return out
 
 
-def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None) -> dict:
+def next_steps(receipt: dict) -> list:
+    """The agent's generic next steps after a render (the CLI words its own)."""
+    return [f"look at {receipt['files']['contact']} yourself and watch the video: some defects only an eye sees",
+            f"verify the render: action verify, receipt {receipt['out_dir']}/receipt.json"]
+
+
+def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None, defaults=None, progress=None) -> dict:
+    """``defaults``: a template's defaults as tool inputs (``template_defaults``); they rank below explicit arguments. ``progress``: a
+    callable fed throttled progress rows (motion/progress.py); the answer's ``progress`` lists the phases either way."""
     checkpoint(cancel)
     root = Path(project_root).resolve()
     a = inputs(args)
-    return summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff))
+    prog = progress if isinstance(progress, Progress) else Progress(progress)
+    out = summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff, defaults=defaults, progress=prog))
+    out["progress"] = prog.phases
+    return out
 
 
 def _receipt_inputs(receipt):
@@ -462,7 +640,7 @@ def _receipt_inputs(receipt):
     require(all(text(saved[field]) for field in ("scene", "entry", "name")), "saved scene, entry and name")
     require(saved["duration_s"] is not None, "saved duration_s")
     try:
-        a = inputs({field: saved[field] for field in fields if saved[field] is not None})
+        a = inputs({field: saved[field] for field in fields + tuple(f for f in OPTIONAL_SAVED if f in saved) if saved[field] is not None})
     except Refused as exc:
         raise Refused(f"invalid motion receipt inputs: {exc}") from None
     require(_int(receipt.get("frames")) is not None and receipt["frames"] >= 1, "frames")
@@ -542,7 +720,7 @@ def _verify_media_file(root, path, expected, cancel=None):
         return {"matches": False, "error": "unreadable"}, None
 
 
-def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
+def verify(project_root, args: dict, new_capture, cancel=None, progress=None) -> dict:
     """Keep recorded reproduction separate from original-media integrity and provenance identity."""
     checkpoint(cancel)
     root = Path(project_root).resolve()
@@ -575,11 +753,12 @@ def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
         captures.append(cap)
         return cap
     work = root / "motion" / "out" / f".verify-{time.monotonic_ns()}"
+    prog = progress if isinstance(progress, Progress) else Progress(progress)
     new, mismatch = None, None
     try:
         try:
             new = _run(root, a, capture_factory, work, r["engine"]["encoder"]["threads"], engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]),
-                       probe_on=False, cancel=cancel)
+                       probe_on=False, cancel=cancel, progress=prog)
         except EngineDiffers as exc:
             mismatch = str(exc)
         checkpoint(cancel)
@@ -614,4 +793,5 @@ def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
     eq = {f"{fmt}_equal": (r["outputs"].get(fmt) or {}).get("sha256") == (new["outputs"].get(fmt) or {}).get("sha256") if fmt in r["outputs"] else None
           for fmt in E.FORMATS}
     reproduced = current_rows == old_rows and not differ and all(v for v in eq.values() if v is not None) and new["frames_sha256_digest"] == r["frames_sha256_digest"]
-    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"], **checks}
+    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"], **checks,
+            "progress": prog.phases}

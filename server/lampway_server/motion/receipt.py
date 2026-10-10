@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The receipt, the per-frame hashes and the Vault filing (motion_graphics.md section 5).
+"""The receipt, the per-frame hashes and the Vault filing (specs/motion_graphics/tool.md, Receipt and artifact inventory).
 
 ``frames.sha256`` holds one ``index t sha256`` row per frame, the hash taken over the decoded RGB pixels; ``frames_sha256_digest`` is the sha256 of
 that file. Frame hashes are the proof, not output hashes: in the spike a pair whose WebM hashes matched differed in one frame. Paths in a receipt are

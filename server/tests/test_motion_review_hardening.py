@@ -47,7 +47,7 @@ def test_effective_defaults_and_resolved_template_persist_in_receipt_and_vault(t
     generation = video["generation"][0]
     assert json.loads(generation["params_json"])["vars"] == expected["variables"]
     assert generation["prompt_text"] == expected["prompt"]
-    assert generation["template_version"] == "1.0.0"
+    assert expected["template"] == "mg-site-clip@1.0.1" and generation["template_version"] == "1.0.1"        # the newest: a new wording is a new version
     prompt = vault.lib.get(generation["prompt_asset"])
     assert prompt["stats"]["vars_json"] == json.dumps(expected["variables"], sort_keys=True)
 
