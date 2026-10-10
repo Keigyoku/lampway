@@ -29,6 +29,20 @@ alone. Proven frontend notices remain a display-only suffix, and native SID, epo
 remain required. The repair and new engine/source/build/native qualification must complete before this gap is accepted.
 All matching application, full client, physical preferences/skills/consent and separately approved account gates remain open.
 
+On published `9afc362f`, the five standard CI checks passed. Dedicated native harness run
+[38028482166](https://github.com/Keigyoku/lampway/actions/runs/38028482166) failed both native phases after the portable
+regressions passed. Startup advanced beyond the earlier MCP initialization failure. The restricted catalogue assertion
+read the wrong extension result wrapper and counted preserved, disabled configurations instead of session-admitted routes.
+The loopback environment update was acknowledged before the fresh native handshake completed, so the immediate call
+found no server. Neither phase reached project trust; no trust grant was made.
+
+The QA consumer must use the native extension envelope and explicit resolved session admission, require exactly one ready
+canonical route, and keep enabled foreign routes and malformed states as failures. Reload acknowledgement alone is not
+readiness. A fenced current-session restart waits for fresh completion; an unchanged filtered update instead requires a
+current resolved, ready canonical catalogue. Update, readiness and the next call retain one original twenty-second budget.
+The observed 1.0.46 wire ordering and supporting 1.0.45 source are qualified separately; fresh native execution remains
+required before calling the repaired validator qualified. Shared TOON encoders, registry and scanners are unchanged.
+
 ## Historical evidence before the 9af display repair
 
 Exact source `83aedc057a718e29d720919d599c853126a1238b` completed the full server suite: **3,251 PASS, zero failures/errors,

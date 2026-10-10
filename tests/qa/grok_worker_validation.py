@@ -28,6 +28,37 @@ GROK_SHA256 = '41626a53292324140b92556b9d42ff5542e3dcd04aff85eafb8689dd4adb44fc'
 PERSONA = 'SYNTHETIC_ORIGINAL_PERSONA_MUST_REMAIN'
 
 
+def enabled_native_servers(reply):
+    """Consume the pinned extension envelope, not configured-server metadata.
+
+    Native 1.0.46 lists blocked inherited configurations too. Session admission
+    is explicit; missing/unresolved/malformed state never proves exclusion.
+    """
+    if not isinstance(reply, dict) or 'error' in reply:
+        raise ValueError('native MCP catalogue failed')
+    outer = reply.get('result')
+    payload = outer.get('result') if isinstance(outer, dict) else None
+    if not isinstance(payload, dict) or payload.get('sessionMcpResolved') is not True:
+        raise ValueError('native MCP catalogue session is unresolved')
+    rows = payload.get('servers')
+    if not isinstance(rows, list):
+        raise ValueError('native MCP catalogue servers must be a list')
+    enabled = []
+    names = set()
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get('name'), str) or not row['name'] or row['name'] in names:
+            raise ValueError('native MCP catalogue server identity is malformed')
+        names.add(row['name'])
+        session = row.get('session')
+        if not isinstance(session, dict) or type(session.get('enabled')) is not bool:
+            raise ValueError('native MCP catalogue session admission is missing')
+        if session['enabled']:
+            if row['name'] == 'lampway_pane' and session.get('status') != 'ready':
+                raise ValueError('native canonical MCP server is not ready')
+            enabled.append(row['name'])
+    return enabled
+
+
 def digest(path):
     with Path(path).open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -377,8 +408,8 @@ class Validator:
             # alone is not readiness. Completion and the first call share the
             # original twenty-second call deadline; no sleep/retry/fallback.
             owned_deadline = asyncio.get_running_loop().time() + 20
-            def completion():
-                return next((frame for frame in traffic if
+            def completion(start=0):
+                return next((frame for frame in traffic[start:] if
                     frame.get('method') == '_x.ai/mcp_initialized' and
                     isinstance(frame.get('params'), dict) and frame['params'].get('sessionId') == sid and
                     type(frame['params'].get('mcpToolCount')) is int and frame['params']['mcpToolCount'] >= 0), None)
@@ -406,12 +437,41 @@ class Validator:
                            ('error' not in alias) if label == 'baseline' else ('error' in alias), alias)
             if self.http and label in ['baseline', 'restricted']:
                 connector = self.connector
+                # Update acknowledgement precedes the asynchronous native
+                # handshake. Fence before sending so completion read while
+                # awaiting its reply counts, but initial startup never does.
+                reload_start = len(traffic)
+                reload_deadline = asyncio.get_running_loop().time() + 20
                 update = await request('_x.ai/session/update_mcp_servers', {'sessionId': sid, 'mcpServers': [{
-                    'name': 'lampway_pane', 'command': str(connector), 'args': [], 'env': self.attack_env}]})
+                    'name': 'lampway_pane', 'command': str(connector), 'args': [], 'env': self.attack_env}]},
+                    deadline=reload_deadline)
                 self.check(label + ' same-command native env override accepted for test', 'error' not in update, update)
+                restart = any(frame.get('method') == '_x.ai/mcp/init_progress' and
+                    isinstance(frame.get('params'), dict) and frame['params'].get('sessionId') == sid and
+                    type(frame['params'].get('total')) is int and type(frame['params'].get('connected')) is int and
+                    0 <= frame['params']['connected'] <= frame['params']['total']
+                    for frame in traffic[reload_start:])
+                if restart:
+                    while completion(reload_start) is None:
+                        await read_frame(reload_deadline)
+                else:
+                    # A filtered no-op acknowledges without a new init pass.
+                    # One current catalogue proves admission/readiness; stale
+                    # startup completion never substitutes for reload evidence.
+                    current = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False},
+                                            deadline=reload_deadline)
+                    self.check(label + ' no-op reload retains canonical ready admission',
+                               enabled_native_servers(current) == ['lampway_pane'], current)
+                self.receipt.setdefault('native_mcp_readiness', []).append({
+                    'label': label + '-env-reload', 'sessionId': sid,
+                    'restart_progress': restart, 'completion': completion(reload_start) if restart else None,
+                    'traffic_start': reload_start,
+                    'deadline_seconds': 20,
+                    'remaining_seconds': max(0, reload_deadline - asyncio.get_running_loop().time())})
+                self.save()
                 attack_offset = len(self.http.events)
                 changed = await request('_x.ai/mcp/call', {'sessionId': sid, 'server': 'lampway_pane',
-                    'tool': 'scene_summary', 'arguments': {}})
+                    'tool': 'scene_summary', 'arguments': {}}, deadline=reload_deadline)
                 events = self.http.events[attack_offset:]
                 if label == 'baseline':
                     self.check('baseline same-command env really reaches foreign binding',
@@ -441,10 +501,12 @@ class Validator:
                 self.http.binding = binding['binding']; config_path.write_text(json.dumps(binding))
             if label == 'restricted':
                 before = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False})
+                before_enabled = enabled_native_servers(before)
                 self.check('exactly one canonical worker MCP server',
-                    [row.get('name') for row in before.get('result', {}).get('servers', [])] == ['lampway_pane'], before)
+                    before_enabled == ['lampway_pane'], before)
                 self.check('catalogue excludes inherited foreign servers', 'error' not in before and
-                    not any(name in json.dumps(before) for name in ['foreign_user', 'foreign_compat', 'foreign_plugin']), before)
+                    not any(name in before_enabled for name in
+                            ['foreign_user', 'foreign_compat', 'foreign_plugin', 'foreign_same_command']), before)
                 injected = [{'name': name, 'command': sys.executable, 'args': [str(Path(__file__).resolve()),
                     '--fake-mcp', str(self.output / ('foreign-' + name + '.jsonl'))], 'env': []}
                     for name in ['dynamic', 'lampway_pane']]
@@ -453,9 +515,10 @@ class Validator:
                 # Force lazy initialization after the swap; a rejected route alone
                 # is not proof that the foreign subprocess was never started.
                 after = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False})
-                self.check('hot reload excludes new foreign identity', 'error' not in after and 'dynamic' not in json.dumps(after), after)
+                after_enabled = enabled_native_servers(after)
+                self.check('hot reload excludes new foreign identity', 'error' not in after and 'dynamic' not in after_enabled, after)
                 self.check('hot reload retains exactly one canonical MCP server',
-                    [row.get('name') for row in after.get('result', {}).get('servers', [])] == ['lampway_pane'], after)
+                    after_enabled == ['lampway_pane'], after)
                 self.check('same-name foreign argv blocked before initialization',
                     not read_events(self.output / 'foreign-lampway_pane.jsonl'))
                 self.check('hot reload foreign subprocess blocked before initialization',

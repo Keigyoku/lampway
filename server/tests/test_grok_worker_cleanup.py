@@ -105,7 +105,15 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
             assert request['method'] != 'session/prompt', 'MCP proof must not wait on a denied model turn'
             result = {'sessionId': 'owned-native-id'} if request['method'] == 'session/new' else {}
             if request['method'] == '_x.ai/mcp/list':
-                result = {'servers': [{'name': 'lampway_pane'}]}
+                # Native 1.0.46 extensions wrap their payload and retain blocked
+                # configured entries. Only session.enabled describes admission.
+                result = {'result': {'sessionMcpResolved': True, 'servers': [
+                    {'name': 'lampway_pane', 'session': {'enabled': True, 'status': 'ready'}},
+                    *[{'name': name, 'session': {'enabled': False,
+                        'blockedReason': 'not in allowedMcpServers (requirements.toml)'}}
+                      for name in ['foreign_user', 'foreign_compat', 'foreign_plugin',
+                                   'foreign_same_command', 'dynamic']],
+                ]}}
             response = {'jsonrpc': '2.0', 'id': request['id'], 'result': result}
             if label == 'restricted' and request['params'].get('server') == 'foreign_same_command':
                 response = {'jsonrpc': '2.0', 'id': request['id'], 'error': {'message': 'fixture policy refusal'}}

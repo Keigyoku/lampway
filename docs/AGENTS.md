@@ -36,6 +36,8 @@ do not replace matching-build, whole-client or account acceptance. Preserve fail
 Native persistence and rendered transcript are distinct observations: correct stored user rows do not establish that
 messages sent from another frontend appear in the pane. A compression diagnostic must commit native compaction before
 testing its display, resume and Undo behavior; a native no-op cannot qualify those later steps.
+Likewise, configured MCP entries and session-admitted routes are distinct. A native update acknowledgement does not
+establish a completed restart; describe actual event ordering and current readiness, keeping source versions separate.
 
 ## Test
 
@@ -59,3 +61,4 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-06 | the canon beside the docs | coordinator: "GO for rail row 1" | a reader of docs/ could not tell the canon from the user docs | docs/canon named, with its own contract | captain ruling, 2026-10-06 |
 | 2026-10-10 | native diagnostics retain their acceptance limits | actual terminal undo/personality failures and valid-YAML observer correction | diagnostic source checks could be confused with matching application or account proof | native diagnostic paragraph: exact identities, failed runs, historical binaries and separate acceptance scopes | actual pinned native observations and process-refusing source controls retained |
 | 2026-10-10 | distinguish native persistence from pane display | committed native compaction and resume preserve user rows, but actual scrolling finds only the first external user header | stored history was mistaken for proof of all rendered user turns | native diagnostic paragraph: observe persistence and rendering separately; require committed compaction before later proof | retained native frames and unchanged physical assertions expose the missing user rows |
+| 2026-10-10 | distinguish configured MCP metadata and reload acknowledgement from readiness | 9af native CI advances past startup, then fails catalogue and environment-reload checks | disabled configurations were counted as admitted routes and asynchronous update acknowledgement was treated as a completed handshake | native diagnostic paragraph: explicit session admission and actual reload ordering, with source versions separately qualified | retained pinned native CI wire shows resolved blocked entries and progress before acknowledgement; repaired native proof remains required |
