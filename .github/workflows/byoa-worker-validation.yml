@@ -21,8 +21,6 @@ jobs:
   owned-offline-worker:
     runs-on: ubuntu-22.04
     timeout-minutes: 45
-    env:
-      LAMPWAY_HERDR_BUILDS: ${{ runner.temp }}/grok-worker-herdr
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +31,7 @@ jobs:
           python-version: '3.11'
       - name: Public dependencies in this runner only
         run: |
+          printf 'LAMPWAY_HERDR_BUILDS=%s\n' "$RUNNER_TEMP/grok-worker-herdr" >> "$GITHUB_ENV"
           python -m pip install -e 'server[test]' ziglang==0.16.0
           python -c 'import pathlib,ziglang; print("ZIG=" + str(pathlib.Path(ziglang.__file__).parent / "zig"))' >> "$GITHUB_ENV"
       - name: Exact public native artifact and authenticated distro package
