@@ -40,11 +40,12 @@ For reproduction of the detail gate, resize to half-resolution with bilinear fil
 
 ## Template contract
 
-All seven builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9`, `min_text_px=28`; resolution, aspect and duration are render defaults (below explicit arguments, above `__scene`), `min_text_px` is authoring guidance. Runtime minimum remains 22 px. Five non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
+All eight builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9` (`9:16`, so 1080 × 1920, for `mg-social-clip`), `min_text_px=28`; resolution, aspect and duration are render defaults (below explicit arguments, above `__scene`), `min_text_px` is authoring guidance. Runtime minimum remains 22 px. Six non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
 
 | ID | Duration guidance | Required variables | Additional defaults (abbreviated prose values) |
 |---|---|---|---|
 | `mg-site-clip` | 13 s | None | `logo_dir=public/assets`, `copy_source=public/index.html`, `media_dir=public/media`, `read_s=1.2`; focus keys, three features, source build |
+| `mg-social-clip` | 12 s, 9:16 | `copy_source`, `focus` | `logo_dir=assets`, `media_dir=media`, `hook_s=1.5`, `read_s=1.5`; any project's own brand assets |
 | `mg-tutorial` | 20 s | `task` | `step_count=4`, `step_s=3`, numbered tutorial list as `steps_source` |
 | `mg-release` | 15 s | `version`, `date`, `notes_source` | `max_items=6`, `read_s=1.5` |
 | `mg-facelift-ui-demo` | 10 s | `point`, `region` | `surface=spend`, `whole_s=1.5` |

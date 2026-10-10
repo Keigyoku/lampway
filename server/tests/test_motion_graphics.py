@@ -11,7 +11,7 @@ from lampway_server.prompts import library as PL
 from lampway_server.prompts import render as PR
 from lampway_server.prompts import schema as PS
 
-MG_TEMPLATES = ("mg-site-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
+MG_TEMPLATES = ("mg-site-clip", "mg-social-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
 
 
 def _value_for(spec: dict):

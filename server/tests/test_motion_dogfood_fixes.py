@@ -244,6 +244,17 @@ def test_prose_path_variables_and_untemplated_renders_carry_no_path_warning(tmp_
     assert "warnings" not in out and all(row["source"] != "template" for row in out["inputs"])
 
 
+def test_the_social_clip_template_is_vertical_by_default(tmp_path):
+    from lampway_server.prompts import library as PL
+    t = PL.Library(PL.BUILTIN, None, None).get("mg-social-clip", "1.0.0")
+    assert M.template_defaults(t["defaults"]) == {"width": 1080, "height": 1920, "duration_s": 12}
+    out, is_error = _tool(_project(tmp_path), {"scene": "motion/scenes/vert", "fps": 2, "duration_s": 0.5, "template": "mg-social-clip@1.0.0", "vault": False,
+                                               "variables": {"copy_source": "motion/scenes/vert/index.html", "focus": "a launch"}})
+    assert not is_error, out
+    assert _sources(out)["width"] == (1080, "template") and _sources(out)["height"] == (1920, "template")
+    assert out["warnings"] == ["mg-social-clip@1.0.0: logo_dir=assets does not exist under the project", "mg-social-clip@1.0.0: media_dir=media does not exist under the project"]
+
+
 # containment: an out-of-scene file request is refused at once, not deferred to the next check
 def test_an_outside_file_request_is_failed_and_refused_at_once(tmp_path):
     scene = tmp_path / "scene"
