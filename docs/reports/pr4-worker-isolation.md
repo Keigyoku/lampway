@@ -2,7 +2,34 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # PR4 worker qualification, images and native skill review
 
-## Latest completed evidence before the display repair
+## Native external-user display gap found after the 9af repair
+
+Published source `9afc362f4500fddb2f271e49633b8005247777bb` completed the full server suite: **3,258 PASS,
+zero failures/errors and 31 unchanged opt-ins SKIP/NOT RUN**, in **1,114.594 seconds**. All **3,289** tests started and
+finished. Source and the normally rebuilt pinned engine remained unchanged; all **51** recorded owned completion
+identities were absent after exact cleanup, including zombies. Accounting:
+`<workspace>/scratch/pr4-exact-final-head-full-server-20261011-attempt6/final-accounting.json`, SHA-256
+`a8de03739feaf8c05d3756fdfffc587b0c2f49c24fb2e2a01f4965581d02b105`.
+The normal engine manifest was `9572075d13397cd607a5235ac679dcf1afa29e8041e4c54a70c7b3e910a00183`;
+its TUI bundle was `fd29f01ca2943c146e28986e2cd74452ad7d9396d9a413548cd28379f19e719d`.
+These are server and engine proofs; the application remained the historical bare477 build.
+
+The additional native compressed-history packet retained **two failures** in **92.947 seconds**. Both cases committed
+real native compaction (12 messages to 10, two removed) and persisted the old user row as compacted; the resume case also
+passed its native resume assertion. Actual PageUp input reached the native transcript head, but later user messages sent
+from Lampway's composer were absent from the visible pane despite correct native history. Both cases failed the unchanged
+physical old-user-row assertion before Undo. All four recorded owned identities were absent, including zombies; source
+and full engine identities remained unchanged. The causal frames, stored rows and original failed assertions remain at
+`<workspace>/scratch/pr4-9afc362f-native-compression-tail-budget-attempt1/`.
+Earlier insufficient compression fixtures remain failed: their native no-op did not exercise compaction, resume or Undo.
+
+The display adaptation therefore must refresh from the authoritative native DISPLAY projection after a subsequent native
+history revision advances and the pane is idle. Initial ordinary metadata and unchanged revisions must leave rendering
+alone. Proven frontend notices remain a display-only suffix, and native SID, epoch, busy, stale-result and Undo guards
+remain required. The repair and new engine/source/build/native qualification must complete before this gap is accepted.
+All matching application, full client, physical preferences/skills/consent and separately approved account gates remain open.
+
+## Historical evidence before the 9af display repair
 
 Exact source `83aedc057a718e29d720919d599c853126a1238b` completed the full server suite: **3,251 PASS, zero failures/errors,
 31 unchanged opt-ins SKIP/NOT RUN**, in **1,097.967 seconds**. All **3,282** cases started and finished; source, normally

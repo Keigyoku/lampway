@@ -38,7 +38,9 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
    `engine_tui_compat.py` validates the three exact pinned source hashes and every replacement anchor, then installs the owned
    history-display helper in the build copy only. `engine.json` records original/patched source, helper and patcher hashes.
    Frontend notice provenance survives native timestamp cloning, stays outside serialized history, and an authoritative
-   functional replacement retains native transcript caps and resets its native display generation. Unsupported source
+   functional replacement retains native transcript caps and resets its native display generation. After the first native
+   info baseline, a revision advancing beyond both the desired and applied revisions refreshes only while idle. Initial,
+   same-revision and intermediate info keep native rendering. Unsupported source
    refuses without a completed manifest; the pin and generated bundles are never edited directly.
    Nothing at run time fetches or builds.
 7. **herdr identity comes from the pin.** Resolve its stable package version from the verified commit's `Cargo.toml`, refusing
@@ -74,3 +76,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-08 | audit npm preflight and shallow herdr identity | supplied PR4 audit A04-A05 | dependency check accepted incompatible npm and missing release tag substituted a commit prefix for binary version | invariants 6-7: pinned manifest npm constraints before writes and verified Cargo version with exact binary check | causal RED/GREEN including real shallow no-tags fixture; compiler fixture is controlled |
 | 2026-10-10 | controlled native history display prebuild | actual pinned terminal Undo retained removed messages | runtime injection or direct vendor/generated edits would obscure the pin and rebuild provenance | invariant 6: validate exact native hashes and unique anchors, apply owned helper in normal copy, record provenance and manifest last; explicit compiler qualification command | 113 focused controls pass with native build/runtime still NOT RUN; changed native source plant refuses before any patch |
 | 2026-10-10 | preserve frontend notice provenance in normal engine copy | compressed display and ordinary-info repaint regression | native timestamp clones lost object identity and replacement could lose command output | invariant 6: three hash-checked sources, enumerable Symbol provenance, native generation/caps and final manifest provenance | nine scratch controls and no-emission typecheck pass; normal rebuilt engine and terminal acceptance remain required |
+| 2026-10-10 | later external USER rows reach native display | actual 9af pinned TUI retained stale rows despite correct native public history | Undo-only refresh ignored later externally originated turns | invariant 6: first info baseline stays quiet; only revisions beyond desired and applied refresh while idle, preserving native DISPLAY and frontend notices | causal controller RED one failure/one pass; six copy/refusal/compiler/controller checks pass; rebuilt native acceptance remains required |

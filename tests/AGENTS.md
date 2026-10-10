@@ -86,10 +86,12 @@ first-launch refusal cases unseeded. Preserve the original test bodies, assertio
 The owned native TUI extension always runs source-hash refusal and normal-copy controls. Its pure TypeScript compiler and
 controller checks require the normally installed pinned engine dependencies and Node, selected explicitly by
 `LAMPWAY_TEST_ENGINE_TUI_COMPAT=1`. Missing prerequisites fail when selected. Final matching-build and whole-client proof
-select these checks; a default environment's two prerequisite skips remain NOT RUN. Typechecking copies the untouched pin,
+select these checks; a default environment's prerequisite skips remain NOT RUN. Typechecking copies the untouched pin,
 uses installed dependencies without emitting a bundle and refuses child processes, network and signals inside the compiler.
-History display controls distinguish native full display lineage from model-context history, forbid repainting on ordinary
-info/resume updates, and retain the original late-reply/session/busy/refusal/acknowledgement checks. Frontend provenance must
+History display controls distinguish native full display lineage from model-context history, forbid repainting on initial
+and same-revision info/resume updates, and retain the original late-reply/session/busy/refusal/acknowledgement checks.
+Successive external USER turns refresh only on strictly newer native revisions while idle; intermediate markers behind an
+accepted snapshot stay quiet. Compacted native DISPLAY and frontend notices remain visible. Frontend provenance must
 survive the actual native timestamp clone without entering JSON. Preserved notices keep their own order/content as a suffix;
 no role or text heuristic identifies transient rows.
 
@@ -136,3 +138,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | session-bound native MCP completion and bounded writes | two native CI baseline errors during initialization, nine portable failures and two missing-completion mock failures | first calls raced the native pool; per-line waits and unbounded drain did not enforce one budget | offline QA body: native current-session completion plus first call share twenty seconds; bounded write/read; exact expanded mock deadline coverage and original method/policy assertions retained | 86 focused checks pass; both actual offline baselines pass with exact owned cleanup, without reproducing the historical race or qualifying restricted/full CI execution |
 | 2026-10-10 | pinned terminal compiler and race qualification | native Undo failures and compiler test copying an already patched engine | default fork environments lacked compiler prerequisites, and rebuilt source would fail the original hash guard | TUI qualification paragraph: unconditional copy/refusal controls; explicit required final-run opt-in, missing prerequisites fail, untouched pin input and no-emission/effect guards | explicit focused packet passes 113 tests without skips; real terminal and matching full-client acceptance remain separate |
 | 2026-10-10 | compacted display and frontend output controls | current native projection/controller causal RED and duplicate invalidation failure | model context was mistaken for display; normal info repainted; repeated Undo could fetch twice | history paragraph: full native display, ordinary-info refusal, cloned nonserialized provenance, bounded notice suffix and preserved race/ack checks | baseline two causal failures; candidate marker and duplicate failures retained; nine scratch controls pass |
+| 2026-10-10 | successive native external USER display controls | actual pinned TUI external-user failure and real controller RED | ordinary-info prohibition also suppressed genuinely newer transcript revisions | history paragraph: preserve initial/same/intermediate quiet controls, mirror three successive external turns only when idle, retain compressed DISPLAY and cloned notice suffix | causal RED one failure/one pass; six existing and new compatibility checks pass without skips; matching native rerun remains required |

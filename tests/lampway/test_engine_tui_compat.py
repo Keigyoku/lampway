@@ -183,3 +183,82 @@ const marker = revision => ({lampway_history:{protocol:1,revision,reason:'undo'}
   console.log('native-history controls passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 """
+
+
+@pytest.mark.skipif(os.environ.get("LAMPWAY_TEST_ENGINE_TUI_COMPAT") != "1",
+                   reason="requires explicit pinned engine pure TUI compiler/controller qualification")
+@pytest.mark.parametrize("control", ["external-users", "ahead-snapshot"])
+def test_real_controller_tracks_new_native_display_revisions(control):
+    typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
+    assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
+    helper = ROOT / "scripts/lampway/hermes_tui/lampwayHistory.ts"
+    result = subprocess.run(["node", "-e", NODE_CONTROL.partition("(async () =>")[0]
+        + NODE_DISPLAY_REVISION[control], str(typescript), str(helper)],
+        capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == "native-display revision controls passed"
+
+
+NODE_DISPLAY_REVISION = {
+    "external-users": r"""
+(async () => {
+  const {markFrontendNotice,retainFrontendNotices}=loaded.exports;
+  let idle=true, reads=0;
+  const nativeDisplay=[{role:'user',content:'archived native USER'},
+    {role:'assistant',content:'archived native answer'},
+    {role:'system',content:'native compression DISPLAY summary'}];
+  const slash={kind:'slash',role:'system',text:'/compress'};
+  // Native timestamp cloning must retain Symbol provenance and ordinary JSON.
+  const notice={...markFrontendNotice({role:'system',text:'native compression completed'}),createdAt:42};
+  const panel={kind:'panel',role:'system',text:'',panelData:{title:'native pending review'}};
+  let transcript=[...nativeDisplay,slash,notice,panel],revision=4;
+  const controller=createNativeHistoryRefresh({sid:()=> 'same-native-session',idle:()=>idle,
+    read:async sid=>{reads++;return {protocol:1,session_id:sid,revision,
+      history:{count:nativeDisplay.length,messages:[...nativeDisplay]}};},
+    replace:rows=>{transcript=[...rows,...retainFrontendNotices(transcript)];}});
+  const info=()=>({running:!idle,lampway_history:{protocol:1,revision}});
+  controller.event('session.info',info());await tick();
+  controller.event('message.complete');await tick();
+  assert.equal(reads,0,'first native info only establishes a baseline');
+  for (let n=1;n<=3;n++) {
+    idle=false;controller.event('message.start');
+    nativeDisplay.push({role:'user',content:'external USER '+n},
+      {role:'assistant',content:'native answer '+n});revision++;
+    controller.event('session.info',info());await tick();
+    assert.equal(reads,n-1,'busy native transcript must not be replaced');
+    idle=true;controller.event('session.info',info());await tick();
+    assert.equal(reads,n,'advanced native revision must mirror each external USER row');
+    assert.deepEqual(transcript,[...nativeDisplay,slash,notice,panel]);
+    assert.equal(transcript.filter(row=>row.content==='external USER '+n).length,1);
+    assert.ok(transcript.some(row=>row.content==='archived native USER'));
+    assert.ok(transcript.some(row=>row.content==='native compression DISPLAY summary'));
+    const unchanged=transcript;
+    controller.event('session.info',info());controller.event('message.complete');await tick();
+    assert.equal(reads,n,'same-revision ordinary info must not fetch or redraw');
+    assert.equal(transcript,unchanged);
+    assert.deepEqual(retainFrontendNotices(transcript),[slash,notice,panel]);
+  }
+  console.log('native-display revision controls passed');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+""",
+    "ahead-snapshot": r"""
+(async () => {
+  let reads=0;
+  const rendered=[];
+  const controller=createNativeHistoryRefresh({sid:()=> 'same-native-session',idle:()=>true,
+    read:async sid=>{reads++;return {protocol:1,session_id:sid,revision:10,
+      history:{messages:['native display already at revision10']}};},
+    replace:rows=>rendered.push(rows)});
+  const info=revision=>({running:false,lampway_history:{protocol:1,revision}});
+  controller.event('session.info',info(5));await tick();assert.equal(reads,0);
+  assert.equal(controller.request('same-native-session'),true);await tick();
+  assert.equal(reads,1);assert.deepEqual(rendered,[['native display already at revision10']]);
+  for (const revision of [7,9,10]) {
+    controller.event('session.info',info(revision));controller.event('message.complete');await tick();
+    assert.equal(reads,1,'intermediate info behind the accepted snapshot must stay quiet');
+    assert.equal(rendered.length,1);
+  }
+  console.log('native-display revision controls passed');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+""",
+}

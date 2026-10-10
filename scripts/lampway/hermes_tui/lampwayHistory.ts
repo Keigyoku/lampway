@@ -100,7 +100,11 @@ export function createNativeHistoryRefresh(ctx: Context) {
       if (marker?.protocol === 1 && Number.isSafeInteger(marker.revision) && marker.revision! >= 0) {
         compatible = true
         if (marker.reason === 'undo' && marker.revision! > applied) force = true
-        if (marker.revision! > desired) { desired = marker.revision!; epoch++ }
+        if (marker.revision! > desired) {
+          if (desired >= 0 && marker.revision! > applied) force = true
+          desired = marker.revision!
+          epoch++
+        }
       }
     }
     // Queue after the native handler has applied its busy/streaming state.
