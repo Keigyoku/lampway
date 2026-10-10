@@ -14,7 +14,7 @@ window.__frame = t => { /* set every visible animated property from t */ };
 window.__audit = () => ({ text: [], marks: [] });
 ```
 
-This is an interface sketch, not a complete acceptable scene. `__setup()` must load all assets/fonts before capture and return an object containing both arrays, reporting each resource as `{font,ok}` or `{src,ok}` with a nonempty string identifier and boolean readiness. Use empty arrays when no resources of that type are needed. Malformed reports are refused in both capture passes; false readiness names the missing resource. Requested tool dimensions determine the viewport; the metadata does not override tool dimension defaults. Captured PNG dimensions must match that viewport.
+This is an interface sketch, not a complete acceptable scene. `__setup()` must load all assets/fonts before capture and return an object containing both arrays, reporting each resource as `{font,ok}` or `{src,ok}` with a nonempty string identifier and boolean readiness. Use empty arrays when no resources of that type are needed. Malformed reports are refused in both capture passes; false readiness names the missing resource. Requested tool dimensions determine the viewport; the metadata does not override tool dimension defaults. When `__scene` declares integer width/height that differ from the rendered size, the receipt carries one `size` warning (frame 0) naming both sizes. Captured PNG dimensions must match that viewport.
 
 `__frame(t)` must establish animation from time alone. Authoring forbids clocks, unseeded randomness, requestAnimationFrame and independently advancing CSS animations/transitions. Runtime checks `document.getAnimations()` after setup and rejects active animations; it does not statically enforce every forbidden JavaScript API. Use deterministic math/data and preloaded resources; fresh sequential browser checks establish sampled agreement.
 
@@ -27,6 +27,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 | Empty/sparse | Local luminance-detail share below 0.01% fails; below 0.1% warns |
 | Title safe | Reported text must lie within 5% inset on each side |
 | Font size | Reported text under 22 px fails |
+| Declared size | `__scene` width/height that differ from the rendered size warn (`size`); the tool's size still decides |
 | Contrast | For opacity ≥0.95, measured contrast below 4.5 fails; at ≥24 px threshold is 3.0; unavailable measurement is not an automatic failure |
 | Crop | Reported marks extending beyond viewport fail |
 | Overlap | Reported text overlapping `figure` or `card*` fails, except `.card .tag` |

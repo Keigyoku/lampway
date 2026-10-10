@@ -189,6 +189,16 @@ def _scene(root: Path, a: dict) -> tuple:
     return d, entry, d.relative_to(root.resolve()).as_posix()
 
 
+def _declared_size(declared, W: int, H: int) -> list:
+    """A warning when the scene's own window.__scene width/height differ from the rendered size. The tool's size still decides
+    (scene.md: metadata does not override tool dimension defaults); the warning makes the silent 1920x1080 default visible."""
+    dw, dh = (declared.get("width"), declared.get("height")) if isinstance(declared, dict) else (None, None)
+    if _int(dw) is None or _int(dh) is None or (dw, dh) == (W, H):
+        return []
+    return [{"check": "size", "severity": "warn", "detail": f"the scene declares {dw}x{dh} (window.__scene) but rendered {W}x{H}: "
+             f"pass width and height to render the declared size (the scene's size is not a default)"}]
+
+
 def _sample_frames(n: int, samples, fps: int) -> list:
     if samples:
         return sorted({min(n - 1, int(round(float(s) * fps))) if s < (n - 1) / fps else n - 1 for s in samples})
@@ -320,7 +330,9 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     try:
         _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
         checkpoint(cancel)
-        duration = _duration(a["duration_s"] if a["duration_s"] is not None else (capture.scene() or {}).get("duration_s"))
+        declared = capture.scene() or {}
+        duration = _duration(a["duration_s"] if a["duration_s"] is not None else declared.get("duration_s"))
+        size_notes = _declared_size(declared, W, H)
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
@@ -374,7 +386,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     digest = R.digest(rows)
     artifact_hashes = {}
     C.contact_sheet(out / "samples", out / "contact.png", hashes=artifact_hashes)
-    findings = [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
+    findings = [{"frame": 0, **f} for f in size_notes] + [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
     non_file = list(dict.fromkeys(u for u in requests + probe_requests
                                   if not (u.startswith("data:") or F.allowed_file_url(u, scene_dir))))

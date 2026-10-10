@@ -119,3 +119,34 @@ def test_out_of_range_sizes_are_still_refused(w, h):
 def test_the_tool_schema_allows_vertical_4k():
     props = MT.SPEC.parameters["properties"]
     assert props["width"]["maximum"] == 3840 and props["height"]["maximum"] == 3840
+
+
+# 6. a declared scene size that differs from the render is warned about
+class _Declares(FakeCapture):
+    def __init__(self, declared, **kw):
+        super().__init__(**kw)
+        self.declared = declared
+
+    def scene(self):
+        return {"duration_s": self.duration_s, **self.declared}
+
+
+def _project(tmp_path):
+    project = tmp_path / "project"
+    (project / "motion" / "scenes" / "vert").mkdir(parents=True)
+    (project / "motion" / "scenes" / "vert" / "index.html").write_text("<!doctype html>")
+    return project
+
+
+def test_a_declared_size_that_differs_is_a_warning(tmp_path):
+    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _Declares({"width": 1080, "height": 1920}))
+    size = [f for f in res["self_check"]["findings"] if f["check"] == "size"]
+    assert len(size) == 1 and size[0]["severity"] == "warn"
+    assert "1080x1920" in size[0]["detail"] and "320x180" in size[0]["detail"] and "pass width and height" in size[0]["detail"]
+    assert res["self_check"]["warn"] >= 1
+
+
+@pytest.mark.parametrize("declared", [{"width": 320, "height": 180}, {}, {"width": "wide"}])
+def test_a_matching_or_absent_declared_size_is_silent(tmp_path, declared):
+    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _Declares(declared))
+    assert not [f for f in res["self_check"]["findings"] if f["check"] == "size"]
