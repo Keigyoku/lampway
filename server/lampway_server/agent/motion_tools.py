@@ -26,7 +26,8 @@ _S, _I, _N, _B, _O = {"type": "string"}, {"type": "integer"}, {"type": "number"}
 SPEC = ToolSpec(NAME, (
     "Render a video from scene CODE (HTML with Canvas, SVG, CSS or three.js) frame by frame in a headless Chromium (t = i / fps, never real time, in "
     "order from frame 0), encode it to MP4 and WebM, self-check sampled frames (empty frame, text outside title-safe, text under 22 px, contrast, "
-    "text over a figure or card, a mark cut by the edge, and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), "
+    "text over a figure or card, a mark cut by the edge, text outside an optional safe_zone; with audit_every_s also reading time and near-blank "
+    "runs over the whole timeline; and a fresh browser re-rendering sequentially from frame 0 to compare sampled frame hashes), "
     "write a receipt (code hash, "
     "every frame's hash, output hashes) under motion/out/<name>-<code8>-<unique-run>/, and file an accepted render in the Asset Vault as kind video. Look at "
     "contact.png yourself: some defects only an eye sees. The scene contract: window.__scene = {duration_s, width, height}; await window.__setup() "
