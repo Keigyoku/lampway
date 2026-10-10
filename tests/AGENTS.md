@@ -65,6 +65,12 @@ original twenty-second response bound, retaining every baseline and exclusion as
 enabled in their original fixture config; actual native initialization is required before their exclusion is credited.
 Record native first-start config/cache changes separately, require original auth/persona preservation, and compare restricted
 execution with the warmed native baseline without claiming cold-byte preservation.
+Current-session native completion and the first MCP call share the original twenty-second deadline. Expired writes,
+stdin backpressure and reply notifications consume that same budget; discovery/progress alone never releases a call.
+Portable controls import the actual QA module by repository-relative path and refuse process/socket/signal operations.
+Positive ACP mocks emit the witnessed native completion frame. Their fixed driver-budget clock leaves real wait timers
+intact, and exact deadline assertions cover every drain/reply plus completion read. Retain method, no-model, session-ID,
+policy and cleanup assertions. Historical artifacts and native baselines remain separate receipts.
 Native pane qualification exercises production candidate-path lookup with owned executable links and checks exact artifact,
 namespace and installed-helper hashes before herdr starts. Pure path-contract controls refuse process, socket, signal and
 launcher seams; retain malformed-mapping and changed-hash failures without substituting a tuple for the production mapping.
@@ -117,3 +123,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | inherited downstream fixtures retain explicit disclosure | frozen 40447655 full suite: 25 NoticeRequired failures | imported island/connector/card fixtures lacked their defining module's autouse disclosure record | test body: explicit consumer fixture import, non-autouse dependency only on positive mixed-module cases, fresh refusals unchanged | full frozen causal RED receipt and exact 25 focused recheck; original test body AST preservation retained |
 
 | 2026-10-10 | production Grok path lookup reaches native QA | six causal mapping/hash failures in guarded scratch control | a tuple-shaped candidate mock bypassed the real consumer and hid key iteration as launch paths | offline QA body: actual owned PATH lookup, exact prelaunch hashes and process-refusing malformed-map controls; dedicated workflow watches and runs consumer tests | six causal REDs retained; ten path controls and 73 focused regressions pass; no native or account acceptance claimed |
+| 2026-10-10 | session-bound native MCP completion and bounded writes | two native CI baseline errors during initialization, nine portable failures and two missing-completion mock failures | first calls raced the native pool; per-line waits and unbounded drain did not enforce one budget | offline QA body: native current-session completion plus first call share twenty seconds; bounded write/read; exact expanded mock deadline coverage and original method/policy assertions retained | 86 focused checks pass; both actual offline baselines pass with exact owned cleanup, without reproducing the historical race or qualifying restricted/full CI execution |

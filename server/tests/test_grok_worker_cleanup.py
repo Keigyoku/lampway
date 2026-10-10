@@ -110,6 +110,12 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
             if label == 'restricted' and request['params'].get('server') == 'foreign_same_command':
                 response = {'jsonrpc': '2.0', 'id': request['id'], 'error': {'message': 'fixture policy refusal'}}
             replies.put_nowait((QA.json.dumps(response) + '\n').encode())
+            if request['method'] == 'session/new':
+                # The pinned native wire reports asynchronous pool completion
+                # after the session reply, before session-scoped calls are ready.
+                notification = {'jsonrpc': '2.0', 'method': '_x.ai/mcp_initialized',
+                                'params': {'sessionId': 'owned-native-id', 'mcpToolCount': 1}}
+                replies.put_nowait((QA.json.dumps(notification) + '\n').encode())
         async def drain(self): pass
     class Output:
         async def readline(self): return await replies.get()
@@ -127,6 +133,9 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
         return await original_wait(awaitable, timeout)
     monkeypatch.setattr(QA.asyncio, 'create_subprocess_exec', create)
     monkeypatch.setattr(QA.asyncio, 'wait_for', bounded)
+    # Freeze only the driver's budget clock. wait_for retains its real event-loop
+    # timer; no event loop, self-pipe or twenty-second bound is replaced.
+    monkeypatch.setattr(QA.asyncio, 'get_running_loop', lambda: SimpleNamespace(time=lambda: 0))
     monkeypatch.setattr(QA, 'cleanup_acp', cleanup)
     monkeypatch.setattr(QA, 'process_rows', lambda: {})
     monkeypatch.setattr(QA, 'owned_snapshot', lambda *args: [])
@@ -138,7 +147,9 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
         expected += ['_x.ai/mcp/list', '_x.ai/session/update_mcp_servers', '_x.ai/mcp/list']
     assert [r['method'] for r in requests] == expected
     assert all(r['params']['sessionId'] == 'owned-native-id' for r in requests[2:])
-    assert deadlines == [20] * len(expected)
+    # Each unchanged request bounds drain and reply; pool completion is one
+    # additional bounded read. Every timeout remains exactly twenty seconds.
+    assert deadlines == [20] * (2 * len(expected) + 1)
     assert all(c['passed'] for c in validator.receipt['cases'])
 
 

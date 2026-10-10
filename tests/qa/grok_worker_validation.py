@@ -341,26 +341,60 @@ class Validator:
                 await asyncio.sleep(0.01)
         capture()
         watcher = asyncio.create_task(monitor())
-        async def request(method, params):
+        async def read_frame(deadline):
+            remaining = deadline - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                raise asyncio.TimeoutError("native ACP original twenty-second deadline expired")
+            line = await asyncio.wait_for(process.stdout.readline(), remaining)
+            if not line:
+                raise RuntimeError("native ACP ended before reply")
+            capture()
+            value = json.loads(line); traffic.append(value)
+            return value
+
+        async def request(method, params, *, deadline=None):
             nonlocal sequence
+            if deadline is None:
+                deadline = asyncio.get_running_loop().time() + 20
             sequence += 1; rid = sequence
             capture()
+            if deadline <= asyncio.get_running_loop().time():
+                raise asyncio.TimeoutError("native ACP original twenty-second deadline expired before write")
             process.stdin.write((json.dumps({'jsonrpc': '2.0', 'id': rid, 'method': method, 'params': params}) + '\n').encode())
-            await process.stdin.drain()
+            remaining = deadline - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                raise asyncio.TimeoutError("native ACP original twenty-second deadline expired before drain")
+            await asyncio.wait_for(process.stdin.drain(), remaining)
             while True:
-                line = await asyncio.wait_for(process.stdout.readline(), 20)
-                if not line: raise RuntimeError('native ACP ended before reply')
-                capture()
-                value = json.loads(line); traffic.append(value)
+                value = await read_frame(deadline)
                 if value.get('id') == rid: return value
         try:
             await request('initialize', {'protocolVersion': 1, 'clientCapabilities': {},
                                         'clientInfo': {'name': 'owned-offline-fixture', 'version': '1'}})
             session = await request('session/new', {'cwd': str(cwd), 'mcpServers': []})
             sid = session['result']['sessionId']
-            # Native session-scoped MCP calls initialize the pool without a model turn.
+            # Native session startup initializes the pool asynchronously. Discovery
+            # alone is not readiness. Completion and the first call share the
+            # original twenty-second call deadline; no sleep/retry/fallback.
+            owned_deadline = asyncio.get_running_loop().time() + 20
+            def completion():
+                return next((frame for frame in traffic if
+                    frame.get('method') == '_x.ai/mcp_initialized' and
+                    isinstance(frame.get('params'), dict) and frame['params'].get('sessionId') == sid and
+                    type(frame['params'].get('mcpToolCount')) is int and frame['params']['mcpToolCount'] >= 0), None)
+            while completion() is None:
+                await read_frame(owned_deadline)
+            self.receipt.setdefault('native_mcp_readiness', []).append({
+                'label': label, 'sessionId': sid, 'completion': completion(),
+                'deadline_seconds': 20, 'remaining_seconds': max(0, owned_deadline - asyncio.get_running_loop().time()),
+                'same_session_server_status': [frame for frame in traffic if
+                    frame.get('method') == '_x.ai/mcp/server_status' and
+                    isinstance(frame.get('params'), dict) and frame['params'].get('sessionId') == sid]})
+            self.save()
+            # Unknown/failed canonical servers still fail the original call;
+            # completion is not an assertion that its handshake succeeded.
             result = await request('_x.ai/mcp/call', {'sessionId': sid, 'server': 'lampway_pane',
-                                                   'tool': 'scene_summary', 'arguments': {}})
+                                                   'tool': 'scene_summary', 'arguments': {}}, deadline=owned_deadline)
             if not expect_owned:
                 self.check(label + ' original native policy denies owned connector', 'error' in result, result)
                 return
