@@ -2,7 +2,52 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # PR4 worker qualification, images and native skill review
 
-## Latest complete source-suite result
+## Latest completed evidence before the display repair
+
+Exact source `83aedc057a718e29d720919d599c853126a1238b` completed the full server suite: **3,251 PASS, zero failures/errors,
+31 unchanged opt-ins SKIP/NOT RUN**, in **1,097.967 seconds**. All **3,282** cases started and finished; source, normally
+built pinned engine, TUI, manifest, herdr and historical application fingerprints held unchanged. All **51** recorded owned
+completion identities and the runner were absent after exact cleanup, including zombies. The retained ResourceTracker
+destructor `ChildProcessError` followed exact reaping and was not a pytest failure. Accounting:
+`<workspace>/scratch/pr4-exact-final-head-full-server-20261011-attempt5/final-accounting.json`, SHA-256
+`fa9ed9ffb06af9ba7af6a8ceef563a274be1c7f842ffd4189bf43a87aaf147c1`.
+
+Its normal pinned Hermes engine build completed with exit zero; manifest SHA-256
+`57bbd71c3f8e09cdd63492439bd1415d12954149e1f2517a21bd245ea33278b7`, TUI SHA-256
+`32b9ab5eef04eac96473af30ee817757628ff9d6b39b14c13f6a8388618691f5`.
+Four actual terminal diagnostics passed in **62.18 seconds**: external Undo, own Undo after mixed-origin turns, own Undo
+after genuinely typed turns, and selected concise personality plus Lampway guidance on the next local-provider request.
+All eight recorded native identities were absent after cleanup. Receipt:
+`<workspace>/scratch/pr4-83aedc05-native-history-personality-attempt1/qualification.json`.
+
+These checks missed a confirmed display regression. Public `session.history` supplies model-context history without
+compacted rows; ordinary-info replacement could hide older visible turns and discard frontend command output. The new
+compatibility repair uses Hermes's full native display projection only after successful Undo or explicit own-Undo refresh,
+leaves ordinary native rendering alone, and retains proven frontend notices in their own order as a display-only suffix.
+No role/text heuristic, serialized provenance or second conversation store is introduced. Scratch controls retained two
+causal failures against the old code, then nine passes against the repair; reserved-marker and duplicate-notification
+failures are retained too. The applied focused packet passed **120 tests without failures or skips**, including explicit
+TypeScript compiler/controller qualification, in **12.06 seconds**. Receipt:
+`<workspace>/scratch/pr4-history-display-candidate/tracked-receipt.json`.
+The original native four-case assertions and deadlines remain unchanged. Compression/resume
+and command-output terminal diagnostics, a fresh normal engine build, final source suite and matching application/client
+qualification remain required. The application used above is the historical bare `477006fc` build, never a matching83 build.
+
+Remote `b6bbea0c` separately completed **3,199 PASS and 31 unchanged opt-ins NOT RUN** in **1,190.451 seconds**. Its rail,
+REUSE, pii-gate, canon and mcp-launcher CI passed; BYOA run
+[38022686720](https://github.com/Keigyoku/lampway/actions/runs/38022686720) failed both baseline initialization checks before
+native MCP completion. Neither phase reached project trust. Both that artifact and the earlier477 artifact were subsequently
+retrieved and retained; an earlier403 observation does not describe their final collection status. Grok's completion wait and
+first call share the original twenty-second budget. Local original and candidate baselines both passed, so the historical
+race was not reproduced and full repaired native CI remains required. The dedicated workflow now watches and runs its
+readiness regression tests. Grok workers remain refused pending qualification; no trust or account grant was made.
+
+The sections below retain historical results and their then-current gaps; this latest evidence supersedes their old rerun
+status without erasing failed runs. Final matching-build, complete client, physical helper/skill/consent and separately
+approved account acceptance remain open.
+
+## Earlier complete source-suite result
+
 
 Committed source `b978857e3c1b9df2fba568a4ceb190c2abb52736` completed the full server suite with **3,198 PASS,
 1 FAIL and 31 SKIP/NOT RUN** in **1,030.207 seconds**. All 3,230 cases started. Clean source/native fingerprints held

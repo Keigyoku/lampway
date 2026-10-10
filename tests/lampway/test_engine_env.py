@@ -40,8 +40,9 @@ def fake_root(tmp_path):
     (src / "package.json").write_text(json.dumps({"engines": {"npm": "<11.10.0 || >=11.17.0"}}))
     (src / "LICENSE").write_text("MIT License\n")
     # The played dependency build still runs the real, hash-checked prebuild
-    # against its two exact pinned source targets. No bypassed compatibility gate.
-    for relative in ("ui-tui/src/app/createGatewayEventHandler.ts", "ui-tui/src/app/slash/commands/core.ts"):
+    # against its exact pinned source targets. No bypassed compatibility gate.
+    for relative in ("ui-tui/src/app/createGatewayEventHandler.ts", "ui-tui/src/app/slash/commands/core.ts",
+                     "ui-tui/src/app/useMainApp.ts"):
         target = src / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(REPO_ROOT / "third_party/hermes-agent" / relative, target)

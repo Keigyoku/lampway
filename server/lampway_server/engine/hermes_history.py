@@ -27,7 +27,11 @@ def install_module(module):
             if event == "session.info" and isinstance(payload, dict):
                 session = module._sessions.get(sid)
                 if session is not None:
-                    payload = {**payload, "lampway_history": {"protocol": 1, "revision": revision(session)}}
+                    marker = {"protocol": 1, "revision": revision(session)}
+                    incoming = payload.get("lampway_history")
+                    if isinstance(incoming, dict) and incoming.get("reason") == "undo":
+                        marker["reason"] = "undo"
+                    payload = {**payload, "lampway_history": marker}
             return original(event, sid, payload)
         emit._lampway_history_guarded = True
         module._emit = emit
@@ -61,9 +65,13 @@ def install_module(module):
                     return module._err(rid, 4001, "session changed")
                 if session.get("running"):
                     return module._err(rid, 4009, "history snapshot requires an idle session")
-                response = history(rid, params)
-                if "result" not in response:
-                    return response
+                # Native display history includes archived compacted rows; the
+                # public history RPC instead projects the active model context.
+                fallback = list(session.get("display_history_prefix") or []) + list(session.get("history") or [])
+                with module._session_db(session) as db:
+                    visible = module._live_visible_history(session, db, fallback)
+                messages = module._history_to_messages(visible, profile_home=session.get("profile_home"))
+                response = module._ok(rid, {"count": len(visible), "messages": messages})
                 if module._sessions.get(sid) is not session:
                     return module._err(rid, 4001, "session changed")
                 return module._ok(rid, {"protocol": 1, "session_id": sid,
@@ -81,7 +89,8 @@ def install_module(module):
                     # Notification failure cannot turn a completed undo into a
                     # failed command that a client might repeat.
                     with contextlib.suppress(Exception):
-                        module._emit("session.info", sid, module._fallback_session_info(session))
+                        info = module._fallback_session_info(session)
+                        module._emit("session.info", sid, {**info, "lampway_history": {"reason": "undo"}})
             return response
         changed._lampway_history_guarded = True
         module._methods["session.undo"] = changed

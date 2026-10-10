@@ -31,6 +31,9 @@ def test_normal_copy_extends_original_native_undo_once(tmp_path):
     assert "if (!requestNativeHistoryRefresh(ctx.sid!, () =>" in core
     assert "ctx.transcript.trimLastExchange(prev)" in core
     assert core.count("rpc<SessionUndoResponse>('session.undo'") == 2  # original undo and retry
+    main = (source / "ui-tui/src/app/useMainApp.ts").read_text()
+    assert "markFrontendNotice({ role: 'system', text })" in main
+    assert "isNativeHistoryReplacement(value)" in main
     assert receipt["protocol"] == 1
     assert set(receipt["sources"]) == set(compat.TARGETS)
     assert (source / "ui-tui/src/app/lampwayHistory.ts").read_bytes() == (
@@ -54,7 +57,8 @@ def test_real_controller_rejects_late_snapshots_and_keeps_legacy_path():
     typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
     assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
     helper = ROOT / "scripts/lampway/hermes_tui/lampwayHistory.ts"
-    result = subprocess.run(["node", "-e", NODE_CONTROL, str(typescript), str(helper)],
+    result = subprocess.run(["node", "-e", NODE_CONTROL, str(typescript), str(helper),
+        str(ROOT / "third_party/hermes-agent/ui-tui/src/lib/messages.ts")],
                             capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     assert result.stdout.strip() == "native-history controls passed"
@@ -98,7 +102,7 @@ const loaded = new Module('owned-history-controller');
 loaded._compile(compiled, 'owned-history-controller.cjs');
 const { createNativeHistoryRefresh } = loaded.exports;
 const tick = async () => { for (let n=0; n<12; n++) await Promise.resolve(); };
-const marker = revision => ({lampway_history:{protocol:1,revision},running:false});
+const marker = revision => ({lampway_history:{protocol:1,revision,reason:'undo'},running:false});
 (async () => {
   let sid='one', idle=true;
   const pending=[], rendered=[];
@@ -108,6 +112,9 @@ const marker = revision => ({lampway_history:{protocol:1,revision},running:false
   assert.equal(controller.request(sid),false); // original native frontend
   controller.event('session.info',{running:false}); await tick();
   assert.equal(pending.length,0);
+  controller.event('session.info',{running:false,lampway_history:{protocol:1,revision:0}}); await tick();
+  controller.event('message.complete'); await tick();
+  assert.equal(pending.length,0); // ordinary/resume rendering stays native
   controller.event('session.info',marker(2)); await tick();
   assert.equal(pending.length,1);
   controller.event('session.info',marker(3)); await tick();
@@ -142,6 +149,37 @@ const marker = revision => ({lampway_history:{protocol:1,revision},running:false
   await tick();
   controller.event('session.info',marker(2)); await tick();
   assert.equal(acknowledgements,1); assert.equal(pending.length,7);
+
+  const { markFrontendNotice, retainFrontendNotices, nativeHistoryReplacement, isNativeHistoryReplacement }=loaded.exports;
+  const nativeSource=ts.createSourceFile('messages.ts',fs.readFileSync(process.argv[3],'utf8'),ts.ScriptTarget.ES2023,true);
+  let initializer;
+  for(const statement of nativeSource.statements) {
+    if(ts.isVariableStatement(statement))for(const declaration of statement.declarationList.declarations)
+      if(declaration.name.getText(nativeSource)==='appendTranscriptMessage')initializer=declaration.initializer.getText(nativeSource);
+  }
+  assert.ok(initializer);
+  const nativeAppend=ts.transpileModule('const appendTranscriptMessage='+initializer+'; exports.append=appendTranscriptMessage;',{
+    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2023}}).outputText;
+  const nativeModule=new Module('native-pure-append');
+  nativeModule._compile('const appendToolShelfMessage=(prev,msg)=>[...prev,msg];'+nativeAppend,'native-pure-append.cjs');
+  const original={role:'system',text:'native /status output'};
+  markFrontendNotice(original);
+  const cloned=nativeModule.exports.append([],original)[0];
+  assert.notEqual(cloned,original);assert.ok(cloned.createdAt);
+  assert.equal(JSON.stringify(cloned),JSON.stringify({role:original.role,text:original.text,createdAt:cloned.createdAt}));
+  const slash={kind:'slash',role:'system',text:'/status'};
+  const panel={kind:'panel',role:'system',text:'',panelData:{title:'native panel'}};
+  const durableSystem={role:'system',text:'durable native system message'};
+  const oldUser={role:'user',text:'removed native user'};
+  const notices=retainFrontendNotices([oldUser,slash,cloned,durableSystem,panel]);
+  assert.deepEqual(notices,[slash,cloned,panel]);
+  const nativeRows=[{role:'user',text:'archived user'},{role:'assistant',text:'native surviving answer'}];
+  const combined=[...nativeRows,...notices];
+  assert.deepEqual(combined.slice(0,2),nativeRows);assert.deepEqual(combined.slice(2),[slash,cloned,panel]);
+  const setter=nativeHistoryReplacement(previous=>combined);
+  assert.equal(isNativeHistoryReplacement(setter),true);
+  assert.equal(isNativeHistoryReplacement(previous=>previous),false);
+
   console.log('native-history controls passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 """

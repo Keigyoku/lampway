@@ -6,6 +6,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TARGETS = {
+    "ui-tui/src/app/useMainApp.ts": "597fb2960afece1deb5435338d3ea82408e83a76bb92e609d136857ed7e92399",
     "ui-tui/src/app/createGatewayEventHandler.ts": "d6c433ae982e50bc83bbb766bccf2b7088c4bf56eac13a887355c3a7153ff382",
     "ui-tui/src/app/slash/commands/core.ts": "2bbe1c96e93f82e4e53af4cece1ddf84331a1709796733948593394a8ef428aa",
 }
@@ -29,7 +30,7 @@ def apply(source):
     output[event] = _replace(output[event], "import { execFile } from 'child_process'",
         "import { execFile } from 'child_process'\n"
         "import { introMsg, toTranscriptMessages } from '../domain/messages.js'\n"
-        "import { createNativeHistoryRefresh } from './lampwayHistory.js'")
+        "import { createNativeHistoryRefresh, nativeHistoryReplacement, retainFrontendNotices } from './lampwayHistory.js'")
     output[event] = _replace(output[event], "  const { appendMessage, panel, setHistoryItems } = ctx.transcript",
         "  const { appendMessage, panel, setHistoryItems } = ctx.transcript\n"
         "  const nativeHistory = createNativeHistoryRefresh({\n"
@@ -38,7 +39,9 @@ def apply(source):
         "    read: sid => rpc('lampway.history_snapshot', { session_id: sid }),\n"
         "    replace: rows => {\n"
         "      const info = getUiState().info\n"
-        "      setHistoryItems([...(info ? [introMsg(info)] : []), ...toTranscriptMessages(rows)])\n"
+        "      setHistoryItems(nativeHistoryReplacement((previous: Msg[]) => [\n"
+        "        ...(info ? [introMsg(info)] : []), ...toTranscriptMessages(rows), ...retainFrontendNotices(previous)\n"
+        "      ]))\n"
         "    }\n"
         "  })")
     output[event] = _replace(output[event], "    switch (ev.type) {",
@@ -55,6 +58,12 @@ def apply(source):
         "              ctx.transcript.sys(`undid ${r.removed} messages`)\n"
         "            }\n"
         )
+    main = "ui-tui/src/app/useMainApp.ts"
+    output[main] = "import { markFrontendNotice, isNativeHistoryReplacement } from './lampwayHistory.js'\n" + output[main]
+    output[main] = _replace(output[main], "if (typeof value !== 'function') {",
+        "if (typeof value !== 'function' || isNativeHistoryReplacement(value)) {")
+    output[main] = _replace(output[main], "appendMessage({ role: 'system', text }), [appendMessage])",
+        "appendMessage(markFrontendNotice({ role: 'system', text })), [appendMessage])")
     helper = (HERE / "hermes_tui/lampwayHistory.ts").read_bytes()
     # Validate all sources and anchors before writing anything into the copy.
     for name, text in output.items():

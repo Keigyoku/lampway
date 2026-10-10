@@ -114,9 +114,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
    the record, never the pane; only the user's Client binds (`POST /app/workbench/sessions/{id}/binding` refuses agent callers).
    Every swarm worker, in either mode, is a pane: `PaneBrain` (`herdr/swarm_brain.py`) is the one worker brain (spec S1, A5;
-   no worker thinks inside this server or as a hidden child), and the unit's mode picks the adapter its pane starts through
-   (`harnesses.worker_adapter`, decided in `SwarmManager.worker_brain` before any run is activated): Mode 2 (a bound pane, or a tab
-   in Your agent mode) the parent pane's harness under its route; Mode 1 `lampway_hermes` (`harnesses.LAMPWAY_ADAPTERS`, Lampway's
+   no worker thinks inside this server or as a hidden child), and the saved `agent.worker_mode` picks its adapter independently
+   of the parent's mode or harness (`SwarmManager.worker_brain`, before activation): Mode 2 uses the selected native harness
+   under its own route and login; Mode 1 uses `lampway_hermes` (`harnesses.LAMPWAY_ADAPTERS`, Lampway's
    own, never in the user's list), whose pane starts only on a server running the engine (the cockpit's `mode1` hook), so
    elsewhere a Mode 1 `swarm_start` is refused with that help and nothing runs another way. A Mode 2 worker's pane has its task on
    the harness's own command line (only where herdr starts the harness itself, never typed into a shell); a Mode 1 worker's task is
@@ -268,10 +268,14 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    (`Registry.recheck`; a refused re-check refuses that request only); a turn about to start waits for it. The MCP endpoint's
    call-time check stays the hard gate for Lampway's own tools.
    Native Undo mutates history once. Its successful notification retains complete native session information; notification
-   failure cannot fail or repeat the committed command. The read-only display snapshot uses the existing native history
-   projection under its history lock, carrying the native revision and refusing busy, removed or replaced sessions.
-   The owned TUI extension rejects late snapshots across turns, sessions and gateway resets. It keeps the native command and
-   acknowledgement, with the original display path retained for an unextended gateway. No second conversation store exists.
+   failure cannot fail or repeat the committed command. The read-only display snapshot uses native `_live_visible_history`
+   and `_history_to_messages` under its history lock, including compacted display lineage and the unflushed native tail.
+   It carries the native revision and refuses busy, removed or replaced sessions; public `session.history` stays unchanged.
+   Only successful Undo invalidation or an explicit own-Undo request refreshes the TUI. Ordinary info/resume/compression
+   updates retain native rendering. The extension rejects late snapshots across turns, sessions and gateway resets, keeps
+   native command/acknowledgement and preserves proven frontend notices in their own order as a display-only suffix.
+   Symbol provenance never enters JSON or conversation storage. An unextended gateway retains its original display path.
+   No second conversation store exists.
 10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5, A1). `engine/gateway.py`
     is the Mode 1 panes' only model endpoint: loopback clients, a per-pane bearer (`Registry.issue_token`, in memory as a digest,
     adopted again by its digest after a restart, redacted by `logredact.py`); a unit's main pane is answered by the current main
@@ -515,3 +519,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | native YAML readback and persona preservation | actual pinned personality command wrote bare concise; seven source-control failures and four later-agent retention failures | valid native YAML blocked Context/capability updates and rerenders lost native personality choices | invariant 9: safe owned YAML and production parser dependency; preserve audited display/root/agent personality mappings while rebuilding capability authority; malformed retained data refuses before writes | 45 focused controls pass with process/socket/signal calls blocked; native prompt composition and matching final-build proof remain separate |
 | 2026-10-10 | native MCP startup completion retains one deadline | actual Grok CI baseline errors during pool initialization and nine portable control failures | the first session call could precede native completion; write drain and notifications could evade one response budget | invariant 6: current-session completion and first call share twenty seconds; pre-write expiry and remaining drain/read bounds; unknown-server refusal retained | 86 focused controls pass; actual original and candidate offline baselines both pass, so historical CI race was not reproduced; restricted workers remain unqualified |
 | 2026-10-10 | native personality and authoritative display projection | four actual native terminal failures and six causal prompt/history control failures | native personality displaced Lampway guidance and successful Undo left stale terminal rows | invariant 9: compose native startup/pivots once; complete info on Undo, notification failure preserves committed response, locked native snapshots and stale-display rejection without a second conversation store | 113 focused controls including explicit compiler/controller checks pass; normal engine build and unchanged native diagnostic repeat remain required |
+| 2026-10-10 | full native display and independent worker contract | compacted history and ordinary-info repaint controls fail at 83aedc05; saved worker selection already governs production | model-context history dropped archived display turns, refresh erased notices, and an old paragraph still said parent harness | invariants 6 and 9: saved worker mode; locked native full display; Undo-only refresh; native frontend provenance without serialized state | causal scratch RED two failures, nine controls GREEN; final native/build/source qualification remains separate |

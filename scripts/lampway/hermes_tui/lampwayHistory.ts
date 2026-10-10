@@ -42,12 +42,11 @@ export function createNativeHistoryRefresh(ctx: Context) {
   const pump = async () => {
     reset()
     if (pending) { again = true; return }
-    if (!sid || !compatible || !ctx.idle() || (!force && desired <= applied)) return
+    if (!sid || !compatible || !ctx.idle() || !force) return
     const requestedSid = sid
     const requestedEpoch = epoch
     pending = true
     again = false
-    force = false
     try {
       const result = await ctx.read(requestedSid)
       reset()
@@ -55,6 +54,7 @@ export function createNativeHistoryRefresh(ctx: Context) {
       if (!result || result.protocol !== 1 || result.session_id !== sid || !Number.isSafeInteger(result.revision)
           || result.revision < desired || result.revision < applied || !Array.isArray(result.history?.messages)) return
       applied = result.revision
+      force = false
       ctx.replace(result.history.messages)
       const after = acknowledgement
       acknowledgement = undefined
@@ -93,12 +93,13 @@ export function createNativeHistoryRefresh(ctx: Context) {
     }
     if (type === 'session.info') {
       const value = payload as {
-        lampway_history?: { protocol?: number; revision?: number }
+        lampway_history?: { protocol?: number; revision?: number; reason?: string }
         running?: boolean
       } | undefined
       const marker = value?.lampway_history
       if (marker?.protocol === 1 && Number.isSafeInteger(marker.revision) && marker.revision! >= 0) {
         compatible = true
+        if (marker.reason === 'undo' && marker.revision! > applied) force = true
         if (marker.revision! > desired) { desired = marker.revision!; epoch++ }
       }
     }
@@ -106,4 +107,24 @@ export function createNativeHistoryRefresh(ctx: Context) {
     if (type === 'session.info' || type === 'message.complete') queueMicrotask(() => { void pump() })
   }
   return { event, request }
+}
+
+
+// Frontend provenance is not a conversation row or a serializable protocol field.
+const frontendNotice = Symbol('lampway.frontendNotice')
+const nativeReplacement = Symbol('lampway.nativeHistoryReplacement')
+export function markFrontendNotice<T extends object>(message: T): T {
+  Object.defineProperty(message, frontendNotice, { value: true, enumerable: true })
+  return message
+}
+export function retainFrontendNotices<T extends { kind?: string }>(previous: T[]): T[] {
+  return previous.filter(message => message.kind === 'slash' || message.kind === 'panel'
+    || (message as T & { [frontendNotice]?: boolean })[frontendNotice] === true)
+}
+export function nativeHistoryReplacement<T extends object>(setter: T): T {
+  Object.defineProperty(setter, nativeReplacement, { value: true })
+  return setter
+}
+export function isNativeHistoryReplacement(value: unknown): boolean {
+  return typeof value === 'function' && (value as { [nativeReplacement]?: boolean })[nativeReplacement] === true
 }
