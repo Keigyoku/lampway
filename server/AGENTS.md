@@ -253,8 +253,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    tool, helper, route, model and Context authority from current choices. Invalid retained data refuses without overwrite.
    Native persona selection is never reset to repair prompt composition.
    Context never restarts, closes or resumes a pane automatically. A main pane's config carries
-   Lampway's guidance on its tools (`agent/prompt.py` `SYSTEM_PROMPT`) as Hermes's own `agent.system_prompt`, which Hermes
-   appends to its system message (its identity kept; nothing written into the user's project); a worker's prompt comes with its
+   Lampway's guidance on its tools (`agent/prompt.py` `SYSTEM_PROMPT`) as Hermes's own `agent.system_prompt`. The owned
+   startup and personality-pivot hooks compose that guidance with native personality and preloaded skills exactly once;
+   native selection, pivot markers and persistence remain unchanged. The hooks survive native split-module rebinding.
+   Its identity is kept and nothing is written into the user's project; a worker's prompt comes with its
    task. The client's turn policy (Plan Mode, Auto mode, the asset-match threshold) rides in the prompt's "This turn" section
    (`engine/turn_context.py`). `check_advertised` compares the
    tools the model is sent (visible and deferred behind tool_search) with the choices; an unexpected or unlistable tool refuses
@@ -265,6 +267,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    rebuilt, the conversation kept: measured on the pinned serve), and the gateway checks that pane's next tool list again
    (`Registry.recheck`; a refused re-check refuses that request only); a turn about to start waits for it. The MCP endpoint's
    call-time check stays the hard gate for Lampway's own tools.
+   Native Undo mutates history once. Its successful notification retains complete native session information; notification
+   failure cannot fail or repeat the committed command. The read-only display snapshot uses the existing native history
+   projection under its history lock, carrying the native revision and refusing busy, removed or replaced sessions.
+   The owned TUI extension rejects late snapshots across turns, sessions and gateway resets. It keeps the native command and
+   acknowledgement, with the original display path retained for an unextended gateway. No second conversation store exists.
 10. **The engine has two doors, both on loopback and both Lampway's** (docs/reports/agent-modes-spec.md E1.4, E1.5, A1). `engine/gateway.py`
     is the Mode 1 panes' only model endpoint: loopback clients, a per-pane bearer (`Registry.issue_token`, in memory as a digest,
     adopted again by its digest after a restart, redacted by `logredact.py`); a unit's main pane is answered by the current main
@@ -507,3 +514,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-10 | native YAML readback and persona preservation | actual pinned personality command wrote bare concise; seven source-control failures and four later-agent retention failures | valid native YAML blocked Context/capability updates and rerenders lost native personality choices | invariant 9: safe owned YAML and production parser dependency; preserve audited display/root/agent personality mappings while rebuilding capability authority; malformed retained data refuses before writes | 45 focused controls pass with process/socket/signal calls blocked; native prompt composition and matching final-build proof remain separate |
 | 2026-10-10 | native MCP startup completion retains one deadline | actual Grok CI baseline errors during pool initialization and nine portable control failures | the first session call could precede native completion; write drain and notifications could evade one response budget | invariant 6: current-session completion and first call share twenty seconds; pre-write expiry and remaining drain/read bounds; unknown-server refusal retained | 86 focused controls pass; actual original and candidate offline baselines both pass, so historical CI race was not reproduced; restricted workers remain unqualified |
+| 2026-10-10 | native personality and authoritative display projection | four actual native terminal failures and six causal prompt/history control failures | native personality displaced Lampway guidance and successful Undo left stale terminal rows | invariant 9: compose native startup/pivots once; complete info on Undo, notification failure preserves committed response, locked native snapshots and stale-display rejection without a second conversation store | 113 focused controls including explicit compiler/controller checks pass; normal engine build and unchanged native diagnostic repeat remain required |

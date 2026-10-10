@@ -244,3 +244,21 @@ own-terminal Undo left stale rows, and the next model request after personality 
 recorded process identities were absent after cleanup. Those failures are retained in
 `<workspace>/scratch/pr4-b6bbea0c-native-history-personality-diagnostic-attempt2`; this readback repair alone does not close them
 or qualify a matching application build, whole-client suite or account-backed acceptance.
+
+## Native personality and history-display compatibility
+
+The owned startup/pivot hooks compose Lampway guidance beside the native personality and preloaded skills, without changing
+native choice, pivot text, persistence or command count. A successful native Undo emits complete native session information;
+notification failure does not fail or repeat a committed Undo. A read-only snapshot uses the existing native history projection
+and locked revision. The terminal extension rejects late replies across sessions, active turns and gateway resets, and retains
+the native command and visible acknowledgement. It introduces no separate transcript or agent loop.
+
+The normal engine prebuild checks two exact pinned source hashes and all replacement anchors before applying this display
+extension in its own copy. Its final manifest records original/patched source, helper and patcher hashes; the submodule and
+generated bundles are not edited directly. Focused controls passed **113 tests, zero failures and skips**, including explicit
+pure TypeScript compilation, controller races, native rebinding and build fixtures. Initial prompt/history causal failures,
+fixture mistakes and compiler attempts are retained under `<workspace>/scratch/pr4-hermes-*`.
+
+This is source/control proof. The normal engine rebuild, four actual terminal diagnostic repeats, matching application build,
+complete client suite and account acceptance remain NOT RUN at this documentation freeze. The original four native failures
+above remain historical evidence until a separately identified repaired native run measures the result.

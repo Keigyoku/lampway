@@ -83,6 +83,12 @@ An imported downstream fixture does not import its defining module's autouse fix
 disclosure explicitly; mixed modules use a non-autouse dependency only on post-disclosure cases, leaving fresh worker and
 first-launch refusal cases unseeded. Preserve the original test bodies, assertions and time limits.
 
+The owned native TUI extension always runs source-hash refusal and normal-copy controls. Its pure TypeScript compiler and
+controller checks require the normally installed pinned engine dependencies and Node, selected explicitly by
+`LAMPWAY_TEST_ENGINE_TUI_COMPAT=1`. Missing prerequisites fail when selected. Final matching-build and whole-client proof
+select these checks; a default environment's two prerequisite skips remain NOT RUN. Typechecking copies the untouched pin,
+uses installed dependencies without emitting a bundle and refuses child processes, network and signals inside the compiler.
+
 ## Test
 
 ```bash
@@ -124,3 +130,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 
 | 2026-10-10 | production Grok path lookup reaches native QA | six causal mapping/hash failures in guarded scratch control | a tuple-shaped candidate mock bypassed the real consumer and hid key iteration as launch paths | offline QA body: actual owned PATH lookup, exact prelaunch hashes and process-refusing malformed-map controls; dedicated workflow watches and runs consumer tests | six causal REDs retained; ten path controls and 73 focused regressions pass; no native or account acceptance claimed |
 | 2026-10-10 | session-bound native MCP completion and bounded writes | two native CI baseline errors during initialization, nine portable failures and two missing-completion mock failures | first calls raced the native pool; per-line waits and unbounded drain did not enforce one budget | offline QA body: native current-session completion plus first call share twenty seconds; bounded write/read; exact expanded mock deadline coverage and original method/policy assertions retained | 86 focused checks pass; both actual offline baselines pass with exact owned cleanup, without reproducing the historical race or qualifying restricted/full CI execution |
+| 2026-10-10 | pinned terminal compiler and race qualification | native Undo failures and compiler test copying an already patched engine | default fork environments lacked compiler prerequisites, and rebuilt source would fail the original hash guard | TUI qualification paragraph: unconditional copy/refusal controls; explicit required final-run opt-in, missing prerequisites fail, untouched pin input and no-emission/effect guards | explicit focused packet passes 113 tests without skips; real terminal and matching full-client acceptance remain separate |

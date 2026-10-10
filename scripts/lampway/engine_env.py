@@ -26,6 +26,7 @@ Node is found at run time, never fetched.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -147,6 +148,11 @@ def build(p: dict) -> int:
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
     shutil.copytree(src, dest / "src", ignore=lambda d, names: [n for n in names if n in SKIP])
+    from engine_tui_compat import apply as apply_tui_compat
+    try:
+        compatibility = apply_tui_compat(dest / "src")
+    except (OSError, ValueError) as exc:
+        return refuse(f"native TUI compatibility prebuild refused: {exc}", ["scripts/lampway/engine_env.py --plan"])
     cmd = ["uv", "sync", "--frozen", "--no-dev", "--python", p["python"]] + [a for e in EXTRAS for a in ("--extra", e)]
     print("run: " + " ".join(cmd), flush=True)
     if subprocess.run(cmd, cwd=dest / "src", env={**os.environ, "UV_PROJECT_ENVIRONMENT": str(dest / "env")}).returncode != 0:
@@ -162,7 +168,10 @@ def build(p: dict) -> int:
             return refuse(f"{' '.join(argv)} failed (see above)", ["scripts/lampway/engine_env.py --check-deps", "npm cache verify"])
     if not (dest / TUI_DIR / "dist" / "entry.js").is_file():
         return refuse(f"the TUI build left no {TUI_DIR}/dist/entry.js", ["scripts/lampway/engine_env.py --plan"])
-    (dest / "engine.json").write_text(p["record"] + "\n")
+    record = json.loads(p["record"])
+    compatibility["bundle_sha256"] = hashlib.sha256((dest / TUI_DIR / "dist" / "entry.js").read_bytes()).hexdigest()
+    record["lampway_tui_compatibility"] = compatibility
+    (dest / "engine.json").write_text(json.dumps(record, sort_keys=True) + "\n")
     print(f"built: {dest}")
     print(f"entry: {dest / ENTRY}")
     print(f"tui: {dest / TUI_DIR / 'dist' / 'entry.js'}")

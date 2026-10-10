@@ -30,6 +30,8 @@ def fake_root(tmp_path):
     root = tmp_path / "repo"
     (root / "scripts/lampway").mkdir(parents=True)
     shutil.copy2(REPO_ROOT / SCRIPT_REL, root / SCRIPT_REL)
+    shutil.copy2(REPO_ROOT / "scripts/lampway/engine_tui_compat.py", root / "scripts/lampway/engine_tui_compat.py")
+    shutil.copytree(REPO_ROOT / "scripts/lampway/hermes_tui", root / "scripts/lampway/hermes_tui")
     src = root / "third_party/hermes-agent"
     src.mkdir(parents=True)
     _git(src, "init", "-q")
@@ -37,6 +39,12 @@ def fake_root(tmp_path):
     (src / "uv.lock").write_text("version = 1\n")
     (src / "package.json").write_text(json.dumps({"engines": {"npm": "<11.10.0 || >=11.17.0"}}))
     (src / "LICENSE").write_text("MIT License\n")
+    # The played dependency build still runs the real, hash-checked prebuild
+    # against its two exact pinned source targets. No bypassed compatibility gate.
+    for relative in ("ui-tui/src/app/createGatewayEventHandler.ts", "ui-tui/src/app/slash/commands/core.ts"):
+        target = src / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO_ROOT / "third_party/hermes-agent" / relative, target)
     _git(src, "add", "-A")
     _git(src, "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "release")
     _git(src, "tag", "v2026.9.24")
@@ -128,7 +136,7 @@ def test_a_build_prebuilds_the_tui_in_the_engines_own_copy_and_records_it_last(f
     """Spec A1: ``npm ci --workspace ui-tui`` at the copy's root, then ``npm run build`` in its ui-tui, never in the pinned tree;
     engine.json, written last, names the hermes binary and the TUI directory."""
     src = fake_root / "third_party/hermes-agent"
-    (src / "ui-tui").mkdir()
+    (src / "ui-tui").mkdir(exist_ok=True)
     (src / "ui-tui" / "package.json").write_text('{"name": "ui-tui"}')
     (src / "package-lock.json").write_text("{}")
     _git(src, "add", "-A")
@@ -156,7 +164,7 @@ def test_a_build_prebuilds_the_tui_in_the_engines_own_copy_and_records_it_last(f
 
 def test_a_tui_build_that_leaves_no_bundle_is_refused_and_no_record_is_written(fake_root, tmp_path):
     src = fake_root / "third_party/hermes-agent"
-    (src / "ui-tui").mkdir()
+    (src / "ui-tui").mkdir(exist_ok=True)
     (src / "ui-tui" / "package.json").write_text('{"name": "ui-tui"}')
     _git(src, "add", "-A")
     _git(src, "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "-q", "-m", "tui")

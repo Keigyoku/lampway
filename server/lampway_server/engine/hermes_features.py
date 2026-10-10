@@ -3,8 +3,8 @@
 """Admission hooks around Lampway's pinned native Hermes CLI, not an agent host.
 
 Executed by path in Hermes's interpreter. Native handlers, persistence, tools,
-approval handling and transports remain native; this module only refuses new
-feature work before their entry points when Lampway's root policy is off.
+approval handling and transports remain native. This module installs feature
+admission and the owned prompt/display compatibility hooks before native entry.
 """
 import functools
 import hashlib
@@ -19,6 +19,12 @@ from pathlib import Path
 import runpy
 import shlex
 import sys
+
+if __package__:
+    from . import hermes_prompt, hermes_history
+else:  # This bootstrap is executed by path in the pinned interpreter.
+    import hermes_prompt
+    import hermes_history
 
 FEATURES = frozenset({"subagents", "schedule", "background"})
 READ_CRON = frozenset({"list", "pause", "remove", "delete"})
@@ -205,6 +211,8 @@ def native_child_argv(argv):
 
 
 def install_module(module, policy):
+    hermes_prompt.install_module(module, policy)
+    hermes_history.install_module(module)
     if module.__name__ == "tools.process_registry":
         original = module.restart_safe_gateway_child_argv
         if not getattr(original, "_lampway_features_guarded", False):
@@ -221,7 +229,10 @@ def install_module(module, policy):
         if not getattr(module.register_method, "_lampway_features_guarded", False):
             original = module.register_method
             def register(name, function):
-                return original(name, _rpc_guard(name, function, policy))
+                result = original(name, _rpc_guard(name, function, policy))
+                if name in {"session.history", "session.undo"}:
+                    hermes_history.install_module(module)
+                return result
             register._lampway_features_guarded = True
             module.register_method = register
     for path, kind in ENTRIES.get(module.__name__, {}).items():
@@ -247,7 +258,8 @@ class _Finder(importlib.abc.MetaPathFinder):
     def __init__(self, policy):
         self.policy = policy
     def find_spec(self, fullname, path=None, target=None):
-        if fullname not in ENTRIES and fullname not in {"tui_gateway.server", "tools.process_registry"}:
+        targets = set(ENTRIES) | hermes_prompt.MODULES | hermes_history.MODULES | {"tools.process_registry"}
+        if fullname not in targets:
             return None
         spec = importlib.machinery.PathFinder.find_spec(fullname, path)
         if spec and spec.loader:
@@ -257,7 +269,7 @@ class _Finder(importlib.abc.MetaPathFinder):
 
 def install(policy):
     sys.meta_path.insert(0, _Finder(policy))
-    for name in (*ENTRIES, "tui_gateway.server", "tools.process_registry"):
+    for name in set(ENTRIES) | hermes_prompt.MODULES | {"tui_gateway.server", "tools.process_registry"}:
         if name in sys.modules:
             install_module(sys.modules[name], policy)
     # Exact native child module launches only: ordinary terminal/process

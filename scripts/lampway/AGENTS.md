@@ -34,7 +34,11 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
    `uv sync --frozen --extra mcp`, then the TUI (`npm ci --workspace ui-tui` at the copy's root, `npm run build` in its `ui-tui`),
    and writes `engine.json` (naming `hermes` and `tui`) LAST, so a directory without it is an unfinished build the server ignores.
    `--plan` lists the npm steps; `--check-deps` names missing tools and verifies installed npm against the pinned
-   package manifest before any build writes. Unknown versions or constraint syntax refuse with help. Nothing at run time fetches or builds.
+   package manifest before any build writes. Unknown versions or constraint syntax refuse with help. Before npm builds,
+   `engine_tui_compat.py` validates the two exact pinned source hashes and every replacement anchor, then installs the owned
+   history-display helper in the build copy only. `engine.json` records original/patched source, helper and patcher hashes.
+   Unsupported source refuses without a completed manifest; the pin and generated bundles are never edited directly.
+   Nothing at run time fetches or builds.
 7. **herdr identity comes from the pin.** Resolve its stable package version from the verified commit's `Cargo.toml`, refusing
    local manifest drift. A shallow checkout needs no release tag or broad history fetch; unrelated tags cannot set identity.
    Require the exact binary version and write `herdr.json` last.
@@ -44,6 +48,7 @@ wrap it. The procedures: the `lampway-coding-guidelines` skill (build and run) a
 ```bash
 python -m pytest -q tests/lampway/test_build_linux.py tests/lampway/test_prepublish_gate.py tests/lampway/test_engine_env.py tests/lampway/test_herdr_env.py
 python -m pytest -q tests/lampway_tools/test_launcher.py tests/lampway_tools/test_linux_scripts.py
+LAMPWAY_TEST_ENGINE_TUI_COMPAT=1 python -m pytest -q tests/lampway/test_engine_tui_compat.py
 python3 scripts/lampway/prepublish_gate.py --self-test
 scripts/lampway/build_linux.sh --plan
 ```
@@ -65,3 +70,4 @@ the coordinator's final gate; widening what it allows is the captain's call. Cha
 | 2026-10-07 | merge: the TUI prebuild beside the herdr build script | coordinator integration of the A1-A3 lane | both sides rewrote the scripts list | the list names engine_env.py with the prebuilt TUI and herdr_env.py; both anneal rows kept | none |
 
 | 2026-10-08 | audit npm preflight and shallow herdr identity | supplied PR4 audit A04-A05 | dependency check accepted incompatible npm and missing release tag substituted a commit prefix for binary version | invariants 6-7: pinned manifest npm constraints before writes and verified Cargo version with exact binary check | causal RED/GREEN including real shallow no-tags fixture; compiler fixture is controlled |
+| 2026-10-10 | controlled native history display prebuild | actual pinned terminal Undo retained removed messages | runtime injection or direct vendor/generated edits would obscure the pin and rebuild provenance | invariant 6: validate exact native hashes and unique anchors, apply owned helper in normal copy, record provenance and manifest last; explicit compiler qualification command | 113 focused controls pass with native build/runtime still NOT RUN; changed native source plant refuses before any patch |
