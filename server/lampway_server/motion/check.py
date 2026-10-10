@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The self-check of a sampled frame and the labelled contact sheet (motion_graphics.md section 6), ported from the spike's driver.
+"""The self-check of a sampled frame and the labelled contact sheet (specs/motion_graphics/scene.md, Self-check contract), ported from the spike's driver.
 
 Per sampled frame: ``empty`` (fail) when under 0.01 % of pixels carry a local luminance step (a background-only frame measures 0.000 %),
 ``sparse`` (warn) under 0.1 %; authored text outside the 5 % title-safe area (fail); text under 22 px (fail); measured contrast of fully

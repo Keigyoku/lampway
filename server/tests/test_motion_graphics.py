@@ -92,7 +92,7 @@ from .fake_motion import FakeCapture  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 CHROMIUM = os.environ.get("LAMPWAY_CHROMIUM") or ""
 TEASER = os.environ.get("LAMPWAY_MOTION_TEASER") or ""
-needs_chromium = pytest.mark.skipif(not (CHROMIUM and os.path.isfile(CHROMIUM)), reason="no headless Chromium: set LAMPWAY_CHROMIUM (motion_graphics.md section 13)")
+needs_chromium = pytest.mark.skipif(not (CHROMIUM and os.path.isfile(CHROMIUM)), reason="no headless Chromium: set LAMPWAY_CHROMIUM (BUILD-LAMPWAY.md section 8)")
 needs_teaser = pytest.mark.skipif(not (TEASER and os.path.isfile(os.path.join(TEASER, "teaser.html"))),
                                   reason="the spike's teaser fixture is outside the repository: set LAMPWAY_MOTION_TEASER to its folder")
 TEASER_CODE = "4b30a23cf619b197f67974f1b6ce70de95c6b0b9fb7d83d2abbfaaaec1e3337c"
@@ -250,7 +250,7 @@ def test_a_scene_without_frame_and_a_page_resize_are_refused(tmp_path):
     project = tmp_path / "project"
     scene = put_scene(project, "x", RAMP)
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(has_frame=False))
-    assert out["error"] == "the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4"
+    assert out["error"] == "the scene does not define window.__frame: see the scene contract in specs/motion_graphics/scene.md"
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(size=(320, 200)))
     assert out["error"] == "frame 0 is 320x200, not 320x180: the scene must not resize the page"
 

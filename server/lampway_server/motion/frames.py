@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (motion_graphics.md section 6).
+"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (specs/motion_graphics/motion_graphics.md sections 2 and 4).
 
 ``Chromium`` is the capture adapter the tool runs (the tests' fake is the other one): it launches the user's headless shell (LAMPWAY_CHROMIUM)
 niced, with its own HOME, XDG dirs, TZ=UTC and a fresh profile, opens ONE page at the requested size (DPR 1) with the network blocked, loads the
@@ -232,6 +232,7 @@ class Chromium:
         self.proc = self.cdp = self.session = None
         self.product = None
         self.scene_root, self.violation = None, None
+        self.page_errors = []                                            # the page's uncaught exceptions and console.error lines, in order
         self._target_sessions = {}
         self.cancel, self._unregister = None, None
         self.profile = self.home / f"profile-{os.getpid()}-{time.monotonic_ns()}"
@@ -264,6 +265,14 @@ class Chromium:
                 raise SceneError(self.violation)
             self._configure_target(child)
             self.cdp.send("Runtime.runIfWaitingForDebugger", session=child)
+        elif method == "Runtime.exceptionThrown":
+            d = params.get("exceptionDetails") or {}
+            text = (d.get("exception") or {}).get("description") or d.get("text") or "an exception"
+            self.page_errors.append(f"{self._where(d.get('url'), d.get('lineNumber'), d.get('columnNumber'))}{text.splitlines()[0][:300]}")
+        elif method == "Runtime.consoleAPICalled" and params.get("type") == "error":
+            args = " ".join(str(a.get("value", a.get("description", ""))) for a in params.get("args") or [])
+            frame = ((params.get("stackTrace") or {}).get("callFrames") or [{}])[0]
+            self.page_errors.append(f"{self._where(frame.get('url'), frame.get('lineNumber'), frame.get('columnNumber'))}console.error: {args[:300]}")
         elif method == "Fetch.requestPaused":
             url, request_id = params["request"]["url"], params["requestId"]
             session = event.get("sessionId")
@@ -299,6 +308,18 @@ class Chromium:
                 self.cdp.send("Fetch.continueRequest", {"requestId": request_id}, session)
             else:
                 self.cdp.send("Fetch.failRequest", {"requestId": request_id, "errorReason": "AccessDenied"}, session)
+
+    def _where(self, url, line, col) -> str:
+        """``scene.js:3:12: `` for a scene file (1-based, scene-relative: no absolute path in a refusal), else nothing."""
+        if not url or line is None:
+            return ""
+        root = self.scene_root.as_uri() + "/" if self.scene_root else None
+        name = unquote(url[len(root):]) if root and url.startswith(root) else url
+        return f"{name}:{int(line) + 1}:{int(col or 0) + 1}: "
+
+    def errors(self) -> list:
+        """The page's script errors so far (uncaught exceptions, then console.error, in arrival order)."""
+        return list(self.page_errors)
 
     def _check_containment(self):
         checkpoint(self.cancel)
@@ -338,6 +359,7 @@ class Chromium:
         self.cdp.send("Target.getTargets")
         s = self.session = self._target_sessions[tgt["targetId"]]
         self.cdp.send("Page.enable", session=s)
+        self.cdp.send("Runtime.enable", session=s)                     # Runtime.exceptionThrown: a scene's syntax error is reported, not guessed at
         self.cdp.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": False}, s)
         self.cdp.send("Emulation.setTimezoneOverride", {"timezoneId": "UTC"}, s)
         # Discard the initial about:blank load before waiting for this navigation.

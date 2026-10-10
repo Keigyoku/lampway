@@ -336,3 +336,63 @@ def test_navigating_the_scene_to_an_outside_file_is_a_prompt_containment_refusal
             live_browser.frame(i / 10)
             time.sleep(0.2)
     assert time.monotonic() - t0 < 30
+
+
+# 13. a scene's script error is reported, and the refusal points at the scene contract's real home
+def test_an_uncaught_exception_and_a_console_error_are_kept_scene_relative(tmp_path):
+    cap = F.Chromium("/nonexistent/chrome", tmp_path / "browser")
+    cap.cdp, cap.scene_root = _RecordingCDP(), (tmp_path / "scene").resolve()
+    url = (tmp_path / "scene" / "scene.js").resolve().as_uri()
+    cap._event({"method": "Runtime.exceptionThrown", "params": {"exceptionDetails": {
+        "text": "Uncaught", "url": url, "lineNumber": 2, "columnNumber": 11, "exception": {"description": "SyntaxError: Unexpected token ','"}}}})
+    cap._event({"method": "Runtime.consoleAPICalled", "params": {"type": "error", "args": [{"type": "string", "value": "no data"}],
+                                                                  "stackTrace": {"callFrames": [{"url": url, "lineNumber": 0, "columnNumber": 0}]}}})
+    cap._event({"method": "Runtime.consoleAPICalled", "params": {"type": "log", "args": [{"value": "fine"}]}})
+    assert cap.errors() == ["scene.js:3:12: SyntaxError: Unexpected token ','", "scene.js:1:1: console.error: no data"]
+    assert str(tmp_path) not in " ".join(cap.errors())
+
+
+class _Broken(FakeCapture):
+    def has_frame(self):
+        return False
+
+    def errors(self):
+        return ["scene.js:1:11: SyntaxError: Unexpected token ','"]
+
+
+def test_no_frame_after_a_script_error_names_the_error_and_scene_md(tmp_path):
+    with pytest.raises(M.Refused) as exc:
+        M._ready(_Broken(), tmp_path / "index.html", 64, 64)
+    assert str(exc.value) == ("the scene does not define window.__frame (the page reported 1 script error; the first: scene.js:1:11: SyntaxError: "
+                              "Unexpected token ','): see the scene contract in specs/motion_graphics/scene.md")
+    with pytest.raises(M.Refused, match=r"window.__frame: see the scene contract in specs/motion_graphics/scene.md$"):
+        M._ready(type("NoFrame", (FakeCapture,), {"has_frame": lambda self: False})(), tmp_path / "index.html", 64, 64)
+
+
+def test_a_script_error_that_does_not_stop_the_render_is_a_warning(tmp_path):
+    class Noisy(FakeCapture):
+        def errors(self):
+            return ["scene.js:9:1: console.error: missing glyph"]
+    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.2}, Noisy)
+    page = [f for f in res["self_check"]["findings"] if f["check"] == "page_error"]
+    assert page == [{"frame": 0, "check": "page_error", "severity": "warn", "detail": "the page reported 1 script error(s); the first: scene.js:9:1: console.error: missing glyph"}]
+
+
+def test_the_doc_pointers_name_files_and_sections_that_exist():
+    import re
+    spec = (REPO / "specs" / "motion_graphics" / "motion_graphics.md").read_text(encoding="utf-8")
+    assert "## 2. Timeline, rendering and export" in spec and "## 4. Containment and security" in spec
+    assert "## Self-check contract" in (REPO / "specs" / "motion_graphics" / "scene.md").read_text(encoding="utf-8")
+    for p in (REPO / "server" / "lampway_server" / "motion").glob("*.py"):
+        assert not re.search(r"\(motion_graphics\.md section", p.read_text(encoding="utf-8")), p.name
+
+
+def test_a_syntax_error_in_scene_js_is_reported_with_file_line_and_message(live_browser, tmp_path):
+    scene = tmp_path / "scene"
+    scene.mkdir()
+    (scene / "index.html").write_text("<!doctype html><body><script src='scene.js'></script>")
+    (scene / "scene.js").write_text("window.__setup = async () => ({fonts: [], images: []});\nvar a = 1,;\nwindow.__frame = t => {};\n")
+    live_browser.scene_root = scene
+    with pytest.raises(M.Refused) as exc:
+        M._ready(live_browser, scene / "index.html", 64, 64, scene_root=scene)
+    assert "the first: scene.js:2:" in str(exc.value) and "SyntaxError" in str(exc.value) and "specs/motion_graphics/scene.md" in str(exc.value)

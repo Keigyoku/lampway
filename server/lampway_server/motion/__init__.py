@@ -50,7 +50,7 @@ def _int(v):
 
 
 def inputs(args: dict) -> dict:
-    """The validated inputs (section 4): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
+    """The validated inputs (specs/motion_graphics/tool.md, Inputs): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
     (measured), so the only order is from frame 0."""
     if not isinstance(args, dict):
         raise Refused("motion arguments must be a JSON object")
@@ -276,6 +276,15 @@ def _pixels(png: bytes):
     return im.size, hashlib.sha256(im.convert("RGB").tobytes()).hexdigest()
 
 
+SCENE_DOC = "specs/motion_graphics/scene.md"
+
+
+def _page_error(capture) -> str:
+    """The page's first script error, for a refusal: a syntax error leaves __frame undefined, and the parse error is the cause."""
+    errors = capture.errors() if hasattr(capture, "errors") else []
+    return f" (the page reported {len(errors)} script error{'s' if len(errors) != 1 else ''}; the first: {errors[0]})" if errors else ""
+
+
 class EngineDiffers(Exception):
     pass
 
@@ -289,7 +298,7 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         k = 0 if here[0] != there[0] else 1
         raise EngineDiffers(f"cannot reproduce: the engine differs (receipt: {there[k]}, here: {here[k]})")
     if not capture.has_frame():
-        raise Refused("the scene does not define window.__frame: see the scene contract in motion_graphics.md section 4")
+        raise Refused(f"the scene does not define window.__frame{_page_error(capture)}: see the scene contract in {SCENE_DOC}")
     ready = capture.setup()
     if not isinstance(ready, dict):
         raise Refused("window.__setup() must return an object with fonts and images arrays")
@@ -305,7 +314,7 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
             if report["ok"] is False:
                 misses.append(report[label])
     if hasattr(capture, "has_audit") and not capture.has_audit():
-        raise Refused("the scene does not define window.__audit: return text and marks arrays (motion_graphics.md section 4)")
+        raise Refused(f"the scene does not define window.__audit{_page_error(capture)}: return text and marks arrays ({SCENE_DOC})")
     if misses:
         raise Refused(f"scene not ready, these did not load: {misses}: put them in the scene folder and check the paths")
     if capture.animations():
@@ -451,6 +460,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         t_encode_tail = time.monotonic() - e0
         enc = None
         requests = capture.requests()
+        page_errors = capture.errors() if hasattr(capture, "errors") else []
     finally:
         if enc is not None:
             enc.abort()
@@ -463,6 +473,9 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     digest = R.digest(rows)
     artifact_hashes = {}
     C.contact_sheet(out / "samples", out / "contact.png", hashes=artifact_hashes)
+    if page_errors:                                                        # an error that did not stop the render still deserves a look
+        size_notes = size_notes + [{"check": "page_error", "severity": "warn",
+                                    "detail": f"the page reported {len(page_errors)} script error(s); the first: {page_errors[0]}"}]
     findings = [{"frame": 0, **f} for f in size_notes] + [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
     non_file = list(dict.fromkeys(u for u in requests + probe_requests
@@ -507,7 +520,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
 
 
 def summary(receipt: dict) -> dict:
-    """The tool's answer (section 5) from a receipt."""
+    """The tool's answer (specs/motion_graphics/tool.md, Outputs) from a receipt."""
     out = {"ok": receipt["ok"], "run_id": receipt["run_id"], "out_dir": receipt["out_dir"],
            "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact")}, "code_sha256": receipt["code_sha256"],
            "frames": receipt["frames"], "frames_sha256_digest": receipt["frames_sha256_digest"],

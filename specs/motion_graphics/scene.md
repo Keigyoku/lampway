@@ -28,6 +28,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 | Title safe | Reported text must lie within 5% inset on each side |
 | Font size | Reported text under 22 px fails |
 | Scene override | An explicit or template width, height, fps or duration that overrides a differing `__scene` value warns (`scene_override`), with a help line |
+| Script errors | The page's uncaught exceptions and `console.error` lines are collected (`Runtime.enable`). A missing `__frame`/`__audit` refusal names the first one as scene-relative `file:line:col: message`; one that does not stop the render warns (`page_error`) |
 | Contrast | For opacity ≥0.95, measured contrast below 4.5 fails; at ≥24 px threshold is 3.0; unavailable measurement is not an automatic failure |
 | Crop | Reported marks extending beyond viewport fail |
 | Overlap | Reported text overlapping `figure` or `card*` fails, except `.card .tag` |

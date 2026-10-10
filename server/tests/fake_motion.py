@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The second adapter at the motion-graphics capture seam (motion_graphics.md section 6): synthetic PNG frames, no browser, so encode, the
+"""The second adapter at the motion-graphics capture seam (specs/motion_graphics/motion_graphics.md section 2): synthetic PNG frames, no browser, so encode, the
 receipt and the self-check are tested on their own. Each frame is a pure function of t: a ramp, a bar that moves and seeded noise."""
 import io
 
