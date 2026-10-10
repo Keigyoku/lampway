@@ -239,7 +239,8 @@ def test_no_chromium_and_no_ffmpeg_are_refused_with_their_fix(tmp_path, monkeypa
     put_scene(project, "x", RAMP)
     monkeypatch.delenv("LAMPWAY_CHROMIUM", raising=False)
     out, is_error = tool(project, {"scene": "motion/scenes/x"})
-    assert is_error and out["error"] == "no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary"
+    assert is_error and out["error"] == ("no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary (Chrome for Testing's "
+                                         "chrome-headless-shell, tested 155.0.8059.39; BUILD-LAMPWAY.md, 'The motion-graphics browser')")
     monkeypatch.setenv("PATH", str(tmp_path / "empty"))
     out, is_error = tool(project, {"scene": "motion/scenes/x"}, capture=FakeCapture)
     assert is_error and out["error"] == "ffmpeg not found on PATH: install ffmpeg"

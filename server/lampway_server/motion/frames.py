@@ -44,7 +44,11 @@ CHROME_FLAGS = [
     "--host-resolver-rules=MAP * ~NOTFOUND", "--proxy-server=127.0.0.1:9", "--proxy-bypass-list=<-loopback>",
 ]
 BLOCKED_URLS = ["http://*", "https://*", "ws://*", "wss://*"]
-NO_CHROMIUM = "no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary"
+NO_CHROMIUM = ("no headless Chromium: set LAMPWAY_CHROMIUM to a chrome-headless-shell binary (Chrome for Testing's chrome-headless-shell, "
+               "tested 155.0.8059.39; BUILD-LAMPWAY.md, 'The motion-graphics browser')")
+WRONG_BROWSER = ("LAMPWAY_CHROMIUM must be chrome-headless-shell: this browser started its own component extension ({kind} {url}), "
+                 "which the scene-file containment cannot guard; a full Google Chrome or Chromium does this even with --disable-extensions. "
+                 "Install Chrome for Testing's chrome-headless-shell (BUILD-LAMPWAY.md, 'The motion-graphics browser')")
 
 
 class ChromiumMissing(RuntimeError):
@@ -250,7 +254,12 @@ class Chromium:
                 return
             if params["targetInfo"]["type"] not in ("page", "iframe"):
                 # Worker targets do not expose Fetch. Keep them paused and close rather than allow an unguarded loader.
-                self.violation = "worker may read files outside the scene folder: use the main-page scene driver"
+                url = str(params["targetInfo"].get("url") or "")
+                if url.startswith("chrome-extension://"):
+                    # Not the scene's: a full Chrome starts its component extensions even with --disable-extensions. Same refusal, named.
+                    self.violation = WRONG_BROWSER.format(kind=params["targetInfo"]["type"], url=url)
+                else:
+                    self.violation = "worker may read files outside the scene folder: use the main-page scene driver"
                 self.cdp.send("Target.closeTarget", {"targetId": params["targetInfo"]["targetId"]})
                 raise SceneError(self.violation)
             self._configure_target(child)
