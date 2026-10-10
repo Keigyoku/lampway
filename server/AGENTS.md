@@ -188,7 +188,15 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    The island view (spec B4) tails a bound pane's own session file read-only (Claude Code, Codex: `herdr/observers/mirror.py`) and
    supports current Codex raw messages and optional completed TurnItems as well as legacy events, deduplicating native IDs
    and cross-format echoes while preserving distinct equal messages and tool-call identity. Task completion ends the turn. It
-   streams it as observed turns in Mode 1's frames; history before the first observation is never replayed unless the client names
+   retires a replaced explicit Codex task before closing its island turn. Retired records, and foreign explicit identities on
+   non-start events or raw responses while another explicit task is active, cannot change or close that current turn.
+   Legitimate task starts, current identities, records without task IDs and existing message/tool echoes retain their behavior.
+   The reusable activity classifier rejects duplicate completion before changing working/waiting or unread state; it is not
+   currently wired into the island. Native JSONL reads remain bounded per poll, with incomplete rows in an owned anonymous
+   temporary spool rather than growing reader memory. Large complete rows are neither capped nor dropped; decoding still
+   allocates the actual completed record. File replacement, observed truncation and cursor reset clear pending bytes; read
+   errors retry unemitted records. Forget closes the owned spool without blocking Stop on a completed JSON decode.
+   The observer streams it as observed turns in Mode 1's frames; history before the first observation is never replayed unless the client names
    its offset; a harness without a readable file is shown by its screen, and the user's own Hermes home is never read (E1.10).
    `agent.byoa.send` finds the pane from the binding, decides who typed from the socket, and holds an agent's send in the 2.5 s
    quiet window after the user's own. Its images (the user's socket only) go to a harness that takes an image by its path: written
@@ -533,3 +541,5 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | native later external USER revision refresh | actual 9af terminal display failure and causal real-controller RED | Undo-only display invalidation missed later island-originated USER turns | invariant 9: established baseline and strict desired/applied advance permit idle refresh; original Undo, session, epoch, busy, refusal and acknowledgement guards remain | causal RED one failure/one pass; six copy/refusal/compiler/controller checks pass without skips; normal engine rebuild and actual terminal rerun remain required |
 | 2026-10-10 | native catalogue admission and asynchronous reload | exact 9af native CI and causal catalogue/reload REDs | blocked configuration metadata was counted as admission and update acknowledgement preceded handshake; filtered no-ops legitimately lack completion | invariant 6: nested resolved admission, ready canonical route, pre-update fence, fresh restart completion or current ready no-op catalogue, shared original twenty-second budget | 124 focused checks pass with all original check labels retained; repaired actual native CI remains NOT RUN and Grok workers remain refused |
 | 2026-10-10 | gateway-owned native history controller lifetime | b1 native compression still hides later USER rows and causal factory-recreation RED | native React renders recreated the handler and discarded its revision baseline | history paragraph: preserve controller state per gateway owner with fresh callbacks, isolate independent gateways and real resets, retain no transcript | actual compressed-history failures and causal recreated-factory RED retained; unchanged rebuilt terminal qualification remains required |
+
+| 2026-10-10 | incremental native transcript reads and stale task isolation | cloud MAIN adapter audit and causal pure controls | rows larger than one poll stalled completion, replaced or unseen old task events closed newer turns, and duplicate activity completion set newer work idle | invariant 6 requires bounded incremental spooling with exact complete offsets and lifecycle cleanup, retired/foreign explicit task isolation, and duplicate checks before activity mutation | reader RED 1 failure then 44 focused passes; observer RED 20 and 8 failures then 57 focused passes; account and matching-app proof remain separate |

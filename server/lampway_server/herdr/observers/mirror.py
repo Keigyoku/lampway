@@ -259,8 +259,14 @@ class CodexMirror(_Mirror):
             native_turn = p.get("turn_id")
             if native_turn and native_turn in self._finished_tasks:
                 return []
+            if t != "task_started" and native_turn and self._task_id and native_turn != self._task_id:
+                return []
             if t == "task_started":
-                ops = self._close("completed") if self._task_id and self._task_id != native_turn else []
+                ops = []
+                if self._task_id and self._task_id != native_turn:
+                    # Replacement retires the old task even if its terminal record arrives later.
+                    self._finished_tasks.add(self._task_id)
+                    ops = self._close("completed")
                 if not self.turn:
                     self._message_counts = {}
                 self._task_id = native_turn
@@ -288,8 +294,12 @@ class CodexMirror(_Mirror):
             return []
         if record.get("type") == "response_item":
             meta = p.get("internal_chat_message_metadata_passthrough")
-            if isinstance(meta, dict) and meta.get("turn_id") in self._finished_tasks:
-                return []
+            if isinstance(meta, dict):
+                native_turn = meta.get("turn_id")
+                if native_turn in self._finished_tasks:
+                    return []
+                if native_turn and self._task_id and native_turn != self._task_id:
+                    return []
             if t == "message" and p.get("role") in ("user", "assistant") and p.get("phase") != "analysis":
                 role = p["role"]
                 kinds = ("input_text",) if role == "user" else ("output_text",)

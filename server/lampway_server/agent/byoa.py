@@ -46,6 +46,8 @@ import binascii
 import json
 import logging
 import os
+import tempfile
+import threading
 import time
 
 from ..herdr import harnesses as HN
@@ -89,34 +91,92 @@ def origin_of(socket) -> str:
     return "user"
 
 
-def _read_new(path: str, offset: int):
-    """The complete records appended after ``offset``: ([(at, next_offset, record)], new offset). A record still being written
-    (no newline yet) waits for the next poll; a line that is not JSON is passed over."""
-    try:
-        size = os.stat(path).st_size
-    except OSError:
-        return [], offset
-    if size < offset:                     # the file was replaced: start again from its beginning
-        offset = 0
-    if size == offset:
-        return [], offset
-    with open(path, "rb") as fh:
-        fh.seek(offset)
-        chunk = fh.read(min(size - offset, READ_CHUNK))
-    end = chunk.rfind(b"\n")
-    if end < 0:
-        return [], offset
-    out, pos = [], offset
-    for line in chunk[:end + 1].split(b"\n")[:-1]:
-        at, pos = pos, pos + len(line) + 1
-        if not line.strip():
-            continue
+class _RecordReader:
+    """Bounded native reads with an anonymous spool for an unfinished JSONL row.
+
+    Decoding a completed JSON value necessarily allocates that value; unfinished rows do not grow reader memory.
+    The public cursor advances only across complete rows, while ``scanned`` also advances through an unfinished row.
+    """
+    def __init__(self, directory):
+        self.directory = directory
+        self.lock = threading.Lock()
+        self.spool = None
+        self.identity = None
+        self.offset = self.scanned = 0
+        self.closed = False
+
+    def _reset(self, offset):
+        if self.spool is not None:
+            self.spool.close()
+            self.spool = None
+        self.offset = self.scanned = offset
+
+    def close(self):
+        # Never block the event loop on decoding a large completed row. The in-flight reader closes on exit.
+        self.closed = True
+        if self.lock.acquire(blocking=False):
+            try:
+                self._reset(self.offset)
+            finally:
+                self.lock.release()
+
+    def read(self, path, offset):
+        with self.lock:
+            if self.closed:
+                return [], offset
+            try:
+                records, next_offset = self._read_locked(path, offset)
+                return ([], offset) if self.closed else (records, next_offset)
+            finally:
+                if self.closed:
+                    self._reset(self.offset)
+
+    def _read_locked(self, path, offset):
         try:
-            record = json.loads(line.decode("utf-8"))
-        except (UnicodeDecodeError, ValueError):
-            continue
-        out.append((at, pos, record))
-    return out, pos
+            fh = open(path, "rb")
+        except OSError:
+            return [], offset
+        with fh:
+            stat = os.fstat(fh.fileno())
+            identity = (stat.st_dev, stat.st_ino)
+            if ((self.identity is not None and identity != self.identity)
+                    or stat.st_size < max(self.scanned, offset)):
+                self._reset(0)
+                offset = 0
+            elif offset != self.offset:
+                self._reset(offset)
+            self.identity = identity
+            fh.seek(self.scanned)
+            chunk = fh.read(min(max(0, stat.st_size - self.scanned), READ_CHUNK))
+        out = []
+        retry_offset = self.offset
+        try:
+            pieces = chunk.split(b"\n")
+            for i, part in enumerate(pieces):
+                complete = i < len(pieces) - 1
+                if not part and not complete:
+                    continue
+                if self.spool is None:
+                    self.spool = tempfile.TemporaryFile(mode="w+b", dir=self.directory)
+                self.spool.write(part)
+                self.scanned += len(part) + int(complete)
+                if not complete:
+                    continue
+                self.spool.seek(0)
+                try:
+                    record = json.loads(self.spool.read().decode("utf-8"))
+                except (UnicodeDecodeError, ValueError):
+                    pass                            # malformed and blank complete rows are skipped
+                else:
+                    out.append((self.offset, self.scanned, record))
+                self.offset = self.scanned
+                self.spool.seek(0)
+                self.spool.truncate()
+        except Exception:
+            # Nothing in this batch was emitted. Retry from its original complete cursor after a spool/decode error.
+            self._reset(retry_offset)
+            raise
+        return out, self.offset
 
 
 class _Watch:
@@ -134,6 +194,7 @@ class _Watch:
         self.task = None
         self.polls = 0
         self.turns = {}
+        self.reader = None
 
 
 class ByoaView:
@@ -238,8 +299,8 @@ class ByoaView:
             return {**base, "view": "screen", "screen": screen, "agent_status": status}     # herdr's own working/idle reading
         watch = self.mirrors.get(session_id)
         if watch is None or watch.rec_id != rec["id"]:
-            if watch is not None and watch.task is not None:
-                watch.task.cancel()
+            if watch is not None:
+                self.forget(session_id)
             watch = self.mirrors[session_id] = _Watch(rec, conv, params.get("after_offset"))
             watch.path = await asyncio.to_thread(self._path, rec)
             if watch.path is not None:
@@ -255,16 +316,23 @@ class ByoaView:
             watch = self.mirrors.pop(sid, None) if sid else None
             if watch is not None and watch.task is not None:
                 watch.task.cancel()
+            if watch is not None and watch.reader is not None:
+                watch.reader.close()
 
     async def _loop(self, session_id: str, watch: _Watch):
-        while True:
-            try:
-                await self._poll(session_id, watch)
-            except asyncio.CancelledError:
-                raise
-            except Exception:  # noqa: BLE001 - one bad poll never ends the view
-                log.debug("byoa view poll failed for %s", watch.rec_id, exc_info=True)
-            await asyncio.sleep(POLL_S)
+        try:
+            while True:
+                try:
+                    await self._poll(session_id, watch)
+                except asyncio.CancelledError:
+                    raise
+                except Exception:  # noqa: BLE001 - one bad poll never ends the view
+                    log.debug("byoa view poll failed for %s", watch.rec_id, exc_info=True)
+                await asyncio.sleep(POLL_S)
+        finally:
+            if watch.reader is not None:
+                watch.reader.close()
+                watch.reader = None
 
     async def _poll(self, session_id: str, watch: _Watch):
         if watch.path is None:
@@ -276,7 +344,13 @@ class ByoaView:
                 return
             after = watch.after
             watch.offset = after if isinstance(after, int) and not isinstance(after, bool) and after >= 0 else 0
-        records, watch.offset = await asyncio.to_thread(_read_new, watch.path, watch.offset)
+        if watch.reader is None:
+            directory = self.state_dir or getattr(self._cockpit(), "root", None)
+            if directory is None:
+                raise RuntimeError("A native transcript reader requires Lampway's own state directory")
+            os.makedirs(directory, mode=0o700, exist_ok=True)
+            watch.reader = _RecordReader(directory)
+        records, watch.offset = await asyncio.to_thread(watch.reader.read, watch.path, watch.offset)
         for at, nxt, record in records:
             ops = watch.conv.feed(record, at)
             if ops:
