@@ -125,6 +125,13 @@ adds the canonical root, yielding an 80-bone candidate. This original-template
 route passes all 55 head/inside checks but still measures approximately
 694.323167 maximum edge stretch; it remains rejected rather than an I05 close.
 
+A later supported original-game route also passes admission: public rig_map
+with an exact-name source-owned mapping, rig_conform with IK handling, inspect
+and profile conversion preserve all 111 original names and add the canonical
+root. Only the five former roots are reparented; non-IK source head displacement
+is zero. This uses the existing adapter, with no manual graph edits or weakened
+one-root gate. Its actual skin/motion candidate remains separately unreviewed.
+
 ## Verification grade and remaining acceptance
 
 The native runs use current Python source with the recovered older cloud binary.
@@ -168,3 +175,19 @@ and GPU evidence, fresh N05 controls and any live owner workflows remain
 separate acceptance obligations. Historical other-crew reds keep their original
 allocation. Delivery integrity, a successful stage, synthetic controls or a
 registry entry cannot promote the literal criteria to PASS.
+
+## Full-catalogue regression discovered and corrected
+
+The full client run at `4e705edd` caught a real regression: describing the new
+interfaces grew the complete MCP catalogue to 335,467 bytes, above the unchanged
+335,000-byte G15 bar. The owned template-fit description is now compact while
+retaining its sources, centering, procedural-body, refusal and receipt contract.
+The complete catalogue measures 334,729 bytes, and all 13 alias/measurement
+controls pass. This failed checkpoint is retained rather than relabeled green.
+
+The same broad run encountered seven brand-art failures/errors because the
+ImageMagick SVG delegate lacked `rsvg-convert`. The missing CLI was downloaded
+from the existing Debian snapshot package inventory and extracted into a
+disposable test environment, leaving system settings and production assets
+unchanged. A fresh final-commit suite must distinguish that prerequisite repair
+from the G15 source correction and the 54 attributed other-crew failures/errors.

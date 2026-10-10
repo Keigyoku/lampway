@@ -107,20 +107,15 @@ RIG_DEFS = [
          P("actions", "array", "at most one action name (one clip per file)"), P("reference", desc="empty (the armature in engine axes) | armature | <reference>.fbx"),
          P("recipe", desc="auto (default, measured normalized frame convention) | titan_cm_native (explicit legacy engine-native Z/X) | cm_native_blender_convention | cm_native_ue_axes | a recipe JSON path"), P("readback", "boolean", "must stay true")],
         api="rig_export_ue"),
-    Def("lampway_rig_fit_template", "Rig the fitted example at its OWN joints, the rig step of the three-input pipeline (canon 20; TITAN rig-axi's "
-        "design): joints from a titan.rig-joints/1 file MEASURED on the example (its example_sha256 must equal the example's: the scene mesh's "
-        "geometry sha256, or the file's when example is a .glb/.fbx/.obj), 'rig:<armature>' (the example's own deforming rig), or "
-        "'centre:rig:<armature>' (own REST heads centred by canon11 B8: 16 rays, three projected hit-mean passes, 12 hits or 10 for fingers; "
-        "open rings and hidden joints retain their base, geometry SHA and ray diagnostics recorded). The template "
-        "(default the UE5 Manny profile, 161 bones) gets its heads written to the measured joints (residual 0), every other bone placed by its "
-        "nearest measured segment (twists, metacarpals, correctives, ik bones on their targets; parentless ones by the similarity of all joints), "
-        "frames by canon 17 (blender | ue_axes), an inside check of six axis rays per joint, and the example's OWN weights on the body grammar "
-        "from the fitted procedural body (canon07 quarter-shorter-bone joint blends and nearest-face transfer; never copied from the native body). Writes <example>_rig and a weighted copy "
-        "<example>_rigged (the example is untouched) and saves both to out (.blend). Refused: copied_not_fitted (every bone length within 0.1 % "
-        "of the template's: joints taken from the template's body, the 2026-09-28 defect), a joints file measured on another mesh, a required "
-        "joint missing (TITAN's 55: body + fingers), joints outside the example unless allow_outside names them, joints or hands from views (the "
-        "pose environment is not installed), an existing output. The receipt: residual, ratios, synthesized with their rule, hidden, outside, "
-        "rays per joint, weights, sha256 of example, joints, template and out." + _PATHS,
+    Def("lampway_rig_fit_template", "Fit a copied example to its OWN 55 measured body/finger joints (canon20). Sources: titan.rig-joints/1 with "
+        "matching example_sha256 (scene geometry or imported file), rig:<armature> from its deforming rig, or centre:rig:<armature>: own REST "
+        "heads corrected by canon11 B8 (16 rays, three projected hit-mean passes, 12 hits/10 fingers; open/hidden heads retained). "
+        "Template default UE5 Manny161: write measured heads, synthesize other bones along measured segments, IK at targets, parentless "
+        "bones by joint similarity; canon17 blender/ue_axes frames. OWN procedural body weights: canon07 quarter-shorter-bone blends, "
+        "nearest-face transfer; never native-body weights. Writes <example>_rig and <example>_rigged to out.blend; source untouched. "
+        "Refuses copied_not_fitted (all lengths within0.1% of template), wrong mesh SHA, missing joints, outside six-axis rays unless "
+        "allow_outside, views/hands without pose environment, existing out. Receipt: residual, ratios, synthesis rules, hidden/outside, "
+        "ray diagnostics, weights and example/joints/template/out SHA256." + _PATHS,
         [P("example", required=True, desc="the example mesh object, or a .glb/.fbx/.obj"), P("joints", required=True, desc="joints.json | rig:<armature> | centre:rig:<armature> | views"),
          P("template", desc="a titan.animation-profile/1; default UE5 Manny"), P("hands", desc="none (views needs the pose environment)"),
          P("hidden", "array", "joints under armour or cloth to name (default pelvis, thigh_l, thigh_r)"), P("convention", desc="blender (default) | ue_axes"),
