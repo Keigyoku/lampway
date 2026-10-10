@@ -127,3 +127,18 @@ def test_python_dash_m_runs_without_prompting(tmp_path):
     assert p.returncode == 0 and "runs: 0 runs" in p.stdout and p.stderr == ""
     p = subprocess.run([sys.executable, "-m", "lampway_server.motion", "--nope"], env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60)
     assert p.returncode == 2 and p.stdout.startswith("error: ")
+
+
+def test_progress_goes_to_stderr_as_toon_lines_and_stdout_stays_the_answer(tmp_path):
+    out, err = io.StringIO(), io.StringIO()
+    ctx = CLI.Context(root=project(tmp_path), state=tmp_path / "state", capture=FakeCapture)
+    rc = CLI.main(["render", "--scene", "motion/scenes/teaser", *SMALL, "--no-vault"], ctx=ctx, out=out, err=err)
+    lines = err.getvalue().splitlines()
+    assert rc == 0 and lines and all(line.startswith('progress: "') for line in lines)
+    assert lines[0].startswith('progress: "render 1/2 frames, ') and any(line.startswith('progress: "probe ') for line in lines)
+    assert "progress" not in out.getvalue() and out.getvalue().startswith("ok: true")
+    quiet = io.StringIO()
+    assert CLI.main(["render", "--scene", "motion/scenes/teaser", *SMALL, "--no-vault", "--progress-every", "0"], ctx=ctx, out=io.StringIO(), err=quiet) == 0
+    assert quiet.getvalue() == ""
+    rc, text = run(["render", "--scene", "motion/scenes/teaser", *SMALL, "--no-vault", "--progress-every", "-1"], tmp_path)
+    assert rc == 2 and text.startswith('error: "--progress-every -1: pass seconds >= 0')

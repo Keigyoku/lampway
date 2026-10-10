@@ -6,6 +6,7 @@ receipt and proves it reproduces. It runs here on the server (never in Blender),
 and the call returns the paths. It is not a job service: the job registry takes only the Mixar client's wire job types."""
 import asyncio
 import json
+import logging
 from pathlib import Path
 
 from .. import config
@@ -15,6 +16,8 @@ from ..motion import frames as F
 from ..motion import receipt as R
 from ..motion.cancellation import Cancellation, MotionCancelled, checkpoint
 from .providers.base import ToolSpec
+
+log = logging.getLogger("lampway.motion")
 
 NAME = "lampway_motion_graphics"
 NAMES = {NAME}
@@ -39,7 +42,7 @@ SPEC = ToolSpec(NAME, (
     "folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify "
     "re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd "
     "or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), "
-    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize; a refusal returns ok false, error and help (the next steps). A render returns inputs (each of width, height, fps, duration_s with its source) and help. The same render and verify run from a shell: python -m lampway_server.motion. Spends nothing; nothing leaves the machine."),
+    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize; a refusal returns ok false, error and help (the next steps). A render returns inputs (each of width, height, fps, duration_s with its source), progress (frames and seconds per phase) and help. The same render and verify run from a shell: python -m lampway_server.motion. Spends nothing; nothing leaves the machine."),
     {"type": "object", "additionalProperties": False, "required": [], "properties": {
         "action": {**_S, "enum": ["render", "verify"], "description": "render (default) or verify (re-render a receipt and compare)"},
         "scene": {**_S, "description": "render: the scene folder, project-relative (e.g. motion/scenes/spend-gate)"},
@@ -125,13 +128,19 @@ def _capture():
     return F.Chromium(F.chromium_binary(), config.state_dir() / "motion" / "chromium-home")
 
 
-def _work(vault, root: Path, a: dict, new_capture, cancel=None):
+def progress_line(row: dict) -> str:
+    """One progress row as a line: ``render 120/450 frames, 48.1 s, eta 132.3 s``."""
+    eta = f", eta {row['eta_s']:g} s" if row.get("eta_s") is not None else ""
+    return f"{row['phase']} {row['frame']}/{row['frames']} frames, {row['elapsed_s']:g} s{eta}"
+
+
+def _work(vault, root: Path, a: dict, new_capture, cancel=None, progress=None):
     checkpoint(cancel)
     if new_capture is None:
         F.chromium_binary()                                                # refuse before anything is written when there is no browser
         new_capture = _capture
     if a["action"] == "verify":
-        return M.verify(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel)
+        return M.verify(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, progress=progress)
     prompt = _prompt_provenance(a["template"], a["variables"])
     if prompt is not None:
         a = dict(a, template=prompt["template"], variables=prompt["variables"])
@@ -144,7 +153,8 @@ def _work(vault, root: Path, a: dict, new_capture, cancel=None):
             bundle.update(R.seal(receipt, pinned_out, root, cancel=cancel))
 
     defaults = M.template_defaults(prompt["params"]) if prompt is not None else None
-    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff, defaults=defaults)
+    out = M.render(root, {key: value for key, value in a.items() if value is not None}, new_capture, cancel=cancel, handoff=handoff, defaults=defaults,
+                   progress=progress)
     if prompt is not None:
         warnings, helps = _template_paths(root, prompt)
         if warnings:
@@ -162,15 +172,21 @@ def _work(vault, root: Path, a: dict, new_capture, cancel=None):
     return out
 
 
-async def call(vault, project_root, name: str, arguments: dict, capture=None) -> tuple:
-    """(JSON text, is_error). ``capture`` is a factory of fresh capture adapters (the tests' fake); by default the user's headless Chromium."""
+async def call(vault, project_root, name: str, arguments: dict, capture=None, progress=None) -> tuple:
+    """(JSON text, is_error). ``capture`` is a factory of fresh capture adapters (the tests' fake); by default the user's headless Chromium.
+    Progress (motion/progress.py) goes to the server log (``lampway.motion``) and to ``progress``, a callable of one row, when given: it runs
+    on the render thread, so a caller on the event loop hands it on with ``loop.call_soon_threadsafe``. The answer lists the phases."""
     if name != NAME:
         return json.dumps({"ok": False, "error": f"unknown tool {name!r}"}), True
     root = Path(project_root)
     try:
         a = M.inputs(arguments)
         cancel = Cancellation()
-        worker = asyncio.create_task(asyncio.to_thread(_work, vault, root, a, capture, cancel))
+        def report(row):
+            log.info("%s %s", NAME, progress_line(row))
+            if progress is not None:
+                progress(row)
+        worker = asyncio.create_task(asyncio.to_thread(_work, vault, root, a, capture, cancel, progress=report))
         try:
             out = await asyncio.shield(worker)
         except asyncio.CancelledError:

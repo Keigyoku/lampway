@@ -48,6 +48,8 @@ Vault status includes `assets`, `spooled`, `filed`, optionally `partial` and `er
 
 Verify JSON includes `reproduced`, `frames_differing`, `mp4_equal`, `webm_equal`, `engine_matches`, normally receipt and frame count, plus `integrity_matches`/per-format checked original-media results and `provenance_matches`/source-driver-flags results. An unrequested format has equality `null`. An engine mismatch reports false reproduction and an explanation before frame comparison. A negative reproduction is still a normal verify response (`is_error=false`); consumers must inspect reproduction, integrity and provenance separately. See [reproduction limits](motion_graphics.md#2-timeline-rendering-and-export).
 
+Progress: render and verify report each phase (`render`, then `probe`; verify's re-render is `render`) on its first and last frame and at most every 5 s between, as `{phase, frame, frames, elapsed_s, eta_s}` (the ETA is the phase's own). The agent tool logs each row to the server log (`lampway.motion`) and hands it to an optional `progress` callable on the render thread; the answer carries `progress`, one `{phase, frames, seconds}` per phase. The CLI writes each row to stderr as one TOON line (`progress: "render 120/450 frames, 48.1 s, eta 132.3 s"`), at most every 10 s (`--progress-every`, 0 for none), so stdout stays the one answer. Progress is wall-clock only: it never reaches a frame, a hash or the receipt. Live rows in the chat's tool bubble need the turn runner (`agent/turns.py`) to pass the callable: that file belongs to PRs #1 and #4.
+
 ## Receipt and artifact inventory
 
 A completed receipt is `receipt.json`, with:

@@ -3,7 +3,8 @@
 """`python -m lampway_server.motion`: the motion-graphics AXI CLI, a thin layer over the agent tool's ``_work`` (the same checks, the same
 receipt, the same Vault filing). AXI principles (the shelf's tools/AXI.md, as in compute/cli.py): argparse, a live no-args view, TOON
 summaries through compute/toon_out.py with minimal default fields (``--full`` for the rest), counts and explicit empties, a ``help[]`` of next
-steps after every output, structured errors on stdout (exit 1 refused or failed, 2 usage), no interactive prompts, unknown flags fail loud."""
+steps after every output, structured errors on stdout (exit 1 refused or failed, 2 usage), no interactive prompts, unknown flags fail loud.
+Progress goes to stderr, one TOON line per row (``progress: render 120/450 frames, 48.1 s, eta 132.3 s``), so stdout stays the one answer."""
 from __future__ import annotations
 
 import argparse
@@ -20,10 +21,12 @@ from ..agent import motion_tools as MT
 from ..compute import toon_out as T
 from . import encode as E
 from . import frames as F
+from .progress import Progress
 
 PROG = "python -m lampway_server.motion"
 DESCRIPTION = "Render scene code to MP4 and WebM frame by frame in a headless Chromium, self-check it and write a receipt; verify re-renders a receipt."
 SHOWN = 10                                                          # list rows shown by default; --full shows every row
+PROGRESS_EVERY_S = 10.0                                             # a progress line at most this often (and at each phase's first and last frame)
 
 
 class UsageError(Exception):
@@ -63,9 +66,11 @@ def _parser() -> _Parser:
     r.add_argument("--var", action="append", default=[], metavar="KEY=VALUE", help="a template variable (repeatable; a value that parses as JSON is JSON)")
     r.add_argument("--no-vault", action="store_true", help="do not file the render in the Asset Vault")
     r.add_argument("--full", action="store_true", help="every field and row")
+    r.add_argument("--progress-every", type=float, default=PROGRESS_EVERY_S, metavar="SECONDS", help="progress on stderr at most this often; 0: none")
     v = sub.add_parser("verify", help="re-render a receipt and compare frames, outputs, integrity and provenance")
     v.add_argument("--receipt", required=True, help="the render's receipt.json, project-relative")
     v.add_argument("--full", action="store_true", help="every field and row")
+    v.add_argument("--progress-every", type=float, default=PROGRESS_EVERY_S, metavar="SECONDS", help="progress on stderr at most this often; 0: none")
     return p
 
 
@@ -148,7 +153,8 @@ def _render_view(out: dict, full: bool) -> tuple:
         view["vault_assets"] = filed.get("assets") or []
         view.update({"code_sha256": out["code_sha256"], "frames_sha256_digest": out["frames_sha256_digest"],
                      "outputs": [{"format": k, "sha256": v["sha256"], "bytes": v["bytes"]} for k, v in out["outputs"].items()],
-                     "network_requests": out["network"]["requests"], "network_non_file": out["network"]["non_file"], "timing_s": out["timing_s"]})
+                     "network_requests": out["network"]["requests"], "network_non_file": out["network"]["non_file"], "timing_s": out["timing_s"],
+                     "progress": out.get("progress") or []})
     generic = set(M.next_steps(out))
     helps = [re.sub(r'^pass variables \{"(\w+)": "<project-relative path>"\}', r"--var \1=<project-relative path>", h)    # the agent's wording, as this CLI's flag
              for h in out.get("help") or [] if h not in generic]
@@ -168,13 +174,14 @@ def _verify_view(res: dict, full: bool) -> tuple:
         view.update(_rows("differing", [{"frame": i} for i in differ], full, "frames"))
     if full:
         view["integrity"], view["provenance"] = res["integrity"], res["provenance"]
+        view["progress"] = res.get("progress") or []
     helps = [f"{PROG}: the runs"] if res["reproduced"] and res["integrity_matches"] and res["provenance_matches"] else \
         ["--full: which integrity or provenance check differs and the hashes on each side"]
     return view, helps
 
 
-def main(argv=None, ctx: Optional[Context] = None, out=None) -> int:
-    out, ctx = out or sys.stdout, ctx or default_context()
+def main(argv=None, ctx: Optional[Context] = None, out=None, err=None) -> int:
+    out, err, ctx = out or sys.stdout, err or sys.stderr, ctx or default_context()
 
     def emit(obj, helps=(), rc=0):
         body = T.dumps(obj)
@@ -202,7 +209,12 @@ def main(argv=None, ctx: Optional[Context] = None, out=None) -> int:
             from ..library.vault import Vault
             vault = (ctx.vault_factory or (lambda: Vault(ctx.state, project_root=root)))()
         try:
-            res = MT._work(vault, root, inputs, ctx.capture)
+            def progress(row):
+                print(T.dumps({"progress": MT.progress_line(row)}), file=err, flush=True)
+            every = a.progress_every
+            if every < 0:
+                raise UsageError(f"--progress-every {every:g}: pass seconds >= 0 (0: no progress)")
+            res = MT._work(vault, root, inputs, ctx.capture, progress=Progress(progress, every) if every else None)
         finally:
             if vault is not None and hasattr(vault, "close"):
                 vault.close()

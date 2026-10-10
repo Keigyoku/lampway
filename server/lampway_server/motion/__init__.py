@@ -29,6 +29,7 @@ from . import encode as E
 from . import frames as F
 from . import receipt as R
 from .cancellation import checkpoint
+from .progress import Progress
 
 INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt",
           "audit_every_s", "safe_zone")
@@ -353,7 +354,7 @@ def _ready(capture, entry, W, H, engine=None, ffmpeg=None, scene_root=None) -> N
         raise Refused("the scene runs CSS animations or transitions (document.getAnimations() is not empty): drive them from __frame(t)")
 
 
-def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None, cancel=None) -> tuple:
+def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None, cancel=None, progress=None) -> tuple:
     """(differing probe frames, frames rendered, seconds): a fresh browser, frames 0..max(probe) in sequence (the samples' audits at the same frames,
     as the first pass ran them), each probe frame compared exactly with the first pass."""
     t0, differ, requests = time.monotonic(), [], []
@@ -371,6 +372,8 @@ def _probe(new_capture, entry, W, H, fps, rows, probe, samples, scene_root=None,
                 C.validate_audit(cap.audit())
             if i in want and _pixels(png)[1] != rows[i].split()[2]:
                 differ.append(i)
+            if progress is not None:
+                progress.report("probe", i + 1, max(probe) + 1)
         requests = cap.requests()
     finally:
         cap.close()
@@ -406,13 +409,15 @@ def _output_directory(root, parent, prefix, stack):
         raise Refused("output directory changed or contains a symlink: use real project directories") from None
 
 
-def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None, defaults=None) -> dict:
+def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None, defaults=None,
+         progress=None) -> dict:
     checkpoint(cancel)
     with ExitStack() as stack:
-        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff, defaults)
+        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff, defaults, progress)
 
 
-def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None, defaults=None) -> dict:
+def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None, defaults=None,
+                progress=None) -> dict:
     """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
     and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
     checkpoint(cancel)
@@ -493,6 +498,8 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 (out / "samples" / f"{stem}.png").write_bytes(png)
                 (out / "samples" / f"{stem}.json").write_text(json.dumps({"frame": i, "t": t, "stats": stats, "audit": audit, "findings": found}, indent=1), encoding="utf-8")
                 checks.append({"frame": i, "t": round(t, 4), "stats": stats, "findings": found})
+            if progress is not None:
+                progress.report("render", i + 1, n)
         t_render = time.monotonic() - t_loop
         e0 = time.monotonic()
         enc.finish()
@@ -507,7 +514,8 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         capture.close()
     probe, differ, probe_frames, t_probe, probe_requests = _probe_frames(n), [], 0, 0.0, []
     if probe_on:                                                           # the scene must be a pure function of t: a fresh browser agrees
-        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples | streamed, scene_root=scene_dir, cancel=cancel)
+        differ, probe_frames, t_probe, probe_requests = _probe(new_capture, entry, W, H, fps, rows, probe, samples | streamed, scene_root=scene_dir, cancel=cancel,
+                                                                       progress=progress)
     checkpoint(cancel)
     (out / "frames.sha256").write_text(R.frames_text(rows), encoding="utf-8")
     digest = R.digest(rows)
@@ -592,12 +600,16 @@ def next_steps(receipt: dict) -> list:
             f"verify the render: action verify, receipt {receipt['out_dir']}/receipt.json"]
 
 
-def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None, defaults=None) -> dict:
-    """``defaults``: a template's defaults as tool inputs (``template_defaults``); they rank below explicit arguments."""
+def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None, defaults=None, progress=None) -> dict:
+    """``defaults``: a template's defaults as tool inputs (``template_defaults``); they rank below explicit arguments. ``progress``: a
+    callable fed throttled progress rows (motion/progress.py); the answer's ``progress`` lists the phases either way."""
     checkpoint(cancel)
     root = Path(project_root).resolve()
     a = inputs(args)
-    return summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff, defaults=defaults))
+    prog = progress if isinstance(progress, Progress) else Progress(progress)
+    out = summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff, defaults=defaults, progress=prog))
+    out["progress"] = prog.phases
+    return out
 
 
 def _receipt_inputs(receipt):
@@ -708,7 +720,7 @@ def _verify_media_file(root, path, expected, cancel=None):
         return {"matches": False, "error": "unreadable"}, None
 
 
-def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
+def verify(project_root, args: dict, new_capture, cancel=None, progress=None) -> dict:
     """Keep recorded reproduction separate from original-media integrity and provenance identity."""
     checkpoint(cancel)
     root = Path(project_root).resolve()
@@ -741,11 +753,12 @@ def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
         captures.append(cap)
         return cap
     work = root / "motion" / "out" / f".verify-{time.monotonic_ns()}"
+    prog = progress if isinstance(progress, Progress) else Progress(progress)
     new, mismatch = None, None
     try:
         try:
             new = _run(root, a, capture_factory, work, r["engine"]["encoder"]["threads"], engine=(r["engine"]["chromium"], r["engine"]["ffmpeg"]),
-                       probe_on=False, cancel=cancel)
+                       probe_on=False, cancel=cancel, progress=prog)
         except EngineDiffers as exc:
             mismatch = str(exc)
         checkpoint(cancel)
@@ -780,4 +793,5 @@ def verify(project_root, args: dict, new_capture, cancel=None) -> dict:
     eq = {f"{fmt}_equal": (r["outputs"].get(fmt) or {}).get("sha256") == (new["outputs"].get(fmt) or {}).get("sha256") if fmt in r["outputs"] else None
           for fmt in E.FORMATS}
     reproduced = current_rows == old_rows and not differ and all(v for v in eq.values() if v is not None) and new["frames_sha256_digest"] == r["frames_sha256_digest"]
-    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"], **checks}
+    return {"reproduced": reproduced, "frames_differing": differ, **eq, "engine_matches": True, "receipt": rel, "frames": new["frames"], **checks,
+            "progress": prog.phases}

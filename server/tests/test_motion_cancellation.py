@@ -46,7 +46,7 @@ def test_cancellation_reports_committed_assets_without_new_filing(tmp_path, monk
     from lampway_server.motion.cancellation import checkpoint
     started, release = threading.Event(), threading.Event()
     asset = {"id": "already-committed"}
-    def work(vault, root, arguments, capture, cancel):
+    def work(vault, root, arguments, capture, cancel, progress=None):
         cancel.record_assets([asset])
         started.set()
         release.wait()
@@ -203,7 +203,7 @@ def test_cancel_interrupts_encoder_blocked_finish():
 
 def test_repeated_cancellation_cannot_abandon_worker(tmp_path, monkeypatch):
     started, release, finished = threading.Event(), threading.Event(), threading.Event()
-    def work(vault, root, arguments, capture, cancel):
+    def work(vault, root, arguments, capture, cancel, progress=None):
         started.set()
         release.wait()
         try:
@@ -260,7 +260,7 @@ def test_admitted_commit_can_finish_but_cancellation_rejects_next_transaction():
 
 def test_cancelled_result_preserves_already_spooled_state(tmp_path, monkeypatch):
     started, release = threading.Event(), threading.Event()
-    def work(vault, root, arguments, capture, cancel):
+    def work(vault, root, arguments, capture, cancel, progress=None):
         cancel.record_filing({"assets": [], "filed": False, "spooled": True})
         started.set()
         release.wait()

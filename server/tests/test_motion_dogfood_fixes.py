@@ -568,3 +568,44 @@ def test_safe_zone_fails_a_render_at_samples_and_in_the_stream(tmp_path):
 def test_a_bad_safe_zone_is_refused(bad):
     with pytest.raises(M.Refused, match="safe_zone"):
         M.inputs({"scene": "x", "safe_zone": bad})
+
+
+# 10. progress: a long render must not look like a hung one
+def test_progress_is_throttled_and_reports_each_phase_first_and_last_frame():
+    from lampway_server.motion.progress import Progress
+    now = [0.0]
+    rows = []
+    p = Progress(rows.append, every=5.0, clock=lambda: now[0])
+    for i in range(1, 101):
+        now[0] = i * 0.5                                                     # 0.5 s a frame: 50 s for 100 frames
+        p.report("render", i, 100)
+    assert [r["frame"] for r in rows] == [1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 100]
+    assert rows[1] == {"phase": "render", "frame": 11, "frames": 100, "elapsed_s": 5.0, "eta_s": 40.5}
+    now[0] = 60.0
+    p.report("probe", 1, 8)
+    assert rows[-1]["phase"] == "probe" and rows[-1]["elapsed_s"] == 0.0
+    assert p.phases == [{"phase": "render", "frames": 100, "seconds": 49.5}, {"phase": "probe", "frames": 1, "seconds": 0.0}]
+
+
+def test_render_and_verify_answer_with_their_phases_and_feed_a_callable(tmp_path):
+    project = _project(tmp_path)
+    rows = []
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.5}, FakeCapture, progress=rows.append)
+    assert [p["phase"] for p in res["progress"]] == ["render", "probe"] and res["progress"][0]["frames"] == res["frames"]
+    assert rows[0]["frame"] == 1 and rows[0]["phase"] == "render" and {r["phase"] for r in rows} == {"render", "probe"}
+    v = M.verify(project, {"receipt": f"{res['out_dir']}/receipt.json"}, FakeCapture)
+    assert [p["phase"] for p in v["progress"]] == ["render"] and v["progress"][0]["frames"] == res["frames"]
+
+
+def test_the_agent_tool_logs_progress_and_hands_rows_to_its_caller(tmp_path, caplog):
+    import asyncio
+    import logging
+    project = _project(tmp_path)
+    rows = []
+    with caplog.at_level(logging.INFO, logger="lampway.motion"):
+        text, is_error = asyncio.run(MT.call(None, project, MT.NAME, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 0.5, "vault": False},
+                                             capture=FakeCapture, progress=rows.append))
+    out = json.loads(text)
+    assert not is_error and [p["phase"] for p in out["progress"]] == ["render", "probe"]
+    assert rows and any(r.getMessage().startswith("lampway_motion_graphics render 1/") for r in caplog.records)
+    assert MT.progress_line({"phase": "render", "frame": 120, "frames": 450, "elapsed_s": 48.1, "eta_s": 132.3}) == "render 120/450 frames, 48.1 s, eta 132.3 s"
