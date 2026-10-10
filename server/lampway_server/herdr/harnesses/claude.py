@@ -32,7 +32,7 @@ class Claude(Adapter):
         "version": "2.1.293 installed with npm (@anthropic-ai/claude-code) into a scratch prefix; `claude --version` -> '2.1.293 (Claude Code)'",
         "argv": "`claude --help` (2.1.293): `[prompt]`, `--session-id <uuid>`, `-r, --resume [value]`, `--effort <level>` (low, medium, "
                 "high, xhigh, max), `--dangerously-skip-permissions`, `--mcp-config <configs...>` (variadic: the task goes before it)",
-        "status": "`claude auth status` prints JSON with `loggedIn` (2.1.293); read from that field, the exit status as a fallback",
+        "status": "`claude auth status` prints JSON with `loggedIn` (2.1.293); read from that field, the exit status as a fallback; its JSON email field is a safe display identity only when signed in (pinned public binary auth-status construction)",
         "session_file": "`claude auth status` names `projectsDirectory` = <config dir>/projects; the transcript is <projects>/<cwd, "
                         "every non-alphanumeric as '-'>/<session id>.jsonl (observers/native.py claude_transcript)",
         "turn_end": "every main-chain assistant record carries its message's stop_reason ('tool_use' on each block of a tool-using "
@@ -70,8 +70,12 @@ class Claude(Adapter):
             return super().read_status(code, out)
         if isinstance(data, dict) and isinstance(data.get("loggedIn"), bool):
             how = str(data.get("authMethod") or "")
+            account = data.get("email") if data["loggedIn"] else None
+            if (not isinstance(account, str) or not account or len(account) > 200
+                    or not account.isprintable()):
+                account = None
             return LoginState("signed_in" if data["loggedIn"] else "signed_out", f"Claude Code: {'signed in' if data['loggedIn'] else 'not signed in'}"
-                              + (f" ({how})" if how and data["loggedIn"] else ""))
+                              + (f" ({how})" if how and data["loggedIn"] else ""), account)
         return LoginState("signed_in" if code == 0 else "signed_out", _first_line(out))
 
     def lampway_tools(self, pane):

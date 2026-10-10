@@ -81,7 +81,12 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    interpreter/source overrides, attached gateways or missing installed helper refuse. No native home is replaced.
    Grok's preserving-home namespace boundary remains a candidate until the exact native policy and herdr/helper CI proof
    succeeds; it never replaces occupied native policy slots or changes host namespace/security permissions. Its namespace
-   continuation belongs to the existing guarded Grok pane launch, not an additional egress grant. Codex, Cursor and OpenCode
+   uses a private standard `/dev` after the root bind in both the readiness probe and worker plan; ordinary bind mounts
+   remain nodev, and no host device tree is admitted. Offline qualification uses native session-scoped MCP calls without
+   waiting for a deliberately denied model turn. Its enabled synthetic user-plugin baseline must initialize before exclusion
+   can count as proof; a default-disabled fixture proves nothing about plugin exclusion. Native first-start cache changes
+   are recorded separately; auth and persona must remain intact, and the restricted route must preserve the warmed baseline.
+   The namespace continuation belongs to the existing guarded Grok pane launch, not an additional egress grant. Codex, Cursor and OpenCode
    workers remain refused where exclusive discovery is unqualified. Worker readiness is independent of MAIN direct-tool support:
    unsupported workers are refused in Choices, swarm preflight and host creation before a run, owned files or a pane exist. Hermes's built-in tool names also select same-named MCP servers;
    Grok's primary-agent overlay retains inherited MCP sources and can replace the configured persona. Neither is an
@@ -183,6 +188,13 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    ended pane is offered to the user: `agent.byoa.resume` starts the adapter's resume with the stored native id in a new pane bound
    to the tab (the ended record kept, unbound; Codex's id is recorded from its rollout), `agent.byoa.unbind` lets the tab go; both
    from the user's socket only, neither ever automatic (law 5). A screen-shown pane reports herdr's own `agent_status`.
+   A harness's first launch requires a separate human native-login disclosure before files, unbinds or launch. Preparing it
+   checks egress before a vetted status command, exposes only confirmed safe display fields (Claude status JSON email when signed in; otherwise UNKNOWN), never raw status,
+   and neither starts nor binds a pane. Only the user route issues or consumes an expiring one-use nonce bound to the caller
+   and operation; agents and workers may use an already acknowledged harness under their existing guards, never acknowledge it.
+   Retain only version and harness IDs in a private atomic, fsynced acknowledgement file, updating under the shared process
+   lock. Invalid retained data refuses without overwrite. Acknowledgement neither grants egress nor changes native login.
+
 7. **Secrets never reach a log or a file in the repository.** Keys come from the environment or 0600 files the user owns
    (the state directory, a dotenv file the launcher is pointed at); `logredact.py` redacts query secrets and token-shaped strings in every log record.
 8. **Never the upstream service.** No code here calls the upstream backend; the client's stubbed endpoints are answered locally.
@@ -254,12 +266,15 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     an unconfirmed close remains refused. Serve's Ollama probe (`POST /api/show`) gets a harmless 404.
     Native user attachments and screenshot tool-result images retain typed bytes, MIME, captions and content ordering through
     provider-neutral messages. Vision support follows the selected service/model: MAIN is request-scoped; worker and named-summary
-    selections capture it independently without mutating a shared provider. Only verified support forwards images;
+    selections retain their own pinned model and restrictions without mutating a shared provider. ChatGPT worker receipts
+    are rechecked per request against a copy of the captured resolution, so later qualification or invalidation adopts safely. Only verified support forwards images;
     otherwise this request receives an honest omission note, leaving native history unchanged. Known Anthropic defaults to vision
     support when older saved settings omit the flag; a matching explicit false is honored. Unknown provider support leaves the
     native model flag unset while gateway image admission and advertisement still require explicit true. Unrelated providers
-    do not read BYOK configuration. ChatGPT-plan vision remains false
-    until a consented live probe is recorded. Anthropic and OpenAI-compatible adapters preserve their native multimodal formats;
+    do not read BYOK configuration. ChatGPT-plan images remain withheld until the current account/client/login, selected model,
+    direct route and format match a successful human-consented vision-check receipt. The final provider rechecks this receipt
+    independently of vision flags. Pending, failed, unknown or mismatched checks and unsuccessful image requests withdraw
+    qualification. Timestamps are audit-only; the fixed synthetic browser check is separate from normal model turns. Anthropic and OpenAI-compatible adapters preserve their native multimodal formats;
     OpenAI tool replies acknowledge every parallel call before labeled image content, in one request without mutation retry.
     `engine/proxy.py` is its only way out: bound to loopback, it decides before it connects (the gateway's port; a host whose route is on
     and whose capability is in force; any host only with `web:any` and `web.browse`), writes a log row for every refusal and sends an allowed
@@ -454,3 +469,8 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-09 | exclusive worker MCP qualification | native CLI causal baselines and worker audit | additive native/global/project/plugin discovery and stale readiness admitted foreign MCP servers; generic tests assumed unsafe Codex readiness | invariant 6: qualified worker-only routes, startup checks before activation/files, native-tool and persona preservation, explicit unsupported-worker refusal; generic positive fixtures use qualified workers and retain Codex refusal coverage | Claude/Pi native discovery and Hermes discovery/reload/reconnect/TUI-gateway receipts; Grok candidate CI and final-head source/build gates remain required; account turns unverified |
 | 2026-10-10 | selected vision and human native skill review | Q1 image omission causal controls and Q8 native staging/approval RED | gateway flattened verified images, shared provider state could leak selection, and enabling skill writes bypassed review while island commands became agent prompts | invariant 10: request-scoped MAIN and independently captured worker/summary vision with typed native image parts; invariant 9: retained native staging and human-only single-ID slash review with bound-project capability checks before forwarding | 155 focused image passes; 101 focused skill/front/config passes; actual pinned Hermes slash review across two owned units with no live recorded descendants; final source/build and account gates remain separate |
 | 2026-10-10 | unknown provider configuration remains compatible | incomplete source run caught original Context and native exact-config assertions | unrelated settings access raised AttributeError and unknown support became an explicit native false instead of remaining unset | invariant 10: restrict BYOK reads and retain unknown native omission with strict gateway admission | 170 focused passes and all 13 original Context/first-native checks pass unchanged; incomplete failed source receipt retained |
+
+| 2026-10-10 | Q1 consented ChatGPT vision qualification | governing R0a lacked a probe/recorder and typed plan-image transport | hardcoded false had no safe acceptance path | invariant 10: human-only fixed synthetic check, private scoped receipts, final provider gate and request copies with typed image serialization | scratch serializer RED: two failures; 211 focused source checks pass; pinned native receipt adoption and genuine vision_analyze pass; account receipt and matching-build proof remain unverified |
+| 2026-10-10 | Grok namespace devices and model-free MCP qualification | exact native CI failed before restricted policy; retained direct-call causal native control | nodev root bind denied `/dev/null`, model retry prevented offline prompt completion, and a disabled toy plugin supplied no positive control | invariant 6: private standard devices in both namespace descriptions, native session MCP without model warmups and mandatory active-plugin baseline | exact failed CI, native direct-call and plugin initialization controls retained; cold-cache preservation failure retained; 63 focused checks pass; complete repaired native CI remains required |
+
+| 2026-10-10 | first human BYOA launch disclosure (B5) | agent-modes spec B5 first-launch warning | an enabled route could start a harness before disclosing native login and UNKNOWN account identity; malformed ack data and independent writers could lose the disclosure boundary | invariant 6: human one-use disclosure before launch or binding changes, route-before-status, minimal crash-safe locked acknowledgement and explicit UNKNOWN; subsequent permitted agent launch retains existing authority | five initial causal REDs, five retained-store/caller REDs; focused synthetic admission and concurrent-store controls; native UI proof remains separate |

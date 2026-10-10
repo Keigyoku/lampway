@@ -57,6 +57,7 @@ class ModelRequest:
     messages: list[Message]
     tools: list[ToolSpec]
     session_id: str = ""        # the Lampway session the request belongs to (a provider may key per-conversation state on it)
+    supports_vision: bool | None = None  # request admission metadata; explicit False always withholds images
 
 
 class Provider(Protocol):

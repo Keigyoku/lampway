@@ -58,6 +58,18 @@ Offline harness qualification retains child PID/start identities during each nat
 Private session membership can identify reparented fixture children; cleanup signals only verified owned identities and records
 its result even on failure. A vanished native parent or an empty final ancestry snapshot cannot establish successful cleanup.
 Keep causal early-exit and identity-reuse controls beside the production QA driver, and qualify their in-process scope.
+The standalone offline driver adopts orphaned descendants with a process-local subreaper and waits only for recorded,
+same-start, adopted zombies; asyncio retains its direct child. A reused PID, a live child or another parent's zombie is
+never reaped by this path. Model-free policy qualification uses native session-scoped MCP call/list requests with the
+original twenty-second response bound, retaining every baseline and exclusion assertion. Synthetic user plugins are explicitly
+enabled in their original fixture config; actual native initialization is required before their exclusion is credited.
+Record native first-start config/cache changes separately, require original auth/persona preservation, and compare restricted
+execution with the warmed native baseline without claiming cold-byte preservation.
+
+B5 launch disclosure tests use synthetic status and recording launch seams. Downstream launch fixtures may seed an explicit
+minimal prior human acknowledgement; they never disable the production admission guard. Keep fresh-first-launch, agent nonce,
+malformed retained-file and independent-store update controls separate. A skipif alias is not a pytest marker: select exact
+synthetic node IDs when native execution is prohibited, and preserve accidentally broader receipts with their actual scope.
 
 ## Test
 
@@ -92,3 +104,6 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-08 | language catalogs follow the current interface | full-client template currentness RED; canonical fresh template found 22 new messages and 48 stale catalogs | tracked catalogs and the ignored template stayed behind the Context and profile UI strings | canonical extraction/update before publication and full client proof; retained translations and placeholders unchanged, new strings use English fallback | original template RED, 48 fresh-template catalog RED errors, canonical external GREEN; matching final full suite required |
 | 2026-10-10 | genuine pane-origin and disconnected old-file acceptance | captain requested the unfinished PR4 built-app proofs | idle pane mirroring and island-origin controls plus archive inspection did not prove pane-origin steer/Stop/undo, History opening or reopening a pre-new file after app/server absence | preserve original cases and bounds; add real native-origin controls, production History operators and durable saved-file reconciliation; qualify explicit-login flow separately | static syntax, preserved assertions and four planted assertion failures only; actual matching built-app acceptance NOT RUN |
 | 2026-10-10 | early native ACP failure retains owned cleanup | read-only Grok proof-driver review and causal early-exit RED | late ancestry snapshots lost reparented MCP children, and the environment attack used a different helper path | retain private-session PID/start identities and exact cleanup through failure; attack the actual canonical helper | three in-process controls pass and 53 boundary/naming/readiness checks pass; native Grok CI remains required |
+| 2026-10-10 | model-free native MCP fixtures and exact adopted-child reaping | failed native Grok CI and process-local denied-network reproduction | blocked model retries stalled policy proof, orphan zombies outlived the parent, and default-disabled plugins could not establish discovery | keep native session MCP assertions and response bounds, exact adopted zombie waits and explicitly enabled toy-plugin baselines | retained native timeout, direct-call, plugin initialization and cold-cache failure; 63 focused checks pass; repaired full native CI remains unverified |
+
+| 2026-10-10 | distinguish synthetic notice checks from native herdr | B5 verification and owned-process discipline | a skipif alias was incorrectly supplied as -m exclusion and a broader 23-pass run included real herdr | test body: exact synthetic node selection and honestly qualified receipts; no unsupported all-reaped claim | retained mixed-scope 23-pass evidence; fixture cleanup calls documented without PID identity proof |

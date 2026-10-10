@@ -13,6 +13,7 @@ on:
       - server/lampway_server/herdr/host.py
       - server/tests/test_grok_worker.py
       - server/tests/test_grok_worker_cleanup.py
+      - server/tests/test_grok_worker_workflow.py
       - tests/qa/grok_worker_validation.py
       - third_party/herdr
 permissions:
@@ -69,14 +70,14 @@ jobs:
           python -c 'import os,pathlib; p=next(pathlib.Path(os.environ["LAMPWAY_HERDR_BUILDS"]).glob("*/herdr")); print("LAMPWAY_HERDR_BIN=" + str(p))' >> "$GITHUB_ENV"
       - name: Controlled refusal regression tests
         working-directory: server
-        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py
+        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_workflow.py
       - name: Native policy proof with all INET sockets denied
         run: |
           python tests/qa/grok_worker_validation.py --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
       - name: Full helper and native pane chain inside loopback-only namespace
         if: ${{ !cancelled() }}
         run: |
-          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / -- python tests/qa/grok_worker_validation.py --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

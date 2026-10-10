@@ -5,6 +5,8 @@ an unbound Claude Code, Codex CLI or OpenCode pane must start exactly as it did,
 user's bypass. herdr is faked (as strict as herdr 0.9.3 about agent names); nothing is started."""
 import uuid
 
+from .launch_notice_support import prior_human_disclosure  # noqa: F401
+
 import pytest
 
 from lampway_server.herdr import host as H

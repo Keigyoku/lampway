@@ -55,6 +55,19 @@ def test_plan_adds_only_restrictive_policy_and_restores_project_cwd(tmp_path):
     assert plan['argv'][plan['argv'].index('--leader-socket') + 1] == config['inner_socket']
 
 
+def test_namespace_plan_and_readiness_probe_use_private_devices(tmp_path, monkeypatch):
+    path, config, etc = fixture(tmp_path)
+    monkeypatch.setattr(G, 'NATIVE_SHA256', config['native_sha256'])
+    listing = json.dumps({'servers': [{'name': 'lampway_pane', 'command': config['connector']['command'], 'args': []}]})
+    monkeypatch.setattr(G, 'native_connector_identity', lambda *args: None)
+    probe = G.preflight(config['native'], config['bwrap'], config['connector']['command'], listing, etc=etc)
+    for argv in [G.build_plan(path, etc=etc)['argv'], probe['namespace_probe']]:
+        root = argv.index('--bind')
+        assert argv[root:root + 5] == ['--bind', '/', '/', '--dev', '/dev']
+        assert argv.count('--dev') == 1
+        assert '--dev-bind' not in argv
+
+
 @pytest.mark.parametrize('kind', ['file', 'symlink', 'directory'])
 def test_occupied_requirements_slot_refuses_without_replacing_it(tmp_path, kind):
     path, config, etc = fixture(tmp_path)

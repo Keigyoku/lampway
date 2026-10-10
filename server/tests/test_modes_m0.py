@@ -11,6 +11,8 @@ The island's switch uses two routes: ``GET /app/workbench/harnesses`` (``harness
 which binds a pane to the tab (reusing one, or starting the harness the user picked) or unbinds every pane from it. Only the
 user's Client switches: an agent caller is refused. herdr is a recording fake; no harness binary runs. A tab in Mode 1 runs on
 the unit's Hermes pane, played by the scripted serve (``serve_support.ServeThread``, spec A5)."""
+from .launch_notice_support import prior_human_disclosure  # noqa: F401
+
 import pytest
 from starlette.testclient import TestClient
 

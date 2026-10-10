@@ -528,7 +528,25 @@ guidance asks for.
 **Tests.** The request-shape test; the no-proxy route test; a recorded stream with `response.failed`
 (`subscription_sharing_usage_limit_exceeded`) ends the turn with the recovery text and no retry on another provider; the provider
 chip and the first-turn notice appear for this provider only; an image attachment is withheld with the notice until
-`chatgpt_vision_ok` is recorded by the probe.
+the versioned receipt matches the currently verified account, app client, sign-in generation, model and direct route.
+
+**Q1 human vision-check contract.** The existing local ChatGPT app page links a separate consent form.
+Its exact disclosure names the selected model, one synthetic image/fixed question, use of plan allowance, no scene/file/chat input,
+local result storage and no image generation. GET never submits a request. POST requires a one-use browser cookie/nonce, same
+origin and loopback; agent/MCP origins and bearer requests refuse. No caller can supply a provider URL, image, prompt or tools.
+The probe writes pending before outbound bytes, makes one request on the app-owned direct Responses route and requires completed
+output exactly matching all eight independently random panel colors. A valid receipt requires completed true, correctly shaped
+hex attempt/image hash, and finite ordered start/finish/verification timestamps. Receipts are atomic 0600 files under a 0700 owned directory, keyed by model/route hash;
+account/client/host/login scope is one-way derived from verified auth identity, with no token or raw identity in the receipt.
+Timestamps are audit-only. Missing, malformed, wrong-version, different scope/model/route, pending, failed or unknown evidence
+withholds images. Sign-out/relogin invalidates scope; token refresh preserves it. Unknown submissions require a new explicit
+acknowledgement, and no automatic retry occurs. The final provider checks the receipt and scope independently of supplied vision
+flags, preserves matching explicit model/request restrictions, and an unsuccessful image request invalidates its qualification.
+Existing native config refresh handles completed checks, verified login changes, sign-out, lost grants and image qualification
+invalidation after durable state writes and released credential/receipt locks. A running ChatGPT worker rechecks the current
+receipt against its copied pinned model/restrictions, without following later parent or saved-choice changes.
+There is no new agent host or conversation store. Typed attachments and labeled tool images keep their bytes/MIME/captions.
+Controlled offline tests are not a live receipt; owner-authorized account execution and native adoption remain unverified.
 
 ## R1. Durable sessions
 
@@ -1485,9 +1503,10 @@ still supplies the owning unit and scene binding, not the worker's mode or servi
 ## 4. Questions and decisions
 
 1. **Q1 `chatgpt_plan` — decided 2026-10-06: both.** Sign in with ChatGPT in Mode 1 (R0a), and Codex CLI as a BYOA harness (B1).
-   Before shipping, still to settle:
-   - a reading of OpenAI's Sign in with ChatGPT terms page, which the research could not fetch;
-   - the vision probe (R0a).
+   The [Sign in with ChatGPT terms](https://openai.com/policies/sign-in-with-chatgpt-terms/) and
+   [preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations) were subsequently read.
+   This resolves the earlier fetch/research gap; it does not authorize account use or claim acceptance of integration terms.
+   R0a now defines the consented vision check; its account-backed execution and final native adoption proof remain required.
 2. **Q2 retention — approved 2026-10-06, clarified 2026-10-08:** "Soft-hide native ended sessions after 30 days; cap visible ended history at 200; preserve resumable records."
    The visibility cap applies across recorded Lampway-owned native homes, without a second conversation store or destructive
    pruning. Native ended-tip selection is a snapshot; archiving changes visibility and preserves resumability. The older
@@ -1522,8 +1541,8 @@ still supplies the owning unit and scene binding, not the worker's mode or servi
 11. **Q11 Mode 2 swarm binding (built, open).** The pane bearers go on a direct loopback endpoint instead of the client launcher
     (S3, "as built"). Also open:
     - the worker timeout, 1800 s as a placeholder;
-    - finished worker panes stay open for the user to read (until the unit's next swarm closes them, Q13, built 2026-10-07);
-    - Codex's pane bearer is visible briefly on the herdr client's command line.
+    Finished worker panes staying open until the unit's next swarm is settled by Q13. The earlier Codex argv exposure
+    is repaired: its native `bearer_token_env_var` names the pane's guarded environment value; no bearer is passed in task argv.
 
 12. **Q12 the architecture — decided 2026-10-07:** two modes, Mode 1 on the Hermes runtime, every agent in a herdr pane, wrappers
     only, no agent without a pane; workers keep their own headless Blender scene (A0).

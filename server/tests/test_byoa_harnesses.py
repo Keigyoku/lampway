@@ -14,6 +14,8 @@ import shlex
 import stat
 from pathlib import Path
 
+from .launch_notice_support import prior_human_disclosure  # noqa: F401
+
 import pytest
 
 from lampway_server import egress as EG

@@ -112,7 +112,22 @@ class MIXIE_CHAT_OT_agent_mode_set(Operator):
                 self.report({'ERROR'}, " ".join([plan.get("error") or "", *plan.get("help", [])]).strip())
                 return {'CANCELLED'}
             return {'FINISHED'}
-        _run(_ask, scene.name, plan, CLIENT_FACTORY())
+        client = CLIENT_FACTORY()
+        if self.mode == AM.BYOA:
+            from mixar.modules.lampway_tools.ui import launch_notice
+            scene_name = scene.name
+            def done(asked, error):
+                _ANSWERS.put(('switch', scene_name, plan, asked if not error else {'ok': False, 'error': error}))
+                _apply_answers()
+            def valid():
+                current = bpy.data.scenes.get(scene_name)
+                return current is not None and getattr(current, 'mixie_session_id', '') == plan['old']
+            launch_notice.request(
+                lambda: client.mode_notice(plan['new'], plan['mode'], harness=plan['harness'], pane=plan['pane'],
+                                           previous=plan['old'] or None, name=plan['name']),
+                lambda nonce: AM.ask_server(plan, client, notice_nonce=nonce), done, valid)
+        else:
+            _run(_ask, scene.name, plan, client)
         self.report({'INFO'}, "Starting your agent…" if self.mode == AM.BYOA else "Switching to Lampway Agent…")
         return {'FINISHED'}
 

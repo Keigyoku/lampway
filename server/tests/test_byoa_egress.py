@@ -11,6 +11,8 @@
 herdr itself is faked: no binary is started and nothing leaves the machine."""
 import json
 
+from .launch_notice_support import prior_human_disclosure  # noqa: F401
+
 import pytest
 
 from lampway_server import egress as EG

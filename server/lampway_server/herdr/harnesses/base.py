@@ -42,6 +42,7 @@ class Installed:
 class LoginState:
     state: str                         # signed_in | signed_out | unknown
     detail: str = ""
+    account_label: Optional[str] = None  # only a vetted native status identity, never guessed from detail
 
 
 @dataclass(frozen=True)

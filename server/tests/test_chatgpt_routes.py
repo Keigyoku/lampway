@@ -94,7 +94,7 @@ def test_there_is_no_route_that_forwards_requests_to_the_plan_route(stack):
             continue
         assert "responses" not in p and "completions" not in p and not p.startswith("/v1")
     chatgpt = sorted(p for p in paths if "chatgpt" in p or p == "/auth/callback")
-    assert chatgpt == ["/app/chatgpt", "/app/chatgpt/signout", "/app/chatgpt/start", "/app/chatgpt/status", "/auth/callback"]
+    assert chatgpt == ["/app/chatgpt", "/app/chatgpt/signout", "/app/chatgpt/start", "/app/chatgpt/status", "/app/chatgpt/vision", "/app/chatgpt/vision", "/auth/callback"]
 
 
 def test_the_provider_name_selects_it_and_it_needs_no_key(tmp_path):

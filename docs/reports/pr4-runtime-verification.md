@@ -7,6 +7,72 @@ merge. The governing scope is [agent-modes-spec.md](agent-modes-spec.md), includ
 adapter execution and exact final-head verification remain required. Historical short commit IDs below name the
 pre-publication checkpoints; those unpublished commits were replayed with the required release-skill anneal before normal push.
 
+## Status at this documentation freeze
+
+Latest published PR4 is `7b5faed6`; its runtime is identical to the frozen `7bf02b8c` checkpoint. That checkpoint's
+full server run passed **3,073**, with **31 NOT RUN**, in **1,089.575 seconds**. This is a source-suite receipt for that
+checkpoint, not proof of subsequent uncommitted repairs or a matching final native build. The existing `84d896f3` application
+binary is historical. Final exact published-head server/client suites, matching build and required native checks remain pending.
+
+The native-helper ruling is settled: main Mode 1 has three separate experimental preferences for delegation, cron and
+background agents, all default off and accompanied by the untested-layering warning. Swarm workers keep all three off.
+Context and Q2 native history visibility are implemented; their matching final-head/build qualification remains pending.
+Hermes worker exclusive discovery has offline native evidence; there is no remaining approval question about installing its
+owned isolation connector. Grok's candidate workflow `38013110045` completed **FAIL**: dependency, artifact, herdr and
+controlled steps passed, but stdio ACP hit its 20-second timeout and loopback/`/dev/null` permission failures occurred before
+acceptance. Its artifact is retained for diagnosis; worker readiness remains disabled.
+Codex pane bearers use the established environment seam, not task argv. Account-backed acceptance for every selected
+service/harness remains **NOT RUN**.
+
+The Sign in with ChatGPT terms were successfully fetched and read; the former research/fetch gap is closed. The reading
+receipt is `<workspace>/scratch/pr4-siwc-terms-reading.md`. It does not establish the captain's acceptance of those terms or
+account authorization. Q1 consent, fixed synthetic vision probe, scoped receipt validation and serializer controls are
+applied but uncommitted at this freeze: **167 focused checks**, then **98 pinned checks**, passed. The later applied-source
+Q1 run passed **211 checks in 12.29 seconds**, retained in `<workspace>/scratch/pr4-q1-final-source-focused-retry.xml`.
+These runs overlap and are not added as unique checks. Its first attempt retained two collection import errors; relative
+fixture imports were corrected for the successful retry. Final full-source/new-build qualification and every real-account
+probe remain pending. B5's first-launch disclosure is now implemented and frozen but uncommitted; offline client controls
+passed 58 checks, with final source/native/account qualification still pending.
+
+The actual TUI/native-MCP follow-up passed **two tests in 19.78 seconds**, with all five recorded owned process identities
+absent after cleanup. Its receipt is `<workspace>/scratch/pr4-native-image-followup-actual-20261011-attempt2/receipt.json`.
+TUI captions, filename and provider answer were visible. Generic native MCP retained exact PNG bytes in its MEDIA cache/text
+path with call IDs and captions; it did **not** promote those generic results into typed model images. No actual Blender
+screenshot turn, new-build or account acceptance is established. Earlier failed cleanup/zombie packets remain retained.
+The unchanged LP4 material calibration still failed at 240 seconds; no remedy or passing hardware proof is claimed.
+
+A later pinned-native receipt-adoption scenario passed **one test in 23.47 seconds**; its receipt is
+`<workspace>/scratch/pr4-native-receipt-adoption-actual-20261011/receipt.json`. Genuine native `vision_analyze` succeeded on
+an owned synthetic PNG with support enabled, preserving typed image bytes and caption through the production Front/gateway.
+The corrected two-case driver passed in 18.00 seconds; the initial two driver `AttributeError` failures remain retained and
+are not a behavioral RED. Its support-false bridge-shaped control was limited and is superseded by the direct native negative:
+**one pass in 9.38 seconds**, with `vision_analyze` unavailable, no auxiliary fallback, selected-provider image bytes or egress.
+Receipts are `<workspace>/scratch/pr4-native-vision-tool-actual-20261011-attempt2/receipt.json` and
+`<workspace>/scratch/pr4-native-vision-tool-direct-negative-20261011/receipt.json`. All fourteen recorded owned identities
+in the latest aggregate recheck were absent. These are actual pinned serve/TUI and production wrapper observations with
+played herdr, synthetic auth/providers/receipts and local fixtures, not a built-Blender screenshot or account receipt.
+
+Grok's subsequent toy-plugin probe reached actual native MCP `initialize` successfully. Its overall probe still failed:
+vendor cold-start modified its native cache/config, so production QA now compares the warmed baseline. This initialization
+control does not replace the failed CI packet or establish the complete exclusive worker catalogue, cleanup or account route.
+No full repaired CI has completed; readiness remains false. B5's causal nonce defects are repaired in the frozen uncommitted
+candidate; the offline qualification below does not replace final full-source/server, matching build, whole-client or account proof.
+
+## B5 disclosure candidate at this freeze
+
+B5 first-launch disclosure is implemented but uncommitted. Retained causal REDs exposed nonce reuse on an existing pane and
+cross-endpoint/scope reuse; both are repaired. Route-off and readiness checks precede the account-notice guard, preserving
+actionable refusals before owned writes. Prior human acknowledgement persists per harness. New acknowledgements require an
+auth/path/project/operation-bound, one-use nonce; native UI controls cover cancel, script origin and stale scene identity.
+The client controls passed **58 checks**. The final synthetic server focus passed **178**, with zero failures or skips,
+recorded in `<workspace>/scratch/pr4-b5-launch-notice/server-focused.xml`. A separate admission recheck after printable
+identity hardening passed **28**, with zero failures or skips, in `admission-final.xml` in that evidence directory. These
+focused runs overlap and are not added as unique coverage. Native UI/account execution and final full-source/server/build/
+whole-client qualification remain NOT RUN.
+
+Claude Code 2.1.293 exposes only a confirmed signed-in email from its status JSON, with bounded printable output. Other
+identities are displayed as UNKNOWN. Synthetic status fixtures are not evidence of an actual person's signed-in session.
+
 ## Completed boundaries
 
 | Commit | Change | Retained verification |
@@ -29,6 +95,10 @@ pre-publication checkpoints; those unpublished commits were replayed with the re
 | `3b7be613` | Conditional native definitions on interface, View3D and agent-bubble targets | Accepted consumer controls and agent-bubble ON/OFF source controls passed. Six real cached compiler syntax checks passed; newly linked executable and physical clicks remain pending. |
 | `6f6701f9` | Separate saved worker mode from its Mode 1 service | 242 focused Choices/runtime tests passed. Receipts pin mode and service separately; the configured-app factory's resolution forwarding remains a shared-file dependency. |
 | `d9206cdc` | Scoped accepted PR1 client68 fixes and subtitle recovery | Imported the accepted code/data/licensing dependency and two bounded prerequisites. Full current client verification remains in progress; the shared ROOT AGENTS render-contract link remains pending. |
+
+The table above records statuses at those historical checkpoints. Later scoped repairs resolved its maintenance-tick,
+configured-app forwarding, rendered native chip and governing render-link gaps; those old pending cells are retained as
+history, not current blockers. Their exact evidence is in the later checkpoint sections and the current freeze status above.
 
 The integrated Mode 1 fixture exercises actual TUI-originated turns, client steer and Stop, immediate post-Stop recovery,
 Blender mutation and Undo, checkpoint mark/rewind, image copying, conversation reset and reopening an ended pane. Its provider
@@ -151,19 +221,19 @@ not passing acceptance; a skipped default opt-in does not erase the separately o
 * The historical checkpoints above retain their exact matching evidence. After the E1.6 seam/diagnostic correction, complete
   the full client/server suites and exact final published-head CI; retain a new matching build and rerun the required native/
   runtime checks against that candidate. No historical result is silently relabelled as proof of the later source head.
-* All seven adapters still require real account-backed scene-tool, interrupt, supported image behavior and session-record
-  acceptance; Cursor currently refuses image attachment explicitly, so its required image proof must verify that refusal. No provider,
-  paid-call, credential or persistent-grant authorization has been supplied. Correct sequence-shaped `mcpServers` activated
-  Grok 1.0.46's primary custom-agent body and inline MCP in a network-denied synthetic first turn. Earlier mapping-shaped
-  fixtures were invalid, so no primary-activation vendor defect is claimed. Primary overlays still retain unrelated global
-  MCP entries, and `enabled: false` does not remove inherited entries. Symbolic variables were proven in doctor/disk config;
-  inline environment placeholders arrived literally. Grok's explicit `GROK_AUTH_PATH` works but can write its auth file, while
-  project MCP remains loaded: a primary-agent exclusive interface from the vendor, or the captain's B0 working-directory
-  exception and explicit auth-file-use decision, is still required. Native Hermes `--toolsets` can restrict a four-server
-  native/portable/project catalog to only the worker connector, but that route requires approval to install a
-  persistent dedicated symbolic stdio connector/helper. These source-interface gaps are not repaired by account approval.
-  Neither persistent installation nor the working-directory/auth-file exception has been accepted. A terminal opening or
-  offline probe is not account acceptance.
+* Selected services and supported MAIN/worker harnesses still require real account-backed scene-tool, interrupt, image and
+  session-record acceptance. Unsupported worker routes refuse; this does not imply all seven worker routes are qualified.
+  Cursor's explicit image refusal must be tested as a refusal. Offline native Hermes worker discovery/reload/reconnect,
+  installed-helper and herdr startup proof is recorded in [pr4-worker-isolation.md](pr4-worker-isolation.md); the earlier
+  persistent connector approval gap is resolved. Grok's exclusive worker candidate remains gated on its dedicated native
+  policy/helper/herdr proof. Workflow `38013110045` completed FAIL before acceptance: stdio ACP timed out at 20 seconds and
+  loopback/`/dev/null` permission failures occurred after passing dependency/artifact/herdr/controlled steps. The retained
+  artifact is under diagnosis; readiness is not enabled. None of these offline checks grants real
+  account execution or proves provider-backed worker calls. Codex bearer transport is the established environment seam.
+* The Sign in with ChatGPT terms reading is complete. Captain acceptance and real-account authorization are separate and
+  are not inferred. Q1's uncommitted consent/probe/serializer candidate has the overlapping focused, pinned and 211-check
+  applied-source passes stated above; final full-source/new-build and real-account execution remain pending. B5 disclosure
+  is implemented in the frozen uncommitted candidate; its native/account proof is still NOT RUN.
 * R3/Q3 Context now has typed explicit project overrides, exact pinned defaults, user-only guarded client controls, no default
   writes, and model-window provenance. The native pin synchronizes compression settings before the next normal turn and
   rereads auxiliary compression routing per call; the earlier blanket live-reload blocker was incorrect. Context writes are
@@ -173,9 +243,9 @@ not passing acceptance; a skipped default opt-in does not erase the separately o
   without skips and client focus passed 22. Pinned-source causal tests execute actual synchronization function bodies with
   loader/provider/runtime edges stubbed; they are not actual native-process or account proof. Matching full/native verification
   remains owed. `/model --once` defers adoption, and manual `/compress` before a normal turn can retain earlier threshold/recent
-  settings. No next-reopen-only contract was substituted. The captain's ruling remains pending on whether native internal helpers
-  may remain inside the existing pane under A0/A1/Q14. A proposed delegation restriction alone does not fence native `/bg` or
-  `/btw`; no complete internal-helper isolation is claimed.
+  settings. No next-reopen-only contract was substituted. The A0/A1/Q14 helper ruling is now settled: main-only delegation,
+  cron and background preferences default off, and each experimental enablement carries an untested-layering warning.
+  Workers keep all three disabled. This is a scoped native-helper exception, not proof of account-backed layering.
 
 * The captain settled Q2: soft-hide native ended sessions after 30 days, cap visible ended history at 200, and preserve resumable
   records. This is a global visibility cap across recorded owned native homes; a two-home native control caught and corrected

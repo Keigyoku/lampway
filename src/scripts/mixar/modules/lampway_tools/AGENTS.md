@@ -54,6 +54,11 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    the user's click and a matching project; a stale dialog cannot write another project. The UI shows the pinned runtime's live
    reload and independent summarizer limitations rather than silently restarting a pane or inventing a model window.
 
+   First native-harness launch has its own explicit account notice dialog, separate from route enablement. Its cache-only draw
+   displays safe native status or UNKNOWN; slow preparation and launch stay off the app thread. A script cannot confirm,
+   a cancelled or failed dialog discards its nonce, and stale scene validation refuses before launch. Failed queue callbacks
+   cannot strand later owned responses. Neither notice preparation nor cancellation changes capabilities or login.
+
 ## Test
 
 ```bash
@@ -85,3 +90,5 @@ page; the canon's open decisions are the captain's.
 | 2026-10-08 | audit first-run capability pagination | supplied PR4 audit A06 | catalog row estimate inflated every page and hid navigation as capability counts grew | invariant 9: current-step content sizing, bounded stable capability pages, preserved ticks and no paging writes | three causal RED controls and 43 focused GREEN checks; matching native visibility proof required |
 
 | 2026-10-08 | capability paging keeps one native dialog | actual matching 84560502 UI Next produced two dialog regions | reinvoking from an inner page button stacked a modal over the original | invariant 9: refresh the original popup layout through the existing native window helper; no extra modal or changed choices | actual native RED and focused callback RED; new matching build proof required |
+
+| 2026-10-10 | first human native-agent disclosure | agent-modes spec B5 | cockpit and scene launch had no independent first-account warning, and failed popup/queue callbacks retained pending requests | invariant 9: explicit human notice, cached draw, off-thread preparation and cancellation/stale-scene cleanup | four causal client dialog REDs; 30 focused client checks pass; matching physical native dialog proof remains required |

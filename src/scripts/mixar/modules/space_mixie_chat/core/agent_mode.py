@@ -115,12 +115,13 @@ def prepare(scene, mode: str, harness, pane=None):
             "old": getattr(scene, "mixie_session_id", "") or "", "name": getattr(scene, "name", "") or None}
 
 
-def ask_server(plan: dict, client) -> dict:
+def ask_server(plan: dict, client, notice_nonce=None) -> dict:
     """The server's half (no bpy: safe on a worker thread): bind or unbind the pane for the tab's new chat session."""
     from mixar.modules.lampway_tools.studio_client import StudioError
     try:
         return {"ok": True, "answer": client.set_mode(plan["new"], plan["mode"], harness=plan["harness"], pane=plan["pane"],
-                                                      previous=plan["old"] or None, name=plan["name"]) or {}}
+                                                      previous=plan["old"] or None, name=plan["name"],
+                                                      **({'notice_nonce': notice_nonce} if notice_nonce is not None else {})) or {}}
     except StudioError as exc:
         return {"ok": False, "code": "switch_failed", "error": str(exc), "help": [SWITCH_FAILED_HELP]}
 

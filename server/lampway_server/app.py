@@ -278,7 +278,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         st = chatgpt.status()
         if st["signed_in"] and st["plan_usage_enabled"]:
             return (BP.status(f"({st['email'] or 'signed in'}).", strong="Using ChatGPT plan", link=("Manage usage", st["manage_usage_url"])),
-                    BP.form("/app/chatgpt/signout", "Sign out", primary=False))
+                    BP.form("/app/chatgpt/signout", "Sign out", primary=False),
+                    BP.status("", link=("Check image support", "/app/chatgpt/vision")))
         if st["signed_in"]:
             return (BP.status("Signed in, but ChatGPT plan usage is not enabled for this sign-in: enable it, or use an API key."),
                     BP.form("/app/chatgpt/start", "Enable ChatGPT plan usage"))
@@ -963,6 +964,15 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 _HN.require_enabled(settings.state_dir)
             except ValueError as exc:
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
+            from .herdr.launch_notice import admission, NoticeRequired
+            try:
+                notice = await asyncio.to_thread(admission, cockpit, _HN.get(body['agent']), request, body, _wb_origin(request))
+                if notice is not None:
+                    return JSONResponse(notice, headers={'Cache-Control': 'no-store'})
+            except NoticeRequired as exc:
+                return JSONResponse({'code': 'launch_notice_required', 'detail': str(exc)}, status_code=409)
+            except (PermissionError, OSError, ValueError) as exc:
+                return _wb_err(exc, 403)
         try:
             rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
                                           False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")),
@@ -1078,11 +1088,31 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 if harness not in _HN.ids():
                     raise CockpitError(f"unknown harness {harness!r}: the harnesses are {', '.join(_HN.ids())}")
                 rec = next((s for s in cockpit.find_by_scene(scene) if s.get("harness") == harness and s.get("state") == "live"), None)
+            if rec is None:
+                _HN.require_enabled(settings.state_dir)
+            elif 'notice_nonce' in body:
+                from .herdr.launch_notice import admission
+                admission(cockpit, _HN.get(rec['harness']), request, body, _wb_origin(request))
+                if body.get('notice_request') is True:
+                    return {'notice': {'required': False}}
+            elif body.get('notice_request') is True:
+                return {'notice': {'required': False}}
             if prev and prev != scene:
+                # Notice admission must happen before relinquishing the previous scene binding.
+                if rec is None:
+                    from .herdr.launch_notice import admission
+                    notice = admission(cockpit, _HN.get(harness), request, body, _wb_origin(request))
+                    if notice is not None:
+                        return notice
                 unbind_all(prev)
             if rec is None:
                 _HN.require_enabled(settings.state_dir)
                 ad = _HN.get(harness)
+                if not (prev and prev != scene):
+                    from .herdr.launch_notice import admission
+                    notice = admission(cockpit, ad, request, body, _wb_origin(request))
+                    if notice is not None:
+                        return notice
                 name = str(body.get("name") or "").strip()[:80] or f"{ad.label} for a scene tab"
                 rec = cockpit.create_session(harness, name if len(name) >= 2 else f"{ad.label} for a scene tab", str(_project_root()),
                                              by="user", scene_session_id=scene, unit_label=scene_name)
@@ -1096,8 +1126,15 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
 
         try:
             out = await asyncio.to_thread(switch)
+            if 'notice' in out:
+                return JSONResponse(out, headers={'Cache-Control': 'no-store'})
             agent.byoa.forget(scene, str(body.get("previous_session_id") or "").strip())   # a new watch starts on the next observe
             return JSONResponse(out)
+        except PermissionError as exc:
+            from .herdr.launch_notice import NoticeRequired
+            if isinstance(exc, NoticeRequired):
+                return JSONResponse({'code': 'launch_notice_required', 'detail': str(exc)}, status_code=409)
+            return _wb_err(exc, 403)
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
         except ValueError as exc:                                            # the BYOA switch is off
@@ -1504,13 +1541,21 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     from .engine.context_settings import Store as ContextStore, routes as context_routes
     context_store = ContextStore(settings.state_dir)
     routes += context_routes(context_store, _bearer_ok, agent, _wb_origin)
+    from .chatgpt_vision_routes import routes as chatgpt_vision_routes
+    def chatgpt_vision_changed():
+        units = getattr(engine_wiring, "units", None)
+        if units is not None:
+            units.capabilities_changed()  # existing coalesced native config refresh; never starts a pane or model turn
+    routes += chatgpt_vision_routes(chatgpt,
+        lambda: agent.provider.model if getattr(agent.provider, "name", "") == "chatgpt_plan" else settings.chatgpt_model,
+        _wb_origin, on_change=chatgpt_vision_changed)
     from .engine.mcp_endpoint import engine_mcp_routes
     routes += engine_mcp_routes(lambda: agent.engine)                        # spec E1.6: the engine's own MCP endpoint
     from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
     engine_tokens = ENG.Registry()
     ENG.set_active(engine_tokens)
     from .engine import wiring as ENGW                                          # spec E1, A5: Hermes in Mode 1's seat whenever it is built
-    engine_wiring = ENGW.wire(settings, agent, engine_tokens)
+    engine_wiring = ENGW.wire(settings, agent, engine_tokens, chatgpt_auth=chatgpt)
     routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent, settings=settings, chatgpt_auth=chatgpt))
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))

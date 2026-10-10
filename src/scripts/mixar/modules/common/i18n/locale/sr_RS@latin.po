@@ -6884,6 +6884,33 @@ msgstr ""
 msgid "Tab of the face"
 msgstr ""
 
+msgid "The account notice or launch request failed; refresh and try again."
+msgstr ""
+
+msgid "The account notice request could not start; refresh and try again."
+msgstr ""
+
+msgid "The account notice dialog could not open; review the launch again."
+msgstr ""
+
+msgid "The scene changed; review the launch again."
+msgstr ""
+
+msgid "The account notice response is invalid; review the launch again."
+msgstr ""
+
+msgid "Review your agent account"
+msgstr ""
+
+msgid "Native login: {state}"
+msgstr ""
+
+msgid "Account: {account}"
+msgstr ""
+
+msgid "Continue acknowledges this notice; it does not enable a route or change your login."
+msgstr ""
+
 msgid "The agent thinks with the provider you pick here; nothing is sent until you use it"
 msgstr ""
 

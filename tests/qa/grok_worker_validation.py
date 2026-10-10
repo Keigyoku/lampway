@@ -90,7 +90,7 @@ def process_rows():
         if path.name.isdigit():
             try:
                 text = (path / 'stat').read_text(); fields = text[text.rfind(')') + 2:].split()
-                rows[int(path.name)] = {'pid': int(path.name), 'parent': int(fields[1]), 'group': int(fields[2]),
+                rows[int(path.name)] = {'pid': int(path.name), 'state': fields[0], 'parent': int(fields[1]), 'group': int(fields[2]),
                     'session': int(fields[3]), 'start': fields[19]}
             except (OSError, ValueError, IndexError):
                 pass
@@ -130,6 +130,25 @@ def owned_snapshot(root, start=None):
     return result
 
 
+def enable_owned_reaping():
+    """This standalone fixture adopts orphaned children; no host setting changes."""
+    lib = ctypes.CDLL(None, use_errno=True)
+    if lib.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER, this process only
+        raise OSError(ctypes.get_errno(), 'owned fixture subreaper refused')
+
+
+def reap_owned(owned, *, exclude):
+    """Never consume asyncio's direct child or an unowned/reused/live PID."""
+    rows = process_rows()
+    for recorded in owned.values():
+        pid = recorded['pid']; current = rows.get(pid)
+        if (pid == exclude or not current or current['start'] != recorded['start'] or
+                current.get('state') != 'Z' or current['parent'] != os.getpid()):
+            continue
+        try: os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError: pass
+
+
 async def cleanup_acp(process, start, owned):
     """Reap the ACP parent and signal only live, identity-checked owned PIDs."""
     for sig, duration in [(signal.SIGTERM, 2), (signal.SIGKILL, 3)]:
@@ -138,6 +157,7 @@ async def cleanup_acp(process, start, owned):
         while True:
             for row in owned_snapshot(process.pid, start):
                 owned[(row['pid'], row['start'])] = row
+            reap_owned(owned, exclude=process.pid)
             live = [row for row in owned.values() if still_alive(row)]
             for row in live:
                 identity = (row['pid'], row['start'])
@@ -151,6 +171,7 @@ async def cleanup_acp(process, start, owned):
         if not any(still_alive(row) for row in owned.values()):
             break
     await asyncio.wait_for(process.wait(), 3)
+    reap_owned(owned, exclude=process.pid)
 
 
 def still_alive(row):
@@ -250,6 +271,9 @@ class Validator:
         native_config = ('[agent]\ndefinition=' + json.dumps(str(persona)) + '\n[models]\ndefault="fixture"\n'
                          '[model.fixture]\nname="Offline fixture"\nmodel="fixture"\nbase_url="http://127.0.0.1:' + str(port) +
                          '/v1"\napi_key="synthetic-offline-only"\n')
+        # A pre-existing enabled toy user plugin: native discovery separates
+        # user-scope trust from activation. Baseline must prove initialization.
+        native_config += '\n[plugins]\nenabled=["owned-sentinel"]\n'
         for name in ['foreign_user', 'lampway_pane', 'foreign_same_command']:
             command = str(connector) if name != 'foreign_user' else sys.executable
             args = [] if name != 'foreign_user' else [str(Path(__file__).resolve()), '--fake-mcp', str(self.output / 'foreign-user.jsonl')]
@@ -261,8 +285,8 @@ class Validator:
         # A compat sentinel is a native source, never silently disabled through env.
         (home / '.claude.json').write_text(json.dumps({'mcpServers': {'foreign_compat': {
             'command': sys.executable, 'args': [str(Path(__file__).resolve()), '--fake-mcp', str(self.output / 'foreign-compat.jsonl')]}}}))
-        # Native user-scope plugins are already trusted by scope. No trust command,
-        # policy grant, plugin installation or marketplace is used by this fixture.
+        # User-scope trust is native; activation is the explicit synthetic
+        # preference above. No trust command, grant or marketplace is used.
         plugin = gh / 'plugins' / 'owned-sentinel'
         (plugin / '.grok-plugin').mkdir(parents=True)
         (plugin / '.grok-plugin' / 'plugin.json').write_text(json.dumps({'name': 'owned-sentinel'}))
@@ -334,8 +358,7 @@ class Validator:
                                         'clientInfo': {'name': 'owned-offline-fixture', 'version': '1'}})
             session = await request('session/new', {'cwd': str(cwd), 'mcpServers': []})
             sid = session['result']['sessionId']
-            # Loads lazy MCP. The model route is either socket-denied or a local rejecting fixture.
-            await request('session/prompt', {'sessionId': sid, 'prompt': [{'type': 'text', 'text': 'synthetic_no_data_probe'}]})
+            # Native session-scoped MCP calls initialize the pool without a model turn.
             result = await request('_x.ai/mcp/call', {'sessionId': sid, 'server': 'lampway_pane',
                                                    'tool': 'scene_summary', 'arguments': {}})
             if not expect_owned:
@@ -395,7 +418,6 @@ class Validator:
                 self.check('native hot reload replied', 'error' not in updated, updated)
                 # Force lazy initialization after the swap; a rejected route alone
                 # is not proof that the foreign subprocess was never started.
-                await request('session/prompt', {'sessionId': sid, 'prompt': [{'type': 'text', 'text': 'synthetic_reload_probe'}]})
                 after = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False})
                 self.check('hot reload excludes new foreign identity', 'error' not in after and 'dynamic' not in json.dumps(after), after)
                 self.check('hot reload retains exactly one canonical MCP server',
@@ -427,7 +449,7 @@ class Validator:
                                   'image': os.getenv('ImageVersion'), 'bwrap_sha256': digest(self.options.bwrap)}
         self.check('unprivileged runner', os.getuid() != 0)
         self.run([str(self.options.bwrap), '--unshare-user', '--uid', str(os.getuid()), '--gid', str(os.getgid()),
-                  '--cap-drop', 'ALL', '--bind', '/', '/', '--die-with-parent', '--', '/bin/true'])
+                  '--cap-drop', 'ALL', '--bind', '/', '/', '--dev', '/dev', '--die-with-parent', '--', '/bin/true'])
         if self.options.phase == 'stdio':
             deny_inet()
             try:
@@ -462,6 +484,9 @@ class Validator:
                        any(e.get('method') == 'initialize' for e in read_events(self.output / ('foreign-' + source + '.jsonl'))))
         # Warmed vendor configuration, auth and persona are the comparison baseline.
         warmed = {p: file_state(p) for p in self.receipt['synthetic_inputs']}
+        untouched = [Path(env['GROK_AUTH_PATH']), Path(env['GROK_HOME']) / 'original-agent.md']
+        self.check('native baseline preserves original auth and persona',
+                   all(warmed[str(p)] == self.receipt['synthetic_inputs'][str(p)] for p in untouched))
         self.receipt['native_baseline_side_effects'] = {p: {'initial': initial, 'warmed': warmed[p]}
             for p, initial in self.receipt['synthetic_inputs'].items() if initial != warmed[p]}
         self.receipt['preservation_qualification'] = 'Compare warmed native baseline; vendor first-start cache changes are separately recorded.'
@@ -688,6 +713,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True); parser.add_argument('--phase', choices=['stdio', 'loopback'], required=True)
     options = parser.parse_args(); validator = Validator(options)
     try:
+        enable_owned_reaping()
         validator.validate()
     except Exception:
         validator.receipt['failure'] = traceback.format_exc(); validator.save()

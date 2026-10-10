@@ -416,7 +416,14 @@ def _provider_images(req: ModelRequest, provider, vision=_VISION_UNSET) -> None:
     """Gate this request only, after main/worker/summary selection; never alter stored history."""
     if vision is _VISION_UNSET:
         vision = getattr(provider, "supports_vision", None)
-    if getattr(provider, "name", "") != "chatgpt_plan" and vision is True:
+    if getattr(req, "supports_vision", None) is False:
+        vision = False
+    if getattr(provider, "name", "") == "chatgpt_plan":
+        from ..chatgpt_vision import admitted
+        vision = vision is True and admitted(getattr(provider, "auth", None), getattr(provider, "model", None),
+                                            str(getattr(provider, "base_url", "")) + "/responses")
+    req.supports_vision = vision is True
+    if vision is True:
         return
     def without_images(parts):
         return [{"type": "text", "text": IMAGE_NOTE} if p.get("type") == "image" else p for p in parts]
@@ -554,7 +561,11 @@ def models_dev_registry(provider, model_id: str = "lampway", *, vision=_VISION_U
     models = {}
     if vision is _VISION_UNSET:
         vision = getattr(provider, "supports_vision", None)
-    vision = getattr(provider, "name", "") != "chatgpt_plan" and vision is True
+    if getattr(provider, "name", "") == "chatgpt_plan":
+        from ..chatgpt_vision import admitted
+        vision = vision is True and admitted(getattr(provider, "auth", None), getattr(provider, "model", None),
+                                            str(getattr(provider, "base_url", "")) + "/responses")
+    vision = vision is True
     for mid in dict.fromkeys((model_id, _model_of(provider))):
         models[mid] = {"id": mid, "name": mid, "family": "lampway", "tool_call": True, "reasoning": False, "attachment": vision,
                        "temperature": True, "modalities": {"input": ["text", "image"] if vision else ["text"], "output": ["text"]}, "limit": {"context": window},

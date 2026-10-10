@@ -99,6 +99,8 @@ class Cockpit:
         self.root.mkdir(parents=True, exist_ok=True)
         self.project_root = str(project_root) if project_root else None
         self.path = self.root / "sessions.json"
+        from .launch_notice import Notices
+        self.launch_notices = Notices(self.root)
         #: Lampway's own loopback MCP endpoint for panes (``/api/v1/mcp/pane``), set by the server (spec S3). None: no swarm entry
         #: is written for a bound pane and no worker pane can be opened.
         self.pane_mcp_url = None
@@ -171,6 +173,9 @@ class Cockpit:
         Lampway's own pane (``lampway_hermes``, spec A1) is a unit's main agent when it names its ``unit`` (never bound to a scene
         tab: a binding is Mode 2's), or a Mode 1 swarm worker; the engine prepares its home first (``self.mode1``)."""
         lampway = HN.is_lampway(agent)
+        if not lampway and agent in HN.ADAPTERS:
+            # Preserve the actionable route refusal before disclosure or native inspection.
+            EG.preflight(HN.ADAPTERS[agent].route)
         if lampway:                                            # Lampway's own (Mode 1, spec A1): only on a server running the engine
             if self.mode1 is None:
                 raise CockpitError(HN.MODE1_UNAVAILABLE)
@@ -215,6 +220,9 @@ class Cockpit:
                 raise CockpitError("the server's pane endpoint is not known here: no worker pane can be opened")
             if scene_session_id:
                 raise CockpitError("a worker pane is bound to its worker, never to a scene tab")
+        if not lampway and ad is not None:
+            # Internal agent/worker paths require a prior human disclosure, after readiness and before writes.
+            self.launch_notices.require(ad.id)
         scene = scene_session_id or None
         main_unit = (unit or None) if lampway and swarm_worker is None else None
         role = LY.WORKER if swarm_worker is not None else (LY.MAIN if scene or main_unit else None)

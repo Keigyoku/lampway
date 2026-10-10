@@ -37,6 +37,7 @@ Selected, the app's lifespan (``start``/``stop``/``tick``) gives Mode 1's panes 
 """
 
 import asyncio
+import copy
 import ipaddress
 import json
 import logging
@@ -159,7 +160,14 @@ def selected_vision(provider, agent, resolution=None) -> Optional[bool]:
     """Vision belongs to this selected model/endpoint, never a different parent or saved model."""
     name = getattr(provider, "name", "")
     if name == "chatgpt_plan":
-        return False  # R0a: no live vision probe has been approved and recorded.
+        params = getattr(resolution, "params", {}) if resolution is not None else {}
+        if "supports_vision" in params:
+            matched = params.get("model", getattr(resolution, "model", None)) == getattr(provider, "model", None)
+            if not matched or params["supports_vision"] is not True:
+                return False
+        from ..chatgpt_vision import admitted
+        return admitted(getattr(provider, "auth", None), getattr(provider, "model", None),
+                        str(getattr(provider, "base_url", "")) + "/responses")
     model = getattr(provider, "model", None)
     params = getattr(resolution, "params", {}) if resolution is not None else {}
     if "supports_vision" in params:
@@ -180,13 +188,14 @@ def selected_vision(provider, agent, resolution=None) -> Optional[bool]:
     return True if name == "anthropic" else getattr(provider, "supports_vision", None)
 
 
-def _resolution_vision(agent, resolution) -> Optional[bool]:
+def _resolution_vision(agent, resolution, chatgpt_auth=None) -> Optional[bool]:
     """Read resolved metadata without constructing a provider or inspecting credentials."""
     from types import SimpleNamespace
     params = resolution.params
     metadata = SimpleNamespace(name=resolution.provider,
         model=params.get("model") if resolution.provider == "openai" else resolution.model,
-        base_url=params.get("base_url", ""))
+        base_url="https://api.openai.com/v1" if resolution.provider == "chatgpt_plan" else params.get("base_url", ""),
+        auth=chatgpt_auth if chatgpt_auth is not None else getattr(agent.provider, "auth", None))
     return selected_vision(metadata, agent, resolution)
 
 
@@ -244,7 +253,7 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
             else:
                 raise ValueError("the pinned worker choice is unavailable after this server restart; "
                                  "this pane cannot make model calls. Start a new swarm using your saved Choices")
-            workers[key] = (provider, selected_vision(provider, agent, choice))
+            workers[key] = (provider, selected_vision(provider, agent, choice), copy.deepcopy(choice))
             while len(workers) > WORKER_PROVIDERS_KEPT:
                 workers.popitem(last=False)
         return provider
@@ -256,6 +265,9 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
         if not is_worker_session(session_id):
             return selected_vision(provider, agent)
         cached = workers.get(str(session_id))
+        if cached is not None and cached[0] is provider and getattr(provider, "name", "") == "chatgpt_plan":
+            # Receipt qualification is current; provider/model and explicit choice restrictions stay pinned.
+            return selected_vision(provider, agent, cached[2])
         return cached[1] if cached is not None and cached[0] is provider else False
 
     get.vision_for = vision_for
@@ -263,7 +275,8 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
 
 
 class EngineWiring:
-    def __init__(self, engine: dict, *, settings, agent, registry: GW.Registry):
+    def __init__(self, engine: dict, *, settings, agent, registry: GW.Registry, chatgpt_auth=None):
+        self.chatgpt_auth = chatgpt_auth
         self.engine = engine
         self.settings = settings
         self.agent = agent
@@ -360,7 +373,7 @@ class EngineWiring:
             binding = (mcp_headers or {}).get("X-Mixar-Session-Id")
             bindings = getattr(getattr(self.agent, "swarm", None), "bindings", None)
             choice = bindings.choice_for(binding) if bindings is not None else None
-            vision = _resolution_vision(self.agent, choice) if choice is not None else False
+            vision = _resolution_vision(self.agent, choice, self.chatgpt_auth) if choice is not None else False
         path = HC.write(home, board, project, gateway_url, token, model_id, supports_vision=vision if isinstance(vision, bool) else None, rendered=rendered,
                         mcp_url=mcp_url, mcp_headers=mcp_headers, asks_user=not worker,
                         instructions=None if worker else SYSTEM_PROMPT,
@@ -392,7 +405,7 @@ def sees_images(agent) -> Optional[bool]:
     if name == "anthropic":
         return True
     if name == "chatgpt_plan":
-        return False
+        return getattr(provider, "supports_vision", False) is True
     if name in ("openai", "openai_compat"):
         store = getattr(agent, "settings_store", None)
         byok = store.byok() if store is not None else None
@@ -401,7 +414,7 @@ def sees_images(agent) -> Optional[bool]:
     return None
 
 
-def wire(settings, agent, registry: GW.Registry, environ=None) -> Optional[EngineWiring]:
+def wire(settings, agent, registry: GW.Registry, environ=None, *, chatgpt_auth=None) -> Optional[EngineWiring]:
     """``create_app``'s one call: the wiring when the engine is selected, else None and the hub told why (its Mode 1 refusal); one
     log line either way."""
     environ = os.environ if environ is None else environ
@@ -414,7 +427,7 @@ def wire(settings, agent, registry: GW.Registry, environ=None) -> Optional[Engin
         log.warning("engine: Mode 1 is unavailable on this server, and a Mode 1 chat is refused: %s (%s)", why.why, why.fix)
         return None
     log.info("engine: selected %s", why)
-    return EngineWiring(engine, settings=settings, agent=agent, registry=registry)
+    return EngineWiring(engine, settings=settings, agent=agent, registry=registry, chatgpt_auth=chatgpt_auth)
 
 
 class _SummaryProvider:
@@ -424,7 +437,9 @@ class _SummaryProvider:
         self.settings, self.agent, self.resolution = settings, agent, resolution
         self.name = resolution.provider
         self.model = resolution.params.get("model") if resolution.provider == "openai" else resolution.model
-        self.supports_vision = _resolution_vision(agent, resolution)
+        self.auth = chatgpt_auth if chatgpt_auth is not None else getattr(agent.provider, "auth", None)
+        self.base_url = "https://api.openai.com/v1" if self.name == "chatgpt_plan" else resolution.params.get("base_url", "")
+        self.supports_vision = _resolution_vision(agent, resolution, self.auth)
 
     async def stream(self, request):
         from ..agent.providers import make_provider, ResolvedWorkerProvider

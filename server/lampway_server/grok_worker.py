@@ -158,7 +158,7 @@ def preflight(native, bwrap, connector, native_listing, *, etc=Path('/etc')):
             'bwrap': str(bwrap), 'bwrap_sha256': bwrap_hash,
             'connector': {'command': str(connector), 'args': [], 'sha256': connector_hash},
             'namespace_probe': [str(bwrap), '--unshare-user', '--uid', str(os.getuid()), '--gid', str(os.getgid()),
-                '--unshare-pid', '--die-with-parent', '--cap-drop', 'ALL', '--bind', '/', '/', '--proc', '/proc', '--', '/bin/true']}
+                '--unshare-pid', '--die-with-parent', '--cap-drop', 'ALL', '--bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--', '/bin/true']}
 
 
 def build_plan(path, *, task=None, etc=Path('/etc')):
@@ -230,7 +230,7 @@ def build_plan(path, *, task=None, etc=Path('/etc')):
                 placeholders.append({'path': str(rel), 'kind': 'directory' if child.is_dir() else 'file'})
                 mounts += ['--bind', str(child), str(destination)]
     argv = [str(bwrap), '--unshare-user', '--uid', str(os.getuid()), '--gid', str(os.getgid()),
-            '--unshare-pid', '--die-with-parent', '--cap-drop', 'ALL', '--bind', '/', '/',
+            '--unshare-pid', '--die-with-parent', '--cap-drop', 'ALL', '--bind', '/', '/', '--dev', '/dev',
             '--proc', '/proc', '--ro-bind', str(work), str(work),
             '--ro-bind', str(skeleton), '/etc', *mounts, '--ro-bind', str(shim), str(command.resolve()),
             '--chdir', str(cwd), '--', str(native), '--leader-socket', str(inner), '--cwd', str(cwd), '--', task]
