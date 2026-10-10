@@ -320,13 +320,26 @@ def test_disabled_control_refuses_incorrect_restored_readback():
 
 
 @pytest.mark.parametrize('failure_mode', ['readback_error', 'unchanged_display', 'raw_error',
-                                         'raw_nonfinite', 'controls_only'])
-def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path, capsys, failure_mode):
+                                         'raw_nonfinite', 'controls_only', 'cube_checkpoint_error',
+                                         'diagnostic_finalize_error', 'actor_cleanup_error', 'cube_success',
+                                         'checkpoint_and_cleanup_error'])
+def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path, capsys, failure_mode, monkeypatch):
     """Exercise capture itself; the fake is orchestration proof, never GPU proof."""
     from types import SimpleNamespace as NS
     root = tmp_path / 'Saved/LampwayCubeQA'
     root.mkdir(parents=True)
     profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
+    publication = failure_mode in ('cube_checkpoint_error', 'diagnostic_finalize_error',
+                                   'actor_cleanup_error', 'cube_success', 'checkpoint_and_cleanup_error')
+    if publication:
+        profile['project']['cvars']['r.LUT.Size'] = 2
+    original_update = C.ControlEvidence.update
+    def update(evidence, stage=None, **facts):
+        if ((failure_mode in ('cube_checkpoint_error', 'checkpoint_and_cleanup_error') and stage == 'cube_complete')
+                or (failure_mode == 'diagnostic_finalize_error' and facts.get('status') == 'completed')):
+            raise OSError('synthetic post-publication write failure')
+        return original_update(evidence, stage, **facts)
+    monkeypatch.setattr(C.ControlEvidence, 'update', update)
     (root / 'request.json').write_text(json.dumps(dict(
         disposable_qa_project=True, profile=profile, name='synthetic', shaper=SHAPER,
         shaper_source='synthetic test only', max_seconds=1, controls_only=failure_mode == 'controls_only')))
@@ -364,16 +377,20 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         if (failure_mode == 'readback_error'
                 and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0):
             raise RuntimeError('synthetic GPU readback error')
-        value = 140 if (failure_mode == 'controls_only'
+        value = 140 if ((failure_mode == 'controls_only' or publication)
                        and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0) else 100
         return NS(r=value, g=value, b=value)
+    def destroy(actor):
+        destroyed.append(actor)
+        if failure_mode in ('actor_cleanup_error', 'checkpoint_and_cleanup_error'):
+            raise RuntimeError('synthetic actor cleanup failure')
     expression = NS(set_editor_property=lambda *args: None)
     ue = NS(
         Paths=NS(project_dir=lambda: str(tmp_path)),
         SystemLibrary=NS(get_engine_version=lambda: '5.8.2-56702186+++UE5',
             get_console_variable_int_value=lambda key: profile['project']['cvars'][key]),
         EditorLevelLibrary=NS(get_editor_world=lambda: object(), spawn_actor_from_class=spawn,
-                              destroy_actor=lambda actor: destroyed.append(actor)),
+                              destroy_actor=destroy),
         Material=Settings, MaterialShadingModel=NS(MSM_UNLIT=object()),
         MaterialEditingLibrary=NS(create_material_expression=lambda *args: expression,
             connect_material_property=lambda *args: True, recompile_material=lambda *args: None),
@@ -390,6 +407,22 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
     error = RuntimeError if failure_mode in ('readback_error', 'raw_error') else ValueError
     reason = ('synthetic .*readback error' if error is RuntimeError else
               'invalid control pixel' if failure_mode == 'raw_nonfinite' else 'native disabled-tone negative control')
+    if publication:
+        if failure_mode == 'cube_success':
+            C.capture(ue)
+            assert (root / 'synthetic.cube.json').is_file()
+            assert json.loads((root / 'synthetic.controls.json').read_text())['status'] == 'completed'
+            assert 'LAMPWAY_UE_CUBE_COMPLETE ' in capsys.readouterr().out
+        else:
+            error = RuntimeError if failure_mode == 'actor_cleanup_error' else OSError
+            with pytest.raises(error, match='synthetic .*failure'):
+                C.capture(ue)
+            assert (root / 'synthetic.cube').is_file(), 'retain incomplete payload for diagnosis'
+            assert not (root / 'synthetic.cube.json').exists(), 'a refused capture must revoke its completion marker'
+            assert (root / 'synthetic.controls.json').is_file()
+            assert destroyed == list(reversed(spawned)), 'attempt cleanup of every disposable actor'
+            assert 'LAMPWAY_UE_CUBE_COMPLETE ' not in capsys.readouterr().out
+        return
     if failure_mode == 'controls_only':
         C.capture(ue)
     else:
@@ -479,13 +512,20 @@ def test_control_diagnostic_write_failure_preserves_original_callback_error(tmp_
 
 
 @pytest.mark.parametrize('suffix', ['.cube', '.cube.json', '.controls.pending'])
-def test_existing_qa_output_refuses_before_reserving_diagnostic(tmp_path, suffix):
+@pytest.mark.parametrize('symlink', [False, True])
+def test_existing_qa_output_refuses_before_reserving_diagnostic(tmp_path, suffix, symlink):
     prior = tmp_path / ('synthetic' + suffix)
-    prior.write_text('original QA output')
+    if symlink:
+        prior.symlink_to(tmp_path / 'unavailable-original')
+    else:
+        prior.write_text('original QA output')
     with pytest.raises(ValueError, match='QA output already exists'):
         with C.ControlEvidence(tmp_path, 'synthetic'):
             pytest.fail('existing output must refuse before scene work')
-    assert prior.read_text() == 'original QA output'
+    if symlink:
+        assert prior.is_symlink() and prior.readlink() == tmp_path / 'unavailable-original'
+    else:
+        assert prior.read_text() == 'original QA output'
     assert list(tmp_path.iterdir()) == [prior]
 
 
@@ -500,3 +540,46 @@ def test_nonfinite_control_cannot_publish_a_sidecar(tmp_path, field):
     with pytest.raises(ValueError, match='invalid control pixel'):
         C.write_outputs(tmp_path, request, profile['engine'], [[0.2] * 3] * 8, {}, controls)
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize('replacement', ['regular', 'symlink'])
+def test_refusal_preserves_replacement_completion_path(tmp_path, replacement):
+    marker = tmp_path / 'synthetic.cube.json'
+    other = tmp_path / 'replacement.json'
+    other.write_text('replacement content')
+    with pytest.raises(RuntimeError, match='original failure'):
+        with C.ControlEvidence(tmp_path, 'synthetic') as evidence:
+            with marker.open('x') as output:
+                evidence.own_completion(marker, output.fileno())
+                output.write('owned marker')
+            marker.unlink()
+            if replacement == 'symlink':
+                marker.symlink_to(other)
+            else:
+                marker.write_text('replacement content')
+            raise RuntimeError('original failure')
+    assert marker.read_text() == other.read_text() == 'replacement content'
+    assert marker.is_symlink() is (replacement == 'symlink')
+
+
+def test_sidecar_serialization_failure_revokes_partial_marker_only(tmp_path, monkeypatch):
+    profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
+    profile['project']['cvars']['r.LUT.Size'] = 2
+    request = dict(profile=profile, name='synthetic', shaper=SHAPER, shaper_source='synthetic test only')
+    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.4] * 3,
+                     tone_curve_disabled=[0.5] * 3) for _ in range(4)]
+    original_dump = C.json.dump
+    def dump(value, output, **kwargs):
+        if value.get('schema') == 'lampway.ue-cube-meta/1':
+            output.write('{')
+            raise OSError('synthetic partial sidecar failure')
+        return original_dump(value, output, **kwargs)
+    monkeypatch.setattr(C.json, 'dump', dump)
+    with pytest.raises(OSError, match='synthetic partial sidecar failure'):
+        with C.ControlEvidence(tmp_path, 'synthetic') as evidence:
+            C.write_outputs(tmp_path, request, profile['engine'], [[0.2] * 3] * 8,
+                            {}, controls, completion_owner=evidence)
+    assert (tmp_path / 'synthetic.cube').is_file()
+    assert not (tmp_path / 'synthetic.cube.json').exists()
+    receipt = json.loads((tmp_path / 'synthetic.controls.json').read_text())
+    assert receipt['status'] == 'refused' and receipt['exception_type'] == 'OSError'

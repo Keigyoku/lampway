@@ -11,6 +11,8 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
+import sys
 import time
 
 SHAPER_KEYS = ('base', 'lin_side_slope', 'lin_side_offset', 'log_side_slope', 'log_side_offset')
@@ -23,6 +25,7 @@ class ControlEvidence:
             raise ValueError('name must be a simple QA output basename')
         self.path = root / (name + '.controls.json')
         self.pending = root / (name + '.controls.pending')
+        self.completion = None
         self.record = {'schema': 'lampway.ue-cube-controls/1', 'status': 'running',
                        'stage': 'preflight', 'controls': []}
 
@@ -55,17 +58,44 @@ class ControlEvidence:
             os.fsync(output.fileno())
         os.replace(self.pending, self.path)
 
+    def own_completion(self, path, descriptor):
+        # Hold the inode open until finalization; pathname replacements are not ours.
+        self.completion = (path, os.dup(descriptor))
+
+    def _revoke_completion(self):
+        if self.completion is None:
+            return
+        path, descriptor = self.completion
+        try:
+            current, owned = path.lstat(), os.fstat(descriptor)
+            if (stat.S_ISREG(current.st_mode)
+                    and (current.st_dev, current.st_ino) == (owned.st_dev, owned.st_ino)):
+                path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError:
+            # Never mask the original refusal with a cleanup/filesystem exception.
+            print('LAMPWAY_UE_CUBE_COMPLETION_REVOKE_FAILED')
+
     def __exit__(self, kind, value, traceback):
+        completed = False
         facts = {'status': 'completed' if kind is None else 'refused'}
         if kind is not None:
             facts['exception_type'] = kind.__name__  # Never persist exception text containing paths.
         try:
-            self.update(**facts)
-        except (OSError, ValueError):
-            if kind is None:
-                raise
-            # Keep the original capture failure; the last durable snapshot remains.
-            print('LAMPWAY_UE_CUBE_DIAGNOSTIC_WRITE_FAILED')
+            try:
+                self.update(**facts)
+                completed = kind is None
+            except (OSError, ValueError):
+                if kind is None:
+                    raise
+                # Keep the original capture failure; the last durable snapshot remains.
+                print('LAMPWAY_UE_CUBE_DIAGNOSTIC_WRITE_FAILED')
+        finally:
+            if not completed:
+                self._revoke_completion()
+            if self.completion is not None:
+                os.close(self.completion[1])
 
 
 def control_pixel(values, display=False):
@@ -102,7 +132,7 @@ def engine_identity(raw, expected):
     return {'version': match[1], 'changelist': int(match[2]), 'raw': raw}
 
 
-def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None):
+def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None, completion_owner=None):
     if len(rows) != request['profile']['project']['cvars']['r.LUT.Size'] ** 3:
         raise ValueError('incomplete engine capture; no cube published')
     if any(len(row) != 3 or not all(math.isfinite(v) and 0 <= v <= 1 for v in row) for row in rows):
@@ -144,6 +174,8 @@ def write_outputs(root, request, engine, rows, settings, controls, camera_forwar
     with target.open('xb') as output:
         output.write(data)
     with sidecar.open('x', encoding='utf-8') as output:
+        if completion_owner is not None:
+            completion_owner.own_completion(sidecar, output.fileno())
         json.dump(meta, output, indent=2, sort_keys=True)
     return target, sidecar
 
@@ -256,7 +288,9 @@ def capture(ue):
     # Malformed/non-QA requests cannot authorize writing a diagnostic file.
     plan(request)
     with ControlEvidence(root, request['name']) as evidence:
-        return _capture(ue, root, request, evidence)
+        completion = _capture(ue, root, request, evidence)
+    if completion is not None:
+        print('LAMPWAY_UE_CUBE_COMPLETE ' + json.dumps(completion))
 
 
 def _capture(ue, root, request, evidence):
@@ -380,12 +414,20 @@ def _capture(ue, root, request, evidence):
                 evidence.update(completed_cube_rows=len(rows))
                 print('LAMPWAY_UE_CUBE_PROGRESS ' + str(index) + '/' + str(len(points)))
         evidence.update('cube_publication', completed_cube_rows=len(rows))
-        paths = write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=camera_forward_world)
+        paths = write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=camera_forward_world,
+                              completion_owner=evidence)
         evidence.update('cube_complete', completed_cube_rows=len(rows))
-        print('LAMPWAY_UE_CUBE_COMPLETE ' + json.dumps({'cube': paths[0].name, 'sidecar': paths[1].name, 'rows': len(rows)}))
+        return {'cube': paths[0].name, 'sidecar': paths[1].name, 'rows': len(rows)}
     finally:
+        original_failure = sys.exc_info()[0] is not None
+        cleanup_error = None
         for actor in reversed(actors):
-            ue.EditorLevelLibrary.destroy_actor(actor)
+            try:
+                ue.EditorLevelLibrary.destroy_actor(actor)
+            except Exception as exc:
+                cleanup_error = cleanup_error or exc
+        if cleanup_error is not None and not original_failure:
+            raise cleanup_error
 
 
 if __name__ == '__main__':
