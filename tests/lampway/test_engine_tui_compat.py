@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import os
+import re
 
 import pytest
 
@@ -262,3 +263,79 @@ NODE_DISPLAY_REVISION = {
 })().catch(error=>{console.error(error);process.exitCode=1;});
 """,
 }
+
+
+@pytest.mark.skipif(os.environ.get("LAMPWAY_TEST_ENGINE_TUI_COMPAT") != "1",
+                   reason="requires explicit pinned engine pure TUI compiler/controller qualification")
+def test_native_handler_recreation_retains_gateway_owned_history_controller(tmp_path):
+    typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
+    assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
+    source = source_copy(tmp_path)
+    compat.apply(source)
+    event = (source / "ui-tui/src/app/createGatewayEventHandler.ts").read_text()
+    factory = re.search(r"const nativeHistory = (\w+)\(", event).group(1)
+    helper = ROOT / "scripts/lampway/hermes_tui/lampwayHistory.ts"
+    result = subprocess.run(["node", "-e", NODE_CONTROL.partition("(async () =>")[0]
+        + NODE_HANDLER_LIFETIME, str(typescript), str(helper), factory],
+        capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == "native gateway lifetime controls passed"
+
+
+NODE_HANDLER_LIFETIME = r"""
+(async () => {
+  const factoryName=process.argv[3],factory=loaded.exports[factoryName];
+  assert.equal(typeof factory,'function');
+  const owner={},otherOwner={},reads=[],rendered=[];
+  let sid='native-one',idle=true,revision=4,generation=0;
+  const nativeDisplay=['archived USER','native compressed DISPLAY'];
+  function handler(gateway=owner) {
+    const currentGeneration=++generation;
+    const ctx={sid:()=>sid,idle:()=>idle,
+      read:requestedSid=>new Promise((resolve,reject)=>reads.push({sid:requestedSid,resolve,reject})),
+      replace:rows=>rendered.push({generation:currentGeneration,rows})};
+    return factoryName==='createNativeHistoryRefresh' ? factory(ctx) : factory(gateway,ctx);
+  }
+  const info=()=>({running:!idle,lampway_history:{protocol:1,revision}});
+  handler().event('session.info',info());await tick();assert.equal(reads.length,0);
+  // Native React renders recreate this handler via composer/session callbacks.
+  for(let n=1;n<=3;n++) {
+    idle=false;let current=handler();current.event('message.start');
+    nativeDisplay.push('external USER '+n,'native answer '+n);revision++;
+    current.event('session.info',info());await tick();assert.equal(reads.length,n-1);
+    idle=true;current=handler();const freshGeneration=generation;
+    current.event('session.info',info());await tick();
+    assert.equal(reads.length,n,'handler recreation must not lose the native revision baseline');
+    reads[n-1].resolve({protocol:1,session_id:sid,revision,history:{messages:[...nativeDisplay]}});
+    await tick();assert.deepEqual(rendered[n-1],{generation:freshGeneration,rows:[...nativeDisplay]});
+    handler().event('session.info',info());await tick();assert.equal(reads.length,n);
+  }
+  let current=handler();assert.equal(current.request(sid),true);await tick();
+  const oldRead=reads.at(-1),count=rendered.length;
+  // Replace callback context while an actual snapshot is pending; fresh busy
+  // state must reject it, and a later idle event uses the latest replacement.
+  idle=false;handler();oldRead.resolve({protocol:1,session_id:sid,revision,history:{messages:['busy stale']}});
+  await tick();assert.equal(rendered.length,count);
+  idle=true;current=handler();const idleGeneration=generation;
+  current.event('message.complete');await tick();
+  reads.at(-1).resolve({protocol:1,session_id:sid,revision,history:{messages:['fresh context']}});
+  await tick();assert.deepEqual(rendered.at(-1),{generation:idleGeneration,rows:['fresh context']});
+  // An independent native gateway cannot borrow another gateway's admission.
+  const other=handler(otherOwner);assert.equal(other.request(sid),false);
+  other.event('session.info',info());await tick();const beforeOther=reads.length;
+  other.event('message.complete');await tick();assert.equal(reads.length,beforeOther);
+  // Pending old-session rows must not enter the newly focused session.
+  current=handler();current.request(sid);await tick();const oldSession=reads.at(-1);
+  sid='native-two';revision=0;current=handler();current.event('session.info',info());
+  oldSession.resolve({protocol:1,session_id:'native-one',revision:7,history:{messages:['wrong session']}});
+  await tick();assert.ok(!rendered.some(r=>r.rows.includes('wrong session')));
+  assert.equal(current.request('native-one'),false);
+  // Actual gateway reset invalidates a pending snapshot even after rebinding.
+  current.request(sid);await tick();const beforeReset=reads.at(-1),beforeRender=rendered.length;
+  handler().event('gateway.reconnecting');
+  beforeReset.resolve({protocol:1,session_id:sid,revision:0,history:{messages:['old gateway']}});
+  await tick();assert.equal(rendered.length,beforeRender);
+  assert.equal(handler().request(sid),false);
+  console.log('native gateway lifetime controls passed');
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"""

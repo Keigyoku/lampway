@@ -30,10 +30,10 @@ def apply(source):
     output[event] = _replace(output[event], "import { execFile } from 'child_process'",
         "import { execFile } from 'child_process'\n"
         "import { introMsg, toTranscriptMessages } from '../domain/messages.js'\n"
-        "import { createNativeHistoryRefresh, nativeHistoryReplacement, retainFrontendNotices } from './lampwayHistory.js'")
+        "import { reuseNativeHistoryRefresh, nativeHistoryReplacement, retainFrontendNotices } from './lampwayHistory.js'")
     output[event] = _replace(output[event], "  const { appendMessage, panel, setHistoryItems } = ctx.transcript",
         "  const { appendMessage, panel, setHistoryItems } = ctx.transcript\n"
-        "  const nativeHistory = createNativeHistoryRefresh({\n"
+        "  const nativeHistory = reuseNativeHistoryRefresh(ctx.gateway.gw, {\n"
         "    sid: () => getUiState().sid || undefined,\n"
         "    idle: () => !getUiState().busy && !getTurnState().streaming,\n"
         "    read: sid => rpc('lampway.history_snapshot', { session_id: sid }),\n"

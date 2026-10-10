@@ -102,7 +102,9 @@ and same-revision info/resume updates, and retain the original late-reply/sessio
 Successive external USER turns refresh only on strictly newer native revisions while idle; intermediate markers behind an
 accepted snapshot stay quiet. Compacted native DISPLAY and frontend notices remain visible. Frontend provenance must
 survive the actual native timestamp clone without entering JSON. Preserved notices keep their own order/content as a suffix;
-no role or text heuristic identifies transient rows.
+no role or text heuristic identifies transient rows. Exercise actual patched factory recreation between events, latest
+callback/busy state on pending snapshots, independent gateway admission, SID changes and real reconnect invalidation.
+Holding one controller instance throughout a pure test cannot qualify native render lifetime.
 
 ## Test
 
@@ -150,3 +152,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | successive native external USER display controls | actual pinned TUI external-user failure and real controller RED | ordinary-info prohibition also suppressed genuinely newer transcript revisions | history paragraph: preserve initial/same/intermediate quiet controls, mirror three successive external turns only when idle, retain compressed DISPLAY and cloned notice suffix | causal RED one failure/one pass; six existing and new compatibility checks pass without skips; matching native rerun remains required |
 | 2026-10-10 | native extension catalogue admission | exact 9af native CI and native-faithful positive mock RED | a flat consumer discarded the extension payload and treated blocked configuration metadata as active routes | offline QA paragraph: exact nested envelope, resolved boolean session admission, ready canonical route and independent foreign side-effect checks | baseline mock PASS/restricted causal RED; 124 focused checks PASS; repaired native restricted/CI remains NOT RUN |
 | 2026-10-10 | native MCP hot-reload completion versus filtered no-op | exact native 1.0.46 loopback baseline failure and eight controlled ordering REDs | update acknowledgement preceded handshake, while filtered no-op updates cannot emit fresh completion | offline QA paragraph: pre-update current-session fence, fresh restart completion, or one current ready no-op catalogue; shared twenty-second budget, no sleep or retry | original ten readiness controls preserved with seventeen new pure reload controls; repaired actual native/CI remains NOT RUN |
+| 2026-10-10 | gateway-owned native history controller lifetime | b1 native compression still hides later USER rows and causal factory-recreation RED | native React renders recreated the handler and discarded its revision baseline | history paragraph: preserve controller state per gateway owner with fresh callbacks, isolate independent gateways and real resets, retain no transcript | actual compressed-history failures and causal recreated-factory RED retained; unchanged rebuilt terminal qualification remains required |

@@ -17,6 +17,31 @@ type Context = {
 let requestCurrent: (sid: string, after?: () => void) => boolean = () => false
 export const requestNativeHistoryRefresh = (sid: string, after?: () => void): boolean => requestCurrent(sid, after)
 
+const gatewayHistory = new WeakMap<object, {
+  context: Context
+  controller: ReturnType<typeof createNativeHistoryRefresh>
+}>()
+
+export function reuseNativeHistoryRefresh(owner: object, ctx: Context) {
+  let entry = gatewayHistory.get(owner)
+  if (!entry) {
+    const state = { context: ctx }
+    const controller = createNativeHistoryRefresh({
+      sid: () => state.context.sid(),
+      idle: () => state.context.idle(),
+      read: sid => state.context.read(sid),
+      replace: rows => state.context.replace(rows)
+    })
+    entry = Object.assign(state, { controller })
+    gatewayHistory.set(owner, entry)
+  }
+  // Native React renders replace event handlers, but the gateway owns their
+  // revision/epoch state. Pending replies must use the fresh render's context.
+  entry.context = ctx
+  requestCurrent = entry.controller.request
+  return entry.controller
+}
+
 export function createNativeHistoryRefresh(ctx: Context) {
   let sid = ''
   let epoch = 0

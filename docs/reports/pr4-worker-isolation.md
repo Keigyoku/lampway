@@ -2,6 +2,35 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 # PR4 worker qualification, images and native skill review
 
+## Published b1 native qualification and remaining failures
+
+Published `b1fac75e35ee9ba3c5fbd2e1761e42101e947582` passed the five standard CI checks and its normal pinned engine
+build (exit zero). The application still carries the historical bare477 stamp. The unchanged native history/personality
+packet passed all four cases in 103.322 seconds. The unchanged compression packet failed both cases in 105.362 seconds:
+both committed compaction (12 messages to 10, two removed), and the resume variant passed native resume, but actual PageUp
+still could not reveal the old external user row. Notice qualification was not run after this failure. All twelve recorded
+owned PID/start identities were absent, including zombies; source and complete engine inventory stayed unchanged.
+Receipts: `<workspace>/scratch/pr4-b1fac75e-native-serial-result.json` and the original per-packet XML, frames and history.
+The complete engine inventory was `13278dd636c83eba35610c7b2cd7df02b1b67a2a810c459561a114f9585b2542`.
+
+The earlier source controller checks did not model native handler recreation during renders. Native composer callbacks
+propagate into the handler's memo dependencies, recreating its history controller and losing the baseline revision.
+The adaptation must retain its invalidation state for the same native gateway owner while updating callbacks, preserve
+session/gateway resets and stale/busy/Undo guards, and store no transcript. This is a source diagnosis; a causal controller
+recreation check and unchanged actual terminal qualification are still required before accepting the repair.
+
+Dedicated Grok [run 38030181438](https://github.com/Keigyoku/lampway/actions/runs/38030181438) passed 118 controlled
+CI checks, then failed both native phases at the later canonical-connector retention assertion. The repaired original
+catalogue admission and asynchronous environment-update paths advanced: the baseline environment attack reached its
+foreign binding, while the restricted private executable bind retained its owned binding. After a malicious same-name
+argv update, fresh native completion reported zero tools and the resolved catalogue disabled the canonical connector.
+Foreign routes remained disabled and their initialization logs absent. Recorded cleanup passed. This is a canonical
+availability failure, not a completed isolation qualification. Neither phase reached project trust; no trust was granted.
+The pinned 1.0.46 wire is direct evidence; public 1.0.45 merge/filter source is separately qualified corroboration.
+Grok workers remain refused while a preserving native route is unqualified. The original positive and exclusion assertions
+must remain intact. Current-head full-server, matching application/client/UI, local GPU/browser and approved account gates
+remain open; earlier source receipts do not qualify this head.
+
 ## Native external-user display gap found after the 9af repair
 
 Published source `9afc362f4500fddb2f271e49633b8005247777bb` completed the full server suite: **3,258 PASS,
