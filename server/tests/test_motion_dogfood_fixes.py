@@ -396,3 +396,58 @@ def test_a_syntax_error_in_scene_js_is_reported_with_file_line_and_message(live_
     with pytest.raises(M.Refused) as exc:
         M._ready(live_browser, scene / "index.html", 64, 64, scene_root=scene)
     assert "the first: scene.js:2:" in str(exc.value) and "SyntaxError" in str(exc.value) and "specs/motion_graphics/scene.md" in str(exc.value)
+
+
+# 11. a draw-on opening the scene declares is not a weak poster frame
+def _sparse_png(w=320, h=180):
+    import io as _io
+    im = Image.new("RGB", (w, h), (10, 10, 12))
+    for x in range(40, 44):                                       # a few pixels of stroke: detail share between 0.01% and 0.1%
+        im.putpixel((x, 90), (240, 240, 240))
+    buf = _io.BytesIO()
+    im.save(buf, "PNG")
+    return buf.getvalue()
+
+
+class _DrawOn(FakeCapture):
+    def __init__(self, opening=None, **kw):
+        super().__init__(duration_s=2.0, **kw)
+        self.opening = opening
+
+    def scene(self):
+        return {"duration_s": 2.0, **({"opening_s": self.opening} if self.opening is not None else {})}
+
+    def frame(self, t):
+        self.frames_asked.append(t)
+        return _sparse_png(self.width, self.height) if t < 0.5 else super().frame(t)
+
+
+def _sparse_rows(res):
+    return [(f["frame"], f["severity"]) for f in res["self_check"]["findings"] if f["check"] == "sparse"]
+
+
+def test_the_sparse_opening_still_warns_without_a_declaration(tmp_path):
+    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _DrawOn())
+    assert (0, "warn") in _sparse_rows(res) and "opening_s" not in res
+
+
+def test_a_declared_opening_turns_sparse_into_info_and_is_recorded(tmp_path):
+    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _DrawOn(opening=0.6))
+    assert _sparse_rows(res) and all(sev == "info" for _f, sev in _sparse_rows(res))
+    assert res["opening_s"] == 0.6 and res["self_check"]["warn"] == 0
+    detail = [f["detail"] for f in res["self_check"]["findings"] if f["check"] == "sparse"][0]
+    assert "inside the scene's declared opening (window.__scene.opening_s 0.6 s)" in detail
+
+
+def test_the_opening_ends_where_declared_and_empty_still_fails(tmp_path):
+    from lampway_server.motion import check as C
+    f = [{"check": "sparse", "severity": "warn", "detail": "d"}, {"check": "empty", "severity": "fail", "detail": "e"}]
+    assert C.opening_grace(f, 0.6, 0.6) == f                              # t == opening_s is after the opening
+    inside = C.opening_grace(f, 0.0, 0.6)
+    assert inside[0]["severity"] == "info" and inside[1] == f[1]
+
+
+@pytest.mark.parametrize("bad", [-0.1, 1.5, 4.0, "1", True])
+def test_an_opening_beyond_bounds_is_refused(tmp_path, bad):
+    with pytest.raises(M.Refused, match="opening_s"):
+        M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _DrawOn(opening=bad))

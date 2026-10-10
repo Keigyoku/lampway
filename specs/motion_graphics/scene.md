@@ -16,6 +16,8 @@ window.__audit = () => ({ text: [], marks: [] });
 
 This is an interface sketch, not a complete acceptable scene. `__setup()` must load all assets/fonts before capture and return an object containing both arrays, reporting each resource as `{font,ok}` or `{src,ok}` with a nonempty string identifier and boolean readiness. Use empty arrays when no resources of that type are needed. Malformed reports are refused in both capture passes; false readiness names the missing resource. Width, height, fps and duration follow one defaults order: an explicit tool argument, then the template's `defaults` (`resolution` and `aspect_ratio` give width and height, `duration` gives `duration_s`), then the scene's own `__scene` (integer `width`, `height`, `fps`; numeric `duration_s`), then the tool fallback (1920 × 1080, 30 fps; there is no fallback duration). The resolved values determine the viewport: a scene-declared size is rendered in a fresh browser opened at that size. The receipt's `input_sources` and the summary's `inputs` name each value's source (`explicit`, `template`, `scene`, `tool default`). When an explicit or template value overrides a differing `__scene` value, the receipt carries one `scene_override` warning (frame 0) naming both, and a help line says how to render the scene's own. Captured PNG dimensions must match that viewport.
 
+`__scene` may also declare `opening_s`, the seconds of an intentional draw-on opening (see Empty/sparse below); the receipt records it.
+
 `__frame(t)` must establish animation from time alone. Authoring forbids clocks, unseeded randomness, requestAnimationFrame and independently advancing CSS animations/transitions. Runtime checks `document.getAnimations()` after setup and rejects active animations; it does not statically enforce every forbidden JavaScript API. Use deterministic math/data and preloaded resources; fresh sequential browser checks establish sampled agreement.
 
 `__audit()` is required after setup and returns arrays for all visible text and marks at the captured time. Text items include `sel`, `text`, `box=[x0,y0,x1,y1]`, `font_px`, `opacity`. Mark items include `sel`, `box`. Coordinates are viewport pixels with finite ordered bounds. Runtime validates arrays, selectors, finite ordered geometry, text strings, positive font size and opacity in [0,1]. Authored completeness remains an author responsibility: the renderer cannot discover omitted elements. Empty lists are appropriate only when no such elements are visible.
@@ -24,7 +26,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 
 | Check | Current acceptance rule |
 |---|---|
-| Empty/sparse | Local luminance-detail share below 0.01% fails; below 0.1% warns |
+| Empty/sparse | Local luminance-detail share below 0.01% fails; below 0.1% warns, except inside a declared opening: `__scene.opening_s` (0 to 3 s, at most half the duration) marks a draw-on build-in, and a sparse sample before it is `info`. Empty still fails there |
 | Title safe | Reported text must lie within 5% inset on each side |
 | Font size | Reported text under 22 px fails |
 | Scene override | An explicit or template width, height, fps or duration that overrides a differing `__scene` value warns (`scene_override`), with a help line |

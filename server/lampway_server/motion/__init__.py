@@ -154,6 +154,17 @@ def _declared(scene) -> dict:
     return out
 
 
+def _opening(scene, duration: float) -> float:
+    """The scene's declared draw-on opening (window.__scene.opening_s), 0 when absent."""
+    v = (scene if isinstance(scene, dict) else {}).get("opening_s")
+    if v is None:
+        return 0.0
+    cap = min(C.OPENING_MAX_S, duration / 2)
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 <= v <= cap:
+        raise Refused(f"window.__scene.opening_s {v!r}: declare seconds from 0 to {cap:g} (at most {C.OPENING_MAX_S:g} s and half the duration)")
+    return float(v)
+
+
 def _resolve(a: dict, template: dict, declared: dict) -> tuple:
     """(values, sources) for width, height, fps and duration_s in the one order: explicit, template, scene, tool default."""
     values, sources = {}, {}
@@ -404,7 +415,8 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     try:
         _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
         checkpoint(cancel)
-        declared = _declared(capture.scene())
+        scene_meta = capture.scene()
+        declared = _declared(scene_meta)
         resolved, sources = _resolve(a, template, declared)
         _check_fps(resolved["fps"])
         _check_size(resolved["width"], resolved["height"])
@@ -418,6 +430,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
             _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)
             checkpoint(cancel)
         resolved["duration_s"] = duration
+        opening = _opening(scene_meta, duration)
         size_notes, override_help = _overrides(resolved, sources, declared)
         n = int(round(duration * fps))
         if n < 1:
@@ -448,7 +461,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 audit = capture.audit()
                 C.validate_audit(audit)
                 im, stats = C.frame_stats(png)
-                found = C.findings(im, stats, audit, W, H)
+                found = C.opening_grace(C.findings(im, stats, audit, W, H), t, opening)
                 stem = f"f{i:04d}"
                 (out / "samples" / f"{stem}.png").write_bytes(png)
                 (out / "samples" / f"{stem}.json").write_text(json.dumps({"frame": i, "t": t, "stats": stats, "audit": audit, "findings": found}, indent=1), encoding="utf-8")
@@ -493,7 +506,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         "inputs": {"scene": scene_rel, "entry": a["entry"] if a["html"] is None else "index.html", "name": name, "fps": fps, "width": W, "height": H,
                    "duration_s": duration, "formats": [f for f in E.FORMATS if f in a["formats"]], "samples": a["samples"], "template": a["template"],
                    "variables": a["variables"]},
-        "input_sources": sources, "help": override_help,
+        "input_sources": sources, "help": override_help, "opening_s": opening,
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],
         "engine": {"chromium": capture.product, "chrome_flags": list(capture.flags), "ffmpeg": ffmpeg,
                    "encoder": {"threads": threads, "args": E.receipt_args(argv)}, "driver_sha256": F.sha256_file(F.__file__)},
@@ -530,6 +543,8 @@ def summary(receipt: dict) -> dict:
     sources = receipt.get("input_sources") or {}
     if sources:
         out["inputs"] = [{"name": k, "value": receipt["inputs"][k], "source": sources[k]} for k in RESOLVED if k in sources]
+    if receipt.get("opening_s"):
+        out["opening_s"] = receipt["opening_s"]
     if receipt.get("error"):
         out["error"] = receipt["error"]
     out["help"] = list(receipt.get("help") or []) + next_steps(receipt)

@@ -122,6 +122,8 @@ def _render_view(out: dict, full: bool) -> tuple:
         view["error"] = out["error"]
     view["files"] = [{"kind": k, "path": p} for k, p in out["files"].items()] + [{"kind": "receipt", "path": f"{out['out_dir']}/receipt.json"}]
     view["inputs"] = out.get("inputs") or []
+    if out.get("opening_s"):
+        view["opening_s"] = out["opening_s"]
     sc = out["self_check"]
     view["fail"], view["warn"] = sc["fail"], sc["warn"]
     fields = ("frame", "check", "severity", "detail") if full else ("frame", "check", "severity")

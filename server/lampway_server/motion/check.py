@@ -130,6 +130,19 @@ def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
     return f
 
 
+# A draw-on opening (a mark stroking in from nothing) is sparse by intent. The scene may declare it, window.__scene.opening_s, and a
+# sampled frame inside it then reports `sparse` as info. `empty` still fails: frame 0 must show a mark (the template contract).
+OPENING_MAX_S = 3.0                     # longer than a few seconds is a section, not an opening: the poster-frame warning stays
+
+
+def opening_grace(found: list, t: float, opening_s: float) -> list:
+    """``found`` for a frame at ``t``: inside the declared opening a ``sparse`` warning becomes info, saying why."""
+    if not opening_s or t >= opening_s:
+        return found
+    return [dict(f, severity="info", detail=f"{f['detail']}; inside the scene's declared opening (window.__scene.opening_s {opening_s:g} s)")
+            if f["check"] == "sparse" else f for f in found]
+
+
 TILE_LONG_EDGE = 640
 
 
