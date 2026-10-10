@@ -4,40 +4,41 @@
 
 ## Latest complete source-suite result
 
-Committed source `404476557584d1e2297013b1780a9828022e1ebe` completed the full server suite with **3,149 PASS,
-27 FAIL and 31 SKIP/NOT RUN** in **1,242.051 seconds**. No cases were left unstarted. The source fingerprints held unchanged,
-and recorded owned cleanup had no survivors. Exact failure accounting is
-`<workspace>/scratch/pr4-exact-final-head-full-server-20261011/final-failure-accounting.json`.
+Committed source `b978857e3c1b9df2fba568a4ceb190c2abb52736` completed the full server suite with **3,198 PASS,
+1 FAIL and 31 SKIP/NOT RUN** in **1,030.207 seconds**. All 3,230 cases started. Clean source/native fingerprints held
+unchanged and exact owned cleanup left zero survivors. The owned resource tracker required TERM then KILL; its destructor
+warning is retained. The full receipt and failure accounting are in
+`<workspace>/scratch/pr4-exact-final-head-full-server-20261011-attempt2/`.
 
-Twenty-five failures were legacy pane fixtures missing the required prior human harness acknowledgement. Two were long-
-basetemp socket-path assertions: `test_existing_outer_socket_requires_the_exact_native_wrap_parent` and
-`test_user_config_untouched`. This failed snapshot remains retained without subtracting later repairs. Q1/B5 changes
-previously described as uncommitted preparation are committed at this source snapshot.
+The sole failure was `test_readiness_queries_native_identity_at_project_and_requires_namespace_success`: its legacy
+success mock returned a tuple where production `candidate_paths` returns a named mapping. The correction uses the real
+`native`, `bwrap` and `connector` keys. Original assertions and the 60-second timeout are unchanged; the separate malformed-
+tuple refusal control remains. Scratch causal proof retained **1 FAIL/5 PASS**, then **6 PASS**; repository integration
+passed **16 checks**, no failures or skips, including path-contract controls. Receipts are in
+`<workspace>/scratch/pr4-grok-adapter-mock-shape/`. The complete corrected-source rerun is still owed.
 
-Subsequent uncommitted fixture repairs passed all 25 notice cases plus 36 fresh controls with assertions preserved. The
-original two socket-path cases passed with a short temporary root: **2 PASS in 0.19 seconds**, retained in
-`<workspace>/scratch/pr4-short-basetemp-original-tests.xml`. No repaired-candidate full-suite receipt exists yet. A separate
-actual-app Q1 loopback-consent audit retained **1 FAIL, 2 PASS** in
-`<workspace>/scratch/pr4-q1-consent-boundary-audit`. The subsequent authenticated human-client ticket/admission and UI
-repairs are applied, uncommitted and frozen: **85 server PASS in 2.53 seconds**, **39 client PASS in 1.58 seconds**, with no
-failures or skips, retained as `server-freeze.{log,xml}` and `client-freeze.{log,xml}` in that directory. This is focused
-source proof, not a full-suite, new-build or account receipt.
+The earlier `40447655` full suite remains retained: **3,149 PASS, 27 FAIL, 31 SKIP/NOT RUN** in **1,242.051 seconds**.
+Its 25 notice-fixture failures were repaired by seeding prior human acknowledgement only in synthetic positive fixtures;
+fresh-admission controls remain unseeded. Its two original socket cases passed with a short temporary root. Neither later
+focused passes nor the b978 result erase that failed receipt.
 
-Ticket/admission lifetime is 120 seconds; the browser form lasts at most 600 seconds and remains bounded by the original
-JWT expiry. Scope/model binding and one-use admission are enforced; no active-JWT revocation is claimed. The client requires
-its human gate, opens only the fixed local URL off-thread, uses cache-only state, surfaces errors and avoids ended-scene RNA.
-Canonical i18n is frozen for three new messages across 48 PO files; all **411,057 retained translations** are unchanged,
+Q1 human-ticket/admission, native preference UI and canonical i18n are committed at `b978857e`. The actual-app raw-loopback
+consent audit retained **1 FAIL/2 PASS** before repair. Final focused controls passed **85 server checks in 2.53 seconds**
+and **39 client checks in 1.58 seconds**, without failures or skips, in
+`<workspace>/scratch/pr4-q1-consent-boundary-audit/`. Admission lasts 120 seconds; the browser form lasts at most 600 seconds,
+bounded by original JWT expiry. Scope/model/one-use checks and native script refusal hold; active-JWT revocation is not
+claimed. Canonical extraction adds three messages across 48 PO files and preserves all **411,057 retained translations**,
 recorded in `<workspace>/scratch/pr4-q1-i18n-20261010/receipt.json`.
 
-The suite used the historical `84d896f3` binary. A repaired-candidate full server receipt, matching new build, complete
-built-client run, final published-head CI and real-account qualification remain owed. Grok's production path-mapping repair
-is now applied but uncommitted, with **73 focused PASS**; readiness remains false and no complete repaired native Grok CI
-is claimed. Actual project-native Grok baseline positives failed for both fresh and Git workspaces within their bounds:
-normal native startup requested `_x.ai/folder_trust/request` for the exact synthetic workspace with `configKinds=["mcp"]`.
-The diagnostic rejected it and granted no trust. A source-proof proposal remains pending root/user authority; worker
-readiness stays false. These later focused results do not change the failed 404 snapshot.
-The earlier passing `7bf02b8c` receipt is historical and does not override this failed result. This is not acceptance.
+Grok's production mapping repair and removal of the native QA override are committed at `b978857e`, with **73 focused
+passes**. Readiness remains false. Actual project-native positive controls failed in fresh and Git-bounded workspaces:
+native `_x.ai/folder_trust/request` requested the exact synthetic project and `configKinds=["mcp"]`; diagnostics rejected
+it without grants. The scoped native-approval proposal awaits explicit authority. No complete repaired native Grok CI
+or enabled worker route is claimed.
 
+The source suites used historical `84d896f3` Blender. The complete corrected-source suite, matching normal build, full
+client/native packets, final published-head CI, consented ChatGPT probe and real-account qualification remain owed.
+Historical passing checkpoints do not override either failed full run. This is not acceptance.
 
 This is a partial verification report for the continued agent-modes work. It is not an acceptance receipt or permission to
 merge. The governing scope is [agent-modes-spec.md](agent-modes-spec.md), including the captain's decisions. Account-backed

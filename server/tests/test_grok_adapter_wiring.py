@@ -66,7 +66,8 @@ def test_malformed_candidate_binding_refuses_before_probe(tmp_path, monkeypatch,
 def test_readiness_queries_native_identity_at_project_and_requires_namespace_success(tmp_path, monkeypatch):
     from lampway_server import grok_worker as G
     calls = []
-    monkeypatch.setattr(G, "candidate_paths", lambda binary: ("/native/grok", "/native/bwrap", "/native/helper"))
+    monkeypatch.setattr(G, "candidate_paths", lambda binary: {
+        "native": "/native/grok", "bwrap": "/native/bwrap", "connector": "/native/helper"})
     monkeypatch.setattr(G, "preflight", lambda *args: {"native": args[0], "namespace_probe": ["/native/bwrap", "--", "/bin/true"]})
     def probe(argv, env, **kwargs):
         calls.append((argv, env, kwargs))

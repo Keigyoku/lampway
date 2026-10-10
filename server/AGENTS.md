@@ -355,6 +355,8 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
 
 Install the declared test extra (`pip install -e '.[test]'` from `server/`) for the standalone suite.
 Its PyYAML dependency supports native Hermes policy fixtures; missing prerequisites never justify skipping policy assertions.
+Grok readiness success fixtures return the production `candidate_paths` named mapping (`native`, `bwrap`, `connector`).
+Malformed-shape refusal controls remain separate; a success mock must not conceal the production lookup contract.
 
 ```bash
 cd server
@@ -487,3 +489,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | named Grok executable path contract | production mapping inspection and six causal pure-control failures | readiness iterated mapping keys as executable paths, while the native QA tuple override concealed the mismatch | invariant 6: keyed consumer, real production lookup and exact native/namespace/helper hash checks before herdr | six causal REDs retained; ten path controls and 73 focused regressions pass; repaired complete native CI and worker enablement remain separate |
 
 | 2026-10-10 | Q1 human browser admission | raw loopback ASGI causal RED reached fixed probe without a human action | unauthenticated cookie/nonce minting treated an unlabelled local HTTP client as a human | invariant 10: authenticated human Client admission ticket before browser nonce, scope/model/expiry/one-use binding and native script refusal | synthetic source controls only; account and matching native Client execution remain unverified |
+| 2026-10-10 | Grok readiness fixture follows native lookup shape | complete b978 source suite: one tuple-index TypeError | the legacy success mock returned a tuple after production adopted the named path mapping | Test: success fixtures use the production mapping; malformed tuple refusal remains tested, with original assertions and timeout preserved | scratch causal RED one failure/five passes, corrected six passes; complete source rerun required |
