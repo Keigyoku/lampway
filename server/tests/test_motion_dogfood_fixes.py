@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Regressions for the motion-graphics dogfood log (PR #3 follow-ups): a full Chrome's component extension is named as such, the missing
-browser says where to get one, the contact sheet keeps the render's aspect, vertical 4K has the landscape ceiling, and a scene whose declared
-size differs from the rendered one is warned about. Synthetic fixtures only; no browser unless LAMPWAY_CHROMIUM is set."""
+browser says where to get one, the contact sheet keeps the render's aspect, vertical 4K has the landscape ceiling, one defaults order
+(explicit, template, window.__scene, tool fallback) with each value's source reported, and template defaults and path variables. Synthetic fixtures only; no browser unless LAMPWAY_CHROMIUM is set."""
 import json
 from pathlib import Path
 
@@ -124,7 +124,7 @@ def test_the_tool_schema_allows_vertical_4k():
     assert props["width"]["maximum"] == 3840 and props["height"]["maximum"] == 3840
 
 
-# 6. a declared scene size that differs from the render is warned about
+# 6. one defaults order: explicit, then template defaults, then the scene's window.__scene, then the tool fallback
 class _Declares(FakeCapture):
     def __init__(self, declared, **kw):
         super().__init__(**kw)
@@ -141,18 +141,74 @@ def _project(tmp_path):
     return project
 
 
-def test_a_declared_size_that_differs_is_a_warning(tmp_path):
-    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _Declares({"width": 1080, "height": 1920}))
-    size = [f for f in res["self_check"]["findings"] if f["check"] == "size"]
-    assert len(size) == 1 and size[0]["severity"] == "warn"
-    assert "1080x1920" in size[0]["detail"] and "320x180" in size[0]["detail"] and "pass width and height" in size[0]["detail"]
-    assert res["self_check"]["warn"] >= 1
+def _sources(res):
+    return {row["name"]: (row["value"], row["source"]) for row in res["inputs"]}
+
+
+def _render(tmp_path, args, declared, defaults=None, opened=None):
+    def new():
+        cap = _Declares(declared)
+        (opened if opened is not None else []).append(cap)
+        return cap
+    return M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **args}, new, defaults=defaults)
+
+
+def test_the_scene_declared_size_is_the_default_and_is_rendered_in_a_fresh_browser(tmp_path):
+    opened = []
+    res = _render(tmp_path, {"fps": 10}, {"width": 180, "height": 320, "duration_s": 0.5}, opened=opened)
+    assert _sources(res) == {"width": (180, "scene"), "height": (320, "scene"), "fps": (10, "explicit"), "duration_s": (0.5, "scene")}
+    assert (opened[-1].width, opened[-1].height) == (180, 320) and all(c.closed for c in opened)
+    assert len(opened) == 3                                    # the size probe at the fallback, the render at the scene's size, the determinism probe
+    assert not [f for f in res["self_check"]["findings"] if f["check"] == "scene_override"]
+    receipt = json.loads((tmp_path / "project" / res["out_dir"] / "receipt.json").read_text())
+    assert receipt["inputs"]["width"] == 180 and receipt["input_sources"]["width"] == "scene"
+
+
+def test_the_tool_fallback_is_last_and_named(tmp_path):
+    res = _render(tmp_path, {"duration_s": 0.2, "width": 320, "height": 180}, {})
+    assert _sources(res) == {"width": (320, "explicit"), "height": (180, "explicit"), "fps": (30, "tool default"), "duration_s": (0.2, "explicit")}
+
+
+def test_template_defaults_rank_between_explicit_and_scene(tmp_path):
+    res = _render(tmp_path, {"fps": 10, "width": 320}, {"width": 180, "height": 320, "duration_s": 2}, defaults={"width": 640, "height": 360, "duration_s": 0.3})
+    assert _sources(res) == {"width": (320, "explicit"), "height": (360, "template"), "fps": (10, "explicit"), "duration_s": (0.3, "template")}
+
+
+def test_an_explicit_or_template_override_of_a_differing_scene_value_is_a_warning_with_help(tmp_path):
+    res = _render(tmp_path, SMALL, {"width": 1080, "height": 1920})
+    over = [f for f in res["self_check"]["findings"] if f["check"] == "scene_override"]
+    assert len(over) == 1 and over[0]["severity"] == "warn" and res["self_check"]["warn"] >= 1
+    assert "width 320 (explicit) over the scene's 1080" in over[0]["detail"] and "height 180 (explicit) over the scene's 1920" in over[0]["detail"]
+    assert any("omit width and height" in h for h in res["help"])
 
 
 @pytest.mark.parametrize("declared", [{"width": 320, "height": 180}, {}, {"width": "wide"}])
-def test_a_matching_or_absent_declared_size_is_silent(tmp_path, declared):
-    res = M.render(_project(tmp_path), {"scene": "motion/scenes/vert", **SMALL}, lambda: _Declares(declared))
-    assert not [f for f in res["self_check"]["findings"] if f["check"] == "size"]
+def test_a_matching_absent_or_malformed_declared_value_is_silent(tmp_path, declared):
+    res = _render(tmp_path, SMALL, declared)
+    assert not [f for f in res["self_check"]["findings"] if f["check"] == "scene_override"]
+    assert not any("omit" in h for h in res["help"])
+
+
+def test_a_scene_declared_size_out_of_bounds_is_refused_with_the_bounds(tmp_path):
+    with pytest.raises(M.Refused, match="long edge 16..3840, short edge 16..2160"):
+        _render(tmp_path, {"fps": 10}, {"width": 4096, "height": 2160})
+
+
+@pytest.mark.parametrize("params,expected", [
+    ({"resolution": "1080p", "aspect_ratio": "16:9", "duration": 13}, {"width": 1920, "height": 1080, "duration_s": 13}),
+    ({"resolution": "1080p", "aspect_ratio": "9:16"}, {"width": 1080, "height": 1920}),
+    ({"resolution": "4k", "aspect_ratio": "16:9"}, {"width": 3840, "height": 2160}),
+    ({"resolution": "720p", "aspect_ratio": "1:1"}, {"width": 720, "height": 720}),
+    ({"duration": 8, "model": "x"}, {"duration_s": 8}),
+    ({}, {}),
+])
+def test_template_defaults_map_resolution_and_aspect_to_pixels(params, expected):
+    assert M.template_defaults(params) == expected
+
+
+def test_an_unreadable_template_resolution_is_refused():
+    with pytest.raises(M.Refused, match="resolution like 1080p"):
+        M.template_defaults({"resolution": "huge", "aspect_ratio": "16:9"})
 
 
 # containment: an out-of-scene file request is refused at once, not deferred to the next check

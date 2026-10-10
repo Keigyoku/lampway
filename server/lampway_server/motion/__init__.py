@@ -34,6 +34,11 @@ INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "widt
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
 MAX_LONG_EDGE, MAX_SHORT_EDGE = 3840, 2160
+# One defaults order for every rendered dimension (scene.md): an explicit argument, then the template's defaults, then the scene's own
+# window.__scene, then the tool's fallback. Each resolved value records where it came from.
+RESOLVED = ("width", "height", "fps", "duration_s")
+FALLBACK = {"width": 1920, "height": 1080, "fps": 30}
+SOURCES = ("explicit", "template", "scene", "tool default")
 
 
 class Refused(ValueError):
@@ -72,18 +77,16 @@ def inputs(args: dict) -> dict:
     if args.get("html") is not None and args.get("scene") is not None:
         raise Refused("pass one scene source: scene or html, not both")
     a = {"action": args.get("action") or "render", "scene": args.get("scene"), "html": args.get("html"), "entry": args.get("entry") or "index.html",
-         "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": 30 if args.get("fps") is None else args["fps"],
-         "width": 1920 if args.get("width") is None else args["width"], "height": 1080 if args.get("height") is None else args["height"],
+         "name": args.get("name"), "duration_s": args.get("duration_s"), "fps": args.get("fps"),
+         "width": args.get("width"), "height": args.get("height"),
          "formats": args.get("formats", ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
          "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
-    fps, w, h = _int(a["fps"]), _int(a["width"]), _int(a["height"])
-    if fps is None or not 1 <= fps <= 60:
-        raise Refused(f"fps {a['fps']} out of range 1..60: pass fps between 1 and 60")
-    # the ceiling is by edge, not by axis: 2160x3840 (vertical 4K) is the same frame as 3840x2160
-    if (w is None or h is None or w % 2 or h % 2 or min(w, h) < 16 or max(w, h) > MAX_LONG_EDGE or min(w, h) > MAX_SHORT_EDGE):
-        raise Refused(f"size {a['width']}x{a['height']}: width and height must be even, long edge 16..{MAX_LONG_EDGE}, short edge 16..{MAX_SHORT_EDGE}")
+    if a["fps"] is not None:
+        _check_fps(a["fps"])
+    if a["width"] is not None or a["height"] is not None:          # a lone explicit edge is checked with the fallback for the other
+        _check_size(FALLBACK["width"] if a["width"] is None else a["width"], FALLBACK["height"] if a["height"] is None else a["height"])
     if a["duration_s"] is not None:
         _duration(a["duration_s"])
     if not isinstance(a["formats"], list) or not a["formats"] or not all(isinstance(f, str) for f in a["formats"]) or not set(a["formats"]) <= set(E.FORMATS) or len(set(a["formats"])) != len(a["formats"]):
@@ -103,6 +106,75 @@ def inputs(args: dict) -> dict:
     if a["html"] is None and not a["scene"]:
         raise Refused("pass scene (a project-relative folder) or html (a single-file scene) with a name")
     return a
+
+
+def _check_fps(fps) -> None:
+    if _int(fps) is None or not 1 <= fps <= 60:
+        raise Refused(f"fps {fps} out of range 1..60: pass fps between 1 and 60")
+
+
+def _check_size(w, h) -> None:
+    # the ceiling is by edge, not by axis: 2160x3840 (vertical 4K) is the same frame as 3840x2160
+    if (_int(w) is None or _int(h) is None or w % 2 or h % 2 or min(w, h) < 16 or max(w, h) > MAX_LONG_EDGE or min(w, h) > MAX_SHORT_EDGE):
+        raise Refused(f"size {w}x{h}: width and height must be even, long edge 16..{MAX_LONG_EDGE}, short edge 16..{MAX_SHORT_EDGE}")
+
+
+_RESOLUTION = re.compile(r"^(\d{3,4})p$", re.IGNORECASE)
+_NAMED = {"hd": 720, "fhd": 1080, "2k": 1440, "4k": 2160, "uhd": 2160}
+_ASPECT = re.compile(r"^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$")
+
+
+def template_defaults(params) -> dict:
+    """A motion template's ``defaults`` (resolution + aspect_ratio, duration) as tool inputs: the short edge from the resolution
+    ("1080p", "4k"), the long edge from the aspect ("16:9" -> 1920x1080, "9:16" -> 1080x1920), both rounded to even pixels."""
+    params = params if isinstance(params, dict) else {}
+    out = {}
+    res, aspect = params.get("resolution"), params.get("aspect_ratio")
+    if res is not None or aspect is not None:
+        m = _RESOLUTION.match(str(res or "1080p"))
+        short = int(m.group(1)) if m else _NAMED.get(str(res).lower())
+        a = _ASPECT.match(str(aspect or "16:9"))
+        if short is None or a is None or float(a.group(1)) <= 0 or float(a.group(2)) <= 0:
+            raise Refused(f"template defaults resolution {res!r} / aspect_ratio {aspect!r}: use a resolution like 1080p and an aspect like 16:9 or 9:16")
+        rw, rh = float(a.group(1)), float(a.group(2))
+        long_ = 2 * round(short * max(rw, rh) / min(rw, rh) / 2)
+        out["width"], out["height"] = (long_, short) if rw >= rh else (short, long_)
+    if params.get("duration") is not None:
+        out["duration_s"] = params["duration"]
+    return out
+
+
+def _declared(scene) -> dict:
+    """The scene's own window.__scene values that can serve as defaults (well-typed ones only)."""
+    scene = scene if isinstance(scene, dict) else {}
+    out = {k: scene[k] for k in ("width", "height", "fps") if _int(scene.get(k)) is not None}
+    d = scene.get("duration_s")
+    if isinstance(d, (int, float)) and not isinstance(d, bool):
+        out["duration_s"] = d
+    return out
+
+
+def _resolve(a: dict, template: dict, declared: dict) -> tuple:
+    """(values, sources) for width, height, fps and duration_s in the one order: explicit, template, scene, tool default."""
+    values, sources = {}, {}
+    for key in RESOLVED:
+        for source, layer in (("explicit", {key: a.get(key)}), ("template", template or {}), ("scene", declared), ("tool default", FALLBACK)):
+            if layer.get(key) is not None:
+                values[key], sources[key] = layer[key], source
+                break
+        else:
+            values[key], sources[key] = None, None
+    return values, sources
+
+
+def _overrides(values: dict, sources: dict, declared: dict) -> tuple:
+    """(findings, help): one warning when an explicit or template value overrides a differing window.__scene value."""
+    over = [k for k in RESOLVED if sources.get(k) in ("explicit", "template") and k in declared and declared[k] != values[k]]
+    if not over:
+        return [], []
+    detail = ", ".join(f"{k} {values[k]:g} ({sources[k]}) over the scene's {declared[k]:g}" for k in over)
+    return ([{"check": "scene_override", "severity": "warn", "detail": f"window.__scene is overridden: {detail}"}],
+            [f"to render the scene's own {', '.join(over)}: omit {' and '.join(over)} (and any template default for {'it' if len(over) == 1 else 'them'}), or change window.__scene"])
 
 
 def _json_value(value):
@@ -187,16 +259,6 @@ def _scene(root: Path, a: dict) -> tuple:
         raise Refused(f"no scene entry {a['entry']} in {rel}: pass entry")
     a["entry"] = entry.resolve().relative_to(d).as_posix()
     return d, entry, d.relative_to(root.resolve()).as_posix()
-
-
-def _declared_size(declared, W: int, H: int) -> list:
-    """A warning when the scene's own window.__scene width/height differ from the rendered size. The tool's size still decides
-    (scene.md: metadata does not override tool dimension defaults); the warning makes the silent 1920x1080 default visible."""
-    dw, dh = (declared.get("width"), declared.get("height")) if isinstance(declared, dict) else (None, None)
-    if _int(dw) is None or _int(dh) is None or (dw, dh) == (W, H):
-        return []
-    return [{"check": "size", "severity": "warn", "detail": f"the scene declares {dw}x{dh} (window.__scene) but rendered {W}x{H}: "
-             f"pass width and height to render the declared size (the scene's size is not a default)"}]
 
 
 def _sample_frames(n: int, samples, fps: int) -> list:
@@ -303,13 +365,13 @@ def _output_directory(root, parent, prefix, stack):
         raise Refused("output directory changed or contains a symlink: use real project directories") from None
 
 
-def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None) -> dict:
+def _run(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine=None, probe_on=True, cancel=None, handoff=None, defaults=None) -> dict:
     checkpoint(cancel)
     with ExitStack() as stack:
-        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff)
+        return _run_pinned(root.resolve(), a, new_capture, out_root.absolute(), threads, engine, probe_on, stack, cancel, handoff, defaults)
 
 
-def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None) -> dict:
+def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, engine, probe_on, stack, cancel=None, handoff=None, defaults=None) -> dict:
     """One render: refusals, then the sequential pass, the probe (a fresh browser; not in verify, which is itself the full re-render), the files
     and the receipt. ``engine`` (verify) = the receipt's (chromium, ffmpeg) pair: a different engine stops the run before any frame."""
     checkpoint(cancel)
@@ -322,7 +384,10 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     name = a["name"] or scene_dir.name
     if not KEBAB.match(name):
         raise Refused(f"name {name!r} (the scene folder's) is not kebab-case: pass name")
-    W, H, fps = a["width"], a["height"], a["fps"]
+    template = defaults or {}
+    provisional, _ = _resolve(a, template, {})                              # the page must be opened at a size before __scene can be read
+    W, H = provisional["width"], provisional["height"]
+    _check_size(W, H)
     enc = None
     checkpoint(cancel)
     capture = new_capture()
@@ -330,9 +395,21 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
     try:
         _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)                       # inside the try: a launch that fails half way is still closed
         checkpoint(cancel)
-        declared = capture.scene() or {}
-        duration = _duration(a["duration_s"] if a["duration_s"] is not None else declared.get("duration_s"))
-        size_notes = _declared_size(declared, W, H)
+        declared = _declared(capture.scene())
+        resolved, sources = _resolve(a, template, declared)
+        _check_fps(resolved["fps"])
+        _check_size(resolved["width"], resolved["height"])
+        duration = _duration(resolved["duration_s"])
+        fps = resolved["fps"]
+        if (resolved["width"], resolved["height"]) != (W, H):                # the scene's own size: render it in a FRESH browser opened at that size
+            capture.close()
+            W, H = resolved["width"], resolved["height"]
+            capture = new_capture()
+            capture.cancel = cancel
+            _ready(capture, entry, W, H, engine, ffmpeg, scene_root=scene_dir)
+            checkpoint(cancel)
+        resolved["duration_s"] = duration
+        size_notes, override_help = _overrides(resolved, sources, declared)
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")
@@ -403,6 +480,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         "inputs": {"scene": scene_rel, "entry": a["entry"] if a["html"] is None else "index.html", "name": name, "fps": fps, "width": W, "height": H,
                    "duration_s": duration, "formats": [f for f in E.FORMATS if f in a["formats"]], "samples": a["samples"], "template": a["template"],
                    "variables": a["variables"]},
+        "input_sources": sources, "help": override_help,
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],
         "engine": {"chromium": capture.product, "chrome_flags": list(capture.flags), "ffmpeg": ffmpeg,
                    "encoder": {"threads": threads, "args": E.receipt_args(argv)}, "driver_sha256": F.sha256_file(F.__file__)},
@@ -436,16 +514,23 @@ def summary(receipt: dict) -> dict:
            "outputs": {k: {"sha256": v["sha256"], "bytes": v["bytes"]} for k, v in receipt["outputs"].items()},
            "self_check": {k: receipt["self_check"][k] for k in ("fail", "warn", "findings")}, "network": receipt["network"],
            "timing_s": {k: receipt["timing_s"][k] for k in ("wall", "wall_per_video_second", "capture_ms_per_frame")}}
+    sources = receipt.get("input_sources") or {}
+    if sources:
+        out["inputs"] = [{"name": k, "value": receipt["inputs"][k], "source": sources[k]} for k in RESOLVED if k in sources]
     if receipt.get("error"):
         out["error"] = receipt["error"]
+    out["help"] = list(receipt.get("help") or []) + [
+        f"look at {receipt['files']['contact']} yourself and watch the video: some defects only an eye sees",
+        f"verify the render: action verify, receipt {receipt['files']['receipt']}"]
     return out
 
 
-def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None) -> dict:
+def render(project_root, args: dict, new_capture, threads: int = E.THREADS, cancel=None, handoff=None, defaults=None) -> dict:
+    """``defaults``: a template's defaults as tool inputs (``template_defaults``); they rank below explicit arguments."""
     checkpoint(cancel)
     root = Path(project_root).resolve()
     a = inputs(args)
-    return summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff))
+    return summary(_run(root, a, new_capture, root / "motion" / "out", threads, cancel=cancel, handoff=handoff, defaults=defaults))
 
 
 def _receipt_inputs(receipt):

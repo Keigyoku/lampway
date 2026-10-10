@@ -1692,10 +1692,10 @@ Inputs:
 - `html` (string): render: a single-file scene instead of a folder; written to motion/scenes/<name>/index.html first (needs name)
 - `entry` (string): the scene's HTML entry inside its folder (default index.html)
 - `name` (string): kebab-case output name (default: the scene folder's name); outputs go to motion/out/<name>-<code8>-<unique-run>/
-- `duration_s` (number): seconds, (0, 120]; default: the scene's own window.__scene.duration_s
-- `fps` (integer): frames per second, 1..60 (default 30)
-- `width` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160 (default 1920)
-- `height` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160, so 2160x3840 is allowed (default 1080)
+- `duration_s` (number): seconds, (0, 120]; default: the template's, then the scene's own window.__scene.duration_s
+- `fps` (integer): frames per second, 1..60 (default: window.__scene.fps, then 30)
+- `width` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160 (default: the template's, then window.__scene.width, then 1920)
+- `height` (integer): even, 16..3840; the long edge at most 3840, the short edge at most 2160, so 2160x3840 is allowed (default: the template's, then window.__scene.height, then 1080)
 - `formats` (array): a non-empty subset of mp4, webm (default both)
 - `samples` (array): seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)
 - `template` (string): provenance only: the motion-graphics prompt template id@version the scene was written from
