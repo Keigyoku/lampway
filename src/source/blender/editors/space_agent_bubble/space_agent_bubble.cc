@@ -2512,6 +2512,24 @@ static bool agent_bubble_window_contains_space(const wmWindow *win)
   return false;
 }
 
+#ifdef LAMPWAY
+/* LAMPWAY: an editor in a user's main window is not an owned floating island.
+ * WM_window_open creates the bubble as a parented temporary screen; its pill is
+ * parented too but non-temporary, so only the exact tracked runtime handle admits it. */
+static bool agent_bubble_window_is_owned_transient(const wmWindow *win)
+{
+  if (win == nullptr || win->parent == nullptr || !agent_bubble_window_contains_space(win)) {
+    return false;
+  }
+  const void *ghostwin = win->runtime->ghostwin;
+  if (ghostwin != nullptr && ghostwin == g_host_ghostwin) {
+    return false;
+  }
+  return WM_window_is_temp_screen(win) ||
+         (ghostwin != nullptr && (ghostwin == g_bubble_ghostwin || ghostwin == g_pill_ghostwin));
+}
+#endif
+
 wmWindow *ED_agent_bubble_host_window_get(wmWindowManager *wm)
 {
   if (wm == nullptr || g_host_ghostwin == nullptr) {
@@ -2623,7 +2641,12 @@ static int agent_bubble_close_all_windows(bContext *C)
     closed_one = false;
     for (wmWindow &win_iter : wm->windows) {
       wmWindow *win = &win_iter;
+#ifdef LAMPWAY
+      /* LAMPWAY: close only the island's proven transient windows, never their host. */
+      if (!agent_bubble_window_is_owned_transient(win)) {
+#else
       if (!agent_bubble_window_contains_space(win)) {
+#endif
         continue;
       }
       /* Avoid restoring a freed context window. */
@@ -2637,7 +2660,14 @@ static int agent_bubble_close_all_windows(bContext *C)
     }
   }
 
+#ifdef LAMPWAY
+  /* LAMPWAY: a refused/no-op purge must not reset an unrelated surviving editor. */
+  if (closed > 0) {
+    ED_agent_bubble_windows_closed();
+  }
+#else
   ED_agent_bubble_windows_closed();
+#endif
 
 #if defined(_WIN32) || defined(__linux__)
   /* Restore focus to the host window so the OS doesn't activate a
@@ -2680,7 +2710,12 @@ static int agent_bubble_close_all_windows(bContext *C)
     ctx_win = nullptr;
     for (wmWindow &win_iter : wm->windows) {
       wmWindow *win = &win_iter;
+#ifdef LAMPWAY
+      /* LAMPWAY: a surviving main window is valid even when it hosts this editor. */
+      if (!agent_bubble_window_is_owned_transient(win)) {
+#else
       if (!agent_bubble_window_contains_space(win)) {
+#endif
         ctx_win = win;
         break;
       }
