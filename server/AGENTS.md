@@ -64,7 +64,9 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    starts a process; its version probe and login check run through the launcher, the login check inside the harness's route; no
    adapter emits a bypass flag without the user's tick. Each adapter's `FACTS` names the installed copy and command each fact was
    checked with (throwaway HOME, `--help`/`--version` and offline commands only: no login, no model call); what only a turn could
-   show stays `[UNVERIFIED]` there. herdr 0.9.3 starts every user harness itself (`agent start --kind`), under the agent name
+   show stays `[UNVERIFIED]` there. Adapter FACTS retain audited documentation titles and installed-version/source evidence;
+   full external bibliographic URLs belong in non-shipped audit reports. Attribution never grants runtime retrieval or
+   justifies widening allowed hosts to pass a source gate. herdr 0.9.3 starts every user harness itself (`agent start --kind`), under the agent name
    `host.agent_name` (`lw-<record id>`: herdr takes only `[a-z][a-z0-9_-]{0,31}`), and keys are herdr's spelling (`ctrl+c`, never
    `ctrl-c`); the played herdrs refuse what the real one refuses (`tests/herdr_support.py` `herdr_refusal`). Your Hermes and Grok MAIN use an explicitly user-installed native `lampway_pane` stdio connector, described by
    `pane_mcp.py`: only an owned 0600 `panes/<id>/mcp.json` under the supplied root gives it binding authority.
@@ -490,3 +492,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-10 | Q1 human browser admission | raw loopback ASGI causal RED reached fixed probe without a human action | unauthenticated cookie/nonce minting treated an unlabelled local HTTP client as a human | invariant 10: authenticated human Client admission ticket before browser nonce, scope/model/expiry/one-use binding and native script refusal | synthetic source controls only; account and matching native Client execution remain unverified |
 | 2026-10-10 | Grok readiness fixture follows native lookup shape | complete b978 source suite: one tuple-index TypeError | the legacy success mock returned a tuple after production adopted the named path mapping | Test: success fixtures use the production mapping; malformed tuple refusal remains tested, with original assertions and timeout preserved | scratch causal RED one failure/five passes, corrected six passes; complete source rerun required |
+| 2026-10-10 | Cursor bibliography stays outside shipped source | exact 477 required-regression run: 60 passes and one shipped-host failure | a bibliographic Cursor URL in adapter FACTS introduced an unapproved shipped host despite needing no runtime retrieval | invariant 6: retain audited titles and installed-source evidence in FACTS; keep full bibliography in non-shipped reports without widening runtime hosts | existing site-link and worker-refusal controls: 25 passes, no failures or skips, with native process and outbound connection attempts refused; original 61-case RED retained |

@@ -57,6 +57,13 @@ This report distinguishes worker-only isolation from MAIN connectivity and from 
 | Grok 1.0.46 | Candidate private namespace policy layers and hard-bound installed helper | Controlled refusal and metadata tests pass. Native policy intersection, exact catalogue, helper rebind/unbind and native herdr interruption/cleanup require the dedicated CI job. Worker readiness remains disabled pending that proof; candidate workflow `38013110045` completed FAIL before acceptance; the retained artifact is under diagnosis, with no readiness enablement. No host policy/security change or user connector installation is performed. |
 | Codex, Cursor, OpenCode | Refused | No qualified exclusive discovery route preserving native behavior. MAIN remains available. Refusal is a support limitation, not proof of completed worker execution. |
 
+Cursor's worker-isolation provenance is its official [CLI MCP configuration documentation](https://cursor.com/docs/cli/mcp)
+and the inspected public installed runtime `cursor-agent 2026.10.01-e373342`. That runtime loads root `plugin.json` and
+`.mcp.json` and passes `pluginMcpService` into the agent's MCP manager. The documentation describes merged global, project,
+parent and plugin sources; `--plugin-dir` adds the owned pane entries without proving exclusive discovery. The full URL
+is retained here as bibliography, outside shipped source. It grants no runtime retrieval permission and changes neither
+MAIN binding nor the worker refusal. Account-backed execution remains unverified.
+
 The native-helper ruling is settled: main Mode 1 exposes three separate experimental preferences for delegation, cron and
 background agents, all default off with an untested-layering warning. Swarm workers keep all three off. Hermes worker
 isolation is implemented and proved by the offline native scopes below; installing its owned connector is not a pending

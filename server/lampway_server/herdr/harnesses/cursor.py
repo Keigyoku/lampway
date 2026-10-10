@@ -41,7 +41,7 @@ class Cursor(Adapter):
                "the plugin manager, so it cannot verify this route. [UNVERIFIED by a tool call: an authenticated pane and its "
                "vendor plugin policy are required; no --approve-mcps or policy override is added]",
         "worker_isolation": "Cursor's official CLI MCP configuration documentation describes merged global, project, "
-                            "parent and plugin sources (https://cursor.com/docs/cli/mcp). --plugin-dir adds Lampway's "
+                            "parent and plugin sources. --plugin-dir adds Lampway's "
                             "entries without excluding those sources; workers are refused while MAIN wiring remains additive.",
         "herdr": "herdr 0.9.3 knows the kind `cursor` and runs `cursor-agent` (src/detect/mod.rs interactive_agent_executable)",
         "interrupt": "Ctrl+C: herdr 0.9.3's cursor.toml manifest reads a running turn by 'ctrl+c to stop'. [UNVERIFIED on the "
