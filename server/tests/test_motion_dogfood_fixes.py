@@ -255,6 +255,30 @@ def test_the_social_clip_template_is_vertical_by_default(tmp_path):
     assert out["warnings"] == ["mg-social-clip@1.0.0: logo_dir=assets does not exist under the project", "mg-social-clip@1.0.0: media_dir=media does not exist under the project"]
 
 
+# 4. the agent tool's refusals carry help[] next steps
+def test_no_browser_refusal_points_at_the_build_guide(tmp_path, monkeypatch):
+    def missing():
+        raise F.ChromiumMissing(F.NO_CHROMIUM)
+    monkeypatch.setattr(MT.F, "chromium_binary", missing)
+    import asyncio
+    text, is_error = asyncio.run(MT.call(None, _project(tmp_path), MT.NAME, {"scene": "motion/scenes/vert"}))
+    out = json.loads(text)
+    assert is_error and out["ok"] is False and out["help"] == [MT.BROWSER_HELP] and "BUILD-LAMPWAY.md section 8" in out["help"][0]
+
+
+def test_an_out_of_bounds_size_refusal_gives_the_bounds(tmp_path):
+    out, is_error = _tool(_project(tmp_path), {"scene": "motion/scenes/vert", "width": 4096, "height": 2160})
+    assert is_error and out["error"].startswith("size 4096x2160")
+    assert out["help"] == ["width and height: even integers, long edge 16..3840, short edge 16..2160 (e.g. 1920x1080, 1080x1920, 3840x2160, 2160x3840)"]
+
+
+def test_every_refusal_has_a_help_line(tmp_path):
+    project = _project(tmp_path)
+    for args in ({"scene": "motion/scenes/vert", "fps": 0}, {"scene": "motion/scenes/vert", "duration_s": 500}, {"scene": "nowhere"}):
+        out, is_error = _tool(project, args)
+        assert is_error and out["help"] and all(isinstance(h, str) and h for h in out["help"]), out
+
+
 # containment: an out-of-scene file request is refused at once, not deferred to the next check
 def test_an_outside_file_request_is_failed_and_refused_at_once(tmp_path):
     scene = tmp_path / "scene"

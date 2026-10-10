@@ -39,7 +39,7 @@ SPEC = ToolSpec(NAME, (
     "folder (a network request fails the render). A failing self-check writes the files, returns ok false and files nothing. action verify "
     "re-renders a receipt and reports reproduced, frame/output equality and engine_matches separately from integrity_matches (checked existing requested-media bytes) and provenance_matches (source, driver and flags). Corrupt or missing media can still reproduce from a trusted receipt; inspect all three statuses. Caller cancellation joins owned workers/processes, blocks new filing and reports committed assets; retained evidence is preserved. Refuses: fps outside 1..60, an odd "
     "or out-of-range size, a duration outside (0, 120], a path outside the project, a missing entry, no headless Chromium (set LAMPWAY_CHROMIUM), "
-    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize. Spends nothing; nothing leaves the machine."),
+    "no ffmpeg, a scene without __frame, a setup miss, CSS animations, a page resize; a refusal returns ok false, error and help (the next steps). A render returns inputs (each of width, height, fps, duration_s with its source) and help. Spends nothing; nothing leaves the machine."),
     {"type": "object", "additionalProperties": False, "required": [], "properties": {
         "action": {**_S, "enum": ["render", "verify"], "description": "render (default) or verify (re-render a receipt and compare)"},
         "scene": {**_S, "description": "render: the scene folder, project-relative (e.g. motion/scenes/spend-gate)"},
@@ -95,6 +95,26 @@ def _template_paths(root: Path, prompt: dict) -> tuple:
             warnings.append(f"{prompt['template']}: {name}={value} {where}")
             helps.append(f"pass variables {{\"{name}\": \"<project-relative path>\"}} naming the real {name.rsplit('_', 1)[0]} the scene was built from")
     return warnings, helps
+
+
+BROWSER_HELP = "install Chrome for Testing's chrome-headless-shell and set LAMPWAY_CHROMIUM to it: BUILD-LAMPWAY.md section 8, The motion-graphics browser"
+
+
+def refusal_help(exc) -> list:
+    """help[] next steps for a refusal (the AXI rule: every error says what to do next). Shared with the motion CLI."""
+    text = str(exc)
+    if isinstance(exc, F.ChromiumMissing) or "chrome-headless-shell" in text:
+        return [BROWSER_HELP]
+    if isinstance(exc, E.FfmpegMissing):
+        return ["install ffmpeg so it is on PATH (e.g. apt install ffmpeg), then call again"]
+    if text.startswith("size "):
+        return [f"width and height: even integers, long edge 16..{M.MAX_LONG_EDGE}, short edge 16..{M.MAX_SHORT_EDGE} "
+                f"(e.g. 1920x1080, 1080x1920, {M.MAX_LONG_EDGE}x{M.MAX_SHORT_EDGE}, {M.MAX_SHORT_EDGE}x{M.MAX_LONG_EDGE})"]
+    if text.startswith("fps "):
+        return ["fps: an integer 1..60"]
+    if text.startswith("duration "):
+        return ["duration_s: seconds in (0, 120], passed or set in window.__scene.duration_s"]
+    return ["change what the error names and call again"]
 
 
 def _capture():
@@ -166,8 +186,10 @@ async def call(vault, project_root, name: str, arguments: dict, capture=None) ->
                     pass
             return json.dumps({"ok": False, "cancelled": True, "error": "motion graphics cancelled",
                                "vault": cancel.snapshot_filing()}), True
-    except (MotionCancelled, M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
+    except MotionCancelled as exc:
         return json.dumps({"ok": False, "error": str(exc)}), True
+    except (M.Refused, F.ChromiumMissing, E.FfmpegMissing, F.SceneError) as exc:
+        return json.dumps({"ok": False, "error": str(exc), "help": refusal_help(exc)}), True
     except Exception as exc:  # noqa: BLE001 - reported to the model
         return json.dumps({"ok": False, "error": f"{type(exc).__name__}: {exc}"}), True
     if "reproduced" in out:
