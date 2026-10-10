@@ -217,7 +217,7 @@ def test_wrong_component_direction_prevents_capture_and_outputs_and_cleans_qa_ac
     with pytest.raises(ValueError, match='does not point down world Z'):
         C.capture(ue)
     assert len(spawned) == 2 and destroyed == list(reversed(spawned)) and not renders
-    assert list(root.iterdir()) == [root / 'request.json']
+    assert not list(root.glob('*.cube')) and not list(root.glob('*.cube.json'))
 
 
 def test_disabled_control_checks_applied_settings_and_restores_on_capture_error():
@@ -319,7 +319,9 @@ def test_disabled_control_refuses_incorrect_restored_readback():
                                  [{'input': [0.18] * 3}], lambda rgb: [0.5] * 3)
 
 
-def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path):
+@pytest.mark.parametrize('failure_mode', ['readback_error', 'unchanged_display', 'raw_error',
+                                         'raw_nonfinite', 'controls_only'])
+def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path, capsys, failure_mode):
     """Exercise capture itself; the fake is orchestration proof, never GPU proof."""
     from types import SimpleNamespace as NS
     root = tmp_path / 'Saved/LampwayCubeQA'
@@ -327,7 +329,7 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
     profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
     (root / 'request.json').write_text(json.dumps(dict(
         disposable_qa_project=True, profile=profile, name='synthetic', shaper=SHAPER,
-        shaper_source='synthetic test only', max_seconds=1)))
+        shaper_source='synthetic test only', max_seconds=1, controls_only=failure_mode == 'controls_only')))
     class Settings:
         def __init__(self):
             self.values = {}
@@ -341,8 +343,8 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         def show_only_actor_components(self, actor):
             pass
         def capture_scene(self):
-            pass
-    component, parameter, spawned, destroyed = Component(), [], [], []
+            render_calls.append(self.values['capture_source'])
+    component, parameter, spawned, destroyed, render_calls = Component(), [], [], [], []
     dynamic = NS(set_vector_parameter_value=lambda key, value: parameter.__setitem__(slice(None), value))
     mesh = NS(set_static_mesh=lambda *args: None, set_material=lambda *args: None,
               create_dynamic_material_instance=lambda *args: dynamic)
@@ -353,11 +355,18 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         spawned.append(actor)
         return actor
     def raw_pixel(*args):
+        if failure_mode == 'raw_error' and parameter[0] == 0.18:
+            raise RuntimeError('synthetic readback error at /private/qa-project')
+        if failure_mode == 'raw_nonfinite' and parameter[0] == 0.18:
+            return NS(r=float('nan'), g=0.18, b=0.18)
         return NS(r=parameter[0], g=parameter[1], b=parameter[2])
     def display_pixel(*args):
-        if component.values['post_process_settings'].values['tone_curve_amount'] == 0.0:
+        if (failure_mode == 'readback_error'
+                and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0):
             raise RuntimeError('synthetic GPU readback error')
-        return NS(r=100, g=100, b=100)
+        value = 140 if (failure_mode == 'controls_only'
+                       and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0) else 100
+        return NS(r=value, g=value, b=value)
     expression = NS(set_editor_property=lambda *args: None)
     ue = NS(
         Paths=NS(project_dir=lambda: str(tmp_path)),
@@ -378,10 +387,116 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         SceneCaptureSource=NS(SCS_SCENE_COLOR_HDR=object(), SCS_FINAL_COLOR_LDR=object()),
         RenderingLibrary=NS(create_render_target2d=lambda *args: object(),
             read_render_target_raw_pixel=raw_pixel, read_render_target_pixel=display_pixel))
-    with pytest.raises(RuntimeError, match='synthetic GPU readback error'):
+    error = RuntimeError if failure_mode in ('readback_error', 'raw_error') else ValueError
+    reason = ('synthetic .*readback error' if error is RuntimeError else
+              'invalid control pixel' if failure_mode == 'raw_nonfinite' else 'native disabled-tone negative control')
+    if failure_mode == 'controls_only':
         C.capture(ue)
+    else:
+        with pytest.raises(error, match=reason):
+            C.capture(ue)
     # Actor cleanup alone would hide that the control path never restored normal settings.
     assert component.values['post_process_settings'].values['tone_curve_amount'] == profile['tonemap']['tone_curve_amount']
     assert component.values['post_process_settings'].values['expand_gamut'] == profile['tonemap']['expand_gamut']
     assert destroyed == list(reversed(spawned))
-    assert list(root.iterdir()) == [root / 'request.json']
+    assert not list(root.glob('*.cube')) and not list(root.glob('*.cube.json'))
+    receipt = json.loads((root / 'synthetic.controls.json').read_text())
+    assert receipt['status'] == ('completed' if failure_mode == 'controls_only' else 'refused')
+    assert '/private/qa-project' not in (root / 'synthetic.controls.json').read_text()
+    if failure_mode == 'controls_only':
+        assert receipt['stage'] == 'controls_complete' and receipt['controls_only'] is True
+        assert len(render_calls) == 12
+        assert 'exception_type' not in receipt
+        assert len(receipt['controls']) == 4
+        assert 'LAMPWAY_UE_CUBE_CONTROLS_COMPLETE' in capsys.readouterr().out
+        return
+    assert receipt['exception_type'] == error.__name__
+    if failure_mode in ('raw_error', 'raw_nonfinite'):
+        assert receipt['stage'] == 'raw_input' and receipt['control_index'] == 1
+        assert receipt['controls'][0]['raw'] == [0, 0, 0]
+        assert receipt['controls'][0]['display'] == [100 / 255] * 3
+        assert receipt['controls'][1] == {'input': [0.18] * 3}
+        assert 'disabled_postprocess_readback' not in receipt
+        return
+    assert receipt['normal_settings_restored'] is True
+    assert len(receipt['controls']) == 4
+    assert receipt['disabled_postprocess_readback']['tone_curve_amount'] == 0.0
+    if failure_mode == 'readback_error':
+        assert receipt['stage'] == 'disabled_display'
+        assert all('tone_curve_disabled' not in row for row in receipt['controls'])
+    else:
+        assert receipt['stage'] == 'tone_control_guard'
+    if failure_mode == 'unchanged_display':
+        markers = [line for line in capsys.readouterr().out.splitlines()
+                   if line.startswith('LAMPWAY_UE_CUBE_CONTROLS ')]
+        assert len(markers) == 1, 'failed controls must retain measured pixels before refusing publication'
+        diagnostic = json.loads(markers[0].split(' ', 1)[1])
+        assert [row['input'] for row in diagnostic['controls']] == [
+            [0, 0, 0], [0.18] * 3, [1, 0, 0], [4] * 3]
+        for row in diagnostic['controls']:
+            assert row['raw'] == row['input']
+            assert row['display'] == row['tone_curve_disabled'] == [100 / 255] * 3
+        assert diagnostic['postprocess_readback']['tone_curve_amount'] == profile['tonemap']['tone_curve_amount']
+        assert diagnostic['disabled_postprocess_readback']['tone_curve_amount'] == 0.0
+        assert diagnostic['disabled_postprocess_readback']['expand_gamut'] == 0.0
+
+
+def test_control_receipt_is_private_exclusive_and_not_a_cube_marker(tmp_path):
+    import stat
+    with C.ControlEvidence(tmp_path, 'synthetic') as evidence:
+        evidence.update('raw_input', controls=[{'input': [0, 0, 0]}])
+    path = tmp_path / 'synthetic.controls.json'
+    original = path.read_bytes()
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    with pytest.raises(FileExistsError):
+        with C.ControlEvidence(tmp_path, 'synthetic'):
+            pytest.fail('must not overwrite a prior diagnostic')
+    assert path.read_bytes() == original
+    assert list(tmp_path.iterdir()) == [path]
+    with pytest.raises(ValueError, match='simple QA output basename'):
+        C.ControlEvidence(tmp_path, '../outside')
+
+
+def test_controls_only_plan_keeps_profile_and_strict_boolean():
+    request = {'profile': {'project': {'cvars': {'r.LUT.Size': 32}}},
+               'shaper': SHAPER, 'max_seconds': 600, 'controls_only': True}
+    result = C.plan(request)
+    assert result['size'] == 32 and result['cube_rows'] == 0 and result['scene_captures'] == 12
+    assert request['profile']['project']['cvars']['r.LUT.Size'] == 32
+    request['controls_only'] = 'true'
+    with pytest.raises(ValueError, match='controls_only must be a boolean'):
+        C.plan(request)
+
+
+def test_control_diagnostic_write_failure_preserves_original_callback_error(tmp_path, monkeypatch, capsys):
+    with pytest.raises(RuntimeError, match='original callback error'):
+        with C.ControlEvidence(tmp_path, 'synthetic') as evidence:
+            def fail_write(**kwargs):
+                raise OSError('synthetic filesystem write failure')
+            monkeypatch.setattr(evidence, 'update', fail_write)
+            raise RuntimeError('original callback error')
+    assert 'LAMPWAY_UE_CUBE_DIAGNOSTIC_WRITE_FAILED' in capsys.readouterr().out
+
+
+@pytest.mark.parametrize('suffix', ['.cube', '.cube.json', '.controls.pending'])
+def test_existing_qa_output_refuses_before_reserving_diagnostic(tmp_path, suffix):
+    prior = tmp_path / ('synthetic' + suffix)
+    prior.write_text('original QA output')
+    with pytest.raises(ValueError, match='QA output already exists'):
+        with C.ControlEvidence(tmp_path, 'synthetic'):
+            pytest.fail('existing output must refuse before scene work')
+    assert prior.read_text() == 'original QA output'
+    assert list(tmp_path.iterdir()) == [prior]
+
+
+@pytest.mark.parametrize('field', ['input', 'raw', 'display', 'tone_curve_disabled'])
+def test_nonfinite_control_cannot_publish_a_sidecar(tmp_path, field):
+    profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
+    profile['project']['cvars']['r.LUT.Size'] = 2
+    request = dict(profile=profile, name='synthetic', shaper=SHAPER, shaper_source='synthetic test only')
+    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.4] * 3,
+                     tone_curve_disabled=[0.5] * 3) for _ in range(4)]
+    controls[0][field][0] = float('nan')
+    with pytest.raises(ValueError, match='invalid control pixel'):
+        C.write_outputs(tmp_path, request, profile['engine'], [[0.2] * 3] * 8, {}, controls)
+    assert not list(tmp_path.iterdir())

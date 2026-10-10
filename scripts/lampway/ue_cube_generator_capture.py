@@ -8,11 +8,73 @@ RGBA8 final-color sampling intentionally records engine display quantization.
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import re
 import time
 
 SHAPER_KEYS = ('base', 'lin_side_slope', 'lin_side_offset', 'log_side_slope', 'log_side_offset')
+
+
+class ControlEvidence:
+    """Private QA diagnostics, never a cube completion marker or renderer proof."""
+    def __init__(self, root, name):
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', name):
+            raise ValueError('name must be a simple QA output basename')
+        self.path = root / (name + '.controls.json')
+        self.pending = root / (name + '.controls.pending')
+        self.record = {'schema': 'lampway.ue-cube-controls/1', 'status': 'running',
+                       'stage': 'preflight', 'controls': []}
+
+    @staticmethod
+    def _open(path):
+        return open(path, 'x', encoding='utf-8', opener=lambda p, flags: os.open(p, flags, 0o600))
+
+    def __enter__(self):
+        # Reserve a new basename; never overwrite an earlier run or symlink.
+        basename = self.path.name.removesuffix('.controls.json')
+        for path in (self.pending, self.path.parent / (basename + '.cube'),
+                     self.path.parent / (basename + '.cube.json')):
+            if path.exists() or path.is_symlink():
+                raise ValueError('QA output already exists; choose a new name')
+        with self._open(self.path) as output:
+            json.dump(self.record, output, sort_keys=True, allow_nan=False)
+            output.flush()
+            os.fsync(output.fileno())
+        return self
+
+    def update(self, stage=None, **facts):
+        if stage is not None:
+            self.record['stage'] = stage
+        self.record.update(facts)
+        data = json.dumps(self.record, sort_keys=True, allow_nan=False)
+        # Each completed observation survives a later callback/process failure.
+        with self._open(self.pending) as output:
+            output.write(data)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(self.pending, self.path)
+
+    def __exit__(self, kind, value, traceback):
+        facts = {'status': 'completed' if kind is None else 'refused'}
+        if kind is not None:
+            facts['exception_type'] = kind.__name__  # Never persist exception text containing paths.
+        try:
+            self.update(**facts)
+        except (OSError, ValueError):
+            if kind is None:
+                raise
+            # Keep the original capture failure; the last durable snapshot remains.
+            print('LAMPWAY_UE_CUBE_DIAGNOSTIC_WRITE_FAILED')
+
+
+def control_pixel(values, display=False):
+    values = [float(value) for value in values]
+    if len(values) != 3 or not all(math.isfinite(value) for value in values):
+        raise ValueError('invalid control pixel; no cube emitted')
+    if display and not all(0 <= value <= 1 for value in values):
+        raise ValueError('invalid control display pixel; no cube emitted')
+    return values
 
 
 def grid(size, shaper):
@@ -48,6 +110,8 @@ def write_outputs(root, request, engine, rows, settings, controls, camera_forwar
     if len(controls) != 4 or any('tone_curve_disabled' not in row for row in controls):
         raise ValueError('raw-input and disabled-tone controls are required')
     for control in controls:
+        for key in ('input', 'raw', 'display', 'tone_curve_disabled'):
+            control_pixel(control[key], display=key in ('display', 'tone_curve_disabled'))
         if max(abs(a - b) for a, b in zip(control['input'], control['raw'])) > 0.005:
             raise ValueError('raw-input controls failed')
     if max(abs(a - b) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) <= 1 / 255:
@@ -127,7 +191,7 @@ def postprocess_readback(actual, fields):
     return settings
 
 
-def disabled_tone_controls(ue, component, normal, fields, controls, sample):
+def disabled_tone_controls(ue, component, normal, fields, controls, sample, evidence=None):
     """Verify the actual control state and restore it even if GPU readback fails."""
     disabled_fields = dict(fields, tone_curve_amount=0.0, expand_gamut=0.0)
     disabled = ue.PostProcessSettings()
@@ -137,12 +201,20 @@ def disabled_tone_controls(ue, component, normal, fields, controls, sample):
     try:
         component.set_editor_property('post_process_settings', disabled)
         settings = postprocess_readback(component.get_editor_property('post_process_settings'), disabled_fields)
-        for control in controls:
-            control['tone_curve_disabled'] = sample(control['input'])
+        if evidence is not None:
+            evidence.update(disabled_postprocess_readback=settings)
+        for index, control in enumerate(controls):
+            if evidence is not None:
+                evidence.update('disabled_display', control_index=index)
+            control['tone_curve_disabled'] = control_pixel(sample(control['input']), display=True)
+            if evidence is not None:
+                evidence.update()
         return settings
     finally:
         component.set_editor_property('post_process_settings', normal)
         postprocess_readback(component.get_editor_property('post_process_settings'), fields)
+        if evidence is not None:
+            evidence.update(normal_settings_restored=True)
 
 
 def plan(request):
@@ -151,8 +223,12 @@ def plan(request):
     seconds = float(request['max_seconds'])
     if not 1 <= seconds <= 3600:
         raise ValueError('max_seconds must be 1..3600')
-    return {'mode': 'plan', 'size': size, 'cube_rows': count,
-            'scene_captures': count + 12, 'control_captures': 12,
+    controls_only = request.get('controls_only', False)
+    if not isinstance(controls_only, bool):
+        raise ValueError('controls_only must be a boolean')
+    return {'mode': 'plan', 'size': size, 'cube_rows': 0 if controls_only else count,
+            'scene_captures': 12 if controls_only else count + 12, 'control_captures': 12,
+            'controls_only': controls_only,
             'max_capture_seconds': seconds, 'writes': False,
             'runtime_estimate': 'unmeasured: calibrate with actual UE control capture; time limit refuses incomplete output',
             'precision_bits_per_channel': 8}
@@ -177,6 +253,13 @@ def capture(ue):
     request = json.loads((root / 'request.json').read_text())
     if request.get('disposable_qa_project') is not True:
         raise ValueError('request must explicitly identify a disposable QA project')
+    # Malformed/non-QA requests cannot authorize writing a diagnostic file.
+    plan(request)
+    with ControlEvidence(root, request['name']) as evidence:
+        return _capture(ue, root, request, evidence)
+
+
+def _capture(ue, root, request, evidence):
     if not request.get('shaper_source'):
         raise ValueError('actual UE shaper source/settings provenance is required')
     plan(request)
@@ -186,6 +269,9 @@ def capture(ue):
     if profile['project']['working_color_space'] != 'sRGB':
         raise ValueError('this sampler requires sRGB working color space')
     engine = engine_identity(ue.SystemLibrary.get_engine_version(), profile['engine'])
+    evidence.update(engine={key: engine[key] for key in ('version', 'changelist')},
+                    controls_only=request.get('controls_only', False),
+                    source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     points = list(grid(profile['project']['cvars']['r.LUT.Size'], request['shaper']))
     for name, value in profile['project']['cvars'].items():
         if ue.SystemLibrary.get_console_variable_int_value(name) != value:
@@ -193,6 +279,7 @@ def capture(ue):
     world = ue.EditorLevelLibrary.get_editor_world()
     actors = []
     try:
+        evidence.update('scene_setup')
         material = ue.Material()
         material.set_editor_property('shading_model', ue.MaterialShadingModel.MSM_UNLIT)
         material.set_editor_property('two_sided', True)
@@ -236,6 +323,8 @@ def capture(ue):
         component.set_editor_property('post_process_blend_weight', 1.0)
         actual = component.get_editor_property('post_process_settings')
         settings = postprocess_readback(actual, fields)
+        evidence.update('normal_settings', postprocess_readback=settings,
+                        camera_forward_world=camera_forward_world)
         target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA8)
         raw_target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA16F)
 
@@ -252,29 +341,47 @@ def capture(ue):
             return [pixel.r / 255.0, pixel.g / 255.0, pixel.b / 255.0]
 
         controls = []
-        for rgb in ((0, 0, 0), (0.18, 0.18, 0.18), (1, 0, 0), (4, 4, 4)):
-            raw = sample(rgb, True)
+        evidence.record['controls'] = controls
+        for index, rgb in enumerate(((0, 0, 0), (0.18, 0.18, 0.18), (1, 0, 0), (4, 4, 4))):
+            control = {'input': list(rgb)}
+            controls.append(control)
+            evidence.update('raw_input', control_index=index)
+            raw = control_pixel(sample(rgb, True))
+            control['raw'] = raw
+            evidence.update()
             if max(abs(a - b) for a, b in zip(raw, rgb)) > 0.005:
                 raise ValueError('raw scene-color input control failed; no cube emitted')
-            controls.append({'input': list(rgb), 'raw': raw, 'display': sample(rgb)})
-        disabled_settings = disabled_tone_controls(ue, component, pp, fields, controls, sample)
+            evidence.update('normal_display')
+            control['display'] = control_pixel(sample(rgb), display=True)
+            evidence.update()
+        evidence.update('disabled_settings')
+        disabled_settings = disabled_tone_controls(ue, component, pp, fields, controls, sample, evidence)
         # Synthetic QA values and typed settings only: retain failed controls without a sidecar.
         print('LAMPWAY_UE_CUBE_CONTROLS ' + json.dumps({
             'postprocess_readback': settings, 'disabled_postprocess_readback': disabled_settings,
             'controls': controls}, sort_keys=True))
+        evidence.update('tone_control_guard')
         if max(abs(a - b) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) <= 1 / 255:
             raise ValueError('native disabled-tone negative control showed no curve difference')
+        if request.get('controls_only', False):
+            evidence.update('controls_complete')
+            print('LAMPWAY_UE_CUBE_CONTROLS_COMPLETE')
+            return
         started, rows = time.monotonic(), []
         max_seconds = float(request.get('max_seconds', 600))
         if not 1 <= max_seconds <= 3600:
             raise ValueError('max_seconds must be 1..3600')
+        evidence.update('cube_grid', completed_cube_rows=0)
         for index, rgb in enumerate(points):
             if time.monotonic() - started > max_seconds:
                 raise ValueError('bounded QA capture timed out; no cube emitted')
             rows.append(sample(rgb))
             if index % 1024 == 0:
+                evidence.update(completed_cube_rows=len(rows))
                 print('LAMPWAY_UE_CUBE_PROGRESS ' + str(index) + '/' + str(len(points)))
+        evidence.update('cube_publication', completed_cube_rows=len(rows))
         paths = write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=camera_forward_world)
+        evidence.update('cube_complete', completed_cube_rows=len(rows))
         print('LAMPWAY_UE_CUBE_COMPLETE ' + json.dumps({'cube': paths[0].name, 'sidecar': paths[1].name, 'rows': len(rows)}))
     finally:
         for actor in reversed(actors):

@@ -3,7 +3,9 @@
 
 # UE-only cube capture handoff
 
-This stage is implemented but has not run in actual UE. It samples the engine renderer; it contains no Filmic/ACES tone-curve implementation. Its output precision is deliberately **8 bits per channel**, recorded in the sidecar. It is suitable for an initial genuine engine-capture receipt, not a high-precision parity claim. Local UE execution must establish that the transient material compiles, the component APIs work, and both render controls pass.
+The historical generator ran in actual UE5.8.2 CL56702186 on Vulkan and failed its preliminary disabled-tone gray control; no completed cube or sidecar was published. The retained full failed-run archive identifies generator SHA256 `088a5a8ae6abc32369f4ffd12c1aaf2aaefa135f1cf68b16a7399862baa97103` and explicitly confirms that numerical control pixels and component settings were never persisted. The failure establishes a gray difference of at most 1/255, not exact equality or a renderer cause. Current diagnostic changes have not been verified in actual UE.
+
+This sampler uses the engine renderer; it contains no Filmic/ACES tone-curve implementation. Its output precision is deliberately **8 bits per channel**, recorded in the sidecar. Local UE execution must establish that the transient material compiles, the component APIs work, and both render controls pass before a complete cube can be accepted.
 
 First run the [capability probe](ue_cube_generator_handoff.md). Capture additionally needs `RenderingLibrary.read_render_target_pixel`, `TextureRenderTargetFormat.RTF_RGBA8`, `StaticMeshComponent`, `Vector4`, and normal mesh dynamic-material setters. The first probe does not test these added LDR APIs. Run the supplemental read-only check before capture:
 
@@ -23,12 +25,14 @@ In an explicitly disposable empty QA project, create `Saved/LampwayCubeQA/reques
 - `shaper`: the five numeric `LogAffineTransform` fields documented in [UE Look](../../docs/ue-look.md). Supply the exact log2 grid parameters verified against this engine's source and `r.LUT.Shaper` setting. No built-in default or guessed shaper exists in this script.
 - `shaper_source`: the actual engine revision, native source location and setting establishing those five numbers. This is caller evidence, not an automated source verification.
 - `max_seconds`: an explicit value from 1 through 3600, such as 600. External process timeout also bounds startup/shader compilation.
+- `controls_only`: optional JSON boolean, default `false`. Set `true` for exactly the twelve preliminary captures with the unchanged strict gray control, retaining the complete 32³ profile and actual renderer settings. This diagnostic mode creates no cube/sidecar and cannot satisfy full cube acceptance.
 
 The following is a JSON skeleton, not a runnable request. Replace the `profile` placeholder object with the complete measured profile, and replace every shaper placeholder string with its exact native numeric value (JSON numbers, not strings). Supply source evidence rather than retaining the placeholder text. `max_seconds` is the explicit capture budget, not an engine setting.
 
 ```json
 {
   "disposable_qa_project": true,
+  "controls_only": false,
   "profile": {
     "REPLACE_WITH_COMPLETE_ACTUAL_UE_PROFILE_OBJECT": true
   },
@@ -46,6 +50,12 @@ The following is a JSON skeleton, not a runnable request. Replace the `profile` 
 ```
 
 Before launching UE, inspect the offline plan (read-only): `python scripts/lampway/ue_cube_generator_capture.py --plan "$UE_QA_REQUEST"`. A 32³ cube requires 32,780 actual captures including controls. Runtime is unmeasured until local control capture calibration; no seconds-per-capture is invented. The supplied time allowance is a hard refusal bound, not an estimated completion time. An 8³ pilot must not be passed off as a valid 32³ profile cube or used to change renderer settings silently.
+
+For the minimized N05 diagnostic repeat, use a new disposable QA request basename, set `controls_only` to `true`, and retain the complete profile, shaper and existing `max_seconds`. Verify the offline plan reports `scene_captures: 12`, `cube_rows: 0`, and `size: 32`. Run the same maintained generator with an external startup/control bound, for example `timeout 120s`, and the already authorized real GPU backend. `LAMPWAY_UE_CUBE_CONTROLS_COMPLETE` means only that the twelve controls and unchanged gray guard passed; it is not `LAMPWAY_UE_CUBE_COMPLETE`. A refusal remains a refusal. For full capture, use another new basename and set `controls_only` to `false` without altering the profile or numerical bars.
+
+Every admitted named QA run reserves `<name>.controls.json` exclusively with mode0600 under `Saved/LampwayCubeQA`. Existing diagnostics, pending diagnostics, cubes and sidecars refuse reuse before scene work. This path-free diagnostic records actual finite pixels as they become available, checked normal/disabled settings, current stage/control index, source hash, and verified restoration. An interrupted callback leaves a partial row; unavailable values are omitted. Atomic replacement and flushed writes retain completed observations independently of stdout delivery. Failures record only the exception type, never exception text or private paths. A diagnostic write failure preserves the original capture exception and emits `LAMPWAY_UE_CUBE_DIAGNOSTIC_WRITE_FAILED`; retain the last snapshot and log separately. Malformed/non-QA requests do not authorize a diagnostic file.
+
+The diagnostic is not a cube completion marker. Retain it privately even when the strict `0.18` gray guard rejects the run; it supplies the normal/disabled RGB absent from the historical archive. The native renderer cause, including any ACES path or capture-state explanation, remains unestablished. No tone settings, probe input or threshold are changed by this diagnostic workflow.
 
 ```bash
 timeout 720s "$UE_EDITOR_CMD" "$UE_QA_PROJECT" -unattended -NoSplash -RenderOffscreen \
@@ -92,4 +102,4 @@ PY
 
 A missing or mismatched cube raises and gives a nonzero Python exit. A `state: valid` result checks the existing data contract; acceptance additionally requires the actual UE completion log, control readbacks, exact native shaper/source and working-space receipts. The validator does not independently prove how the cube was generated. Keep all generated cube bytes, sidecars and local path-bearing validation logs outside the repository.
 
-Pure tests (synthetic fixtures only): `python -m pytest -q tests/lampway_tools/test_ue_cube_generator_probe.py tests/lampway_tools/test_ue_cube_generator_capture.py`. Actual UE render/cube proof remains pending.
+Pure tests (synthetic fixtures only): `python -m pytest -q tests/lampway_tools/test_ue_cube_generator_probe.py tests/lampway_tools/test_ue_cube_generator_capture.py`. The historical actual UE failure remains recorded; a current successful UE control repeat and full render/cube proof remain pending.
