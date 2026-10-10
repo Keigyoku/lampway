@@ -50,7 +50,7 @@ All eight builtins are version `1.0.0`, purpose `motion-graphics`, media `video`
 
 | ID | Duration guidance | Required variables | Additional defaults (abbreviated prose values) |
 |---|---|---|---|
-| `mg-site-clip` | 13 s | None | `logo_dir=public/assets`, `copy_source=public/index.html`, `media_dir=public/media`, `read_s=1.2`; focus keys, three features, source build |
+| `mg-site-clip` | 13 s | None | `logo_dir=public/assets`, `copy_source=public/index.html`, `media_dir=public/media`, `read_s=1.2`; focus keys, three features, source build. Since 1.0.1 (wording only) it says these path defaults are the separate lampway-site repository's; 1.0.0 is kept |
 | `mg-social-clip` | 12 s, 9:16 | `copy_source`, `focus` | `logo_dir=assets`, `media_dir=media`, `hook_s=1.5`, `read_s=1.5`; any project's own brand assets |
 | `mg-tutorial` | 20 s | `task` | `step_count=4`, `step_s=3`, numbered tutorial list as `steps_source` |
 | `mg-release` | 15 s | `version`, `date`, `notes_source` | `max_items=6`, `read_s=1.5` |

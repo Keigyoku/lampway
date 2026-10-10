@@ -609,3 +609,15 @@ def test_the_agent_tool_logs_progress_and_hands_rows_to_its_caller(tmp_path, cap
     assert not is_error and [p["phase"] for p in out["progress"]] == ["render", "probe"]
     assert rows and any(r.getMessage().startswith("lampway_motion_graphics render 1/") for r in caplog.records)
     assert MT.progress_line({"phase": "render", "frame": 120, "frames": 450, "elapsed_s": 48.1, "eta_s": 132.3}) == "render 120/450 frames, 48.1 s, eta 132.3 s"
+
+
+# 7, the mg-site-clip note: a new wording is a new version
+def test_mg_site_clip_1_0_1_says_its_paths_are_the_site_repos_and_1_0_0_is_kept():
+    from lampway_server.prompts import library as PL
+    lib = PL.Library(PL.BUILTIN, None, None)
+    new, old = lib.get("mg-site-clip"), lib.get("mg-site-clip", "1.0.0")
+    assert new["version"] == "1.0.1" and "separate lampway-site repository" in new["description"]
+    assert "lampway-site" not in old["description"]
+    strip = lambda t: {k: v for k, v in t.items() if k not in ("version", "description", "provenance", "variables", "file", "scope")}
+    assert strip(new) == strip(old)                                               # wording only: body, defaults, gates and beats unchanged
+    assert {k: v.get("default") for k, v in new["variables"].items()} == {k: v.get("default") for k, v in old["variables"].items()}

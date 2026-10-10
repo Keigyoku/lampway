@@ -1,0 +1,149 @@
+{
+  "id": "mg-site-clip",
+  "version": "1.0.1",
+  "purpose": "motion-graphics",
+  "media": "video",
+  "title": "Site clip from the site's own assets",
+  "description": "A short clip for the Lampway site (a teaser, a feature loop, a social cut) made only from the site's public folder: logo, mark, palette tokens, self-hosted type, copy and approved media. The spike's teaser is this template's first output. Its path defaults (public/assets, public/index.html, public/media) and the .night tokens are in the separate lampway-site repository, not in this one: pass logo_dir, copy_source and media_dir for any other project.",
+  "body": {
+    "subject": "Lampway, told with the site's own material: the mark and lockup from {{logo_dir}}, the copy quoted verbatim from {{copy_source}}, the media in {{media_dir}}; {{focus}}.",
+    "action": "The beats below, in order: the mark draws stroke by stroke, the headline lines arrive one at a time, each feature holds long enough to read its line (at least {{read_s}} s), the end card holds the lockup and one call to action.",
+    "camera": "A fixed 2D frame; motion comes from layers sliding, fading and drawing on, never from a moving virtual camera. One move per layer at a time.",
+    "style": "Night surface (the site's .night tokens), one flame accent, the site's serif for headlines and its sans and mono for the rest, the site's own lamp-lit treatment for figures; {{palette}}.",
+    "constraints": "Write ONE scene folder: an HTML entry plus its JS, CSS, fonts and images, nothing fetched from elsewhere. Expose window.__scene = {duration_s, width, height}, an async window.__setup() that loads every font and decodes every image, then returns an object with both required arrays. Setup return example: {\"fonts\":[{\"font\":\"16px Fixture Sans\",\"ok\":true}],\"images\":[{\"src\":\"assets/figure.png\",\"ok\":true}]}. Each font or src identifier must be a non-empty string; ok must be a boolean, with true meaning the resource loaded. Empty-resource setup: {\"fonts\":[],\"images\":[]} is legitimate when no fonts or images are needed. window.__frame(t) sets EVERY animated property from t (seconds) alone. window.__audit() must return an object with both required arrays describing all visible text and marks at the captured time. Audit return example: {\"text\":[{\"sel\":\"#title\",\"text\":\"Title\",\"box\":[100,100,500,160],\"font_px\":28,\"opacity\":1}],\"marks\":[{\"sel\":\"figure\",\"box\":[600,200,1000,700]}]}. Each row needs a non-empty sel and box=[x0,y0,x1,y1] in viewport pixels, with finite numeric coordinates ordered x0 <= x1 and y0 <= y1. Text rows additionally require string text, positive finite font_px and finite opacity in [0,1]; marks require sel and box. Empty audit: {\"text\":[],\"marks\":[]} is legitimate only when no text or marks are visible. No Date, performance.now, Math.random, requestAnimationFrame, CSS animations or CSS transitions: easing and any flicker are closed-form functions of t. All text inside the 5% title-safe area, at least {{min_text_px}} px tall at the output size, with contrast of at least 4.5:1 (3:1 at 24 px and up). No text over a busy image without a plate behind it. Quote the site's copy and status words exactly (Built, Live, Partial, Design, in progress); add no claim the site does not make. Frame 0 shows a mark, never an empty frame."
+  },
+  "variables": {
+    "min_text_px": {
+      "type": "integer",
+      "default": 28,
+      "min": 22,
+      "max": 200,
+      "description": "the smallest text at the output size; the self-check fails under 22"
+    },
+    "palette": {
+      "type": "string",
+      "default": "the brand's own tokens from the supplied stylesheet",
+      "description": "where the colours come from; never invented"
+    },
+    "logo_dir": {
+      "type": "string",
+      "default": "public/assets",
+      "description": "the site's logo SVGs and fonts (the default is a lampway-site repository path)"
+    },
+    "copy_source": {
+      "type": "string",
+      "default": "public/index.html",
+      "description": "the page the copy is quoted from (the default is a lampway-site repository path)"
+    },
+    "media_dir": {
+      "type": "string",
+      "default": "public/media",
+      "description": "approved media only (the default is a lampway-site repository path)"
+    },
+    "focus": {
+      "type": "string",
+      "default": "who holds the keys, then three features, then build it from source",
+      "description": "what the clip is about"
+    },
+    "read_s": {
+      "type": "number",
+      "default": 1.2,
+      "min": 0.8,
+      "max": 6,
+      "description": "minimum hold for one line of copy"
+    }
+  },
+  "negatives": [
+    "no invented claims or numbers",
+    "no third-party fonts or images",
+    "no empty first frame",
+    "no text smaller than min_text_px"
+  ],
+  "inputs": {
+    "image_references": {
+      "required": false,
+      "multiple": true,
+      "description": "approved site media to place (figures, UI shots)"
+    }
+  },
+  "defaults": {
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "duration": 13
+  },
+  "gates": [
+    {
+      "id": "mg.network",
+      "description": "requests other than file: and data: during the render (the scene must be self-contained)",
+      "threshold": 0,
+      "unit": "requests"
+    },
+    {
+      "id": "mg.empty",
+      "description": "sampled frame with no visible mark: share of pixels carrying a local luminance step",
+      "threshold": 0.0001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.sparse",
+      "description": "warning only: a nearly empty sampled frame (a weak poster frame)",
+      "threshold": 0.001,
+      "unit": "share"
+    },
+    {
+      "id": "mg.title_safe",
+      "description": "visible text box outside the 5% title-safe margin",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.min_text_px",
+      "description": "smallest visible authored text",
+      "threshold": 22,
+      "unit": "px"
+    },
+    {
+      "id": "mg.contrast",
+      "description": "measured contrast of fully visible authored text against the pixels around it (3.0 at 24 px and up)",
+      "threshold": 4.5,
+      "unit": "ratio"
+    },
+    {
+      "id": "mg.overlap",
+      "description": "authored text overlapping a figure or card box",
+      "threshold": 0,
+      "unit": "boxes"
+    },
+    {
+      "id": "mg.determinism",
+      "description": "frames differing when the receipt is re-rendered by verify (same engine, sequential order)",
+      "threshold": 0,
+      "unit": "frames"
+    }
+  ],
+  "provenance": {
+    "source": "captain 2026-10-07: motion graphics from code ('add it to the list'); the scene contract and gates measured in the spike (the spike REPORT; receipts in scratch/motion/out/lampway-teaser/); 1.0.1 (Martin 2026-10-10, issue #8 bug 7): says plainly that the path defaults are the lampway-site repository's, wording only"
+  },
+  "beats": [
+    {
+      "t0": 0,
+      "t1": 2.6,
+      "action": "the mark draws, the flame lights, the wordmark follows"
+    },
+    {
+      "t0": 2.6,
+      "t1": 6.6,
+      "action": "the headline, then one line of supporting copy, beside the lit figure"
+    },
+    {
+      "t0": 6.6,
+      "t1": 10.6,
+      "action": "three features, one card each, status word above the line"
+    },
+    {
+      "t0": 10.6,
+      "t1": 13.0,
+      "action": "end card: lockup, the status line, one call to action, held"
+    }
+  ]
+}
