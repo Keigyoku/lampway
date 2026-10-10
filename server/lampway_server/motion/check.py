@@ -130,9 +130,23 @@ def findings(im, stats: dict, audit: dict, W: int, H: int) -> list:
     return f
 
 
-def contact_sheet(samples_dir: Path, out_png: Path, tile=(640, 360), cols=3, hashes=None) -> int:
-    """The sampled frames on one labelled sheet (frame, t, finding count per tile). Returns the tile count."""
+TILE_LONG_EDGE = 640
+
+
+def tile_size(width: int, height: int, long_edge: int = TILE_LONG_EDGE) -> tuple:
+    """A contact-sheet tile with the frame's own aspect, its long edge ``long_edge`` (16:9 stays 640x360; 9:16 is 360x640)."""
+    if width >= height:
+        return long_edge, max(1, int(round(long_edge * height / width)))
+    return max(1, int(round(long_edge * width / height))), long_edge
+
+
+def contact_sheet(samples_dir: Path, out_png: Path, tile=None, cols=3, hashes=None) -> int:
+    """The sampled frames on one labelled sheet (frame, t, finding count per tile). Returns the tile count. The tile keeps the frames'
+    aspect unless ``tile`` is given (a vertical render squashed into 16:9 tiles cannot be judged by eye)."""
     files = sorted(Path(samples_dir).glob("f*.png"))
+    if tile is None:
+        with Image.open(files[0]) if files else Image.new("RGB", (16, 9)) as first:
+            tile = tile_size(*first.size)
     tw, th = tile
     rows = max(1, (len(files) + cols - 1) // cols)
     sheet = Image.new("RGB", (cols * tw, rows * (th + 28)), (40, 40, 40))

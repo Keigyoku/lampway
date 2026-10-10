@@ -71,3 +71,33 @@ def test_no_chromium_names_the_browser_to_install():
 def test_the_build_guide_documents_the_motion_browser():
     guide = (REPO / "BUILD-LAMPWAY.md").read_text(encoding="utf-8")
     assert "LAMPWAY_CHROMIUM" in guide and "chrome-headless-shell" in guide and "Chrome for Testing" in guide
+
+
+# 3. the contact sheet keeps the render's aspect
+def _samples(tmp_path, w, h, n=3):
+    d = tmp_path / "samples"
+    d.mkdir()
+    for i in range(n):
+        Image.new("RGB", (w, h), (200, 30, 30)).save(d / f"f{i:04d}.png")
+        (d / f"f{i:04d}.json").write_text(json.dumps({"t": i / 10, "findings": []}), encoding="utf-8")
+    return d
+
+
+@pytest.mark.parametrize("w,h", [(1080, 1920), (320, 180), (1920, 1080), (1080, 1080), (3840, 16)])
+def test_contact_sheet_tiles_keep_the_frame_aspect(tmp_path, w, h):
+    d = _samples(tmp_path, w, h)
+    out = tmp_path / "contact.png"
+    assert C.contact_sheet(d, out) == 3
+    sheet = Image.open(out)
+    tw = sheet.width // 3
+    th = sheet.height - 28
+    assert max(tw, th) == 640
+    assert abs(th - tw * h / w) <= 0.5 and abs(tw - th * w / h) <= 0.5 * w / h + 0.5    # the aspect, to the rounded pixel
+    # the tile itself is red edge to edge: no squash, no letterbox bars inside the tile
+    assert sheet.getpixel((tw // 2, 28 + th // 2)) == (200, 30, 30)
+
+
+def test_a_16_9_contact_sheet_is_unchanged(tmp_path):
+    d = _samples(tmp_path, 1920, 1080)
+    C.contact_sheet(d, tmp_path / "contact.png")
+    assert Image.open(tmp_path / "contact.png").size == (1920, 388)

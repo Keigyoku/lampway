@@ -47,7 +47,7 @@ A completed receipt is `receipt.json`, with:
 | Source | `code_sha256`, `scene_files` with relative paths and SHA-256 |
 | Engine | Chromium product/flags, ffmpeg version, encoder threads/args, driver SHA-256 |
 | Frames | Count, `frame_hash` description, `frames_sha256_digest` |
-| Outputs | Per requested format SHA-256, bytes and ffprobe result; artifact_hashes.contact covers the generated PNG |
+| Outputs | Per requested format SHA-256, bytes and ffprobe result; artifact_hashes.contact covers the generated PNG, whose tiles keep the render's aspect (long edge 640 px; 16:9 stays 640 × 360) |
 | Audit | `self_check` counts/findings/samples; `determinism_probe` positions/differences/rendered frame count/timing |
 | Operational | `network`, `timing_s`, optional forbidden-request error |
 
