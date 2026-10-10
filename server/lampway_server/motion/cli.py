@@ -58,6 +58,7 @@ def _parser() -> _Parser:
     r.add_argument("--fps", type=int)
     r.add_argument("--duration", type=float, help="seconds; default: the template's, then window.__scene.duration_s")
     r.add_argument("--audit-every", type=float, metavar="SECONDS", help="also audit every SECONDS into audit.jsonl (no PNGs)")
+    r.add_argument("--safe-zone", metavar="X0,Y0,X1,Y1", help="fractions of the frame text must stay inside, e.g. 0.05,0.12,0.95,0.8")
     r.add_argument("--template", help="a motion-graphics template id@version (provenance and defaults)")
     r.add_argument("--var", action="append", default=[], metavar="KEY=VALUE", help="a template variable (repeatable; a value that parses as JSON is JSON)")
     r.add_argument("--no-vault", action="store_true", help="do not file the render in the Asset Vault")
@@ -102,6 +103,15 @@ def _home(ctx: Context) -> tuple:
     if runs:
         helps.append(f"{PROG} verify --receipt motion/out/{runs[-1]['run_id'][len('mg-'):]}/receipt.json: re-render the newest run and compare")
     return view, helps
+
+
+def _zone(text):
+    if text is None:
+        return None
+    try:
+        return [float(v) for v in text.split(",")]
+    except ValueError:
+        raise UsageError(f"--safe-zone {text!r}: use four fractions X0,Y0,X1,Y1") from None
 
 
 def _variables(pairs) -> dict:
@@ -183,7 +193,7 @@ def main(argv=None, ctx: Optional[Context] = None, out=None) -> int:
         root = Path(ctx.root)
         if a.cmd == "render":
             args = {"scene": a.scene, "width": a.width, "height": a.height, "fps": a.fps, "duration_s": a.duration, "template": a.template,
-                    "variables": _variables(a.var) or None, "audit_every_s": a.audit_every, "vault": False if a.no_vault else None}
+                    "variables": _variables(a.var) or None, "audit_every_s": a.audit_every, "safe_zone": _zone(a.safe_zone), "vault": False if a.no_vault else None}
         else:
             args = {"action": "verify", "receipt": a.receipt}
         inputs = M.inputs({k: v for k, v in args.items() if v is not None})

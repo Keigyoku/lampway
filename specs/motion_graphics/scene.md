@@ -22,7 +22,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 
 `__audit()` is required after setup and returns arrays for all visible text and marks at the captured time. Text items include `sel`, `text`, `box=[x0,y0,x1,y1]`, `font_px`, `opacity`. Mark items include `sel`, `box`. Coordinates are viewport pixels with finite ordered bounds. Runtime validates arrays, selectors, finite ordered geometry, text strings, positive font size and opacity in [0,1]. Authored completeness remains an author responsibility: the renderer cannot discover omitted elements. Empty lists are appropriate only when no such elements are visible.
 
-## Self-check contract (section 6 of implementation references)
+## Self-check contract
 
 | Check | Current acceptance rule |
 |---|---|
@@ -30,6 +30,9 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 | Title safe | Reported text must lie within 5% inset on each side |
 | Font size | Reported text under 22 px fails |
 | Scene override | An explicit or template width, height, fps or duration that overrides a differing `__scene` value warns (`scene_override`), with a help line |
+| Safe zone | Optional `safe_zone` input `[x0, y0, x1, y1]` (fractions of the frame): visible text outside it fails, at every sample and, with `audit_every_s`, once per text over the audit stream with the frames it covers. Title-safe stays the 5% inset; a phone feed's interface needs a tighter zone (for example `[0.05, 0.12, 0.95, 0.8]`) |
+| Reading time (stream) | With `audit_every_s`: a text row fully visible (opacity at least 0.95) for less than max(1 s, words / 3) warns (`reading`): 3 words/s is 180 wpm, the top of the BBC Subtitle Guidelines' reading rate. Holds are measured at the stream's stride |
+| Low content (stream) | With `audit_every_s`: 1 s or more with no text at opacity 0.5 or more, after the declared opening, warns (`low_content`): a near-blank beat between sections, or a mark-only section to confirm by eye |
 | Script errors | The page's uncaught exceptions and `console.error` lines are collected (`Runtime.enable`). A missing `__frame`/`__audit` refusal names the first one as scene-relative `file:line:col: message`; one that does not stop the render warns (`page_error`) |
 | Contrast | For opacity ≥0.95, measured contrast below 4.5 fails; at ≥24 px threshold is 3.0; unavailable measurement is not an automatic failure |
 | Crop | Reported marks extending beyond viewport fail |
@@ -37,7 +40,7 @@ This is an interface sketch, not a complete acceptable scene. `__setup()` must l
 | Probe | A differing fresh-browser probe RGB hash fails |
 | Resources | Forbidden request in either render pass fails |
 
-These checks use sampled pixels and authored geometry. They do not detect all readability, omitted text, poor pacing, layout or animation defects. Review the contact sheet and rendered video separately. Keep sparse-opening and other warnings visible.
+These checks use sampled pixels and authored geometry; pacing is checked only through the optional audit stream (reading time and low content), at its stride. They do not detect all readability, omitted text, other pacing, layout or animation defects. Review the contact sheet and rendered video separately. Keep sparse-opening and other warnings visible.
 
 For reproduction of the detail gate, resize to half-resolution with bilinear filtering, compute luminance using RGB weights 0.2126/0.7152/0.0722, and measure the share whose summed horizontal/vertical local differences exceed 10 on the 0–255 scale. Detail and contrast decisions use the measured ratio before display rounding; a value just below a threshold still fails or warns. Overlap selectors are literal authored values: `sel == "figure"` or `sel.startswith("card")`, with the exact text selector exemption `.card .tag`.
 

@@ -32,6 +32,7 @@ The declared JSON object rejects additional properties. Render properties are:
 | `formats` | Nonempty unique list drawn from `mp4`, `webm`; missing means both; empty/null refused |
 | `samples` | Optional nonempty list of 1–24 finite nonnegative numeric seconds, excluding booleans; positions rounded, deduplicated and clamped to final frame |
 | `audit_every_s` | Optional seconds in (0, 120], rounded to whole frames (at least one): `window.__audit()` is also recorded at every such frame and the last one, in `audit.jsonl` (`{frame, t, audit}` per line, hashed as `artifact_hashes.audit`), with no PNG and no pixel checks. The probe audits the same frames. Receipts without it verify as before |
+| `safe_zone` | Optional `[x0, y0, x1, y1]`, four finite fractions in 0..1 with x0 < x1 and y0 < y1, no booleans: visible text outside it fails (`safe_zone`) at samples and in the audit stream. Recorded in the receipt inputs; receipts without it verify as before |
 | `template` | Optional motion-graphics template `id` or `id@version`; unversioned resolves to a version. Its `defaults` (`resolution` + `aspect_ratio` → width × height, `duration` → `duration_s`) rank below explicit arguments and above `__scene` |
 | `variables` | Finite JSON template variable object with string keys; defaults filled by prompt renderer; provenance. A `*_dir` or `*_source` value without whitespace that names nothing under the project (or lies outside it) adds a `warnings` line and a `help` line |
 | `vault` | Boolean only, default true; false disables filing |

@@ -503,3 +503,68 @@ def test_a_stream_render_verifies_and_an_old_receipt_still_reads(tmp_path):
     receipt = json.loads((project / res["out_dir"] / "receipt.json").read_text())
     del receipt["inputs"]["audit_every_s"]
     assert M._receipt_inputs(receipt)["audit_every_s"] is None
+
+
+# 14. timeline checks the sampled frames cannot see: reading time, near-blank beats, a caller's safe zone
+def _row(frame, t, *texts):
+    return {"frame": frame, "t": t, "audit": {"text": [{"sel": sel, "text": text, "box": box, "font_px": 40, "opacity": op}
+                                                      for sel, text, box, op in texts], "marks": []}}
+
+
+HEAD = ("#h", "Seven words is a lot to read", [100, 300, 900, 360], 1.0)
+
+
+def test_a_line_held_shorter_than_its_words_need_warns_reading():
+    from lampway_server.motion import check as C
+    stream = [_row(i * 5, i * 0.5, HEAD) for i in range(3)] + [_row(15, 1.5)]     # fully visible 0.0-1.0 s (+ the stride): 1.5 s
+    found = C.stream_findings(stream, 0.5, 2.0, 1080, 1920)
+    reading = [f for f in found if f["check"] == "reading"]
+    assert len(reading) == 1 and reading[0]["frame"] == 0 and reading[0]["severity"] == "warn"
+    assert "fully visible about 1.50 s from 0.00 s; 7 words need 2.33 s" in reading[0]["detail"]
+    long = [_row(i * 5, i * 0.5, HEAD) for i in range(6)]                             # 3.0 s: enough
+    assert not [f for f in C.stream_findings(long, 0.5, 3.0, 1080, 1920) if f["check"] == "reading"]
+
+
+def test_a_second_without_readable_text_warns_low_content_but_the_opening_does_not():
+    from lampway_server.motion import check as C
+    faint = ("#h", "fading", [100, 300, 900, 360], 0.2)
+    stream = [_row(0, 0.0, HEAD), _row(5, 0.5, HEAD), _row(10, 1.0, faint), _row(15, 1.5), _row(20, 2.0), _row(25, 2.5, HEAD)]
+    low = [f for f in C.stream_findings(stream, 0.5, 3.0, 1080, 1920) if f["check"] == "low_content"]
+    assert len(low) == 1 and low[0]["frame"] == 10 and "from 1.00 s to 2.50 s (1.50 s" in low[0]["detail"]
+    short = [_row(0, 0.0, HEAD), _row(5, 0.5), _row(10, 1.0, HEAD)]                   # a 0.5 s transition: fine
+    assert not [f for f in C.stream_findings(short, 0.5, 1.5, 1080, 1920) if f["check"] == "low_content"]
+    opening = [_row(0, 0.0), _row(5, 0.5), _row(10, 1.0), _row(15, 1.5, HEAD)]
+    assert [f["check"] for f in C.stream_findings(opening, 0.5, 2.0, 1080, 1920, opening_s=1.5)] == ["reading"]
+
+
+def test_text_outside_the_safe_zone_fails_once_per_text_over_the_stream():
+    from lampway_server.motion import check as C
+    low_line = ("#cta", "Tap to learn more", [100, 1700, 900, 1760], 1.0)              # y 1700 > 0.8 * 1920
+    stream = [_row(i * 5, i * 0.5, HEAD, low_line) for i in range(6)]
+    zone = [0.05, 0.12, 0.95, 0.8]
+    found = [f for f in C.stream_findings(stream, 0.5, 3.0, 1080, 1920, zone, skip={0}) if f["check"] == "safe_zone"]
+    assert len(found) == 1 and found[0]["severity"] == "fail" and found[0]["frame"] == 5
+    assert "'Tap to learn more'" in found[0]["detail"] and "(5 audited frames from frame 5)" in found[0]["detail"]
+    assert not [f for f in C.stream_findings(stream, 0.5, 3.0, 1080, 1920, None) if f["check"] == "safe_zone"]
+
+
+class _Feed(FakeCapture):
+    def audit(self):
+        return {"text": [{"sel": "#cta", "text": "Tap", "box": [40, 150, 120, 170], "font_px": 28, "opacity": 1}], "marks": []}
+
+
+def test_safe_zone_fails_a_render_at_samples_and_in_the_stream(tmp_path):
+    project = _project(tmp_path)
+    args = {"scene": "motion/scenes/vert", **SMALL, "duration_s": 1, "samples": [0], "audit_every_s": 0.5, "safe_zone": [0.05, 0.1, 0.95, 0.8]}
+    res = M.render(project, args, _Feed)
+    zone = [f for f in res["self_check"]["findings"] if f["check"] == "safe_zone"]
+    assert res["ok"] is False and [f["frame"] for f in zone] == [0, 5]                 # the sample, then the stream (frames 5 and 9)
+    receipt = json.loads((project / res["out_dir"] / "receipt.json").read_text())
+    assert receipt["inputs"]["safe_zone"] == [0.05, 0.1, 0.95, 0.8]
+    assert M.verify(project, {"receipt": f"{res['out_dir']}/receipt.json"}, _Feed)["reproduced"] is True
+
+
+@pytest.mark.parametrize("bad", [[0, 0, 1], [0.5, 0, 0.4, 1], [0, 0, 1, 1.2], "0,0,1,1", [0, 0, True, 1]])
+def test_a_bad_safe_zone_is_refused(bad):
+    with pytest.raises(M.Refused, match="safe_zone"):
+        M.inputs({"scene": "x", "safe_zone": bad})

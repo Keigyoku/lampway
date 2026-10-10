@@ -31,8 +31,8 @@ from . import receipt as R
 from .cancellation import checkpoint
 
 INPUTS = ("action", "scene", "html", "entry", "name", "duration_s", "fps", "width", "height", "formats", "samples", "template", "variables", "vault", "receipt",
-          "audit_every_s")
-OPTIONAL_SAVED = ("audit_every_s",)                   # receipt inputs added after the first receipts: absent means not used
+          "audit_every_s", "safe_zone")
+OPTIONAL_SAVED = ("audit_every_s", "safe_zone")                   # receipt inputs added after the first receipts: absent means not used
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_SAMPLES, PROBE_FRAMES, DEFAULT_SAMPLES = 24, 8, 10
 MAX_LONG_EDGE, MAX_SHORT_EDGE = 3840, 2160
@@ -83,7 +83,7 @@ def inputs(args: dict) -> dict:
          "width": args.get("width"), "height": args.get("height"),
          "formats": args.get("formats", ["mp4", "webm"]), "samples": args.get("samples"), "template": args.get("template") or None,
          "variables": args.get("variables") or None, "vault": args.get("vault", True) is not False, "receipt": args.get("receipt"),
-         "audit_every_s": args.get("audit_every_s")}
+         "audit_every_s": args.get("audit_every_s"), "safe_zone": args.get("safe_zone")}
     if a["action"] not in ("render", "verify"):
         raise Refused(f"action {a['action']!r}: pass render or verify")
     if a["fps"] is not None:
@@ -102,6 +102,12 @@ def inputs(args: dict) -> dict:
         v = a["audit_every_s"]
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or not 0 < v <= 120:
             raise Refused(f"audit_every_s {v!r}: pass seconds in (0, 120] between audit-only rows (rounded to whole frames, at least one frame)")
+    if a["safe_zone"] is not None:
+        z = a["safe_zone"]
+        if (not isinstance(z, list) or len(z) != 4 or not all(isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and 0 <= v <= 1 for v in z)
+                or not (z[0] < z[2] and z[1] < z[3])):
+            raise Refused(f"safe_zone {z!r}: pass [x0, y0, x1, y1] as fractions of the frame with x0 < x1 and y0 < y1, "
+                          "e.g. [0.05, 0.12, 0.95, 0.8] to keep text off a phone feed's interface")
     if a["name"] is not None and not (isinstance(a["name"], str) and KEBAB.match(a["name"])):
         raise Refused(f"name {a['name']!r} is not kebab-case: pass a name of a-z, 0-9 and single hyphens")
     if a["action"] == "verify":
@@ -482,7 +488,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 stream.append({"frame": i, "t": round(t, 4), "audit": audit})
             if i in samples:
                 im, stats = C.frame_stats(png)
-                found = C.opening_grace(C.findings(im, stats, audit, W, H), t, opening)
+                found = C.opening_grace(C.findings(im, stats, audit, W, H, a["safe_zone"]), t, opening)
                 stem = f"f{i:04d}"
                 (out / "samples" / f"{stem}.png").write_bytes(png)
                 (out / "samples" / f"{stem}.json").write_text(json.dumps({"frame": i, "t": t, "stats": stats, "audit": audit, "findings": found}, indent=1), encoding="utf-8")
@@ -515,6 +521,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         size_notes = size_notes + [{"check": "page_error", "severity": "warn",
                                     "detail": f"the page reported {len(page_errors)} script error(s); the first: {page_errors[0]}"}]
     findings = [{"frame": 0, **f} for f in size_notes] + [{"frame": c["frame"], **f} for c in checks for f in c["findings"]]
+    findings += C.stream_findings(stream, stride / fps, duration, W, H, a["safe_zone"], opening, skip=samples) if stream else []
     findings += [{"frame": i, "check": "determinism", "severity": "fail", "detail": f"the scene is not a pure function of t: frame {i} differs on a second capture"} for i in differ]
     non_file = list(dict.fromkeys(u for u in requests + probe_requests
                                   if not (u.startswith("data:") or F.allowed_file_url(u, scene_dir))))
@@ -532,7 +539,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
         "ok": ok, "tool": "motion_graphics", "run_id": run_id, "out_dir": out_rel, "files": files_out,
         "inputs": {"scene": scene_rel, "entry": a["entry"] if a["html"] is None else "index.html", "name": name, "fps": fps, "width": W, "height": H,
                    "duration_s": duration, "formats": [f for f in E.FORMATS if f in a["formats"]], "samples": a["samples"], "template": a["template"],
-                   "variables": a["variables"], "audit_every_s": a["audit_every_s"]},
+                   "variables": a["variables"], "audit_every_s": a["audit_every_s"], "safe_zone": a["safe_zone"]},
         "audit_stream": {"every_frames": stride, "audits": len(stream)} if stream else None,
         "input_sources": sources, "help": override_help, "opening_s": opening,
         "frames": n, "code_sha256": code_sha, "scene_files": [{"path": p, "sha256": d} for p, d in files],

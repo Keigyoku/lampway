@@ -55,6 +55,8 @@ SPEC = ToolSpec(NAME, (
                     "description": "seconds to self-check, at most 24 (default: 10 evenly spaced plus the first and last frame)"},
         "audit_every_s": {**_N, "exclusiveMinimum": 0, "maximum": 120,
                           "description": "also record window.__audit() every this many seconds (whole frames) in audit.jsonl: authored geometry for the whole timeline, no PNGs"},
+        "safe_zone": {"type": "array", "items": {**_N, "minimum": 0, "maximum": 1}, "minItems": 4, "maxItems": 4,
+                      "description": "[x0, y0, x1, y1] fractions of the frame visible text must stay inside (fail), e.g. [0.05, 0.12, 0.95, 0.8] for a phone feed; checked at samples and the audit stream"},
         "template": {**_S, "description": "the motion-graphics prompt template id@version the scene was written from: recorded as provenance, and its defaults (resolution, aspect_ratio, duration) rank below explicit arguments and above window.__scene"},
         "variables": {**_O, "description": "provenance: that template's variables; a *_dir or *_source path missing under the project is a warning"},
         "vault": {**_B, "description": "file an accepted render in the Asset Vault (default true)"},
