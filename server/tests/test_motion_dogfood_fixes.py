@@ -621,3 +621,15 @@ def test_mg_site_clip_1_0_1_says_its_paths_are_the_site_repos_and_1_0_0_is_kept(
     strip = lambda t: {k: v for k, v in t.items() if k not in ("version", "description", "provenance", "variables", "file", "scope")}
     assert strip(new) == strip(old)                                               # wording only: body, defaults, gates and beats unchanged
     assert {k: v.get("default") for k, v in new["variables"].items()} == {k: v.get("default") for k, v in old["variables"].items()}
+
+
+# 2, the probe left open: the test environment says when the real-browser motion tests will skip
+@pytest.mark.parametrize("binary,expect", [(None, "will SKIP"), ("/bin/sh", "headless Chromium at")])
+def test_test_env_says_whether_the_motion_browser_tests_can_run(tmp_path, binary, expect):
+    import subprocess
+    text = (REPO / "scripts" / "lampway" / "test_env.sh").read_text(encoding="utf-8")
+    start = text.index('if [ -n "${LAMPWAY_CHROMIUM:-}" ]')
+    snippet = text[start:text.index("\nfi\n", start) + 4]
+    env = {"PATH": "/usr/bin:/bin", **({"LAMPWAY_CHROMIUM": binary} if binary else {})}
+    r = subprocess.run(["bash", "-c", snippet], env=env, capture_output=True, text=True, timeout=10)
+    assert r.returncode == 0 and expect in r.stdout + r.stderr and "BUILD-LAMPWAY.md section 8" in text[start - 300:start]
