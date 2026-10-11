@@ -36,6 +36,7 @@ on:
       - tests/qa/test_grok_worker_inline_diagnostics.py
       - tests/qa/grok_worker_artifacts.py
       - tests/qa/test_grok_worker_artifacts.py
+      - tests/qa/test_grok_worker_native_panes_lifecycle.py
       - third_party/herdr
 permissions:
   contents: read
@@ -93,7 +94,7 @@ jobs:
         working-directory: server
         run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
       - name: Controlled diagnostic refusal and deadline tests
-        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py
+        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py tests/qa/test_grok_worker_native_panes_lifecycle.py
       - name: Native policy proof with all INET sockets denied
         run: |
           python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"

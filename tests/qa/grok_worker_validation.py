@@ -892,17 +892,43 @@ class Validator:
         os.environ['PATH'] = str(tools) + os.pathsep + env['PATH']
         os.environ['LAMPWAY_HERDR_BIN'] = str(self.options.herdr.resolve())
         owned = {}
+        owned_lock = threading.Lock()
+        monitor_stop = threading.Event()
+        monitor_errors = []
+        monitor = None
+        server_identity = None
         def command(args):
             result = L.run(herdr_root, args, timeout=25)
             self.receipt['commands'].append({'herdr': args, 'result': result}); self.save()
             return result
+        def capture():
+            if server_identity is None:
+                return
+            rows = owned_snapshot(server_identity['pid'], server_identity['start'])
+            with owned_lock:
+                for row in rows:
+                    owned[(row['pid'], row['start'])] = row
+        def owned_rows():
+            with owned_lock:
+                return list(owned.values())
         def snapshot():
-            for row in owned_snapshot(L.server_info(herdr_root)['pid']):
-                owned[row['pid']] = row
-            return list(owned.values())
+            capture()
+            return owned_rows()
+        def watch_owned():
+            try:
+                while not monitor_stop.wait(0.01):
+                    capture()
+            except Exception:
+                with owned_lock:
+                    monitor_errors.append(traceback.format_exc())
         def gone(rows, timeout=8):
+            identities = {(row['pid'], row['start']): row for row in rows}
+            # This synchronous pane path has no asyncio direct child. ACP
+            # cleanup separately excludes its asyncio-owned native process.
+            reap_owned(identities, exclude=None)
             end = time.monotonic() + timeout
             while any(still_alive(r) for r in rows) and time.monotonic() < end:
+                reap_owned(identities, exclude=None)
                 time.sleep(0.05)
             return not any(still_alive(r) for r in rows)
         panes = []
@@ -923,6 +949,10 @@ class Validator:
             L.start_server(herdr_root, method='setsid')
             server_pid = L.server_info(herdr_root)['pid']
             self.receipt['herdr_identity'] = process_rows()[server_pid]; self.save()
+            server_identity = self.receipt['herdr_identity']
+            capture()
+            monitor = threading.Thread(target=watch_owned, daemon=True)
+            monitor.start()                     # before pane creation and agent startup
             flags = [value for k, v in env.items() for value in ['--env', k + '=' + v]]
             flags += ['--env', 'PATH=' + os.environ['PATH']]
             for index, action in enumerate(['ctrl-c', 'hup-term', 'hard-close']):
@@ -952,15 +982,22 @@ class Validator:
                     native_args[:4] == ['--leader-socket', current['outer_socket'], 'wrap', '--'],
                     {'argv': launch, 'candidate_instance_only': True, 'native_readiness_probe': 'real'})
                 offset = len(self.http.events)
-                self.http.hold_model = action == 'ctrl-c'
+                self.http.hold_model = False
                 command(['agent', 'start', 'owned-' + str(index), '--kind', 'grok', '--pane', pane,
                          '--timeout', '10000', '--', *native_args])
+                if action == 'ctrl-c':
+                    # Native startup must first reach genuine interactive
+                    # readiness. Hold only a subsequent real frontend prompt.
+                    self.http.hold_model = True
+                    command(['agent', 'prompt', 'owned-' + str(index), 'synthetic_pending_ctrlc_probe'])
                 end = time.monotonic() + 25
                 observed = []
                 while time.monotonic() < end:
                     observed = snapshot()
                     if (any(current['inner_socket'] in ' '.join(r['argv']) for r in observed)
-                            and any(e.get('persona_present') for e in self.http.events[offset:])):
+                            and any(e.get('persona_present') for e in self.http.events[offset:])
+                            and (action != 'ctrl-c' or any(
+                                e.get('model_pending') for e in self.http.events[offset:]))):
                         break
                     time.sleep(0.1)
                 inner = [r for r in observed if r['argv'][0] and
@@ -1012,6 +1049,10 @@ class Validator:
                 for source in ['user', 'compat', 'plugin', 'dynamic', 'lampway_pane', 'cursor']:
                     self.check(action + ' no foreign ' + source + ' initialization',
                         not read_events(self.output / ('foreign-' + source + '.jsonl')))
+        except Exception:
+            self.receipt['native_panes_failure'] = traceback.format_exc()
+            self.save()
+            raise
         finally:
             for pane in panes:
                 try: command(['pane', 'close', pane])
@@ -1022,10 +1063,30 @@ class Validator:
                     snapshot()
                     try: L.stop_server(herdr_root, confirmed=True)
                     finally:
+                        capture()
+                        monitor_stop.set()
+                        if monitor is not None:
+                            monitor.join()
                         self.check('owned herdr and descendants absent', gone(list(owned.values())), list(owned.values()))
+            except Exception:
+                self.receipt['native_panes_cleanup_failure'] = traceback.format_exc()
+                self.save()
+                raise
             finally:
-                CAP.set_active(old_capabilities)
-                os.environ.clear(); os.environ.update(old_env)
+                try:
+                    monitor_stop.set()
+                    if monitor is not None:
+                        monitor.join()
+                    self.receipt['native_panes_owned'] = owned_rows()
+                    self.receipt['native_panes_monitor_errors'] = list(monitor_errors)
+                    self.save()
+                    if monitor_errors:
+                        raise RuntimeError('owned native pane monitor failed; ownership proof is incomplete')
+                finally:
+                    try:
+                        CAP.set_active(old_capabilities)
+                    finally:
+                        os.environ.clear(); os.environ.update(old_env)
 
 
 def main():
