@@ -30,6 +30,10 @@ on:
       - server/lampway_server/agent/swarm.py
       - server/lampway_server/choices/**
       - tests/qa/grok_worker_validation.py
+      - tests/qa/grok_worker_transport_diagnostics.py
+      - tests/qa/test_grok_worker_transport_diagnostics.py
+      - tests/qa/grok_worker_inline_diagnostics.py
+      - tests/qa/test_grok_worker_inline_diagnostics.py
       - third_party/herdr
 permissions:
   contents: read
@@ -86,6 +90,8 @@ jobs:
       - name: Controlled refusal regression tests
         working-directory: server
         run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
+      - name: Controlled diagnostic refusal and deadline tests
+        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py
       - name: Native policy proof with all INET sockets denied
         run: |
           python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
@@ -93,6 +99,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture present --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
+      - name: Independent transport and loaded-policy diagnosis (not acceptance)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_transport_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-transport-diagnostics"
+      - name: Selected inline agent diagnosis (not acceptance)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -101,4 +121,6 @@ jobs:
             ${{ runner.temp }}/grok-worker-tools/*.txt
             ${{ runner.temp }}/grok-worker-stdio/**
             ${{ runner.temp }}/grok-worker-loopback/**
+            ${{ runner.temp }}/grok-worker-transport-diagnostics/**
+            ${{ runner.temp }}/grok-worker-inline-diagnostics/**
             ${{ runner.temp }}/grok-worker-herdr/*/herdr.json
