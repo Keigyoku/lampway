@@ -77,6 +77,28 @@ example whose joint heads equal the measured joints, frames per canon 17, a per-
 
 ## F. Implementation gap
 
+Current `features/rig_fit.py` implements the provenance-bound template route,
+REST-aligned inside evaluation and replacement-only binding on a disposable
+copy. Its procedural weights now follow the verified Titan body recipe: six
+stations and twelve sides, ray-measured elliptical radii, child-owned joint
+widths of a quarter of the shorter adjacent bone, and nearest-polygon weight
+transfer. It preserves the original mesh identities and removes transient body
+data after success or failure. The historical 0.4–7 cm width range in canon07 is
+a measurement, not a clamp. Original source/action/parent preservation and
+independent algorithm controls do not establish physical fit acceptance;
+genuine outside joints still refuse without an explicit caller exception.
+
+The existing-rig source also accepts `centre:rig:<armature>`: read the example's
+own mapped REST heads and apply the existing canon11 B8 projected hit-mean
+engine. This shares the view-measurement correction rather than introducing a
+second centering algorithm. Its geometry-bound receipt retains open-ring and
+hidden base measurements and records each attempted pass. Centering alone does
+not certify anatomical placement; the independent six-axis gate still refuses
+outside joints. Correcting those measurements on the example's own views is a
+separate, explicitly unreviewed candidate, never a template-body transplant.
+
+The following entries retain their historical implementation identities:
+
 - Lampway (`4e9001c7`): `auto_rig` places a fixed UE-named skeleton from height fractions and arm span measured on a T-pose mesh
   (`rig.py:35-75`): no measured joints, no fingers, no twist bones, no provenance, no inside check; weights are Blender heat maps
   with a proximity fallback (`rig.py:142-153`), not the procedural body.
@@ -86,7 +108,7 @@ example whose joint heads equal the measured joints, frames per canon 17, a per-
 ## G. Agent-facing tool contract — `lampway_rig_fit_template` (spec: `rig_tools/rig_fit_template.md`)
 
 ```json
-{"example": "object | .glb", "joints": "joints.json (titan.rig-joints/1) | 'views' | 'rig:<armature>'", "template": "fit_body package",
+{"example": "object | .glb", "joints": "joints.json (titan.rig-joints/1) | 'views' | 'rig:<armature>' | 'centre:rig:<armature>'", "template": "fit_body package",
  "hands": "views | none", "hidden": ["pelvis", "thigh_l", "thigh_r"], "convention": "blender", "out": "rig/<example>.rig.blend"}
 ```
 Refusals: joints file mesh sha256 != example sha256; `copied_not_fitted`; a required joint missing; joints outside the example

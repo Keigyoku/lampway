@@ -44,9 +44,9 @@ def hits_in(path, text_lines=None):
 
 def _files(roots=ROOTS, base=ROOT):
     for r in roots:
-        for dp, _dn, fn in os.walk(base / r):
-            if "__pycache__" in dp or os.sep + "tests" in dp or os.sep + "testing" in dp:
-                continue
+        scan_root = base / r
+        for dp, dirs, fn in os.walk(scan_root):
+            dirs[:] = [d for d in dirs if d not in ("__pycache__", "tests", "testing")]
             for f in fn:
                 if f.endswith(".py"):
                     yield pathlib.Path(dp) / f
@@ -82,3 +82,17 @@ def test_the_scan_sees_planted_offenders_in_every_root_and_ignores_identifiers(t
         (d / "x.py").write_text('A = "Open Mixie"\nB = "reconnect mixar now"\nC = "mixar.camera_project"\nD = "~/.mixar"\nE = "mixar"\nF = "MIXIE"\nG = "X-Mixar-Id"\n')
     seen = {r: [v for _l, v in hits_in(next(_files((r,), tmp_path)))] for r in ROOTS}
     assert all(v == ["Open Mixie", "reconnect mixar now"] for v in seen.values()), seen
+
+
+def test_brand_scan_excludes_only_test_descendants_of_each_scan_root(tmp_path):
+    base = tmp_path / 'tests' / 'testing' / 'checkout'
+    root = base / ROOTS[0]
+    root.mkdir(parents=True)
+    production = root / 'production.py'
+    production.write_text('A = "Open Mixie"\n')
+    for name in ('tests', 'testing', '__pycache__'):
+        nested = root / name
+        nested.mkdir()
+        (nested / 'fixture.py').write_text('A = "Open Mixie"\n')
+    assert list(_files((ROOTS[0],), base)) == [production]
+    assert [v for _line, v in hits_in(production)] == ['Open Mixie']

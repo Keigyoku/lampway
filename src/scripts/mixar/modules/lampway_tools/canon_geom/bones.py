@@ -14,8 +14,9 @@ import math
 import numpy as np
 
 from .axes import cross, unit
+from .native_topology import terminal_children
 
-MAIN_CHILD = {"pelvis": "spine_01", "spine_05": "neck_01", "hand_l": "middle_01_l", "hand_r": "middle_01_r"}
+MAIN_CHILD = {"root": "pelvis", "pelvis": "spine_01", "spine_05": "neck_01", "hand_l": "middle_01_l", "hand_r": "middle_01_r"}
 LEAF = 0.8
 
 # The continuation of every UE limb bone that carries twist / corrective / helper children beside its next joint (UE5
@@ -25,6 +26,24 @@ CONTINUATION = dict({f"{a}_{s}": f"{b}_{s}" for s in ("l", "r") for a, b in (("c
                                                                               ("lowerarm", "hand"), ("thigh", "calf"), ("calf", "foot"),
                                                                               ("foot", "ball"))},
                     spine_03="neck_01", neck_01="neck_02", neck_02="head", **MAIN_CHILD)
+# Native MetaHuman metacarpals may also parent a *_metacarpal_slide helper.
+# The finger's first joint is the anatomical continuation, never that driver.
+CONTINUATION.update({f"{finger}_metacarpal_{side}": f"{finger}_01_{side}"
+                     for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky")})
+CONTINUATION.update({f"{finger}_{joint:02d}_{side}": f"{finger}_{joint+1:02d}_{side}"
+                     for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky") for joint in (1, 2)})
+
+# Actual native MetaHuman terminal joints carry bulge/half drivers beside no
+# anatomical continuation. Only these exact names qualify for the leaf rule.
+TERMINAL_AUXILIARIES = {
+    f"{finger}_03_{side}": frozenset(f"{finger}_03_{tag}_{side}" for tag in ("bulge", "half"))
+    for side in ("l", "r") for finger in ("thumb", "index", "middle", "ring", "pinky")
+}
+
+
+def terminal_auxiliary_leaf(bone, children):
+    """Recognized terminal03 helper-only branch; unknown children never qualify."""
+    return terminal_children(bone, children)
 
 
 def _descends(bone, ancestor, parents):
@@ -37,10 +56,12 @@ def _descends(bone, ancestor, parents):
     return False
 
 
-def chain_ends(heads, parents, leaf=LEAF, main_child=None):
+def chain_ends(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
     """{bone: end point}: the child's head (the named continuation where there are several - a direct child, or a deeper
     descendant such as MetaHuman's middle_01 under middle_metacarpal), or - a last bone - the parent's line continued by
-    ``leaf``. Several children and no named continuation is refused."""
+    ``leaf``. Several children and no named continuation is refused unless the caller supplies
+    a canon-17 authored corrective helper endpoint in ``helper_ends``."""
+    helpers = helper_ends or {}
     main = MAIN_CHILD if main_child is None else main_child
     kids = {}
     for b, p in parents.items():
@@ -48,25 +69,31 @@ def chain_ends(heads, parents, leaf=LEAF, main_child=None):
             kids.setdefault(p, []).append(b)
     out = {}
     for b, h in heads.items():
+        if b in helpers:
+            out[b] = tuple(helpers[b])
+            continue
         k = kids.get(b, [])
-        if len(k) == 1:
+        terminal = terminal_auxiliary_leaf(b, k)
+        if (b in TERMINAL_AUXILIARIES or b in ("ball_l", "ball_r")) and k and not terminal:
+            raise ValueError(f"bone {b!r} has unrecognized terminal children {', '.join(sorted(k))}")
+        if terminal or not k:
+            p = parents.get(b)
+            if p is None or p not in heads:
+                raise ValueError(f"bone {b!r} has neither a child nor a parent to continue")
+            out[b] = tuple(x + leaf * (x - y) for x, y in zip(h, heads[p]))
+        elif len(k) == 1:
             out[b] = tuple(heads[k[0]])
         elif k:
             m = main.get(b)
             if m not in heads or not _descends(m, b, parents):
                 raise ValueError(f"bone {b!r} has children {', '.join(sorted(k))} and no named continuation")
             out[b] = tuple(heads[m])
-        else:
-            p = parents.get(b)
-            if p is None or p not in heads:
-                raise ValueError(f"bone {b!r} has neither a child nor a parent to continue")
-            out[b] = tuple(x + leaf * (x - y) for x, y in zip(h, heads[p]))
     return out
 
 
-def bone_segments(heads, parents, leaf=LEAF, main_child=None):
+def bone_segments(heads, parents, leaf=LEAF, main_child=None, helper_ends=None):
     """{bone: (head (3,), end (3,))} as numpy arrays: the segment a bone covers for distance-based weighting."""
-    ends = chain_ends(heads, parents, leaf, main_child)
+    ends = chain_ends(heads, parents, leaf, main_child, helper_ends)
     return {b: (np.asarray(heads[b], float), np.asarray(ends[b], float)) for b in heads}
 
 

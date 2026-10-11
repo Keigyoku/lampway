@@ -27,6 +27,7 @@ Lampway is an open-source 3D suite on a Blender 5.2 core with an AI agent inside
 | [The UE Renderer](lampway/ue-renderer.md) | predict what Unreal shows: UE Default Lit materials, the UE Look view, canonical export, the parity harness |
 | [UE Look](ue-look.md) | pointing Lampway at the tonemapper cube generated on the UE side |
 | [Tools](tools.md) | every agent tool, generated from the live registry |
+| [Motion graphics canon](canon/motion_graphics/motion_graphics.md) | deterministic scene, agent and receipt contracts; [acceptance and evidence](reports/motion-graphics-acceptance.md) |
 
 ## Project
 
@@ -35,6 +36,7 @@ Lampway is an open-source 3D suite on a Blender 5.2 core with an AI agent inside
 | [Roadmap](roadmap.md) | waves, lanes and their status, decisions owed |
 | [Resource audit](lampway/resource-audit.md) | third-party tools audited, and what was adopted or refused |
 | [Wave reports](reports/) | the measured record of each wave: test counts, live runs, costs, honest gaps |
+| [Canon index](canon/INDEX.md) | algorithm and tool specifications, their invariants, implementation gaps and falsifiers |
 | [Contributing](../CONTRIBUTING.md) | the pre-publish gate, lanes and integration, test commands, the build box |
 | [Security](../SECURITY.md) | reporting a vulnerability and what the design defends |
 | [Third-party notices](../THIRD_PARTY.md), [NOTICE](../NOTICE.md) | licences, models, fonts, attribution |

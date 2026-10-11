@@ -61,7 +61,7 @@ res({"st": st, "sk": sk, "gl": gl, "odd": odd, "st_json": ex(st), "sk_json": ex(
     sj, kj = d["st_json"], d["sk_json"]
     assert sj["schema"] == "lampway.ue-export/1" and sj["type"] == "static_prop" and sorted(sj["settings"]) == d["rows"]["static_prop"]
     assert sj["settings"]["object_types"] == ["MESH"] and sj["settings"]["use_tspace"] is True and sj["settings"]["use_triangles"] is True
-    assert kj["settings"]["object_types"] == ["ARMATURE", "MESH"] and kj["settings"]["primary_bone_axis"] == "Z" and kj["settings"]["add_leaf_bones"] is False
+    assert kj["settings"]["object_types"] == ["ARMATURE", "MESH"] and kj["settings"]["primary_bone_axis"] == "X" and kj["settings"]["secondary_bone_axis"] == "-Y" and kj["settings"]["add_leaf_bones"] is False
     assert kj["readback"]["joints"]["ok"] is True and kj["readback"]["joints"]["bones_compared"] == 3
     assert "UE 5.8 reads only 4 influences from glTF: FBX is the path" in d["gl"]["error"]
     assert "one canonical path per type" in d["odd"]["error"]
@@ -144,6 +144,95 @@ res({"out": out, "bad": bad})
     assert out["readback"]["frames"] == 31 and out["readback"]["animated_curves"] > 0
     assert out["readback"]["keys_per_curve"] == [31], out["readback"]
     assert "frame_rate 24 differs from the scene's 30 fps" in d["bad"]["error"]
+
+
+def test_animation_centimetre_carriers_preserve_action_handles_rest_and_scene_state():
+    d = run('''
+from mixar.modules.lampway_tools import canon_io
+from mixar.modules.lampway_tools.features import rig_tools as RT, rig_export as RE, export_checks as EC
+arm = armature("ClipRig", (("root", (0,0,0), (0,0,.3), None),
+                          ("child", (0,0,.3), (0,0,.6), "root")))
+bpy.context.scene.render.fps = 30
+bpy.context.scene.frame_start = 2; bpy.context.scene.frame_end = 6
+arm.animation_data_create()
+clip = bpy.data.actions.new("Travel"); arm.animation_data.action = clip
+pb = arm.pose.bones["root"]; pb.rotation_mode = "XYZ"
+for frame, distance in ((2, .1), (6, .5)):
+    pb.location = (distance, .2 * distance, 0)
+    pb.keyframe_insert("location", frame=frame)
+    pb.rotation_euler.z = distance
+    pb.keyframe_insert("rotation_euler", frame=frame)
+hold = bpy.data.actions.new("UntouchedActive"); arm.animation_data.action = hold
+pb.location = (0,0,0); pb.keyframe_insert("location", frame=3)
+bpy.context.scene.frame_set(3)
+def source():
+    return {"frame": bpy.context.scene.frame_current, "unit": bpy.context.scene.unit_settings.scale_length,
+            "active": arm.animation_data.action.name, "slot": arm.animation_data.action_slot.handle,
+            "rest": [[b.name, [list(r) for r in b.matrix_local]] for b in arm.data.bones],
+            "curves": {a.name: [[fc.data_path, fc.array_index,
+                [[list(k.co), list(k.handle_left), list(k.handle_right)] for k in fc.keyframe_points]]
+                for fc in RT._fcurves(a)] for a in (clip, hold)},
+            "pose": [[p.name, list(p.location), list(p.rotation_euler), list(p.scale)] for p in arm.pose.bones]}
+before = source(); ids = canon_io.snapshot_ids()
+result = api.ue_export(type="animation", armature="ClipRig", action="Travel", frame_rate=30,
+                      out_dir="export/travel")
+path = os.path.join(root, "export/travel/ClipRig.fbx")
+from pathlib import Path
+data = Path(path).read_bytes()
+_version, nodes = UX.FX.parse(data)
+objects = UX.FX._top(nodes, "Objects")
+values = [UX.FX._child(n, "KeyValueFloat")["props"][0]["value"]
+          for n in objects["children"] if n["name"] == "AnimationCurve"]
+location_cm = any(abs(values[0] - 10) < 1e-4 and abs(values[-1] - 50) < 1e-4 for values in values)
+try:
+    RE._authored_table(path, {"axis_forward": "-Z", "axis_up": "Y"})
+    missing_clusters = False
+except UX.C.FeatureError as exc:
+    missing_clusters = "skin cluster" in str(exc)
+original_parse = UX.FX.parse
+topology_plant = None
+try:
+    models = {n["props"][0]["value"]: n["props"][1]["value"].split(b"\\x00")[0]
+              for n in objects["children"] if n["name"] == "Model"}
+    connections = UX.FX._top(nodes, "Connections")
+    child_id = next(ident for ident, name in models.items() if name == b"child")
+    container_id = next(ident for ident, name in models.items() if name == b"Armature")
+    parent_row = next(n for n in connections["children"] if n["name"] == "C"
+                      and n["props"][0]["value"] == b"OO" and n["props"][1]["value"] == child_id)
+    parent_row["props"][2]["value"] = container_id
+    UX.FX.parse = lambda data: (_version, nodes)
+    topology_plant = UX._animation_skeleton_readback(Path(path), arm, "Armature")
+finally:
+    UX.FX.parse = original_parse
+_version, nodes = original_parse(data)
+try:
+    objects = UX.FX._top(nodes, "Objects")
+    curve = next(n for n in objects["children"] if n["name"] == "AnimationCurve")
+    UX.FX._child(curve, "KeyTime")["props"][0]["value"][2] += 1
+    UX.FX.parse = lambda data: (_version, nodes)
+    timing_plant = UX._animation_skeleton_readback(Path(path), arm, "Armature")
+finally:
+    UX.FX.parse = original_parse
+res({"result": result, "unit": RE.unit_scale_factor(path),
+     "carriers": EC.fbx_container_scale_failures(path), "unchanged": before == source(),
+     "location_cm": location_cm, "missing_clusters": missing_clusters,
+     "topology_plant": topology_plant, "timing_plant": timing_plant,
+     "ids_unchanged": ids == canon_io.snapshot_ids(),
+     "receipt": json.load(open(os.path.join(root, "export/travel/export.json")))})
+''')
+    assert d["carriers"] == [], d
+    assert d["result"]["ok"] and d["unit"] == 1, d
+    assert d["unchanged"] and d["ids_unchanged"], d
+    rb = d["result"]["readback"]
+    assert rb["keys_per_curve"] == [5] and rb["animated_curves"] > 0, rb
+    assert rb["skeleton"]["hierarchy_matches"] and rb["skeleton"]["bones_compared"] == 2, rb
+    assert rb["skeleton"]["key_times_match"] and d["location_cm"], d
+    assert d["missing_clusters"], d
+    assert not d["topology_plant"]["ok"] and not d["topology_plant"]["hierarchy_matches"], d
+    assert not d["timing_plant"]["ok"] and not d["timing_plant"]["key_times_match"], d
+    assert rb["skeleton"]["bind_acceptance"].startswith("unverified"), rb
+    assert d["receipt"]["export_space"]["coordinate_factor"] == 100, d
+    assert d["receipt"]["settings"]["primary_bone_axis"] == "X", d
 
 
 def test_tex01_every_texture_carries_its_declared_colour_space():

@@ -59,3 +59,18 @@ def test_refresh_tokens_survive_a_server_restart(tmp_path):
     third = Auth(store_path=store, **kw)
     assert third.refresh(pair["refresh_token"], None) is None, "the used token is gone from the store too"
     assert third.refresh(rotated["refresh_token"], None) is not None
+
+
+def test_local_signin_stays_in_app_and_requires_configured_password(http, settings):
+    assert http.post("/api/v1/auth/local", json={}).status_code == 401
+    response = http.post("/api/v1/auth/local", json={"password": settings.user_password})
+    assert response.status_code == 200
+    assert set(response.json()) >= {"access_token", "refresh_token"}
+
+
+def test_local_profile_destinations_resolve_without_paid_actions(http):
+    for path in ("/app", "/app?target=buy-credits", "/app?target=pricing", "/app/docs", "/app/bug-report"):
+        response = http.get(path)
+        assert response.status_code == 200, path
+        assert "Lampway" in response.text
+        assert "local" in response.text.lower()

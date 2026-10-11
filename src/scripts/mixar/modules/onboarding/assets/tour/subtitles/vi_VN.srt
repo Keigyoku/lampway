@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Xin chào, tôi là Naman từ Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+Trong vài phút tới, tôi sẽ giới thiệu ứng dụng.
+
+3
+00:00:06,760 --> 00:00:08,250
+Đây là khung nhìn của bạn.
+
+4
+00:00:08,250 --> 00:00:10,300
+Một không gian 3D để bạn di chuyển.
+
+5
+00:00:11,000 --> 00:00:13,200
+Kéo chuột giữa để xoay, cuộn để thu phóng.
+
+6
+00:00:13,200 --> 00:00:15,400
+Giữ Shift và kéo chuột giữa để dịch khung nhìn.
+
+7
+00:00:15,850 --> 00:00:17,160
+Hãy thử xem.
+
+8
+00:00:18,180 --> 00:00:20,700
+Nhấp để chọn, G để di chuyển,
+
+9
+00:00:20,700 --> 00:00:22,600
+R để xoay, S để đổi tỷ lệ.
+
+10
+00:00:22,600 --> 00:00:25,410
+Đây là một số phím tắt hữu ích.
+
+11
+00:00:26,040 --> 00:00:29,500
+Thấy hòn đảo nhỏ phía dưới không? Đó là Mixie, trợ lý của bạn.
+
+12
+00:00:30,000 --> 00:00:31,180
+Nhấp để mở.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie có các thẻ.
+
+14
+00:00:33,920 --> 00:00:38,800
+Trong Agent, nói điều bạn muốn bằng lời thường. Trợ lý sẽ làm việc trên cảnh.
+
+15
+00:00:39,400 --> 00:00:43,300
+Trợ lý dùng các mô hình như Tripo, Meshy và Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Để kiểm soát nhiều hơn, mở các thẻ khác:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video hoặc World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Chọn mô hình và điều chỉnh cài đặt.
+
+19
+00:00:53,560 --> 00:00:55,730
+Mọi thứ bạn tạo đều vào thư viện.
+
+20
+00:00:56,670 --> 00:00:58,700
+Các sản phẩm của bạn ở đây.
+
+21
+00:00:59,140 --> 00:01:03,000
+Kết nối thư viện riêng để trợ lý dùng tài nguyên của bạn,
+
+22
+00:01:03,000 --> 00:01:06,320
+giúp tiết kiệm tín dụng.
+
+23
+00:01:06,830 --> 00:01:09,550
+Góc trên bên trái là ngăn cảnh.
+
+24
+00:01:09,550 --> 00:01:12,980
+Mỗi cảnh có thẻ và trợ lý Mixie riêng.
+
+25
+00:01:12,980 --> 00:01:17,010
+Chạy các tác vụ song song và chuyển đổi bất cứ lúc nào.
+
+26
+00:01:17,640 --> 00:01:21,100
+Khi cảnh đã sẵn sàng, chuyển sang Cinema Mode
+
+27
+00:01:21,100 --> 00:01:24,510
+để điều khiển máy quay và tạo quy trình video.
+
+28
+00:01:25,000 --> 00:01:26,700
+Ý tưởng bắt đầu từ 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Kéo moodboard từ bên phải hoặc nhấn phím dấu ngã.
+
+30
+00:01:30,860 --> 00:01:33,500
+Đó là khung vẽ cho tài liệu tham khảo và ý tưởng.
+
+31
+00:01:33,500 --> 00:01:36,270
+Thả hình ảnh, video hoặc bản phác thảo vào đây.
+
+32
+00:01:36,940 --> 00:01:40,930
+Tạo đồ thị nút cho mô hình tạo sinh như trong ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Bạn đang ở Zen Mode, giao diện đơn giản nhất.
+
+34
+00:01:44,400 --> 00:01:46,840
+Nếu biết Blender, hãy chuyển sang Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Toàn bộ không gian Blender có ở đây, với mọi bảng và phím tắt.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie hoạt động ở cả hai. Hãy chọn chế độ phù hợp.
+
+37
+00:01:56,560 --> 00:01:57,570
+Hãy quay lại Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Chương trình đối tác sáng tạo mang đến tín dụng
+
+39
+00:02:02,200 --> 00:02:05,900
+và cộng đồng cùng định hình tương lai AI và 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+Vậy là xong. Bạn đã biết mọi thứ ở đâu.
+
+41
+00:02:08,550 --> 00:02:10,240
+Hãy cùng sáng tạo 3D.

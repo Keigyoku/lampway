@@ -57,7 +57,7 @@ def test_menus_collapse_only_when_they_reach_the_slider():
 @pytest.mark.parametrize("width", [3000, 1512, 1024, 900, 800, 700, 600, 400])
 @pytest.mark.parametrize("engine", [False, True])
 @pytest.mark.parametrize("email", ["rahul@mixar.app",
-                                   "someone.with.a.very.long.name@example-company.com"])
+                                   "someone.with.a.very.long.name.qa1@example.invalid"])
 def test_profile_pill_stays_inside_its_lane(width, engine, email):
     units, label = bar.profile_pill(email, width, engine=engine)
     lane = bar.side_lane_px(width) - bar.RIGHT_FIXED_PX
@@ -148,7 +148,7 @@ def test_sound_toggle_gives_way_only_when_the_account_cannot_fit(logged_in):
 
 def test_engine_keeps_full_selectors_only_beside_a_whole_account_label():
     short = bar.full_account_units(True, "rahul@mixar.app")
-    long = bar.full_account_units(True, "someone.with.a.long.name@example-company.com")
+    long = bar.full_account_units(True, "someone.with.a.long.name.qa1@example.invalid")
     assert not bar.engine_full_selectors(1600, short)
     assert bar.engine_full_selectors(2400, long)
     assert not bar.engine_full_selectors(1800, long)

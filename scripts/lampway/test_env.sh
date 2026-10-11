@@ -13,7 +13,15 @@
 #      copy of the owner's recorded fixtures; test_all requires its placement fixtures (test_all.py SHELF_FILES), fails a shelf test that
 #      would skip, and fails a run that wrote to it. The path is the machine's: it is never written in the repository.
 #   4. the i18n template (src/scripts/mixar/modules/common/i18n/locale/mixar.pot, git-ignored) is written from the source and upstream/.
-#   5. test_all.py --verify-env must then pass.
+#   5. export LAMPWAY_V3_PLATES_DIR to the private authentic approved V3 plate directory (Chest1/Front.png).
+#      Scratch includes original chest transfer/palette records and regenerated plates; never synthesize acceptance fixtures.
+#   6. export LAMPWAY_CHROMIUM to a chrome-headless-shell executable (Chrome for Testing headless shell, not full Chrome).
+#      Full Chrome component service workers are unsupported by the scene containment guard; never weaken that guard.
+#      A version print alone does not admit the browser: its default-flags sandbox must render a blank page in disposable state.
+#   7. ImageMagick magick with a working SVG delegate (rsvg-convert on PATH for librsvg), fontconfig fc-match, and the vendored
+#      fonts must actually render the maintained splash. Install these in the isolated test environment using its package manager.
+#      The maintained Python-sync controls also require rsync on PATH, as in the build environment.
+#   8. test_all.py --verify-env must then pass. No browser, original fixture, or system package is downloaded implicitly here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PY="${LAMPWAY_TEST_PYTHON:-python3}"

@@ -265,8 +265,11 @@ def camera_shot(root, action="list", shot=None, camera=None, lens_mm=None, aspec
             raise C.FeatureError("name a preset")
         _preset(cam, _subject(target), preset, int(frame), bool(handheld))
     elif action == "render_guides":
+        requested = list(PASSES) if passes is None else ([p.strip() for p in passes.split(",")] if isinstance(passes, str) else passes)
+        if not isinstance(requested, (list, tuple)) or not requested or any(not isinstance(p, str) or p not in PASSES for p in requested):
+            raise C.FeatureError(f"passes must name one or more of {list(PASSES)} (comma-separated string or list)")
         out = Path_resolve(resolve, out_dir)
-        guides = _render_guides(cam, _subject(target) if target else _guess_subject(cam), list(passes or PASSES), out, int(size))
+        guides = _render_guides(cam, _subject(target) if target else _guess_subject(cam), list(dict.fromkeys(requested)), out, int(size))
         return {"ok": True, "shots": [_info(cam)], "guides": guides}
     elif action == "delete":
         made = bool(cam.get("lw_made"))

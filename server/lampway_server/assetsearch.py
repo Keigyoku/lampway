@@ -107,7 +107,7 @@ class AssetIndex:
     def status(self, metadata: list) -> dict:
         p = self.prepare(metadata)
         if not self.count:
-            return {"needs_retraining": True, "message": "No trained model found. Please train first."}
+            return {"needs_retraining": True, "message": "No trained model: in the Asset Library panel, select libraries in Libraries to Train, then click Train Model."}
         if p["action"] == "skip":
             return {"needs_retraining": False, "message": "Embeddings are up to date"}
         return {"needs_retraining": True, "message": f"{len(p['new_assets'])} new, {len(p['removed_assets'])} removed since the last training"}

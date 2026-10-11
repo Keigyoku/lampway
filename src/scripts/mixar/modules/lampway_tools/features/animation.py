@@ -71,7 +71,12 @@ def build_mapping(src, tgt):
 
 
 def _required_missing(pairs, src, tgt):
-    have = {(p["label"].split("_")[0] if p["label"].split("_")[0] in ("pelvis", "spine", "head") else p["label"].rsplit("_", 1)[0], None if p["label"].split("_")[0] in ("pelvis", "spine", "head") else p["label"].rsplit("_", 1)[1]) for p in pairs}
+    # Only a terminal l/r is a side. Neck, root and other unsided labels
+    # still occur in valid auto mappings even though they are not required.
+    have = set()
+    for pair in pairs:
+        parts = pair["label"].rsplit("_", 1)
+        have.add((parts[0], parts[1]) if len(parts) == 2 and parts[1] in ("l", "r") else (pair["label"], None))
     missing = []
     for lab, side in REQUIRED:
         if (lab, side) not in have:
@@ -128,9 +133,11 @@ def _drives(act, arm):
 
 
 def _angle(m1, m2):
-    return math.degrees(m1.to_quaternion().rotation_difference(m2.to_quaternion()).angle)
+    angle = math.degrees(m1.to_quaternion().rotation_difference(m2.to_quaternion()).angle) % 360.0
+    return min(angle, 360.0 - angle)
 
 
+@canon_io.rollback_imports
 def retarget(source, target, action=None, mapping="auto", method="matrix", root_motion="keep", scale="auto", frame_range=None, fps=None, check_objects=None,
              sample_frames=8, name=None, dry_run=False, root="", keep_source=False):
     if method not in ("matrix", "constraints"):
@@ -185,6 +192,11 @@ def _retarget(src, tgt, action, mapping, method, root_motion, scale, frame_range
                 "mapping": pairs, "unmapped_source": unmapped_s, "unmapped_target": unmapped_t}
     if dry_run:
         return {"ok": True, "dry_run": True, "mapping": pairs, "unmapped_required": [], "unmapped_source": unmapped_s, "unmapped_target": unmapped_t}
+    for obj_name in check_objects:
+        obj = C.need_object(obj_name, "MESH")
+        rigs = [m.object for m in obj.modifiers if m.type == "ARMATURE" and m.show_viewport and m.object]
+        if rigs != [tgt]:
+            raise C.FeatureError(f"check_objects {obj.name} must be bound only to target {tgt.name}; inspect its Armature modifier before measuring skin")
     # ---- the action(s)
     if action == "all":
         acts = [a for a in bpy.data.actions if _drives(a, src)]
@@ -198,9 +210,38 @@ def _retarget(src, tgt, action, mapping, method, root_motion, scale, frame_range
 
 
 def _bake(src, tgt, act, pairs, method, root_motion, scale, frame_range, fps, check_objects, sample_frames, name, root, sc, unmapped_s, unmapped_t):
+    # Sampling another action is temporary; preserve the original owner slot,
+    # unkeyed pose values and exact scene time on success and failure.
+    ad = src.animation_data
+    previous_action = ad.action if ad else None
+    previous_slot = ad.action_slot if ad and hasattr(ad, "action_slot") else None
+    channels = ("location", "rotation_quaternion", "rotation_euler", "rotation_axis_angle", "scale")
+    pose = {b.name: (b.rotation_mode, {key: tuple(getattr(b, key)) for key in channels}) for b in src.pose.bones}
+    previous_time = (sc.frame_current, sc.frame_subframe)
+    try:
+        return _bake_impl(src, tgt, act, pairs, method, root_motion, scale, frame_range, fps, check_objects, sample_frames, name, root, sc, unmapped_s, unmapped_t)
+    finally:
+        if src.animation_data:
+            src.animation_data.action = previous_action
+            if previous_action and previous_slot is not None:
+                src.animation_data.action_slot = previous_slot
+        sc.frame_set(previous_time[0], subframe=previous_time[1])
+        for bone in src.pose.bones:
+            mode, values = pose[bone.name]
+            bone.rotation_mode = mode
+            for key, value in values.items():
+                setattr(bone, key, value)
+        bpy.context.view_layer.update()
+
+
+def _bake_impl(src, tgt, act, pairs, method, root_motion, scale, frame_range, fps, check_objects, sample_frames, name, root, sc, unmapped_s, unmapped_t):
     sad = src.animation_data_create()
     prev_src_action = sad.action
+    from .rig_export_space import _action_slot
+    slot_handle = _action_slot(src, act) if hasattr(act, "slots") else None
     sad.action = act
+    if slot_handle is not None:
+        sad.action_slot = next(slot for slot in act.slots if slot.handle == slot_handle)
     tad = tgt.animation_data_create()
     prev_tgt_action = tad.action.name if tad.action else None
     f0, f1 = (int(frame_range[0]), int(frame_range[1])) if frame_range else (int(math.floor(act.frame_range[0])), int(math.ceil(act.frame_range[1])))
@@ -304,14 +345,20 @@ def _bake(src, tgt, act, pairs, method, root_motion, scale, frame_range, fps, ch
     rest_geo = {}
     if objs:
         from . import rig as _R
-        sc.frame_set(f0)
-        tad.action = None
-        for o in objs:
-            me = o.data
-            edges = np.empty(len(me.edges) * 2, dtype=np.int64)
-            me.edges.foreach_get("vertices", edges)
-            rest_geo[o.name] = (edges.reshape(-1, 2), _R._evaluated(o))
-        tad.action = new_act
+        # Removing an action leaves its last evaluated pose in RNA. Use the
+        # armature's actual REST evaluation, retaining action/pose state.
+        previous_pose_position = tgt.data.pose_position
+        try:
+            tgt.data.pose_position = "REST"
+            bpy.context.view_layer.update()
+            for o in objs:
+                me = o.data
+                edges = np.empty(len(me.edges) * 2, dtype=np.int64)
+                me.edges.foreach_get("vertices", edges)
+                rest_geo[o.name] = (edges.reshape(-1, 2), _R._evaluated(o))
+        finally:
+            tgt.data.pose_position = previous_pose_position
+            bpy.context.view_layer.update()
     for i in frames_idx:
         sc.frame_set(int(round(f0 + i)))
         for p in pairs:
@@ -347,6 +394,34 @@ def _bake(src, tgt, act, pairs, method, root_motion, scale, frame_range, fps, ch
               "unmapped_required": [], "unmapped_source": unmapped_s, "unmapped_target": unmapped_t, "root_scale": round(root_scale, 6), "previous_target_action": prev_tgt_action,
               "rest_pose_difference_deg": {"max": round(max(rest_diff), 3), "mean": round(sum(rest_diff) / len(rest_diff), 3)},
               "metrics": {"max_world_angle_error_deg": round(max(errs), 4), "mean_world_angle_error_deg": round(sum(errs) / len(errs), 4), "foot_slide_m": round(slide, 5), "max_edge_stretch": stretch}}
+    from ..pipeline import anim_gates as AG
+    slide_limit = AG.THRESHOLDS["G-FOOT-SLIDE"] / 100.0
+    warnings = []
+    if root_motion == "in_place":
+        foot_status = "unmeasured_world_contact"
+        warnings.append("root_motion=in_place removes horizontal travel: foot_slide_m measures treadmill displacement, not world contact. Use root_motion=keep and lampway_anim_check with the clip's floor/contact evidence before judging foot plant.")
+    else:
+        foot_status = "proposed_threshold_exceeded" if slide > slide_limit else "diagnostic_only"
+        if slide > slide_limit:
+            warnings.append(f"Foot displacement {slide:.5f} m exceeds the existing proposed G-FOOT-SLIDE {slide_limit:.3f} m diagnostic. Review source/target stance, alignment and root scale with lampway_anim_check; this relative-height sample does not certify contact.")
+    weighted_unmapped = {}
+    for o in objs:
+        names = {g.index: g.name for g in o.vertex_groups if g.name in unmapped_t}
+        used = sorted({names[g.group] for v in o.data.vertices for g in v.groups if g.weight > 0 and g.group in names})
+        if used:
+            weighted_unmapped[o.name] = used
+    if weighted_unmapped:
+        warnings.append("Checked skin has weighted target bones omitted by the mapping. These bones inherit parent motion, which can be valid; omission alone does not establish the cause of skin distortion. Audit the target binding and authored weights before changing the supplied mapping.")
+    if stretch:
+        warnings.append("max_edge_stretch is measured against the target's evaluated REST mesh. Inspect skin weights and unmapped weighted bones in representative rendered frames; Run lampway_weight_audit on the checked target skin before any copy-only weight cleanup; no accepted stretch threshold or physical skin approval is established by this bake.")
+    if not objs:
+        warnings.append("Skin deformation was not checked: supply check_objects bound to the target and inspect representative rendered frames.")
+    result["quality"] = {"accepted": False, "status": "review_required", "foot_slide": {"space": root_motion, "status": foot_status, "threshold_m": slide_limit, "threshold_status": "proposed", "stance_reference": "clip_minimum_height"},
+                         "unmapped_weighted_target": weighted_unmapped, "skin_checked": [o.name for o in objs], "skin_cause": "unestablished", "stretch_reference": "evaluated_target_rest", "stretch_threshold": None,
+                         "next_steps": [{"tool": "lampway_weight_audit", "next_args": {"action": "audit", "object": o.name, "armature": tgt.name}} for o in objs],
+                         "candidate_next_steps": [{"tool": "lampway_weight_cleanup", "next_args": {"object": o.name, "armature": tgt.name, "ops": [{"op": "smooth", "iterations": 2, "factor": 0.5}]},
+                             "review_required": True, "scope": "optional graph-smoothing preview on a new copy; select a reviewed flexible region before repair, preserve rigid roles; not a positional seam-band repair or motion acceptance"} for o in objs]}
+    result["warnings"] = warnings
     if result["rest_pose_difference_deg"]["max"] > 5 and method == "constraints":
         result["warning"] = f"the rests differ by up to {result['rest_pose_difference_deg']['max']} deg and method=constraints does not compensate them: use method=matrix"
     out_dir = os.path.join(root, "anim") if root else "anim"

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""lampway_motion_graphics (specs/motion_graphics/motion_graphics.md): video drawn by code, frame by frame, deterministic.
+"""lampway_motion_graphics (docs/canon/motion_graphics/motion_graphics.md): video drawn by code, frame by frame, deterministic.
 
 Section 12 dependencies first (the prompt purpose, the seven templates, the provenance subtype and completeness), then the section 10 tests."""
 import re

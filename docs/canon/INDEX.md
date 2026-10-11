@@ -23,14 +23,14 @@ implementation exists that meets the canon.
 |---|---|---|---|---|---|
 | 01 | [Frames, units, bones, identities](01-conventions.md) | CANONICAL | (every tool) | bone direction from the imported tail in LT `fit_bind`, `weights.plan`, `rig._proximity_weights` | — |
 | 02 | [Rigid / similarity fit](02-rigid-similarity.md) | CANONICAL | `pipeline/validate.rigid_fit` | four copies across LT/Titan; whole-mesh rest fidelity | C01 |
-| 03 | [Fit and deform (the order and the laws)](03-fit-and-deform.md) | CANONICAL order; DRAFT soft-part deformer | `fit_place`, `fit_pose`, `fit_openings`, `fit_bind`, `fit_validate`, `fit_export`, `fit_glove` | no orchestrator; no rigid per-segment pose correction; no soft-part conform; glove pose/bind stubbed | C03 (+ step goldens) |
-| 04 | [Bind at the fit pose, return to rest](04-bind-and-return.md) | CANONICAL maths, GAP | `lampway_fit_bind stage=return` (residual only) | no return in Lampway; Titan returns by the blend of inverses | C02 |
+| 03 | [Fit and deform (the order and the laws)](03-fit-and-deform.md) | CANONICAL order; DRAFT soft-part deformer | `fit`, `fit_place`, `fit_pose`, `fit_openings`, `fit_bind`, `fit_validate`, `fit_export`, `fit_glove` | composite order and independent glove engines wired; generic per-segment correction is caller-supplied; soft conform remains open; gauntlet judgment defaults execute, physically untested | C03 (+ step goldens) |
+| 04 | [Bind at the fit pose, return to rest](04-bind-and-return.md) | CANONICAL maths; Lampway implemented | `lampway_fit_bind stage=return` | exact inverse, singular refusal and native round trip implemented; audited Titan wrong-inverse finding remains historical | C02 |
 | 05 | [Fit validation](05-fit-validation.md) | CANONICAL receipts; limits PROPOSED | `lampway_fit_validate`, `rig_armor`, `pose_test` | tautological expectation; Euler poses; proximity seams; nearest-normal crossings; uncapped control; no engine leg | C01, C03, C05, C07, C14 |
 | 06 | [Openings (keep / gasket / delete)](06-openings-gasket.md) | DRAFT (collar depth owed) | `lampway_fit_openings` | detects only at the extremes of a typed axis; largest-loop section | C12 |
 | 07 | [Skin weights: robust transfer, profiles, seams](07-skin-weights.md) | CANONICAL; per-type table DRAFT | `lampway_weight_transfer`, `fit_bind stage=weights`, `weight_audit/cleanup` | no weld; no region constraint; zero rows after restrict; no dress/fade/falloff/seam band | C03, C04 |
-| 08 | [Pose the body to the piece](08-pose-solve.md) | CANONICAL chest; DRAFT other kinds | `lampway_fit_pose` (chest route), `pose_clearance` | absolute-height regions; world-axis DOFs; output not replayable; four kinds unruled | C07 |
-| 09 | [Placement and registration (enclosure)](09-placement-enclosure.md) | CANONICAL; boots anchor DRAFT | `lampway_fit_place`, `place_piece` | all-vertex section centres (non-chest); rotation not applied; absolute constants | C06 |
-| 10 | [Proportion scoring + silhouette instruments](10-proportion-score.md) | CANONICAL chest; DRAFT other kinds | `lampway_proportion_ratios`, `lampway_piece_ratios`, `silhouette_compare` | non-chest kinds unfalsified; silhouette crop-and-stretch | C11 |
+| 08 | [Pose the body to the piece](08-pose-solve.md) | CANONICAL chest/helmet; ADOPTED untested limb defaults | `lampway_fit_pose` (all five kind defaults; explicit tables remain available), `pose_clearance` | complete limb tables adopted by judgment; original-gear physical acceptance remains untested | C07, C15 |
+| 09 | [Placement and registration (enclosure)](09-placement-enclosure.md) | CANONICAL; judgment defaults physically untested | `lampway_fit_place`, `place_piece` | inner-wall centres and rigid correction implemented; boot height follows sole; 4cm sole-band calibration and physical defaults remain open | C06 |
+| 10 | [Proportion scoring + silhouette instruments](10-proportion-score.md) | CANONICAL chest; DRAFT other kinds | `lampway_proportion_ratios`, `lampway_piece_ratios`, `silhouette_compare` | non-chest proportion kinds unfalsified; true-aspect native plate comparison implemented; the accepted helmet pose table belongs to canon08 | C11 |
 | 11 | [Joints from views (2D -> 3D)](11-multiview-joints.md) | CANONICAL maths; DRAFT pipeline | `anim_multiview_fit` (video only) | no static rig-from-views tool; no detector; axis naming differs | C08 |
 | 12 | [Retopology](12-retopology.md) | DRAFT | `lampway_retopo` (QuadriFlow / voxel / AutoRemesher) | one-sided deviation; no per-part retopo; sharp edges off | C13 |
 | 13 | [UV unwrap, pack, score, Smart-UV facts](13-uv-unwrap-pack.md) | CANONICAL measurements; DRAFT unwrap/pack | `lampway_uv_score`, `uv_unwrap`, `uv_texel_density`, `uv_layout`, `uv_rectify`, `rebuild` (uv_patches) | two island definitions; inclusive raster; row packer | C09 |
@@ -44,10 +44,20 @@ implementation exists that meets the canon.
 | 21 | [Engine export (Unreal)](21-engine-export-ue.md) | CANONICAL gate; the axis pair per convention derived (R08), its UE confirmation owed (M-RIG-01) | `skeleton_export_check`, `engine_import_check`, `fit_export` | no frame/scale read-back; no recipe writer | R02, R08 (+ G21.2-3 to build) |
 | 22 | [Canonical rig and animation normalization (O36)](22-canonical-rig-normalization.md) | CANONICAL animation; skin/morph DRAFT | none (STATUS O36 orphan) | the maths exists only in Titan's pure modules | G22.x (Titan suite to port) |
 
-Also: [goldens/](goldens/README.md) (two generators + self-tests: C01-C14 35 checks, R01-R08 32 checks, both byte-deterministic),
+Also: [goldens/](goldens/README.md) (two generators + self-tests: C01-C15 48 checks, R01-R08 34 checks, both byte-deterministic),
 [rig_tools/](rig_tools/README.md) (the agent-facing rewrite specs of MB UE5 Rig Creator Pro and Game Rig Tools, 11 tools, O36)
 and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Canons 16-22 were added the same day (the captain's rig-tools scope) and
 cite Lampway at `4e9001c7`.
+
+## Motion graphics contracts
+
+The motion contracts follow the same canon/report split as the 3D algorithms and rig-tool specifications. They describe existing runtime behavior and its invariants; open requirements retain their status, and no new algorithm golden or physical acceptance is inferred from their placement here.
+
+| Contract | Tool / implementation | Status and evidence |
+|---|---|---|
+| [Motion graphics method and invariants](motion_graphics/motion_graphics.md) | `lampway_motion_graphics`; server `motion/` | Implemented/tested rows and explicit open requirements; [acceptance report](../reports/motion-graphics-acceptance.md) |
+| [Agent inputs, outputs and receipt](motion_graphics/tool.md) | server `agent/motion_tools.py` | Runtime contract; reproduction, integrity and provenance remain separate |
+| [Scene, self-checks, templates and workflow](motion_graphics/scene.md) | server `motion/frames.py`, `motion/check.py`, motion templates | Retained refusal/threshold falsifiers; live-browser and platform evidence stay in reports |
 
 ## Sources read
 

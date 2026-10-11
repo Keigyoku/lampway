@@ -55,7 +55,7 @@ The server's runtime dependencies are pinned in `server/requirements-lock.txt`: 
 
 | Font | Licence | Where | Notes |
 |---|---|---|---|
-| **Clash Grotesk Regular** (Indian Type Foundry, via Fontshare) | ITF Free Font License (`LICENSES/LicenseRef-ITF-FFL.txt`) | the Cinema Mode button | used for application UI only and **excluded from public source snapshots** |
+| **Clash Grotesk Regular** (Indian Type Foundry, via Fontshare) | [ITF Free Font License](src/release/datafiles/fonts/ClashGrotesk-LICENSE.txt) | upstream Cinema Mode button | font asset **absent** from this public tree; original licence and attribution retained, no Clash Grotesk font ships |
 | Blender's bundled interface and monospace fonts | their own licences, inside upstream | the Blender submodule | not modified by Lampway |
 | **Inter**, **IBM Plex Mono**, **Fraunces** | SIL Open Font License 1.1 (as published; to be confirmed when vendored) | **planned**, the client facelift | not in the tree yet; this table is updated when they are added and each licence text is placed in `LICENSES/` |
 

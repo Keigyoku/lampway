@@ -126,17 +126,41 @@ print("RESULT", json.dumps({"mixed": mixed, "cold": cold, "constrained": constra
     assert o["files"] == [], "every refusal happens before anything is written"
 
 
-def test_titan_cm_native_is_the_default_and_is_refused_by_the_read_back_on_both_canon17_conventions(tmp_path):
+def test_explicit_titan_cm_native_is_refused_by_the_read_back_on_both_canon17_conventions(tmp_path):
     """A measured fact recorded as a test (2026-10-06): TITAN's pair (primary Z / secondary X), right in Unreal for the native MetaHuman as its
     Blender import laid it, is refused by the raw-frame read-back on a canon-17 rig of either convention (120 deg off on a 'blender' rig,
     90 deg on a 'ue_axes' one). The gate refuses; nothing is
     published. If this test starts passing, the read-back changed: re-measure before trusting either recipe."""
     r = run(tmp_path, CHAIN + '''
 b = chain("cb", "y"); x = chain("cx", "x"); call("rig_inspect", armature="cb"); call("rig_inspect", armature="cx")
-rb = call("rig_export_ue", armature="cb", out="export/b.fbx"); rx = call("rig_export_ue", armature="cx", out="export/x.fbx")
+rb = call("rig_export_ue", armature="cb", out="export/b.fbx", recipe="titan_cm_native"); rx = call("rig_export_ue", armature="cx", out="export/x.fbx", recipe="titan_cm_native")
 print("RESULT", json.dumps({"rb": rb, "rx": rx}))
 ''', timeout=600)
     assert r.rc == 0, r.out[-3000:]
     for k, deg in (("rb", " 120 deg"), ("rx", " 90 deg")):
         e = r.results[0][k]
         assert e["ok"] is False and "export/rejected/" in e["error"] and deg in e["error"], e
+
+
+def test_corrective_fanout_with_authored_roll_reads_every_bone_and_keeps_rejection_gate(tmp_path):
+    r = run(tmp_path, CHAIN + '''
+arm = chain("corrective")
+bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode="EDIT")
+h = arm.data.edit_bones.new("upperarm_correctiveRoot_l")
+h.head = J[1]; h.tail = Vector(J[1]) + Vector((0, 0, 0.04)); h.roll = math.radians(120)
+h.parent = arm.data.edit_bones["b1"]
+for tag, sign in (("front", -1), ("back", 1)):
+    e = arm.data.edit_bones.new("upperarm_corrective_" + tag + "_l")
+    e.head = Vector(J[1]) + Vector((0.01, sign * 0.02, 0.01)); e.tail = e.head + Vector((0, 0, 0.03)); e.parent = h
+bpy.ops.object.mode_set(mode="OBJECT")
+call("rig_inspect", armature="corrective")
+ok = call("rig_export_ue", armature="corrective", out="export/corrective.fbx", recipe=os.path.join(RECIPES, "cm_native_blender_convention.json"))
+bad = call("rig_export_ue", armature="corrective", out="export/corrective_bad.fbx", recipe=os.path.join(RECIPES, "cm_native_ue_axes.json"))
+print("RESULT", json.dumps({"ok": ok, "bad": bad, "rejected": os.path.isfile(os.path.join(root, "export/rejected/corrective_bad.fbx"))}))
+''', timeout=600)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[0]
+    assert d["ok"]["ok"] and d["ok"]["verdict"] == "PASS", d["ok"]
+    assert d["ok"]["readback"]["bones_compared"] == 8
+    assert d["ok"]["readback"]["worst_rotation_deg"] < 0.01
+    assert not d["bad"]["ok"] and d["rejected"]

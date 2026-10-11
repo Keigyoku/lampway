@@ -329,15 +329,39 @@ def _directive(line):
     return stripped[1:].strip()
 
 
-def _linux_preprocessor_pass(source):
-    """Split `space_agent_bubble.cc` into what a Linux build keeps and what
-    the platform guards drop.
+def _platform_condition(expression, defined):
+    """Evaluate the bounded defined/AND/OR grammar, rejecting unknown forms."""
+    import ast
+    import re
 
-    Every conditional in the file is an ``#ifdef`` of one platform macro or
-    an ``#if`` that ORs ``defined(...)`` platform macros, so it is true on
-    Linux exactly when it names ``__linux__``, and the plain
-    ``#if``/``#else``/``#endif`` nesting is an exact answer here. Any other
-    conditional form aborts rather than silently guessing.
+    macros = re.findall(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)", expression)
+    assert set(macros) <= {"__APPLE__", "_WIN32", "__linux__", "LAMPWAY"}, expression
+    remainder = re.sub(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)", "", expression)
+    assert re.fullmatch(r"[\s()&|]*", remainder), expression
+    expression = re.sub(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)",
+                        lambda match: str(match[1] in defined), expression)
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    try:
+        tree = ast.parse(expression.strip(), mode="eval")
+    except SyntaxError as exc:
+        raise AssertionError(f"unexpected platform conditional: {expression!r}") from exc
+
+    def value(node):
+        if isinstance(node, ast.Constant) and type(node.value) is bool:
+            return node.value
+        if isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
+            values = [value(child) for child in node.values]
+            return all(values) if isinstance(node.op, ast.And) else any(values)
+        raise AssertionError(f"unexpected platform conditional: {expression!r}")
+
+    return value(tree.body)
+
+
+def _platform_preprocessor_pass(source, defined):
+    """Split platform guards with actual AND/OR precedence and parentheses.
+
+    The bounded grammar rejects unsupported macros/operators rather than
+    guessing. Compiler comparisons below independently verify the model.
     """
     live = []
     guarded = []
@@ -347,19 +371,13 @@ def _linux_preprocessor_pass(source):
         directive = _directive(line)
         if directive.startswith(("if ", "ifdef ", "ifndef ")):
             condition = directive.split("/*")[0].strip()
-            if condition.startswith("ifdef "):
-                macros = [condition[len("ifdef "):].strip()]
+            if condition.startswith(("ifdef ", "ifndef ")):
+                keyword, macro = condition.split()
+                taken = _platform_condition(f"defined({macro})", defined)
+                if keyword == "ifndef":
+                    taken = not taken
             else:
-                assert condition.startswith("if "), (
-                    f"unexpected platform conditional: {directive!r}")
-                terms = [t.strip() for t in condition[len("if "):].split("||")]
-                assert all(t.startswith("defined(") and t.endswith(")")
-                           for t in terms), (
-                    f"unexpected platform conditional: {directive!r}")
-                macros = [t[len("defined("):-1] for t in terms]
-            assert set(macros) <= {"__APPLE__", "_WIN32", "__linux__"}, (
-                f"unexpected platform conditional: {directive!r}")
-            taken = "__linux__" in macros
+                taken = _platform_condition(condition[len("if "):], defined)
             stack.append((active, taken))
             active = active and taken
         elif directive.startswith("else"):
@@ -373,6 +391,55 @@ def _linux_preprocessor_pass(source):
         (live if active else guarded).append(line)
     assert not stack, "unbalanced preprocessor conditionals"
     return live, guarded
+
+
+def _linux_preprocessor_pass(source):
+    return _platform_preprocessor_pass(source, {"__linux__", "LAMPWAY"})
+
+
+def test_platform_model_matches_compiler_preprocessor():
+    """Verify every maintained guard with actual preprocessing, without headers."""
+    import shutil
+    import subprocess
+    import pytest
+
+    compiler = shutil.which("c++")
+    if compiler is None:
+        pytest.skip("C++ preprocessor unavailable: platform model comparison UNVERIFIED")
+    source = BUBBLE_CC.read_text(encoding="utf-8")
+    # Preserve the entire conditional structure and replace payload with unique
+    # tokens, so the real preprocessor needs no Blender headers or platform SDK.
+    lines = []
+    for index, line in enumerate(source.splitlines()):
+        directive = _directive(line)
+        lines.append(line if directive.startswith(("if ", "ifdef ", "ifndef ",
+                                                   "else", "endif", "elif"))
+                     else f"kept_line_{index}")
+    skeleton = "\n".join(lines) + "\n"
+    macros = {"__APPLE__", "_WIN32", "__linux__", "LAMPWAY"}
+    for defined in ({"__linux__", "LAMPWAY"}, {"__linux__"}, {"__APPLE__"},
+                    {"_WIN32"}, set()):
+        result = subprocess.run([compiler, "-E", "-P", "-x", "c++",
+                                 *[f"-U{macro}" for macro in sorted(macros)],
+                                 *[f"-D{macro}" for macro in sorted(defined)], "-"],
+                                input=skeleton, text=True, capture_output=True, check=True)
+        live, _guarded = _platform_preprocessor_pass(skeleton, defined)
+        expected = [line for line in live if line.startswith("kept_line_")]
+        assert result.stdout.splitlines() == expected, defined
+
+
+def test_platform_model_retains_compound_condition_and_rejection_controls():
+    import pytest
+
+    expression = "defined(__APPLE__) || (defined(__linux__) && defined(LAMPWAY))"
+    assert _platform_condition(expression, {"__APPLE__"})
+    assert _platform_condition(expression, {"__linux__", "LAMPWAY"})
+    assert not _platform_condition(expression, {"__linux__"})
+    assert not _platform_condition(expression, {"_WIN32", "LAMPWAY"})
+    for invalid in ("defined(UNREVIEWED_MACRO)", "defined(__linux__) + 1",
+                    "defined(__linux__) &&"):
+        with pytest.raises(AssertionError):
+            _platform_condition(invalid, {"__linux__"})
 
 
 def test_the_cinema_seat_functions_have_a_linux_definition():

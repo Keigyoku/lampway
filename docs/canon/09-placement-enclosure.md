@@ -3,14 +3,14 @@
 
 # Canon 09 — Placement and registration: one uniform scale, centred by enclosure of the inner wall
 
-Status: **CANONICAL for the rule; DRAFT for the boots' scale anchor** (unruled). Implemented by: shelf
+Status: **CANONICAL for the rule; AUTHORIZED STARTING DEFAULTS for boot width and per-side pair scale** (2026-10-07, physically untested). Implemented by: shelf
 `proportion/place_piece.py` (chest; LT `scripts/proportion/place_piece.py`, byte-identical), LT `pipeline/fit_place.py`
 (all five kinds), LT `pipeline/sections.py`, shelf grt `enclose.py`, Titan `equipment_match.py`, `equipment_reference.py`.
 
 ## A. Problem
 
 A genned piece arrives at the generator's scale (~0.98 m longest side) and frame (canon 01). Put it on the body: one uniform
-scale (per piece; per side for pairs — open), a rotation that lays its axis on its bone, and a translation that centres it on the
+scale (per piece; per side for pairs by default), a rotation that lays its axis on its bone, and a translation that centres it on the
 body segment it covers. Output: `placed.npz` + meta `{kind, scale, translation, turn_deg, norm_lo, norm_hi, anchor, sides}` that maps
 every later point back to the piece's own frame (canon 08 blockers, region regeneration boxes).
 
@@ -30,7 +30,7 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
    | helmet | shell width at its widest level (crest excluded) | head width at its widest level above `neck_02` + 2C | `fit_place.py:54-66` |
    | waist | band width (top 6 % of the piece) | waist width at `spine_01` + 3 cm (arms excluded) + 2C | `fit_place.py:69-85` |
    | gauntlets | bracer major axis at 35 % of the length (cuff up) | forearm major at mid-forearm + 2C | `fit_place.py:122-168` |
-   | boots | **unruled**: shaft width at 60 % height / knee height / foot length | same at the leg | `fit_place.py:88-119`; Boots1 audit: height anchor s 0.52 leaves the foot 8 % short, foot anchor s 0.624 puts the top 118 mm above the knee |
+   | boots | **default width**: shaft width at 60 % height; explicit knee-to-sole height / foot length remain available | same at the leg | `fit_place.py:88-119`; Boots1 audit: height anchor s 0.52 leaves the foot 8 % short, foot anchor s 0.624 puts the top 118 mm above the knee |
 
    A girth-matched scale is an alternative when a span-matched scale lets the torso through (cuirass: collar-to-hem span 0.98 vs
    girth 1.29 at 1.5 cm median column clearance; GENERATED-EQUIPMENT §7k): the canon records which anchor drove the scale.
@@ -58,6 +58,7 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
 
 | Date | What | Lesson | Source |
 |---|---|---|---|
+| 2026-10-07 | AC65 placement defaults | per_side pair scale and boot width; explicit alternatives retained; physical validation untested | captain explicitly authorized judgment using supplied body/gear references; AC65-DECISION-AUDIT.md |
 | 2026-09-28 | Trimmed-ICP surface registration of the fitted warrior sat 3–5 cm forward of the body, 2–6 cm back at the head; every piece registered onto it inherited it (back plates buried) | enclosure | memory armour-registration-bias |
 | 2026-09-24 | A coarse target biased symmetric ICP to its sample lattice; a round tube converged 1–2 cm off | ICP from every reference point to the dense piece if ICP at all | GENERATED-EQUIPMENT §7h |
 | 2026-09-23 | The placement search slid a symmetric chest 2 cm sideways; one flank floated ~10 cm | lock the sideways offset of a symmetric piece | §7c |
@@ -73,31 +74,37 @@ every later point back to the piece's own frame (canon 08 blockers, region regen
 | G09.2 chest regression | `place_piece.build` on the recorded chest inputs | byte-identical to the shelf output (1e-9) | — |
 | G09.3 self-test | the body's own region offset 15 mm | scale 1.000 ± 0.02, translation < 3 mm | — |
 | G09.4 uniform | any kind | singular values of the linear map equal within 1e-6 | per-axis scaling |
-| G09.5 boots | no `scale_anchor` | REFUSED naming the three anchors | a default anchor |
+| G09.6 asymmetric pair | `tests/lampway_tools/test_canon_pair_scale.py`, actual tubes with one side uniformly1.5× larger | measured scales differ >0.1; triangle/vertex identities retained; inverse error <1e-9m; native scene matches output <1e-6m | unconditional averaging cannot express independent scales |
+| G09.5 boots | no `scale_anchor` | width with untested provenance, identical to explicit width | unknown explicit anchor or missing default provenance |
 
-## F. Implementation gap (Lampway `b806617f`)
+## F. Current implementation and remaining gaps (2026-10-07)
 
-1. LT `pipeline/sections.py:36-39` `centre` (percentile extents of ALL section points) drives helmet/waist/boots placement
-   (`fit_place.py:64,82,111`); the gauntlet uses the mean of the section points (`fit_place.py:164`). Both are all-vertex measures
-   (G09.1 falsifier). The chest path (`place_piece.py`) uses first hits from the centre — the inner wall — and is correct.
-2. Rotation not applied for gauntlets (0–25 deg left; `fit_place.py:161-168`, `_similarity` :50-51).
-3. Absolute constants: waist torso filter `|x| < 0.27` (`fit_place.py:71`), boots foot `z < 0.04` (`:98`), gauntlet arm `|x| > 0.25`
-   (`:132`).
-4. Pairs: one scale = mean of the two sides (`fit_place.py:113,165`) — whether pairs share a scale is open.
-5. No source-part check before placement.
+1. `pipeline/fit_place.py` centres measured sections through inner-wall harmonic
+   enclosure. `test_canon_item5_place.py` retains the all-vertex-centre falsifier.
+2. Gauntlet residual axis correction is a proper rigid rotation, covered by the
+   same suite's tilted-bracer test.
+3. Regions follow nearest anatomical bone segments rather than absolute x/z
+   filters. The boot sole band's origin is its measured sole, and height-anchor
+   scale is knee-to-sole length; translating the body or both inputs preserves
+   scale and translates the placed result (`test_boot_height_translation.py`).
+   The sole band still has an absolute 4cm thickness, explicitly uncalibrated
+   against joint scale. The separately authorized width default is a judgment choice, not a measurement from this covariance correction.
+4. Pairs: explicit `pair_scale_group=common|per_side` paths are implemented. Per-side placement records vertex ids and one proper similarity per separated side, with an exact inverse; cross-centre triangles refuse. The native scene API validates all groups before writing any vertex. Omitted mode now selects `per_side` and records untested default provenance; explicit `common` remains available.
+5. The composite `fit` intake checks source-part fidelity before placement.
+   Standalone placement requires its caller to preserve that precondition.
 
 ## G. Agent-facing tool contract — `lampway_fit_place`
 
 ```json
 {"kind": "chest|helmet|waist|boots|gauntlets", "piece": "piece.npz", "body": "fit_body package dir", "turn": -90,
- "clear_mm": 15, "scale_anchor": "width|height|foot|girth (boots: REQUIRED)", "sides": "both|l|r", "out": "placed.npz"}
+ "clear_mm": 15, "pair_scale_group": "common|per_side (default per_side, physically untested)", "scale_anchor": "width|height|foot (boots: default width, physically untested)", "sides": "both|l|r", "out": "placed.npz"}
 ```
-Refusals: boots without an anchor; a side with < 50 triangles; axis more than 25 deg off its bone without `rotate: true`; a gauntlet
+Refusals: an unknown explicit boot anchor; a side with < 50 triangles; axis more than 25 deg off its bone without `rotate: true`; a gauntlet
 whose finger end is up; a piece failing the source-part check; body package without joints. Receipt: meta above +
 `{anchor, scale, inner_wall_shift_m, slices, axis_error_deg, round_trip_m}`.
 
 ## H. Decisions owed by the captain
 
-1. The boots' scale anchor.
-2. Does a pair share one scale, or each side its own (the reference's shins differ: 0.887 vs 0.853)?
+1. Boot anchor: width authorized by judgment on 2026-10-07. Shaft enclosure with clearance follows the rigid-piece span rule; prior height leaves the foot 8% short and foot scaling puts the shaft 118 mm above the knee. Actual body/gear acceptance remains untested.
+2. Pair scale: per_side authorized on 2026-10-07 to preserve asymmetric rigid sides (reference shins 0.887/0.853), with one proper reversible similarity each. Explicit common remains available; physical proportions remain untested.
 3. Is C = 15 mm the wear clearance for every kind (the chest's legacy is 20 mm)?

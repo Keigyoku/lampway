@@ -109,3 +109,29 @@ def test_a_missing_file_and_a_body_without_joints_are_refused_with_the_fix(cfg, 
     np.savez(nojoints, V=np.zeros((3, 3)), T=np.zeros((1, 3), int))
     p = subprocess.run(R.command("piece_ratios", ["boots", str(tmp_path / "o.json"), str(nojoints), f"a={nojoints}:0"], cfg), capture_output=True, text=True)
     assert "no joints" in p.stdout and "mesh_to_npz" in p.stdout
+
+
+def test_declared_raw_and_normalized_frame_score_identically_and_cannot_turn_twice(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+import importlib.util
+from mixar.modules.lampway_tools.features import normalize as N
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+ob=sphere('declared_front',4)
+for v in ob.data.vertices:v.co.x*=.6;v.co.y*=1.0;v.co.z*=.8
+ob.data.calc_loop_triangles();V=np.array([v.co[:] for v in ob.data.vertices]);T=np.array([t.vertices[:] for t in ob.data.loop_triangles])
+raw=os.path.join(root,'raw.npz');np.savez(raw,V=V,T=T)
+r=call('normalize_mesh',input=ob.name,turn_deg=-90);assert r.get('ok'),r
+canonical=os.path.join(root,'canonical.npz');doc=json.loads(ob['lw_canon'])
+canon_io.write_npz(canonical,np.array([v.co[:] for v in ob.data.vertices]),T,doc)
+p=OVERLAY+'/mixar/modules/lampway_tools/scripts/proportion/piece_ratios.py'
+spec=importlib.util.spec_from_file_location('piece_ratios_native',p);P=importlib.util.module_from_spec(spec);spec.loader.exec_module(P)
+a,ta=P.load_piece(raw,-90);b,tb=P.load_piece(canonical,0)
+bodyV=b.copy();bodyV[:,2]+=.9;body=(bodyV,tb,{'neck_02':np.array([0,0,.9])})
+ra,ba,_=P.helmet(body,a,ta,.015);rb,bb,_=P.helmet(body,b,tb,.015)
+sa=float(np.sqrt(np.mean([np.log(ra[k]/ba[k])**2 for k in ra])));sb=float(np.sqrt(np.mean([np.log(rb[k]/bb[k])**2 for k in rb])))
+assert abs(sa-sb)<1e-7,(sa,sb)
+try:P.load_piece(canonical,-90)
+except ValueError as e:assert 'turn' in str(e) and '0' in str(e),e
+else:raise AssertionError('canonical frame turned twice')
+''')

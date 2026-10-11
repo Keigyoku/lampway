@@ -1,6 +1,7 @@
+# 2026-10-07: removed68 PR1-owned rows after563 passed/0failed/0errors/0skips at be21066a2a21b4ef10cc093e52cc4c336b41b1a4;54 PR4-owned rows remain attributed.
 # The integration's known-red tests: the failures present at a recorded point, each with a class and a one-line reason.
-# scripts/lampway/test_all.py fails a run on ANY failure not listed here, and on any listed test that now passes (the list only shrinks:
-# remove the line, or run test_all.py --shrink-baseline). Classes: env (the test environment lacks something: a package, a display, a box),
+# scripts/lampway/test_all.py fails a run on EVERY known/new failure or error. This list attributes inherited failures and only shrinks:
+# remove a line only with affirmative exact PASS proof, or run test_all.py --shrink-baseline. Classes: env (the test environment lacks something: a package, a display, a box),
 # inherited (already failing in the pre-session baseline of the fork, scratch/full_base.out), stale (names a file or behaviour this tree
 # does not have), broken (a real defect: a fix request), unknown (not triaged yet). Recorded 2026-10-06 at lp/wave5 80ca6de3.
 # Regenerated 2026-10-06 inside the defined environment (scripts/lampway/test_env.sh, run b11 at eab5e92): the 16 tests/mcp env lines left
@@ -9,8 +10,6 @@
 # id	class	reason	owner
 src/scripts/mixar/modules/space_mixie_chat/tests/test_delivery_identity.py::test_only_interjections_display_queued[IDLE-False-]	inherited	failing in the pre-session baseline; AttributeError: 'types.SimpleNamespace' object has no attribute 'get'	upstream fork
 src/scripts/mixar/modules/space_mixie_chat/tests/test_delivery_identity.py::test_only_interjections_display_queued[IDLE-True-]	inherited	failing in the pre-session baseline; AttributeError: 'types.SimpleNamespace' object has no attribute 'get'	upstream fork
-src/scripts/mixar/modules/space_mixie_chat/tests/test_export_verify.py::test_export_package_clears_only_its_own_previous_files	stale	failing since lp/wave4 at least (measured) beside its sibling, which pins the upstream name 'Mixar export_package' the rebrand changed; AssertionError: assert 0 == 1	wave0 (rebrand: the upstream name the test pins was renamed)
-src/scripts/mixar/modules/space_mixie_chat/tests/test_export_verify.py::test_export_package_signature_and_isolation	stale	pins the upstream name 'Mixar export_package' that the rebrand changed (failing since lp/wave4 at least); AssertionError: assert 'Lampway export_package' == 'Mixar export_package'	wave0 (rebrand: the upstream name the test pins was renamed)
 src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_a_timer_tick_without_a_context_window_borrows_the_first_window	inherited	failing in the pre-session baseline; AssertionError: assert ((None, False,...ssion sess-a') == (namespace(na...), True, None)	upstream fork
 src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_no_switch_when_the_window_already_shows_the_target	inherited	failing in the pre-session baseline; AssertionError: assert (None, False,...ssion sess-b') == (namespace(na..., False, None)	upstream fork
 src/scripts/mixar/modules/space_mixie_chat/tests/test_main_thread_routing.py::test_no_window_at_all_refuses_rather_than_running_in_the_wrong_scene	inherited	failing in the pre-session baseline; AssertionError: assert (None is None and 'no window to pin' in 'no scene for session sess-a')	upstream fork
@@ -44,64 +43,6 @@ src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_runni
 src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_status_absent_falls_back_to_the_active_bit	inherited	failing in the pre-session baseline; AssertionError: assert False	unattributed: passes at the fork base, turn_resume.py is unchanged; a dependency changed (needs a lane: space_mixie_chat)
 src/scripts/mixar/modules/space_mixie_chat/tests/test_turn_resume.py::test_status_hit_prompts_on_main_thread	inherited	failing in the pre-session baseline; assert 0 == 1	unattributed: passes at the fork base, turn_resume.py is unchanged; a dependency changed (needs a lane: space_mixie_chat)
 tests/agent_panel/test_todo_slot_wiring.py::TestMirrorRunsAgainstTheRealSlot::test_a_fan_out_on_the_slot_opens_the_panel	inherited	failing in the pre-session baseline; no message captured	upstream fork
-tests/glass/test_glass_sections.py::TestEverySurfaceThatReachesThePainterIsOnTheRegister::test_each_registered_file_paints_the_role_the_register_names	inherited	failing in the pre-session baseline; no message captured	upstream fork
-tests/glass/test_glass_sections.py::TestEverySurfaceThatReachesThePainterIsOnTheRegister::test_every_file_that_reaches_the_painter_is_registered	inherited	failing in the pre-session baseline; no message captured	upstream fork
-tests/moodboard/test_moodboard_drawer.py::test_the_drawer_tab_uses_shared_palette_and_hit_geometry	inherited	failing in the pre-session baseline; AssertionError: assert 'MIXAR_THEME_LOAD(outer_green, CinemaPillOnB)' in '/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited\n *\n * SPDX-License-Identifier: GPL-3	upstream fork
-tests/network/test_network_enterprise_wiring.py::test_enterprise_doc_lists_every_surface	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'docs/enterprise-network.md'	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ab]	inherited	failing in the pre-session baseline; AssertionError: ab	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ar]	inherited	failing in the pre-session baseline; AssertionError: ar	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[be]	inherited	failing in the pre-session baseline; AssertionError: be	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[bg_BG]	inherited	failing in the pre-session baseline; AssertionError: bg_BG	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ca_AD]	inherited	failing in the pre-session baseline; AssertionError: ca_AD	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[cs_CZ]	inherited	failing in the pre-session baseline; AssertionError: cs_CZ	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[da]	inherited	failing in the pre-session baseline; AssertionError: da	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[de]	inherited	failing in the pre-session baseline; AssertionError: de	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[el_GR]	inherited	failing in the pre-session baseline; AssertionError: el_GR	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[en]	inherited	failing in the pre-session baseline; AssertionError: en	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[en_GB]	inherited	failing in the pre-session baseline; AssertionError: en_GB	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[eo]	inherited	failing in the pre-session baseline; AssertionError: eo	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[es]	inherited	failing in the pre-session baseline; AssertionError: es	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[eu_EU]	inherited	failing in the pre-session baseline; AssertionError: eu_EU	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fa_IR]	inherited	failing in the pre-session baseline; AssertionError: fa_IR	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fi_FI]	inherited	failing in the pre-session baseline; AssertionError: fi_FI	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[fr]	inherited	failing in the pre-session baseline; AssertionError: fr	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[he_IL]	inherited	failing in the pre-session baseline; AssertionError: he_IL	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hi_IN]	inherited	failing in the pre-session baseline; AssertionError: hi_IN	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hr]	inherited	failing in the pre-session baseline; AssertionError: hr	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[hu_HU]	inherited	failing in the pre-session baseline; AssertionError: hu_HU	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[id_ID]	inherited	failing in the pre-session baseline; AssertionError: id_ID	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[it]	inherited	failing in the pre-session baseline; AssertionError: it	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ja]	inherited	failing in the pre-session baseline; AssertionError: ja	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ka]	inherited	failing in the pre-session baseline; AssertionError: ka	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ko]	inherited	failing in the pre-session baseline; AssertionError: ko	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ky_KG]	inherited	failing in the pre-session baseline; AssertionError: ky_KG	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[lt]	inherited	failing in the pre-session baseline; AssertionError: lt	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ml]	inherited	failing in the pre-session baseline; AssertionError: ml	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[nb]	inherited	failing in the pre-session baseline; AssertionError: nb	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[nl_NL]	inherited	failing in the pre-session baseline; AssertionError: nl_NL	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pl_PL]	inherited	failing in the pre-session baseline; AssertionError: pl_PL	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pt]	inherited	failing in the pre-session baseline; AssertionError: pt	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[pt_BR]	inherited	failing in the pre-session baseline; AssertionError: pt_BR	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ro_RO]	inherited	failing in the pre-session baseline; AssertionError: ro_RO	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ru_RU]	inherited	failing in the pre-session baseline; AssertionError: ru_RU	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sk_SK]	inherited	failing in the pre-session baseline; AssertionError: sk_SK	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sl]	inherited	failing in the pre-session baseline; AssertionError: sl	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sr_RS@latin]	inherited	failing in the pre-session baseline; AssertionError: sr_RS@latin	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sr_RS]	inherited	failing in the pre-session baseline; AssertionError: sr_RS	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sv_SE]	inherited	failing in the pre-session baseline; AssertionError: sv_SE	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[sw]	inherited	failing in the pre-session baseline; AssertionError: sw	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ta]	inherited	failing in the pre-session baseline; AssertionError: ta	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[th_TH]	inherited	failing in the pre-session baseline; AssertionError: th_TH	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[tr_TR]	inherited	failing in the pre-session baseline; AssertionError: tr_TR	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[uk_UA]	inherited	failing in the pre-session baseline; AssertionError: uk_UA	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[ur]	inherited	failing in the pre-session baseline; AssertionError: ur	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[vi_VN]	inherited	failing in the pre-session baseline; AssertionError: vi_VN	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[zh]	inherited	failing in the pre-session baseline; AssertionError: zh	upstream fork
-tests/onboarding/test_unified_language.py::test_every_choice_has_bundled_valid_subtitles[zh_HANT]	inherited	failing in the pre-session baseline; AssertionError: zh_HANT	upstream fork
-tests/onboarding/test_unified_language.py::test_new_tracks_share_english_cues_and_do_not_bridge_interactive_pauses	inherited	failing in the pre-session baseline; AttributeError: 'NoneType' object has no attribute 'cues'	upstream fork
-tests/onboarding/test_unified_language.py::test_rtl_assets_are_shaped_but_translator_sources_are_logical	inherited	failing in the pre-session baseline; AttributeError: 'NoneType' object has no attribute 'cues'	upstream fork
-tests/test_agent_bubble_window_shape.py::TestIslandWindowTranslucency::test_chat_and_pill_share_the_neutral_native_wash	inherited	failing in the pre-session baseline; no message captured	upstream fork
-tests/test_agent_feedback_ui.py::test_feedback_cpp_is_split_into_bounded_translation_units	inherited	failing in the pre-session baseline; AssertionError: assert 529 <= 500	upstream fork
 tests/test_agent_job_context.py::test_matgen_forwards_context_captured_at_construction	inherited	failing in the pre-session baseline; AttributeError: <module 'mixar.modules.paint.procedural_materials.matgen_queue' from 'src/scripts/mixar/modules/paint/procedural_materials/mat	upstream fork
 tests/test_agent_scene_cost.py::test_a_probe_failure_never_changes_the_outcome	inherited	failing in the pre-session baseline; assert False is True	upstream fork
 tests/test_agent_scene_cost.py::test_the_pump_measures_an_effectful_script	inherited	failing in the pre-session baseline; KeyError: 'scene_cost'	upstream fork
@@ -120,12 +61,4 @@ tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and
 tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.CONNECTING]	inherited	failing in the pre-session baseline; no message captured	upstream fork
 tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.MODIFYING]	inherited	failing in the pre-session baseline; no message captured	upstream fork
 tests/test_cat_activity_events.py::test_waiting_and_connectivity_clear_pulse_and_reject_late_tool[SessionState.OFFLINE]	inherited	failing in the pre-session baseline; no message captured	upstream fork
-tests/test_cinema_surface_fixes.py::test_the_stage_spans_the_columns_and_hosts_the_gizmos	inherited	failing in the pre-session baseline; AssertionError: assert 'CinemaBrandTop' in '/* SPDX-FileCopyrightText: 2026 Adeveda Enterprises Private Limited\n *\n * SPDX-License-Identifier: GPL-3.0-or-later...lready driving. 	upstream fork
 tests/test_parked_resume.py::test_ask_fires_only_first_auto_eligible_once	inherited	failing in the pre-session baseline; AssertionError: assert [('Scene Two'...ne Three', 1)] == [('Scene Two', 2)]	upstream fork
-tests/test_render_device.py::test_the_contract_documents_the_device_rule_and_the_final_cap	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'docs/render-job-contract.md'	upstream fork
-tests/test_render_job_guard.py::test_contract_doc_exists_and_is_linked	inherited	failing in the pre-session baseline; AssertionError: assert False	upstream fork
-tests/test_sketch_theme_color.py::test_untouched_brush_follows_live_theme_but_explicit_choice_survives	inherited	failing in the pre-session baseline; assert (0.4117647058...17647059, 1.0) == (0.2, 0.4, 0.6, 1)	upstream fork
-tests/test_terrain_asset_prefetch.py::test_queued_terrain_warms_the_same_cache_without_main_thread_network	stale	expects an S3 asset host the hardening removed from the sandbox's asset hosts (loopback only; failing since lp/wave4 at least); assert False	harden (the sandbox's asset hosts were cut to loopback)
-tests/test_terrain_asset_prefetch.py::test_terrain_transport_failure_is_refused	stale	expects an S3 asset host the hardening removed from the sandbox's asset hosts (loopback only; failing since lp/wave4 at least); PermissionError: urllib.urlopen: host 'bucket.s3.amazonaws.com' is not allowed (asset hosts only: 127.0.0.1, localhost)	harden (the sandbox's asset hosts were cut to loopback)
-tests/test_update_packaging_paths.py::test_macos_dmg_bundle_name_has_no_version	inherited	failing in the pre-session baseline; FileNotFoundError: [Errno 2] No such file or directory: 'scripts/unix/package.sh'	upstream fork
-tests/test_zen_motion.py::test_qa_capture_preserves_hover_and_avoids_stale_frontbuffer	inherited	failing in the pre-session baseline; ValueError: substring not found	upstream fork

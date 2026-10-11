@@ -165,3 +165,90 @@ print("RESULT", json.dumps({"absent": absent, "family": ins["family"], "missing"
     o = r.results[0]
     assert o["absent"] == [], f"rigify table rows naming no bone of a generated Rigify rig: {o['absent']}"
     assert o["family"]["name"] == "rigify" and o["missing"] == [], o
+
+
+def test_readback_success_and_partial_failure_restore_nested_ids_and_selection(tmp_path):
+    r = run(tmp_path, MIXAMO + '''
+from mixar.modules.lampway_tools import canon_io
+from mixar.modules.lampway_tools.features import rig_tools as RT
+ob = mixamo()
+for x in bpy.context.scene.objects: x.select_set(x is ob)
+bpy.context.view_layer.objects.active = ob
+path = os.path.join(root,"nested.fbx")
+bpy.ops.export_scene.fbx(filepath=path,use_selection=True,add_leaf_bones=False,primary_bone_axis="Y",secondary_bone_axis="X")
+before = canon_io.snapshot_ids()
+original = canon_io.import_raw
+def nested(*a,**kw):
+    rec = original(*a,**kw)
+    bpy.data.node_groups.new("imported_nested","ShaderNodeTree")
+    bpy.data.textures.new("imported_texture",type="IMAGE")
+    return rec
+canon_io.import_raw = nested
+result = RT.readback(path,"mx",root)
+clean = all(set(getattr(bpy.data,k)) == before[k] for k in canon_io._KINDS) and canon_io._selection() == before["selection"]
+def partial(*a,**kw):
+    bpy.data.node_groups.new("partial_nested","ShaderNodeTree")
+    raise RuntimeError("partial readback")
+canon_io.import_raw = partial
+try:
+    RT.readback(path,"mx",root)
+except RuntimeError as error:
+    failed = str(error) == "partial readback"
+finally:
+    canon_io.import_raw = original
+print("RESULT",json.dumps({"clean":clean,"verdict":result["verdict"],"failed":failed,"partial_clean":all(set(getattr(bpy.data,k)) == before[k] for k in canon_io._KINDS) and canon_io._selection() == before["selection"]}))
+''',timeout=300)
+    assert r.rc == 0,r.out[-2000:]
+    assert r.results[0] == {"clean":True,"verdict":"PASS","failed":True,"partial_clean":True}
+
+
+def test_normalize_keeps_unkeyed_pose_translation_under_uniform_scale(tmp_path):
+    r = run(tmp_path, MIXAMO + '''
+ob = mixamo(scale=0.01)
+pb = ob.pose.bones["mixamorig:Hips"]
+pb.location = (30, 0, 20)
+bpy.context.view_layer.update()
+before = list(ob.matrix_world @ pb.head)
+call("rig_inspect", armature=ob.name)
+done = call("rig_normalize", armature=ob.name, dry_run=False)
+bpy.context.view_layer.update()
+print("RESULT", json.dumps({"done": done, "before": before, "after": list(ob.matrix_world @ pb.head)}))
+''')
+    assert r.rc == 0, r.out[-3000:]
+    got = r.results[-1]
+    assert got["done"]["ok"], got["done"]
+    assert max(abs(a-b) for a,b in zip(got["before"], got["after"])) < 1e-6, got
+
+
+def test_normalize_rollback_restores_nla_keys_without_replacing_actions(tmp_path):
+    r = run(tmp_path, MIXAMO + '''
+from mixar.modules.lampway_tools.features import rig_tools as RT
+ob=mixamo(scale=.01)
+pb=ob.pose.bones['mixamorig:Hips']
+for f,z in ((1,2),(8,20)):
+    pb.location=(0,0,z);pb.keyframe_insert('location',frame=f)
+ad=ob.animation_data;act=ad.action;ad.action=None
+track=ad.nla_tracks.new();strip=track.strips.new('walk',1,act)
+curves=RT._fcurves(act)
+def keys():return [[list(k.co),list(k.handle_left),list(k.handle_right)] for fc in curves for k in fc.keyframe_points]
+original_keys=keys();original_rest={b.name:[list(row) for row in b.matrix_local] for b in ob.data.bones}
+call('rig_inspect',armature=ob.name)
+world=RT._world_heads
+calls=[]
+def planted(o,frames):
+    values=world(o,frames);calls.append(1)
+    if len(calls)==2:
+        for rows in values.values():
+            for pos in rows.values():pos[0]+=.01
+    return values
+RT._world_heads=planted
+result=call('rig_normalize',armature=ob.name,dry_run=False)
+RT._world_heads=world
+print('RESULT',json.dumps({'r':result,'keys_before':original_keys,'keys_after':keys(),'same_action':strip.action is act,
+ 'scale':list(ob.scale),'same_rest':original_rest=={b.name:[list(row) for row in b.matrix_local] for b in ob.data.bones}}))
+''')
+    assert r.rc==0,r.out[-3000:]
+    got=r.results[-1]
+    assert not got['r']['ok'] and 'rolled back' in got['r']['error'],got
+    assert got['same_action'] and got['same_rest'] and got['keys_after']==got['keys_before'],got
+    assert max(abs(x-.01) for x in got['scale']) < 1e-8,got

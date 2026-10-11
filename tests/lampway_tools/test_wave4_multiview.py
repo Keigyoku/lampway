@@ -158,3 +158,44 @@ def test_a_clip_whose_panels_are_out_of_sync_or_whose_character_differs_is_refus
         MV.check_sync(shifted, 0.8)
     with pytest.raises(MV.MultiviewError, match="the clip's character differs from the rig"):
         MV.check_character(0.5, 0.9)
+
+
+def test_empty_multiview_fit_refuses_before_resolving_a_directory(tmp_path):
+    from issue2_isolated import run
+    out = run(tmp_path, '''
+r=call('anim_multiview_fit')
+print('RESULT '+json.dumps(r))
+''')[0]
+    assert not out['ok']
+    assert 'IsADirectoryError' not in out['error'], out
+    assert any('lampway_anim_multiview_fit' in hint for hint in out['help']), out
+
+
+def test_multiview_nested_shapes_refuse_before_reading_missing_files(tmp_path):
+    from issue2_isolated import run
+    out = run(tmp_path, '''
+rows=[call('anim_multiview_fit',front='missing.json',side='missing.json',calibration=c) for c in [[],{'scale':10},{'px_per_m':[]},{'px_per_m':0}]]
+print('RESULT '+json.dumps(rows))
+''')[0]
+    assert all(not r['ok'] for r in out)
+    assert all('calibration' in r['error'] for r in out), out
+    assert all(any('lampway_anim_multiview_fit' in h for h in r['help']) for r in out)
+
+
+def test_refine_and_optional_argument_shapes_refuse_before_engine_or_file_work(tmp_path):
+    from issue2_isolated import run
+    out = run(tmp_path, '''
+from mixar.modules.lampway_tools.features import anim_abs
+from mixar.modules.lampway_tools.pipeline import anim_io
+entered=[]
+anim_abs.refine=lambda *a: entered.append('refine') or {}
+anim_io.multiview_fit=lambda *a: entered.append('fit') or {}
+base={'stage':'refine','armature':'rig','mesh':'mesh','cameras':'missing.json','masks':{'front':'front','side':'side'}}
+bad=[{'bones':'spine'},{'bones':[{}]},{'step_deg':[]},{'rounds':1.5},{'rounds':True},{'key':'yes'},{'cameras':[]},{'masks':{'front':[],'side':'side'}}]
+rows=[call('anim_multiview_fit',**dict(base,**change)) for change in bad]
+rows.append(call('anim_multiview_fit',front='front.json',side='side.json',calibration={'px_per_m':100},cameras=[]))
+print('RESULT '+json.dumps({'rows':rows,'entered':entered}))
+''')[0]
+    assert not out['entered'], out
+    assert all(not r['ok'] for r in out['rows']), out
+    assert all(any('lampway_anim_multiview_fit' in h for h in r['help']) for r in out['rows'])

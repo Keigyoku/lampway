@@ -36,9 +36,20 @@ def _co(ob):
 
 
 def _bbox(region):
-    b = [float(x) for x in region]
-    if len(b) != 6:
-        raise C.FeatureError("region is a bbox [x0, y0, z0, x1, y1, z1] in object space")
+    if isinstance(region, dict):
+        if set(region) != {'bbox'}:
+            raise C.FeatureError('region must be {bbox: [x0, y0, z0, x1, y1, z1]}')
+        region = region['bbox']
+    if not isinstance(region, (list, tuple)) or len(region) != 6:
+        raise C.FeatureError('region must contain six numeric object-space bbox coordinates')
+    if any(isinstance(x, bool) or not isinstance(x, (int, float)) for x in region):
+        raise C.FeatureError('region bbox coordinates must be finite numbers')
+    try:
+        b = [float(x) for x in region]
+    except (TypeError, ValueError):
+        raise C.FeatureError('region bbox coordinates must be finite numbers') from None
+    if any(isinstance(x, bool) for x in region) or not np.isfinite(b).all():
+        raise C.FeatureError('region bbox coordinates must be finite numbers')
     return np.minimum(b[:3], b[3:]), np.maximum(b[:3], b[3:])
 
 
@@ -191,13 +202,18 @@ def _weights_sig(ob):
 
 
 def edit_locality_check(before, after, region=None, margin_m=0.005, tolerance_m=0.0005):
-    a, b = C.need_object(before), C.need_object(after)
+    if not isinstance(before, str) or not before.strip() or not isinstance(after, str) or not after.strip():
+        raise C.FeatureError('before and after must be nonempty object names')
+    for name, value in (('margin_m', margin_m), ('tolerance_m', tolerance_m)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise C.FeatureError(name + ' must be a finite number')
     if region is None:
         raise C.FeatureError("give the region the edit was allowed to touch (a bbox [x0, y0, z0, x1, y1, z1] in object space)")
     lo, hi = _bbox(region)
     margin, tol = float(margin_m), float(tolerance_m)
     if not 0 <= margin <= 0.1 or not 1e-6 <= tol <= 0.01:
         raise C.FeatureError("margin_m is 0..0.1 and tolerance_m 1e-6..0.01 metres")
+    a, b = C.need_object(before), C.need_object(after)
     if not np.allclose(np.array(a.matrix_world), np.array(b.matrix_world), atol=1e-6):
         raise C.FeatureError("the two meshes are in different frames: align them with the asset_lineage anchors first")
     if a.data.uv_layers and not b.data.uv_layers:

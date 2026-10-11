@@ -79,6 +79,7 @@ class Connector:
         self.record = None
         self.lock = threading.Lock()
         self.upstream_version = None
+        self.upstream_instructions = None
         self.started = False
         self.tasks = set()
         self.health = {}
@@ -205,7 +206,8 @@ class Connector:
             # (the interface controller still starting after launch, sign-in) means
             # this connection holds no input to release.
             if (released.get("result") or {}).get("isError") and refusal.get("error_type") == "modal_active":
-                raise RuntimeError(refusal.get("error") or "Finish or cancel the UI operation before using scene tools")
+                from mixar.modules.common.ui_control.constants import UIError
+                raise UIError("modal_active", refusal.get("error") or "Finish or cancel the UI operation before using scene tools")
         meta = {"mixar/request-id": call_id, **({"mixar/client": self.client} if self.client else {})}
         message = {"jsonrpc": "2.0", "id": call_id, "method": "tools/call", "params": {
             "name": name, "arguments": arguments, "_meta": meta}}
@@ -227,15 +229,25 @@ class Connector:
             response["result"]["content"][0] = {"type": "text", "text": json.dumps(payload)}
         return response["result"]
 
-    def catalog(self):
-        record, _ = self.attach()
+    def _initialize(self, record):
         with self.lock:
             if self.upstream_version is None:
                 response = request(record, "POST", "/mcp", {
                     "jsonrpc": "2.0", "id": "init", "method": "initialize", "params": {
                         "protocolVersion": "2025-11-25", "capabilities": {},
-                        "clientInfo": {"name": "mixar-local-connector", "version": "1"}}})
+                        "clientInfo": {"name": "mixar-local-connector", "version": "1"}}}, timeout=5)
                 self.upstream_version = response["result"]["protocolVersion"]
+                self.upstream_instructions = response["result"].get("instructions")
+
+    def instructions(self):
+        """Read the backend initialize guide without launching the desktop."""
+        record, _ = self.attach()
+        self._initialize(record)
+        return self.upstream_instructions
+
+    def catalog(self):
+        record, _ = self.attach()
+        self._initialize(record)
         result, cursor = [], None
         for _ in range(20):
             response = request(record, "POST", "/mcp", {"jsonrpc": "2.0", "id": "catalog",

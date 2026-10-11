@@ -24,7 +24,7 @@ from lib import run_scenario
 
 OUT = Path(os.environ.get('QA_SCENARIO_OUT', '/tmp/zen-topbar-responsive'))
 WIDTHS = (1800, 1512, 1280, 1100, 900, 760, 640, 560)
-EMAIL = 'someone.with.a.long.name@example-company.com'
+EMAIL = 'someone.with.a.long.name.qa1@example.invalid'
 SLIDER_OPS = {'MIXAR_OT_set_ui_mode_ai', 'MIXAR_OT_set_ui_mode_pro'}
 
 GEOMETRY = '''

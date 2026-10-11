@@ -68,8 +68,14 @@ constexpr float STRIP_Y = 159.0f;
 void brand_chip(const rctf &pill)
 {
   const float u = cinema_unit();
+#ifdef LAMPWAY
+  /* LAMPWAY: inert branding shares the brand gradient, not active control colors. */
+  MIXAR_THEME_LOAD(brand_top, CinemaBrandTop);
+  MIXAR_THEME_LOAD(brand_bottom, CinemaBrandBottom);
+#else
   MIXAR_THEME_LOAD(brand_top, CinemaPillOnA);
   MIXAR_THEME_LOAD(brand_bottom, CinemaPillOnB);
+#endif
   cinema_panel(pill, CINEMA_ROW_RADIUS * u, brand_top, brand_bottom);
 
   const float cy = BLI_rctf_cent_y(&pill);

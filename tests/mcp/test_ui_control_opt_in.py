@@ -12,7 +12,7 @@ from mcp import Client
 
 from mixar.modules.common.ui_control.constants import UIError
 from mixar.modules.common.ui_control.core import schema, service
-from mixar.modules.mcp_bridge.core import runtime, stdio_server
+from mixar.modules.mcp_bridge.core import aliases, runtime, stdio_server
 
 
 def test_interface_input_is_refused_until_the_user_allows_it(monkeypatch):
@@ -52,8 +52,13 @@ def test_the_launcher_advertises_interface_tools_only_when_allowed(allowed):
         async with Client(stdio_server.create_server(Connector(allowed))) as client:
             return {tool.name for tool in (await client.list_tools()).tools}
     names = asyncio.run(main())
-    assert (schema.UI_INPUT <= names) is allowed
-    assert {"scene_overview", "mixar_ui_context", "mixar_scenes", "mixar_project_open"} <= names
+    public_input = {aliases.OLD_TO_NEW[name] for name in schema.UI_INPUT}
+    if allowed:
+        assert public_input <= names
+    else:
+        assert public_input.isdisjoint(names)
+    assert not set(aliases.OLD_TO_NEW) & names
+    assert {"scene_overview", "lampway_ui_context", "lampway_scenes", "lampway_project_open"} <= names
 
 
 def test_signin_restored_after_a_load_is_reported_as_temporary(monkeypatch):

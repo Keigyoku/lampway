@@ -16,6 +16,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
+from .source_identity import stamp_source
 from . import common as C
 from .. import canon_geom as G
 
@@ -87,7 +88,7 @@ def audit(object, armature, intended=None, max_influences=4, side=None):
             "side_check": {"side": want, "groups_on_wrong_side": wrong}, "hotspots": hotspots, "pass": bool(ok), "max_influences": int(max_influences)}
 
 
-def bone_segments(arm):
+def bone_segments(arm, *, native_raw=False, posed=False):
     """{bone: (head, end)} in world space for every bone of ``arm``: head -> the head of its continuation child (canon 01
     C.1, canon_geom.chain_ends with the UE limb continuations), never the bone's tail - Blender's glTF import lays a UE
     bone's tail 90 deg off its limb."""
@@ -95,10 +96,20 @@ def bone_segments(arm):
     lone = {b.name for b in arm.data.bones if b.parent is None and not b.children}      # a one-bone rig: no joint to run to
     heads = {b.name: tuple((mw @ b.head_local)[:]) for b in arm.data.bones if b.name not in lone}
     parents = {b.name: (b.parent.name if b.parent else None) for b in arm.data.bones if b.name not in lone}
-    out = G.bone_segments(heads, parents, main_child=G.CONTINUATION) if heads else {}
+    from .normalize_rigged import canonical_helper_ends
+    helpers = canonical_helper_ends(arm, native_raw=native_raw)
+    if posed:
+        from mathutils import Vector
+        for name, end in helpers.items():
+            transport = mw @ arm.pose.bones[name].matrix @ arm.data.bones[name].matrix_local.inverted() @ mw.inverted()
+            helpers[name] = tuple(transport @ Vector(end))
+        heads = {name: tuple(mw @ arm.pose.bones[name].head) for name in heads}
+    out = G.bone_segments(heads, parents, main_child=G.CONTINUATION, helper_ends=helpers) if heads else {}
     for b in arm.data.bones:
         if b.name in lone:
-            out[b.name] = (np.array((mw @ b.head_local)[:]), np.array((mw @ b.tail_local)[:]))
+            source = arm.pose.bones[b.name] if posed else b
+            head, tail = (source.head, source.tail) if posed else (b.head_local, b.tail_local)
+            out[b.name] = (np.array(mw @ head), np.array(mw @ tail))
     return out
 
 
@@ -127,8 +138,10 @@ def plan(object, armature):
     rigid = dom_n / total >= 0.9
     reason = (f"{dom_n / total:.0%} of the vertices are nearest to {dom}: one bone, a rigid piece" if rigid else
               f"the geometry spans {', '.join(span)} ({', '.join(f'{b} {n / total:.0%}' for b, n in ranked[:4])}): bones that rotate against each other, so it must deform")
+    stamp = arm.get("lw_canon")
+    roster = json.loads(stamp).get("body", {}).get("roster") if stamp else None
     return {"ok": True, "recommendation": "rigid" if rigid else "deforming", "bone": dom if rigid else None, "bones": span if not rigid else [dom], "joint_span": len(span), "reason": reason,
-            "histogram": hist}
+            "histogram": hist, "canonical_roster": roster}
 
 
 # ------------------------------------------------------------------------------------------------------------------ cleanup
@@ -258,6 +271,23 @@ def cleanup(object, armature, ops, mirror_from=None):
 # ------------------------------------------------------------------------------------------------------------------ transfer
 MAX_DISTANCE_LIMIT = 0.5
 
+# Issue 2 G10 native calibration (test_three_percent_matched_transfer_names_placement_and_threshold):
+# correctly placed coincident planar grid matches 1.0; unplaced sloped grid matches about .03
+# under the unchanged .05 m / 30 degree gates. Warn below majority matching, never gate export.
+MATCHED_FRACTION_WARNING_THRESHOLD = 0.5
+
+def _match_warnings(matched_fraction, threshold):
+    if threshold is None:
+        return []
+    value = float(threshold)
+    if not np.isfinite(value) or not 0 <= value <= 1:
+        raise C.FeatureError("matched_fraction_warning_threshold must be finite and in 0..1")
+    if matched_fraction >= value:
+        return []
+    return [f"matched_fraction {matched_fraction:.6f} is below matched_fraction_warning_threshold {value}; "
+            "weights may depend heavily on inpainting. Check placement with lampway_fit_place before trusting the transfer. "
+            "This diagnostic does not gate export."]
+
 
 def _source_arrays(src, bones):
     """Evaluated (deformed) world vertices, loop triangles, normals and the weight matrix of the bone groups."""
@@ -274,8 +304,9 @@ def _source_arrays(src, bones):
     return tree, np.array([v[:] for v in V]), np.array(tris), names, W
 
 
-def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=4, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M):
+def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_normals=True, inpaint_mode="point", limit_groups=0, deform_only=True, name="", engine="algorithmic", root=None, weld_m=G.WELD_M, matched_fraction_warning_threshold=MATCHED_FRACTION_WARNING_THRESHOLD):
     import math
+    _match_warnings(1.0, matched_fraction_warning_threshold)  # validate before creating the derivative
     ob = C.need_object(object)
     src = C.need_object(source)
     if not 0 < float(max_distance) <= MAX_DISTANCE_LIMIT:
@@ -355,10 +386,14 @@ def transfer(object, source, max_distance=0.05, max_normal_angle=30.0, flip_norm
     _write(dup, gnames, Wt)
     mod = dup.modifiers.new("Armature", "ARMATURE")
     mod.object = arm
+    stamp_source(dup, ob)
     unweighted = int((Wt.sum(axis=1) <= EPS).sum())
-    hist = {str(k): int(((Wt > EPS).sum(axis=1) == k).sum()) for k in range(1, 5)}
+    counts, frequencies = np.unique((Wt > EPS).sum(axis=1), return_counts=True)
+    hist = {str(int(k)): int(v) for k, v in zip(counts, frequencies)}
     return {"ok": True, "object": dup.name, "source": src.name, "engine": engine, "matched_fraction": round(float(matched.mean()), 6), "inpainted_vertices": inpainted, "groups_written": len(gnames),
-            "max_influences": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted}
+            "max_influences": int(counts.max()) if len(counts) else 0, "influence_limit": int(limit_groups), "influence_histogram": hist, "unweighted_vertices": unweighted,
+            "matched_fraction_warning_threshold": matched_fraction_warning_threshold,
+            "warnings": _match_warnings(float(matched.mean()), matched_fraction_warning_threshold)}
 
 
 def _harmonic_fill(me, matched, W, weld_m=G.WELD_M):

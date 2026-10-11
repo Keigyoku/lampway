@@ -154,12 +154,12 @@ def test_server_connection_down_lists_the_saved_tools_and_says_connecting():
     assert out["mixar_ui_context"]["result"]["scene_tools"] == "connecting"
 
 
-def test_without_a_saved_list_the_session_says_to_reconnect_once_mixar_is_ready():
+def test_without_a_saved_list_context_clears_startup_flag_when_relay_is_ready():
     fake = Fake(["signed_out", "signed_out", "ready"])  # Never saved: first use, signed out.
     out = run_session(fake, steps=["mixar_ui_context", "mixar_ui_context"])
-    assert "execute_bpy_script" not in out["tools"] and "mixar_ui_context" in out["tools"]
+    assert "execute_bpy_script" not in out["tools"] and "lampway_ui_context" in out["tools"]
     status = out["mixar_ui_context"]["result"]
-    assert status["scene_tools"] == "reconnect" and "/mcp" in status["next_step"]
+    assert status["scene_tools"] == "available" and status["next_step"] == ""
 
 
 def test_a_corrupt_saved_list_is_ignored():
@@ -219,14 +219,14 @@ def test_interface_tools_stay_hidden_while_off_even_without_the_backend(monkeypa
             return {tool.name for tool in (await client.list_tools()).tools}
     names = asyncio.run(main())
     assert not {"mixar_ui_observe", "mixar_ui_act", "mixar_ui_wait"} & names
-    assert {"mixar_ui_context", "mixar_scenes", "mixar_project_open"} <= names
+    assert {"lampway_ui_context", "lampway_scenes", "lampway_project_open"} <= names
 
 
 # ------------------------------------------------------------ honest status
 
 @pytest.mark.parametrize("state,listed,connected,expected", [
     ("ready", True, True, "available"), ("ready", True, False, "connecting"),
-    ("ready", False, True, "reconnect"), ("ready", False, False, "connecting"),
+    ("ready", False, True, "available"), ("ready", False, False, "connecting"),
     ("signed_out", False, False, "signed_out"),
     ("choose", False, True, "choose"), ("absent", False, False, "absent"),
 ])
@@ -284,3 +284,12 @@ def test_a_failing_refresh_backs_off_up_to_hourly():
     tool_snapshot._state["thread"].join(5)
     assert tool_snapshot._state["delay"] == tool_snapshot.RETRY_SECONDS  # Success resets it.
     tool_snapshot.forget()
+
+
+def test_context_after_startup_reports_scene_tools_available_when_relay_is_up():
+    tool_snapshot.save([dict(BACKEND_TOOL)])
+    fake = Fake(["starting", "ready"])
+    out = run_session(fake, steps=["mixar_ui_context"])
+    assert "execute_bpy_script" in out["tools"]
+    status = out["mixar_ui_context"]["result"]
+    assert status["scene_tools"] == "available" and status["next_step"] == ""

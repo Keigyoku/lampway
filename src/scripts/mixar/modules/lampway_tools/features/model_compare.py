@@ -76,34 +76,34 @@ def _scratch():
 
 def _import_merged(path, rotation_deg):
     """Import a glTF, return (vertices Nx3 world with yaw applied, triangles, name). The imported objects are removed; only geometry survives."""
-    before = set(bpy.data.objects)
-    canon_io.import_raw(path)
-    new = [o for o in bpy.data.objects if o not in before]
-    meshes = [o for o in new if o.type == "MESH"]
-    if not meshes:
-        for o in new:
-            bpy.data.objects.remove(o)
-        raise C.FeatureError(f"{Path(path).name} holds no mesh")
-    bm = bmesh.new()
-    dg = bpy.context.evaluated_depsgraph_get()
-    for o in meshes:
-        me = o.evaluated_get(dg).to_mesh()
-        me.transform(o.matrix_world)
-        bm.from_mesh(me)
-        o.evaluated_get(dg).to_mesh_clear()
-    bmesh.ops.triangulate(bm, faces=bm.faces[:])
-    verts = np.array([v.co[:] for v in bm.verts], float)
-    bm.verts.index_update()
-    tris = [[v.index for v in f.verts] for f in bm.faces]
-    bm.free()
-    for o in new:
-        data = o.data if o.type == "MESH" else None
-        bpy.data.objects.remove(o)
-        if data is not None and data.users == 0:
-            bpy.data.meshes.remove(data)
-    a = math.radians(float(rotation_deg))
-    R = np.array([[math.cos(a), -math.sin(a), 0], [math.sin(a), math.cos(a), 0], [0, 0, 1]])
-    return verts @ R.T, tris
+    before = canon_io.snapshot_ids()
+    bm = None
+    try:
+        canon_io.import_raw(path)
+        meshes = [o for o in bpy.data.objects if o not in before["objects"] and o.type == "MESH"]
+        if not meshes:
+            raise C.FeatureError(f"{Path(path).name} holds no mesh")
+        bm = bmesh.new()
+        dg = bpy.context.evaluated_depsgraph_get()
+        for o in meshes:
+            evaluated = o.evaluated_get(dg)
+            me = evaluated.to_mesh()
+            try:
+                me.transform(o.matrix_world)
+                bm.from_mesh(me)
+            finally:
+                evaluated.to_mesh_clear()
+        bmesh.ops.triangulate(bm, faces=bm.faces[:])
+        verts = np.array([v.co[:] for v in bm.verts], float)
+        bm.verts.index_update()
+        tris = [[v.index for v in f.verts] for f in bm.faces]
+        a = math.radians(float(rotation_deg))
+        R = np.array([[math.cos(a), -math.sin(a), 0], [math.sin(a), math.cos(a), 0], [0, 0, 1]])
+        return verts @ R.T, tris
+    finally:
+        if bm is not None:
+            bm.free()
+        canon_io.remove_new_ids(before)
 
 
 def normalise(verts):

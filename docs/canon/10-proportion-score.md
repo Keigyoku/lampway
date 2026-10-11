@@ -70,14 +70,13 @@ and `validated` (false until an independent landmark method reproduces the order
 | G10.2 scale-free | piece x 1.37 | ratio deviations 0 | a ratio using an absolute length |
 | G10.3 sensitivity | depth x 1.10 | D/W dev +10.0 % exactly | — |
 | G10.4 aspect | C11 rectangle vs square masks | IoU 0.5 | crop-and-stretch: 1.0 |
+| G10.6 native cardinal facing | `test_canon_normalize_facing.py`, L-profile Front on a rectangular alpha canvas, raw +90° | measured -90° applied; best IoU >0.99; best-second exceeds explicit margin; +X raw front recorded | symmetric cube ties and refuses without geometry/ID changes |
 | G10.5 body self-test | the MetaHuman region offset 15 mm (built from the body GLB by the implementer; not committed: private-free but large) | helmet < 0.04, waist < 0.03, boots < 0.04, gauntlets < 0.06 | a scorer whose self-test exceeds 0.06 is not shipped |
 
 ## F. Implementation gap
 
 1. `piece_ratios` kinds are unfalsified (`validated: false`), as they should be; the auditor's independent method is owed.
-2. LT `features/silhouette.py:77-83` `_fit` crops each mask to its own bounding box and resizes it to a square before IoU (used
-   when the candidate is an image): the aspect trap. LT `silhouette.py:62-74` keys a plate without alpha by the median of two
-   8 px corners with a fixed tolerance 20, not by the border ring with a measured tolerance.
+2. The shared silhouette loader supports native dimensions and keys non-alpha plates from the median 8px border ring with its p99 distance tolerance. Normalization uses native dimensions followed by the common aspect-preserving fit. Existing silhouette_compare calls retain their explicit square-size interface.
 3. Lampway's `CUFF_UP_MARGIN` comment (`scripts/proportion/piece_ratios.py` header) says real seeds read 0.55–0.6 right-way-up
    while the in-code comment says the cuff end measured 0.90–0.95: one of them is stale [UNVERIFIED which].
 

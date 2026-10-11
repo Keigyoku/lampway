@@ -7,7 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
-PASS_THROUGH_FOR_PANES = ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "CLAUDE_CONFIG_DIR", "CODEX_HOME")
+PASS_THROUGH_FOR_PANES = ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "CLAUDE_CONFIG_DIR", "CODEX_HOME", "LAMPWAY_MCP_DISCOVERY_DIR")
 SOCK_LIMIT = 100
 
 
@@ -120,7 +120,7 @@ def start_server(root, method="auto") -> dict:
     use_systemd = method == "systemd" or (method == "auto" and _systemd_ok())
     unit = "lampway-herdr-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:8]
     if use_systemd:
-        setenv = [f"--setenv={k}={env[k]}" for k in ("HOME", "XDG_CONFIG_HOME", "HERDR_SOCKET_PATH", "HERDR_CLIENT_SOCKET_PATH", "HERDR_CONFIG_PATH", "PATH") if k in env]
+        setenv = [f"--setenv={k}={env[k]}" for k in ("HOME", "XDG_CONFIG_HOME", "HERDR_SOCKET_PATH", "HERDR_CLIENT_SOCKET_PATH", "HERDR_CONFIG_PATH", "PATH", "LAMPWAY_MCP_DISCOVERY_DIR") if k in env]
         r = _spawn(["systemd-run", "--user", f"--unit={unit}", "--collect", *setenv, exe, "server"], env, 30)
         if r.returncode != 0:
             raise HerdrError("systemd-run could not start the herdr server unit: " + (r.stderr or r.stdout).strip()[:300])

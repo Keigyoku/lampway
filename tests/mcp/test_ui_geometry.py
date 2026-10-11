@@ -5,6 +5,8 @@
 import base64
 from contextlib import nullcontext
 import io
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from PIL import Image
@@ -64,3 +66,56 @@ def test_retina_secret_mask_uses_widget_pixels_without_double_scaling(monkeypatc
 ])
 def test_gesture_path_cannot_cross_an_occluding_panel(start, end, blocked):
     assert native_input.segment_intersects(start, end, (40, 40, 60, 60)) is blocked
+
+
+@pytest.mark.parametrize("item,expected", [
+    ({"text": "Save", "tip": "Save file"}, "Save"),
+    ({"text": "", "tip": "Toggle overlay"}, "Toggle overlay"),
+    ({"op": "wm.search_menu", "type": "BUTTON"}, "wm.search_menu"),
+    ({"prop_owner": "Scene", "prop": "camera", "type": "SEARCH_MENU"}, "Scene.camera"),
+    ({"surface": "profile", "type": "BUTTON"}, "profile"),
+    ({"area_type": "VIEW_3D", "region_type": "HEADER", "type": "SEPARATOR"}, "VIEW_3D HEADER SEPARATOR"),
+])
+def test_observed_controls_have_labels_from_native_sources(item, expected, monkeypatch):
+    win = SimpleNamespace(as_pointer=lambda: 1, screen=SimpleNamespace(areas=[]),
+                          scene=SimpleNamespace(mixie_session_id="fixture", name="Fixture"))
+    monkeypatch.setattr(observe, "main_window", lambda: win)
+    monkeypatch.setattr(observe, "signature", lambda: ())
+    monkeypatch.setattr(observe, "widgets", lambda: [{**item, "w": 1}])
+    monkeypatch.setattr(observe, "window_extent", lambda _: {"width": 10, "height": 10})
+    monkeypatch.setattr(observe, "bpy", SimpleNamespace(context=SimpleNamespace(
+        window_manager=SimpleNamespace(windows=[win]))))
+    result, _ = observe.observe("fixture", {})
+    assert result["targets"][0]["label"] == expected
+
+
+@pytest.mark.parametrize("item", json.loads((Path(__file__).parents[1] /
+    "lampway_tools/fixtures/issue2_native_label_shapes.json").read_text())["targets"])
+def test_native_unlabeled_control_shapes_keep_their_source_labels(item, monkeypatch):
+    """Pin every text/tooltip-free row in the measured inventory, including duplicates."""
+    expected = item["label"]
+    raw = {key: value for key, value in item.items() if key != "label"}
+    assert not raw.get("text") and not raw.get("tip")
+    test_observed_controls_have_labels_from_native_sources(raw, expected, monkeypatch)
+
+
+ORIGINAL_LABEL_INVENTORY = json.loads((Path(__file__).parents[1] /
+    "lampway_tools/fixtures/issue2_native_label_shapes.json").read_text())["original_inventory"]
+
+
+def test_original_71_target_inventory_preserves_every_unlabeled_identity():
+    assert ORIGINAL_LABEL_INVENTORY["total_targets"] == 71
+    assert ORIGINAL_LABEL_INVENTORY["unlabeled_targets"] == 16
+    assert [row["original_target"] for row in ORIGINAL_LABEL_INVENTORY["targets"]] == [
+        "t6", "t9", "t10", "t11", "t12", "t13", "t14", "t27", "t33", "t36",
+        "t37", "t39", "t41", "t43", "t44", "t70"]
+    assert ORIGINAL_LABEL_INVENTORY["targets"][-1]["label"] == "Scene.mixie_chat_input"
+
+
+@pytest.mark.parametrize("item", ORIGINAL_LABEL_INVENTORY["targets"],
+                         ids=lambda row: row["original_target"])
+def test_original_unlabeled_controls_receive_native_source_labels(item, monkeypatch):
+    """The exact sixteen failing controls, rather than a smaller new layout."""
+    raw = {key: value for key, value in item.items() if key not in ("label", "original_target")}
+    assert not raw.get("text") and not raw.get("tip")
+    test_observed_controls_have_labels_from_native_sources(raw, item["label"], monkeypatch)

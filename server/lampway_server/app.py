@@ -197,6 +197,36 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             return unauthorized("Incorrect username or password")
         return JSONResponse(auth.issue_pair())
 
+    async def local_login(request: Request):
+        # Same single local account as desktop PKCE, without a browser roundtrip.
+        try:
+            body = await request.json()
+        except ValueError:
+            body = {}
+        password = body.get("password", "") if isinstance(body, dict) else ""
+        if auth.password_required() and not auth.check_password(auth.email, password):
+            return unauthorized("Enter your Lampway local password in the app")
+        return JSONResponse(auth.issue_pair())
+
+    async def local_profile(request: Request):
+        return html_page(BP.page(title="Lampway local account", headline="This installation runs on your machine",
+                                 parts=(BP.status("There is no credit purchase or subscription for the local account. "
+                                                  "Configure provider keys, routes and spending caps in Lampway."),)))
+
+    async def local_docs(request: Request):
+        return html_page(BP.page(title="Lampway - Docs", headline="Getting started with Lampway",
+            line="Lampway runs locally. Provider calls use only the routes you enable.",
+            parts=(BP.status("Open setup to choose your language and keys, enable outbound routes, choose the agent provider and save per-job and per-day spending caps."),
+                   BP.status("To connect an AI app, open Connect AI Apps (MCP) in your profile. Enable MCP and explicitly allow interface control if you want screenshots or UI actions."),
+                   BP.status("Use Inspect to read scene and object information before editing. View can focus objects, capture editors and render a still using your current settings."),
+                   BP.status("Source, installation and reference documentation", link=("Lampway repository", "https://github.com/Keigyoku/lampway")))))
+
+    async def local_bug_report(request: Request):
+        return html_page(BP.page(title="Lampway - Report a Bug", headline="Report a Lampway bug",
+            line="For this local installation, include the app version, what you clicked, what you expected and the exact error.",
+            parts=(BP.status("Use a minimal synthetic scene when possible. Remove credentials, private file paths and personal content from any logs or screenshots before sharing."),
+                   BP.status("Public reports are tracked in the project repository", link=("Create an issue", "https://github.com/Keigyoku/lampway/issues/new")))))
+
     async def me(request: Request):
         token = bearer_token(request)
         if not token or auth.verify_access(token) is None:
@@ -317,6 +347,10 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         Route("/api/v1/auth/me", me, methods=["GET"]),
         Route("/api/v1/auth/desktop/token", desktop_token, methods=["POST"]),
         Route("/api/v1/auth/refresh", refresh, methods=["POST"]),
+        Route("/app", local_profile, methods=["GET"]),
+        Route("/app/docs", local_docs, methods=["GET"]),
+        Route("/app/bug-report", local_bug_report, methods=["GET"]),
+        Route("/api/v1/auth/local", local_login, methods=["POST"]),
         Route("/app/desktop-login", desktop_login_get, methods=["GET"]),
         Route("/app/desktop-login", desktop_login_post, methods=["POST"]),
     ]
@@ -515,7 +549,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         try:
             return JSONResponse(envelope({"results": assets.search(str(form.get("prompt") or ""), data, top_k)}))
         except LookupError:
-            return JSONResponse({"detail": "no trained model: train the asset library first"}, status_code=404)
+            return JSONResponse({"detail": "No trained model: in the Asset Library panel, select libraries in Libraries to Train, then click Train Model."}, status_code=404)
 
     async def assets_search_batch(request: Request):
         if not _bearer_ok(request):
@@ -529,7 +563,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         try:
             return JSONResponse(envelope({"results": {p: assets.search(p, None, 5) for p in prompts}}))
         except LookupError:
-            return JSONResponse({"detail": "no trained model: train the asset library first"}, status_code=404)
+            return JSONResponse({"detail": "No trained model: in the Asset Library panel, select libraries in Libraries to Train, then click Train Model."}, status_code=404)
 
     async def assets_delete(request: Request):
         if not _bearer_ok(request):

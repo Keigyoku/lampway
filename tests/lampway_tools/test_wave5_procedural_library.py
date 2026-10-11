@@ -4,7 +4,7 @@
 
 """procedural_library (specs/mixar_docs/procedural_library.md + asset_library/asset_seed_procedural.md) in the real binary: a library of procedural node-group materials built from a few parametric TEMPLATES
 and a preset table (build the tool, not the output), registered in the Client's own material registry so its agent tools and layer stack read them. The first 12 are armour materials (the auditor's list is not
-written anywhere, so the choice is recorded in the module and flagged for the captain). Verified by real Cycles bakes of the group's probe outputs."""
+written anywhere, so the choice is recorded in the module and flagged for the captain). Verified by real EEVEE emission readouts of the group's probe outputs."""
 
 import sys
 from pathlib import Path
@@ -17,7 +17,7 @@ import bootstrap
 for _ in range(100000):
     if bootstrap._load_ui_batch_tick() is None: break
 def lib(**kw):
-    return call("procedural_library", **kw)
+    return call("procedural_library", full=True, limit=1000, **kw)
 '''
 
 
@@ -69,6 +69,7 @@ lib(action="seed")
 res = lib(action="verify", bake_stats=True)
 print("RESULT", json.dumps({m["material_id"]: {"metal": m["metallic_mean"], "rough": m["roughness_mean"], "hue": m["hue_deg"], "chroma": m["chroma"], "cat": m["category"], "val": m["value_mean"], "rgb": m["base_color_mean"]} for m in res["materials"]}))
 '''))
+    assert len(d) == 55, d
     exempt = ("rust_", "patina_heavy", "scaled", "verdigris")                                         # the contract's declared exemptions: corrosion is not metal
     bands = {"gold_": (35, 55), "bronze_": (20, 35), "brass_": (40, 55), "copper_": (10, 25)}
     for mid, m in d.items():
@@ -100,6 +101,7 @@ res = lib(action="verify", bake_stats=True)
 from mixar.modules.lampway_tools.features import procedural_library as PL
 print("RESULT", json.dumps({"collisions": res["collisions"], "min_l1": res["min_pairwise_l1"], "n": len(res["materials"]), "swap": PL.fingerprint_distance("gold_polished", "bronze_polished", res)}))
 '''))
+    assert d["n"] == 55, d
     assert d["collisions"] == [] and d["min_l1"] > 0.02 and d["swap"] > 0.02
 
 
@@ -165,3 +167,110 @@ lib(action="bake", material_id="gold_polished")
 print("RESULT", json.dumps({"engines": sorted(set(engines))}))
 '''))
     assert d["engines"] == ["BLENDER_EEVEE"]
+
+
+def test_procedural_default_rows_are_compact_and_full_pages_restore_inputs(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+a=call('procedural_library',action='list')
+b=call('procedural_library',action='list',full=True,limit=2,offset=2)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'] and out['bytes'] < 12000, out
+    assert all(set(r) == {'material_id','name','category'} for r in out['a']['materials'])
+    assert out['b']['ok'] and len(out['b']['materials']) == 2
+    assert 'inputs' in out['b']['materials'][0]
+    assert out['b']['pages']['materials']['total'] == out['a']['total'] == 55
+    assert len(out['a']['materials']) == 50
+
+
+def test_probe_reads_all_three_outputs_in_one_render_without_touching_caller_scene(tmp_path):
+    d = one(go(tmp_path, '''
+from mixar.modules.lampway_tools.features import procedural_library as PL
+def state():
+    sc = bpy.context.scene
+    return (sc.name, tuple(sc.objects), sc.world, sc.camera, sc.render.engine,
+            sc.render.resolution_x, sc.render.resolution_y, sc.view_settings.view_transform,
+            tuple(bpy.context.selected_objects), bpy.context.view_layer.objects.active,
+            len(bpy.data.cameras), len(bpy.data.worlds), len(bpy.data.meshes), len(bpy.data.materials))
+before = state()
+engines = []
+bpy.app.handlers.render_pre.append(lambda sc, *a: engines.append(sc.render.engine))
+lib(action="bake", material_id="bronze_hammered")
+after = state()
+print("RESULT", json.dumps({"engines": engines, "preserved": before == after}))
+'''))
+    assert d["engines"] == ["BLENDER_EEVEE"] and d["preserved"], d
+
+
+def test_probe_atlas_matches_independent_linear_pixels_and_coordinate_sensitive_fallback(tmp_path):
+    reference_path = str(Path(__file__).parent)
+    d = one(go(tmp_path, "import sys\nsys.path.insert(0, " + repr(reference_path) + ")\n" + '''
+from pathlib import Path
+from procedural_probe_reference import render_reference
+from mixar.modules.lampway_tools.features import procedural_library as PL
+loader = PL.canon_io.load_image
+captured = []
+separate = {}
+def capture(path):
+    image = loader(path)
+    if path.endswith("probe_atlas.exr"):
+        w, h = image.size
+        captured.append(np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3])
+    elif "/probe_" in path:
+        w, h = image.size
+        name = Path(path).stem.removeprefix("probe_").replace("_", " ")
+        separate[name] = np.array(image.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
+    return image
+PL.canon_io.load_image = capture
+lib(action="seed")
+deltas = {}
+for pid in ("bronze_hammered", "cloth_cloak_crimson_heavy", "embroidery_greek_key_trim_gold"):
+    params = {"Seed": 7.0, "Mask": 0.5, "Scale": 2.2, "Roughness Scale": 1.3}
+    lib(action="bake", material_id=pid, params=params)
+    atlas = captured.pop()
+    reference = render_reference(pid, params, 64)
+    deltas[pid] = {name: float(np.abs(atlas[:, i * 64:(i + 1) * 64] - reference[name]).max())
+                   for i, name in enumerate(("Base Color", "Metallic", "Roughness"))}
+# A future generator using world position is intentionally unsupported by the
+# atlas and must keep the original plane at world origin for all three frames.
+build = PL._build
+def world_build(pid, probe=False):
+    group, ms = build(pid, probe)
+    if probe:
+        geometry = group.nodes.new("ShaderNodeNewGeometry")
+        output = next(n for n in group.nodes if n.bl_idname == "NodeGroupOutput")
+        group.links.new(geometry.outputs["Position"], output.inputs["Base Color"])
+    return group, ms
+PL._build = world_build
+engines = []
+bpy.app.handlers.render_pre.append(lambda sc, *a: engines.append(sc.render.engine))
+separate.clear()
+lib(action="bake", material_id="gold_polished")
+fallback = separate.copy()
+fallback_engines = engines.copy()
+import procedural_probe_reference as reference_module
+reference_module._build = world_build
+reference = render_reference("gold_polished", {}, 64)
+fallback_deltas = {name: float(np.abs(fallback[name] - reference[name]).max()) for name in reference}
+group, _ = build("bronze_hammered", probe=True)
+safety = {"local": PL._probe_atlas_safe(group)}
+camera_node = group.nodes.new("ShaderNodeCameraData")
+safety["camera"] = PL._probe_atlas_safe(group)
+group.nodes.remove(camera_node)
+coords = next(n for n in group.nodes if n.bl_idname == "ShaderNodeTexCoord")
+mapping = next(n for n in group.nodes if n.bl_idname == "ShaderNodeMapping")
+group.links.new(coords.outputs["Camera"], mapping.inputs["Vector"])
+safety["camera_coordinates"] = PL._probe_atlas_safe(group)
+group.links.new(coords.outputs["Object"], mapping.inputs["Vector"])
+external = bpy.data.objects.new("external_probe_coordinates", None)
+coords.object = external
+safety["external_object"] = PL._probe_atlas_safe(group)
+bpy.data.node_groups.remove(group)
+bpy.data.objects.remove(external)
+print("RESULT", json.dumps({"safety": safety, "deltas": deltas, "fallback_deltas": fallback_deltas, "fallback_engines": fallback_engines, "atlas_captures": len(captured)}))
+'''))
+    assert d["safety"] == {"local": True, "camera": False, "camera_coordinates": False, "external_object": False}, d
+    assert all(delta == 0 for channels in d["deltas"].values() for delta in channels.values()), d
+    assert all(delta == 0 for delta in d["fallback_deltas"].values()), d
+    assert d["fallback_engines"] == ["BLENDER_EEVEE"] * 3 and d["atlas_captures"] == 0, d

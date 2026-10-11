@@ -199,7 +199,7 @@
       "properties": {
         "name": {"type": "string", "minLength": 1}, "canonical_name": {"type": ["string", "null"]}, "parent": {"type": ["string", "null"]},
         "head_m": {"$ref": "#/$defs/Vec3"}, "along": {"$ref": "#/$defs/Vec3"},
-        "along_source": {"enum": ["child_head", "named_continuation", "leaf_parent_line", "reference_transport"]},
+        "along_source": {"enum": ["child_head", "named_continuation", "leaf_parent_line", "reference_transport", "authored_helper_frame"]},
         "frame": {"$ref": "#/$defs/Mat3", "description": "proper rotation (det +1), columns = local X, Y, Z in canonical coordinates"},
         "length_m": {"type": "number", "minimum": 0}, "deform": {"type": "boolean"}
       }

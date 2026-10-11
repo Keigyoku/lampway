@@ -125,7 +125,11 @@ class AssetLibrary:
         if not dry_run:
             for p in pending:
                 n = int(p.name[:4])
-                if have > 0:
+                # FTS shadow tables contain bookkeeping rows even when the library is empty.
+                tables = self._db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT GLOB 'asset_fts_*'").fetchall()
+                populated = any(self._db.execute('SELECT 1 FROM "' + row[0].replace('"', '""') + '" LIMIT 1').fetchone()
+                                for row in tables)
+                if have > 0 and populated:
                     self._db.execute(f"VACUUM INTO '{self.db_path}.pre-{n:04d}.bak'")
                 self._db.executescript(f"BEGIN;\n{p.read_text(encoding='utf-8')}\nPRAGMA user_version={n};\nCOMMIT;")
                 have = n

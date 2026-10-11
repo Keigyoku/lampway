@@ -221,6 +221,7 @@ def readback_rows(reference, readback, bars=BARS):
 
 # ---------------------------------------------------------------- rig_conform (canon 16 B.4-B.7, 17): the plan, applied by features/rig_conform
 CONVENTIONS = {"blender": "y", "ue_axes": "x"}
+ENGINE_FROM_BLENDER = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 # the continuation of every UE limb bone that has helper children beside its next joint (canon 01 C; canon_geom.bones.CONTINUATION)
 CONTINUATION = dict({f"{a}_{s}": f"{b}_{s}" for s in ("l", "r") for a, b in (("clavicle", "upperarm"), ("upperarm", "lowerarm"), ("lowerarm", "hand"),
                                                                           ("thigh", "calf"), ("calf", "foot"), ("foot", "ball"), ("hand", "middle_01"))},
@@ -266,6 +267,96 @@ def _up(candidates, along):
     return None
 
 
+def source_copy_plan(src, mapping, synthesized, convention, measured_convention, offsets=None, ik_bones=False):
+    """An exact native rest copy, not reference fitting or engine calibration."""
+    from ..canon_geom import native_topology as NT
+    try:
+        roster = NT.audit(src["parents"])
+    except ValueError as error:
+        raise RigRefused(str(error)) from None
+    if not roster["complete"] or set(src["names"]) != set(NT.PARENTS):
+        raise RigRefused("source_copy requires the complete verified native topology")
+    if convention not in CONVENTIONS or measured_convention != convention:
+        raise RigRefused(f"source_copy input convention is {measured_convention}, requested {convention}: inspect the untouched source; no frame conversion is performed")
+    if (synthesized or offsets or ik_bones or any(slot != name or name not in src["parents"] for slot, name in mapping.items())):
+        raise RigRefused("source_copy requires identity mapping, no synthesis, IK or offsets")
+    bones = [{"name": name, "source": name, "kind": "mapped" if name in mapping else "unmapped",
+              "parent": src["parents"][name], "head": src["heads"][name],
+              "frame": src["frames"][name], "length": src["lengths"][name]} for name in src["names"]]
+    return {"bones": bones, "renamed": {}, "synthesized": {}, "reparented": [],
+            "frames": {}, "unreferenced": [], "convention": convention}
+
+
+def native_reference_plan(src, mapping, synthesized, ref, convention, offsets, ik_bones):
+    """Carry an independent native bind through the declared writer axes.
+
+    This bounded calibration applies only to the complete native graph at the
+    reference joints. It does not fit another body or infer helper directions.
+    """
+    from ..canon_geom import native_topology as NT
+    if set(src["names"]) != set(NT.PARENTS) or src["parents"] != NT.PARENTS:
+        raise RigRefused("native bind calibration requires the complete verified source topology")
+    if len(ref["names"]) != len(NT.PARENTS) or set(ref["names"]) != set(NT.PARENTS) or ref["parents"] != NT.PARENTS:
+        raise RigRefused("native bind calibration requires the complete independent native reference topology")
+    if synthesized or offsets or ik_bones or any(n != s or n not in src["parents"] for n, s in mapping.items()):
+        raise RigRefused("native bind calibration requires identity mapping, no synthesis, IK or offsets")
+    bridge = ENGINE_FROM_BLENDER if convention == "blender" else np.eye(3)
+    bones = []
+    for n in src["names"]:
+        head = np.asarray(src["heads"][n], float)
+        reference_head = np.asarray(ref["heads"][n], float)
+        R = np.asarray(ref["frames"][n], float)
+        scale = np.asarray(ref.get("scales", {}).get(n, [1, 1, 1]), float)
+        if scale.shape != (3,) or not np.isfinite(scale).all() or np.max(np.abs(scale - 1)) > BARS["scale"]:
+            raise RigRefused(f"{n}: independent native reference scale exceeds the unchanged bind scale bar")
+        if (head.shape != (3,) or reference_head.shape != (3,) or
+                not np.isfinite(head).all() or not np.isfinite(reference_head).all() or
+                np.linalg.norm(head - reference_head) * 100 > BARS["position_cm"]):
+            raise RigRefused(f"{n}: native reference joints differ beyond the unchanged bind position bar; provide the matching native reference")
+        if (R.shape != (3, 3) or not np.isfinite(R).all() or
+                np.max(np.abs(R.T @ R - np.eye(3))) > 1e-6 or abs(np.linalg.det(R) - 1) > 1e-6):
+            raise RigRefused(f"{n}: independent native reference frame is not a proper rigid rotation")
+        bones.append({"name": n, "source": n, "kind": "mapped" if n in mapping else "unmapped",
+                      "parent": src["parents"][n], "head": src["heads"][n],
+                      "frame": R @ bridge.T, "length": src["lengths"][n]})
+    return {"bones": bones, "renamed": {}, "synthesized": {}, "reparented": [],
+            "frames": {n: 0.0 for n in src["names"]}, "unreferenced": [], "convention": convention,
+            "reference_scope": "independent_native_bind"}
+
+
+def reference_bind_convention(rig, receipt, fingerprint):
+    """Declared writer convention, verified against every independent bind row.
+
+    Joint alignment remains a separate diagnostic for authored native frames.
+    This admits recipe routing, never an actual-engine acceptance claim.
+    """
+    from ..canon_geom import native_topology as NT
+    if (receipt.get("schema") != "lampway.native-reference-bind/1" or
+            receipt.get("output_rest") != fingerprint or rig["parents"] != NT.PARENTS or
+            set(rig["names"]) != set(NT.PARENTS)):
+        raise RigRefused("native reference bind receipt is stale or has unsupported topology; conform against the independent native reference again")
+    convention = receipt.get("convention")
+    reference_sha = receipt.get("reference_sha256", "")
+    binds = receipt.get("binds", {})
+    if (convention not in CONVENTIONS or len(reference_sha) != 64 or
+            any(c not in "0123456789abcdef" for c in reference_sha) or
+            set(binds) != set(NT.PARENTS) or receipt.get("binds_sha256") != sha(binds)):
+        raise RigRefused("native reference bind receipt has invalid convention, source pin or bind rows")
+    bridge = ENGINE_FROM_BLENDER if convention == "blender" else np.eye(3)
+    for n in rig["names"]:
+        expected = binds[n]
+        head = np.asarray(expected["head_m"], float)
+        R = np.asarray(expected["frame_engine"], float)
+        scale = np.asarray(rig.get("scales", {}).get(n, [1, 1, 1]), float)
+        if (head.shape != (3,) or R.shape != (3, 3) or not np.isfinite(head).all() or not np.isfinite(R).all() or
+                np.max(np.abs(R.T @ R - np.eye(3))) > 1e-6 or abs(np.linalg.det(R) - 1) > 1e-6 or
+                np.linalg.norm(np.asarray(rig["heads"][n]) - head) * 100 > BARS["position_cm"] or
+                angle_deg(np.asarray(rig["frames"][n]) @ bridge, R) > BARS["rotation_deg"] or
+                scale.shape != (3,) or not np.isfinite(scale).all() or np.max(np.abs(scale - 1)) > BARS["scale"]):
+            raise RigRefused(f"{n}: native reference bind receipt exceeds an unchanged bind bar; conform against the independent native reference again")
+    return convention
+
+
 def conform_plan(src, mapping, synthesized, ref, convention="blender", offsets=None, ik_bones=False):
     """The conformed skeleton as a plan (no Blender): {bones: [{name, source, kind, parent, head, frame, length}] parents first, renamed,
     synthesized, reparented, frames: {bone: angle to the reference re-expressed in the convention, deg}, unreferenced}.
@@ -275,6 +366,9 @@ def conform_plan(src, mapping, synthesized, ref, convention="blender", offsets=N
     never from the source's frame, so the input roll cannot survive."""
     if convention not in CONVENTIONS:
         raise RigRefused(f"convention is blender or ue_axes, not {convention!r}: one convention per rig (a mixed rig is never exported)")
+    from ..canon_geom import native_topology as NT
+    if set(src["names"]) == set(NT.PARENTS):
+        return native_reference_plan(src, mapping, synthesized, ref, convention, offsets, ik_bones)
     along = CONVENTIONS[convention]
     offsets = dict(offsets or {})
     inv = {s: k for k, s in mapping.items()}

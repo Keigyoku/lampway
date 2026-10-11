@@ -28,6 +28,22 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 
 1. **Detect the convention** of any armature: per bone the angle between local Y and head->child; all ~0 -> `blender`, all ~90
    -> `ue_axes`, else `mixed` -> refuse (golden R02 classifier; tolerance 10 deg on non-branching bones).
+   **Independent native bind admission (2026-10-09):** the supplied original
+   complete342 graph reproduces329 frame mismatches after generic conform.
+   Its independently captured engine feet and mirrored limbs are authored
+   frames, not universally positive joint-aligned axes. Keep the strict joint
+   classifier and its `mixed` result visible. For a complete native source and
+   independent reference with exact names/edges and matching joints under
+   canon21's0.01cm bar, carry every reference frame through the declared fixed
+   writer bone-axis bridge: `R_blender = R_reference @ B.T`, where
+   `B=[[0,-1,0],[1,0,0],[0,0,1]]`; `ue_axes` uses the reference frame directly.
+   Refuse synthesis, IK additions, offsets, nonidentity mappings, improper
+   reference rotations and nonidentity reference scales beyond canon21's
+   existing bars. Never reconstruct an authored helper or foot frame from its
+   child. The private independent-bind receipt pins the reference, all342
+   expected binds and the output rest fingerprint; recipe admission rechecks
+   all position/rotation/scale bars. This is declared writer-axis admission,
+   separately labelled from joint classification and actual UE acceptance.
 2. **The frame rule** (deterministic, joint-driven): `along = unit(child_head - head)` (the next joint on the chain, Titan
    `proc_body.chain_ends`, never the imported tail — canon 01); `up = the reference bone's secondary axis, transported onto this
    limb by the minimal rotation taking the reference along-axis to this along-axis`; `frame = Gram-Schmidt(along, up)` with
@@ -35,20 +51,24 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 3. **Leaves** (head, hand, foot, ball, finger _03, twist bones): along from the reference bone's along-axis transported by the
    parent's rotation (a leaf has no child joint); a foot's along is ankle -> ball, its up the ground normal; a twist bone takes
    its parent's frame (twist bones rotate about the parent's along-axis only).
-4. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
+4. **Native auxiliary branches.** The measured342-edge MetaHuman profile explicitly distinguishes anatomical core joints, peripheral toe chains and258 authored auxiliary drivers. Corrective roots, finger half/bulge/palm/side drivers and twist/corrective drivers are not anatomical continuation joints. Preserve every verified auxiliary's authored rest frame and roll; analytical along is that frame's Y (`blender`) or X (`ue_axes`), with authored world length, recorded as `along_source=authored_helper_frame`. Validate exact names and parent edges; unknown/reparented rows refuse before mutation. Convention classification measures anatomical joint chains, excluding those exact auxiliary roles. A normalized helper endpoint requires the validated document and unchanged rest fingerprint; posed consumers transport that endpoint through the current pose rather than re-aiming it at an auxiliary child. R02's120° fan-out falsifier remains, supplemented by the complete342graph native regression.
+   Known UE IK and interaction markers use authored reference frames/endpoints
+   with `along_source=reference_transport`, under the optional-root parent graph
+   contract. Unknown marker branches refuse rather than inventing continuation.
+5. **Fingers.** Along = joint -> next joint; the BEND axis is the knuckle line: the unit vector index_01 -> pinky_01 (left/right
    signed), orthogonalised against along (Titan `proc_body.finger_axis`; memory gltf-bone-tail-is-not-direction). The thumb's bend
    axis is the normal of its own plane (thumb_01, thumb_02, thumb_03), oriented toward the palm. MB instead asks the person
    which SOURCE axis runs along each finger (booleans `my_boolStand_x/xn/z/zn/zt/znt/xt/xnt`, `handfingerfix.py:1226-2148`) or
    rotates helper bones by fixed T-pose/A-pose quaternions (`CreateRig.py:297-300`, `:379-382`); both are replaced by the
    measured rule.
-5. **Orientation transfer from the reference ("head rotation fix").** MB `FixHeadRot.py:36-49` copies every bone's WORLD rotation
+6. **Orientation transfer from the reference ("head rotation fix").** MB `FixHeadRot.py:36-49` copies every bone's WORLD rotation
    from the reference rig and applies it as rest: correct only when the source limb points like the reference's. The canon
    transports the reference frame (step 2), so a raised arm keeps its own direction and the reference's roll relative to it.
-6. **No track-then-apply.** MB orients chains with Damped Track / Locked Track constraints and Apply Pose as Rest
+7. **No track-then-apply.** MB orients chains with Damped Track / Locked Track constraints and Apply Pose as Rest
    (`CreateRig.py:7334-7625`, `:10255-10388`): the minimal rotation keeps whatever roll came in, so two sources differing only
    in roll leave with frames 40 deg apart (R02 falsifier); GRT's `apply_all_bone_constraints_and_pose` (`Utility_Functions.py:71-82`)
    bakes constraint results the same way. The canon computes frames in closed form and writes them as rest matrices.
-7. **Free-hand offsets are parameters.** MB's per-bone Euler offsets (spine Z offsets `my_string41..49`, clavicle Y/Z
+8. **Free-hand offsets are parameters.** MB's per-bone Euler offsets (spine Z offsets `my_string41..49`, clavicle Y/Z
    `my_string50..53`, `MagicBoneTop_Panel.py:5645-5661`; applied `CreateRig.py:10458-10739`) become named, recorded parameters of
    the frame rule, refused when not in the map receipt.
 
@@ -57,6 +77,25 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 - **INV-17.1** One armature, one convention; `mixed` is refused, never exported.
 - **INV-17.2** A frame depends only on joints and the reference skeleton (same inputs, same matrices to 1e-9).
 - **INV-17.3** Rest frames are proper rotations (det +1); a left-handed result refuses.
+
+  Numerical serialization (2026-10-07): Blender's float32
+  `vec_roll_to_mat3_normalized` (`blenkernel/intern/armature.cc`) documents
+  cancellation in its `1/(1+y)` branch, switching formulas below
+  `SAFE_THRESHOLD=6.1e-3`. Actual read-only native diagnostics and the complete342
+  oblique synthetic graph reproduce nonorthogonality beyond the existing
+  `1e-6` document bar despite positive determinant. A canonical document may use
+  the nearest proper polar factor `U @ Vt` for these small errors only. The
+  spectral correction must not exceed `eps(float32)/6.1e-3` (approximately
+  `1.9543e-5`), and every axis correction must remain below the unchanged canon21
+  `0.01deg` bar. This is a conservative producer-derived admission budget, not
+  a universal bound on all accumulated hierarchy errors: larger errors refuse.
+  Already valid frames retain their values; reflection, singularity, nonfinite
+  frames and material shear refuse. Authored scene rest/pose matrices, raw
+  `rig_tools.read`, raw rest fingerprints and `CA.validate` tolerances remain
+  unchanged. Auxiliary endpoints use the same serialized canonical axes.
+  The private armature retains the hash-bound complete normalization receipt
+  in `lw_canon_normalize_receipt`; the tool returns only count and maximum
+  correction metrics. Owner matrix measurements stay outside the repository.
 - **INV-17.4** Joint positions do not move when frames are rewritten (frames and heads are separate writes).
 - **INV-17.5** Never read a limb direction from an imported tail (canon 01).
 
@@ -76,6 +115,7 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 |---|---|---|---|
 | G17.1 frames | 4 arm joints, up hint +Z | the stored matrices for `blender` and `ue_axes`, angles 0 / 90 deg | — |
 | G17.2 classify | the three bones, one mixed set | `blender`, `ue_axes`, `mixed` | an exporter that accepts `mixed` |
+| G17.4 corrective fan-out | two corrective children, no continuation, authored roll 120° | authored frame/roll unchanged | choosing a child or copying the parent frame |
 | G17.3 roll | the same joints, input rolls 0 and 40 deg | identical frames from the rule | Damped Track keeps the roll: 40.0 deg apart |
 
 ## F. Implementation gap
@@ -94,6 +134,14 @@ exporter setting that carries that convention to the engine unchanged (canon 21)
 Refusals: `mixed` input without `convention`; a bone whose along-axis is undefined (head = child head); a finger chain missing a
 knuckle joint (the bend axis needs index_01 and pinky_01). Receipt: per bone `{angle_to_reference_deg, along_source, up_source}`,
 the detected input convention, the output convention.
+
+The exact verified342 native graph requires an explicit reference; defaulting to
+the shipped161-bone Manny profile is refused. Explicit `reference="source_copy"`
+preserves its existing authored rest data and skin on independent copies, with an
+identity map and matching measured convention. It refuses mixed/unknown frames,
+offsets, synthesis, IK additions and weight merging before mutation. It reports
+source preservation separately from still-unverified native UE parity. The
+reference-driven rule above remains the generic construction path.
 
 ## H. Decisions owed by the captain
 

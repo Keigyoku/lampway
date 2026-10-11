@@ -12,6 +12,7 @@ from lampway_server.agent import vault_tools as LIB
 from lampway_server.agent import tools as T
 from lampway_server.agent import plan_tools as PLAN_TOOLS
 from lampway_server.agent import orphan_server_tools as OST
+from lampway_server.agent import blender_docs_tools as BDT
 from lampway_server.agent import motion_tools as MGT
 
 
@@ -95,7 +96,7 @@ def test_the_system_prompt_names_the_workflow():
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices"} | PLAN_TOOLS.NAMES | OST.NAMES | MGT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices"} | PLAN_TOOLS.NAMES | OST.NAMES | BDT.NAMES | MGT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():
@@ -165,3 +166,17 @@ def test_uv_tools_reach_blender_with_their_arguments():
 def test_seed_audit_reaches_blender_with_its_proposals_as_an_object():
     got = args_of(T.script_for("lampway_seed_audit", {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}))
     assert got == {"stage": "record", "piece": "Boots1", "proposals": {"v1": {"verdict": "usable"}}, "by": "model"}
+
+
+def test_qa_tag_layers_requires_the_explicit_target_object():
+    spec = next(t for t in T.TOOLS if t.name == "lampway_qa_tag_layers")
+    assert "object" in spec.parameters.get("required", [])
+    with pytest.raises(ValueError, match="object"):
+        LT.build_script(next(d for d in LT.DEFS if d.name == "lampway_qa_tag_layers"), {})
+
+
+def test_normalize_rigged_forwards_an_explicit_authored_unit():
+    spec = next(t for t in T.TOOLS if t.name == "lampway_normalize_rigged")
+    assert "unit" in spec.parameters["properties"]
+    script = T.script_for("lampway_normalize_rigged", {"armature": "own_rig", "unit": "m", "dry_run": False})
+    assert args_of(script) == {"armature": "own_rig", "unit": "m", "dry_run": False}

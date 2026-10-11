@@ -215,10 +215,33 @@ def _exchange_code(code, verifier):
     return None, {'success': False, 'message': error_msg}
 
 
-def sso_login(timeout=None):
-    """Run SSO login flow via browser with PKCE.
+def is_local_signin():
+    return urlparse(get_server_url()).hostname in {"127.0.0.1", "localhost", "::1"}
 
-    Opens browser to the desktop-login page, starts a loopback HTTP server
+
+def local_signin(password=""):
+    """The loopback single-account flow stores the pair without opening a browser."""
+    try:
+        response = requests.post(f"{get_server_url()}/api/v1/auth/local",
+                                 json={"password": password}, timeout=30)
+        if response.status_code != 200:
+            return {"success": False, "message": "Sign in inside Lampway and enter your local password"}
+        pair = response.json()
+        access, refresh = pair.get("access_token"), pair.get("refresh_token")
+        if not isinstance(access, str) or not access.strip() or not isinstance(refresh, str) or not refresh.strip():
+            return {"success": False, "message": "Incomplete local token pair; retry Sign in"}
+        stored, error = store_login_token_pair(access, refresh)
+        return {"success": bool(stored), "message": "Login successful" if stored else error,
+                **({"token": access} if stored else {})}
+    except requests.exceptions.RequestException as exc:
+        failure = classify_network_error(exc, url=get_server_url())
+        return {"success": False, "message": failure.user_text, "failure_kind": failure.kind}
+
+
+def sso_login(timeout=None, password=""):
+    """Sign in to the local account in-app, or use browser PKCE for a remote backend.
+
+    A remote backend opens the desktop-login page, starts a loopback HTTP server
     to receive the auth callback, then exchanges the code for tokens.
 
     In Dev environment with dev_bypass.enabled, skips the browser flow
@@ -231,6 +254,9 @@ def sso_login(timeout=None):
     Returns:
         dict with success, message, and optionally token / failure_kind.
     """
+    if is_local_signin():
+        return local_signin(password)
+
     if timeout is None:
         timeout = SSO_LOGIN_TIMEOUT_S
 

@@ -88,12 +88,38 @@ miss = call("motion_generate", prompt="dance the macarena", library="anims")
 model = call("motion_generate", prompt="jump", engine="model:kimodo")
 arms = sorted(o.name for o in bpy.data.objects if o.type == "ARMATURE")
 rows = [json.loads(l) for l in open(os.path.join(root, "motion", "decisions.jsonl"))]
-print("RESULT", json.dumps({"idx": idx, "res": res, "miss": miss, "model": model, "arms": arms, "rows": len(rows)}))
+old = bpy.data.objects.get("motion_src")
+if old is not None:
+    old_pointer = old.as_pointer()
+    child = link(bpy.data.objects.new("old_motion_child", None))
+    child.parent = old
+replacement = call("motion_generate", prompt="walk forward", library="anims", duration=1)
+replacement_arms = sorted(o.name for o in bpy.data.objects if o.type == "ARMATURE")
+replaced = (bpy.data.objects.get("motion_src") is not None and
+            bpy.data.objects["motion_src"].as_pointer() != old_pointer) if old is not None else False
+child_removed = bpy.data.objects.get("old_motion_child") is None
+if replacement["ok"]:
+    bpy.data.objects["motion_src"].name = "previous_motion"
+unrelated = link(bpy.data.objects.new("motion_src", None))
+unrelated["caller_owned"] = "keep"
+collision = call("motion_generate", prompt="jump", library="anims", duration=1)
+preserved = bpy.data.objects.get("motion_src") == unrelated and unrelated.get("caller_owned") == "keep"
+print("RESULT", json.dumps({"idx": idx, "res": res, "miss": miss, "model": model, "arms": arms, "rows": len(rows),
+    "replacement": replacement, "replacement_arms": replacement_arms, "replaced": replaced,
+    "child_removed": child_removed, "collision": collision, "preserved": preserved,
+    "final_rows": sum(1 for l in open(os.path.join(root, "motion", "decisions.jsonl")))}))
 '''))
     assert d["idx"]["ok"] and sorted(r["name"] for r in d["idx"]["clips"]) == ["MF_Unarmed_Walk_Fwd", "MM_Jump"]
     res = d["res"]
     assert res["ok"], res
     assert res["clip"]["name"] == "MM_Jump" and res["clip"]["frames"] == 24 and res["clip"]["fps"] == 30 and res["armature"] == "motion_src"
     assert d["arms"] == ["motion_src"] and d["rows"] == 1
+    assert d["replacement"]["ok"], d["replacement"]
+    assert d["replacement"]["clip"]["name"] == "MF_Unarmed_Walk_Fwd"
+    assert d["replacement"]["armature"] == "motion_src"
+    assert d["replacement_arms"] == ["motion_src"] and d["replaced"] and d["child_removed"]
+    assert d["collision"]["ok"], d["collision"]
+    assert d["collision"]["armature"] != "motion_src" and d["preserved"]
+    assert d["final_rows"] == 3
     assert d["miss"]["ok"] is False and "no clip matches" in d["miss"]["error"]
     assert d["model"]["ok"] is False and d["model"]["needs_provider"] is True

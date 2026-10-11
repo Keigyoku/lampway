@@ -96,7 +96,8 @@ class TestMirrorRunsAgainstTheRealSlot:
 
         seen = {}
 
-        def fake_mirror(items):
+        def fake_mirror(items, scene=None):
+            seen["scene"] = scene
             seen["items"] = [(i.item_id, i.text, i.status) for i in items]
             return len(seen["items"])
 
@@ -131,14 +132,17 @@ class TestMirrorRunsAgainstTheRealSlot:
         processor._start_loader_timer = lambda: None
 
         bubble = FakeBubble()
+        scene = object()
         processor._apply_todo_slot(
             bubble,
             [
                 {"id": "0", "text": "Build the back window.", "status": "in_progress"},
                 {"id": "1", "text": "Texture the frame.", "status": "pending"},
             ],
+            scene=scene,
         )
 
         assert seen.get("items"), "the slot never reached the panel mirror"
+        assert seen["scene"] is scene
         assert [i[0] for i in seen["items"]] == ["0", "1"]
         assert seen["items"][0][2] == 'IN_PROGRESS'

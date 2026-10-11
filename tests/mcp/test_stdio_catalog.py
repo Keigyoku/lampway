@@ -50,20 +50,24 @@ def run(check):
     asyncio.run(main())
 
 
-#: Claude Code keeps only this many characters of server instructions and of
-#: each tool description; the full playbook is the backend's mixar_guide tool.
+#: Claude Code keeps only this many characters of server instructions and
+#: each tool description.
 CLAUDE_CODE_TEXT_CAP = 2048
 
 
 def test_instructions_teach_the_scene_workflow_within_claude_codes_cap():
-    assert len(stdio_server.GUIDE) <= CLAUDE_CODE_TEXT_CAP
-    # Lampway's vocabulary (audit F3: the upstream backend's execute_bpy_script, render_viewport, ... do not exist here)
-    for tool in ("lampway_scene_new", "scene_summary", "run_blender_python", "lampway_status", "lampway_vault_search",
+    assert len(stdio_server.GUIDE.encode()) <= CLAUDE_CODE_TEXT_CAP
+    # Preserve audit F3's scene workflow and safety guidance in the generated
+    # server-owned instructions, alongside C2's new first inspection step.
+    assert "First call lampway_inspect with no arguments" in stdio_server.GUIDE
+    for tool in ("lampway_scene_new", "run_blender_python", "lampway_status", "lampway_vault_search",
                  "lampway_call_status", "lampway_ui_call_status"):
         assert tool in stdio_server.GUIDE
     flat = " ".join(stdio_server.GUIDE.split())
     assert "Ask the user when an open choice matters" in flat and "never use OS-level computer use" in flat
     assert "Nothing offered here spends credits" in flat
+    assert "plan, never confirm" in stdio_server.GUIDE
+    assert "Never delete or overwrite the user's source files" in stdio_server.GUIDE
     from mixar.modules.common.ui_control.core import schema
     assert all(len(tool["description"]) <= CLAUDE_CODE_TEXT_CAP for tool in schema.tools())
 
@@ -72,9 +76,9 @@ def test_backend_discovery_hints_survive_the_launcher():
     async def check(client, connector):
         tools = {tool.name: tool for tool in (await client.list_tools()).tools}
         assert tools["execute_bpy_script"].meta["anthropic/alwaysLoad"] is True
-        assert tools["mixar_ui_act"].meta["mixar/domain"] == "ui"
+        assert tools["lampway_ui_act"].meta["mixar/domain"] == "ui"
         assert tools["mixar_tool_catalog"].input_schema["properties"]["domain"]["enum"][-2:] == ["ui", "scenes"]
-        assert tools["mixar_scene_new"].meta["mixar/domain"] == "scenes"
+        assert tools["lampway_scene_new"].meta["mixar/domain"] == "scenes"
     run(check)
 
 
@@ -82,7 +86,7 @@ def test_catalog_index_merges_ui_tools_and_answers_the_ui_domain_locally():
     async def check(client, connector):
         merged = (await client.call_tool("mixar_tool_catalog", {})).structured_content["result"]
         assert merged["domains"] == {"build": 1, "ui": 5, "scenes": 5}
-        assert {"mixar_ui_observe", "execute_bpy_script"} <= {entry["name"] for entry in merged["tools"]}
+        assert {"lampway_ui_observe", "execute_bpy_script"} <= {entry["name"] for entry in merged["tools"]}
         ui_only = (await client.call_tool("mixar_tool_catalog", {"domain": "ui"})).structured_content
         assert {entry["domain"] for entry in ui_only["result"]["tools"]} == {"ui"}
         assert len(connector.calls) == 1  # domain="ui" never reaches the backend

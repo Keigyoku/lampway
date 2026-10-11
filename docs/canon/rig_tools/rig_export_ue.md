@@ -22,15 +22,46 @@ ported; GRT has no exporter (its export rig is the armature object named `root`,
 
 ```json
 {"armature": "object", "meshes": ["objects"], "actions": ["names"], "reference": "reference FBX | fit_body package",
- "recipe": "titan_cm_native | <recipe.json>", "out": "export/<name>.fbx", "readback": true, "allow_container_top_bone": true}
+ "recipe": "auto | titan_cm_native | cm_native_blender_convention | cm_native_ue_axes | <recipe.json>", "out": "export/<name>.fbx", "readback": true, "allow_container_top_bone": true}
 ```
-`titan_cm_native` = cm-native FBX (`UnitScaleFactor 1`, `FBX_SCALE_NONE` + `apply_unit_scale`), primary bone axis Z, secondary
-X, deform only, no leaf bones, baked actions only. It is the DEFAULT and it refuses every canon-17 rig at the read-back (120 deg
-off `blender`, 90 deg off `ue_axes`; golden R08): Z / X is the round trip of a rig imported from the engine with Z / X. The
-convention's own pairs are X / -Y (`blender`) and Y / X (`ue_axes`), same cm-native scaling; the default changes only after
-ue_parity `M-RIG-01` confirms them in Unreal (canon 21 H.2). A recipe file states every exporter argument; nothing is left to defaults.
-Refusals: `mixed` convention (canon 17); root or hierarchy differing from the reference (the container top bone accepted and
-named); leaf bones; a vertex group naming a bone the reference lacks; constraints present; a read-back row over tolerance
+`auto` is the default: select from the armature's measured normalized convention, never its name. A `blender` rig uses X / -Y; a `ue_axes` rig uses Y / X, both with explicit centimetre export copies (`export_coordinates=cm`), raw identity Null scale, `UnitScaleFactor1`, `FBX_SCALE_NONE` + `apply_unit_scale`. Effective global_scale cancels the pinned writer scene-unit factor on copies only. Temporary readback decodes the pinned importer unit carrier after raw ancestor/bone admission; no authored rest or geometry mutation is needed. The receipt records requested recipe, measured convention, selected recipe and source. Explicit `titan_cm_native` retains legacy engine-native Z / X; on canon-17 rigs its raw-frame readback still refuses120°/90° mismatches.
+
+Issue2's actual default-chain failure requirement supersedes the earlier policy of leaving an inevitably refused recipe as default. This changes recipe selection, not acceptance bars: every bone still meets0.01cm /0.01° /1e-4 scale. Physical Unreal `M-RIG-01` confirmation remains mandatory and pending; a Blender PASS does not claim it. Mixed frames still refuse and must be conformed. Shipped recipe names resolve directly; explicit recipe files state every exporter argument.
+The two convention recipes declare `ue_armature_container="Armature"` according
+to the installed UE5.8.2 Blender-created top-level Null predicate. Name only the
+disposable copy; an occupied exact name or unverified container request refuses
+before allocation. No extra top bone is accepted for the native342 reference.
+
+For admitted centimetre files, bind readback uses authored Model node TRS
+cross-checked against every bone's BindPose and skin-cluster TransformLink.
+The reader admits only the source-hash-pinned Blender writer's7400, -Z/Y world
+basis, XYZ/default-pivot/default-geometric transforms and InheritType1 layout.
+Units, ancestry, rigid frames and all three redundant binds must agree under
+the existing position/shortest-quaternion/scale bars. Missing clusters (including
+skeleton-only files), contradictory binds, duplicate/cyclic ancestry and other
+unsupported layouts refuse; no general FBX evaluator or inferred-tail fallback
+claims verification. Explicit reference FBX files use this same authored reader.
+Imported display-frame differences remain in `display_reconstruction_errors`
+and roster diagnostics; the reader does not rewrite imported or source rest
+data. Existing corner-normal/unmatched-loop and animation-count diagnostics
+remain. Source/copy and native synthetic tests establish preservation separately;
+these diagnostics do not add a new imported geometry/weight acceptance claim.
+Receipts distinguish `authored_bind_verification`, `reference_scope` and still
+unverified `engine_bind_acceptance`. A self roundtrip supplies no independent
+native reference, and native mesh-versus-Skeleton pose calibration remains pending.
+
+An output from complete342 independent native bind conform retains a private
+reference receipt. Verify its reference pin, expected-bind digest, exact
+topology, current rest fingerprint and every independent bind row before
+selecting the declared convention recipe. Joint-angle classification remains
+visible and unchanged. With no explicit export reference, this path uses the
+stored independent reference binds for authored-file readback and reports
+`reference_scope="independent_native_bind"`. Reject stale or corrupted receipts;
+do not silently fall back to joint classification or self reference. This
+reference/file proof does not establish fresh actual UE import parity.
+
+Refusals: `mixed` convention (canon 17); root or hierarchy differing from the reference;
+leaf bones; a vertex group naming a bone the reference lacks; constraints present; a read-back row over tolerance
 (rows listed, the file moved to `export/rejected/`); an existing different `out`.
 Receipt: `{recipe, convention, readback: {bones_compared, worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance},
 normals: {corner_max_deg}, sha256: {fbx, reference, armature_rest}}`.

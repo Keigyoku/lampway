@@ -34,20 +34,22 @@ def _bm(ob):
     return bm
 
 
-def island_ids(bm, uvl):
+def island_ids(bm, uvl, budget=None):
     """Per face of ``bm`` (index order): a stable island id - canon 13's one definition (canon_geom.uv_island_ids): corners
     joined by (vertex index, UV rounded to 6 places)."""
     F, FUV, UV = [], [], []
     for fc in bm.faces:
+        if budget is not None: budget.check()
         F.append([l.vert.index for l in fc.loops])
         FUV.append(list(range(len(UV), len(UV) + len(fc.loops))))
         UV.extend(l[uvl].uv[:] for l in fc.loops)
-    return uv_island_ids(F, FUV, np.array(UV).reshape(-1, 2))
+    return uv_island_ids(F, FUV, np.array(UV).reshape(-1, 2), budget=budget)
 
 
-def _seam_length(bm, uvl) -> float:
+def _seam_length(bm, uvl, budget=None) -> float:
     seam = 0.0
     for e in bm.edges:
+        if budget is not None: budget.check()
         if len(e.link_faces) != 2:
             continue
         f0, f1 = e.link_faces
@@ -102,6 +104,8 @@ def measure_object(ob, res: int = 1024) -> dict:
     score = cov * (1 - ovl) * (1 - offd) - 0.5 * flipped
     flat = TU.reshape(-1, 2)
     lo, hi = flat.min(axis=0), flat.max(axis=0)
+    from .uv_check import _tiles
+    tiles = sorted({tile for tri in TU for tile in _tiles(tri.min(axis=0), tri.max(axis=0))})
     warnings = []                                   # audit F10: a zero must say why
     inside = float(au[(TU.mean(axis=1) >= 0).all(axis=1) & (TU.mean(axis=1) < 1).all(axis=1)].sum() / max(au.sum(), 1e-30))
     if faces and inside < 0.999:
@@ -112,7 +116,7 @@ def measure_object(ob, res: int = 1024) -> dict:
                         "edge is shared across one; weld it first (lampway_normalize_mesh welds a generated mesh) to measure its seams")
     return {"name": ob.name, "faces": faces, "utilization": round(cov, 4), "overlap": round(ovl, 4), "islands": isl, "stretch_p90_p10": round(float(p90 / p10), 3),
             "off_density_2x": round(offd, 4), "flipped": round(flipped, 4), "seam_m": round(seam, 2), "score": round(score, 4),
-            "uv_bounds": [round(float(x), 4) for x in (*lo, *hi)], "warnings": warnings}
+            "uv_bounds": [round(float(x), 4) for x in (*lo, *hi)], "tiles": tiles, "warnings": warnings}
 
 
 def gate_row(row: dict, gates: dict = None) -> dict:

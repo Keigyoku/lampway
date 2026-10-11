@@ -21,7 +21,7 @@ from mixar.modules.lampway_tools.pipeline import imgops, plates  # noqa: E402
 
 SHELF = Path(os.environ.get("LAMPWAY_SHELF_DIR") or "/nonexistent-shelf")
 SCRATCH = Path(os.environ.get("LAMPWAY_SHELF_SCRATCH") or SHELF / "scratch")
-V3 = Path.home() / "Pictures/TitanAssets/greek-armor-turnarounds-transparent-v3"
+V3 = Path(os.environ.get("LAMPWAY_V3_PLATES_DIR") or "/nonexistent-v3-plates")
 REAL = (SCRATCH / "tripo_img/chest_front_4k_g1/4.jpg").exists() and (V3 / "Chest1/Front.png").exists()
 real = pytest.mark.skipif(not REAL, reason="the shelf's chest plates are not on this machine")
 

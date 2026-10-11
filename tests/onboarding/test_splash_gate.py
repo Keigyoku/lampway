@@ -56,3 +56,13 @@ def test_never_shown_splash_waits_for_startup_grace(gate):
 def test_builds_without_native_flag_fall_back_to_staleness(gate):
     assert gate(splash_open=None, drawn_ago=0.1) is False
     assert gate(splash_open=None, drawn_ago=60.0) is True
+
+
+def test_idle_splash_visibility_uses_native_lifetime(gate):
+    gate(splash_open=True, drawn_ago=60.0)
+    assert splash_menu.is_splash_visible() is True
+
+
+def test_closed_native_splash_visibility_does_not_wait_for_draw_staleness(gate):
+    gate(splash_open=False, drawn_ago=0.1)
+    assert splash_menu.is_splash_visible() is False

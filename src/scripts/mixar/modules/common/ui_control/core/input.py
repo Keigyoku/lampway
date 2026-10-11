@@ -101,6 +101,12 @@ def run(owner, args):
         if item.get("type") not in {"Text", "SearchMenu", "Num", "NumSlider"}:
             raise UIError("invalid_target", "Text replacement requires an observed editable field")
         yield from click(owner, item, xy)
+        if item.get("type") == "Text":
+            # A previously editing field consumes the first outside press.
+            # File Browser directory Enter deliberately keeps that edit focus.
+            # A second text-field click activates this target (or positions its
+            # caret if already active); selection below then replaces its text.
+            yield from click(owner, item, xy)
         select = {"oskey": True} if sys.platform == "darwin" else {"ctrl": True}
         yield from keypress(owner, item, "A", xy, select)
         yield from keypress(owner, item, "BACK_SPACE", xy)

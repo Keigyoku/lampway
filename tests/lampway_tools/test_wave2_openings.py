@@ -4,8 +4,7 @@
 
 """fit_openings / opening_gasket (specs/shelf/fit_openings.md + specs/wiki/opening_gasket.md): every cap a seed put across a limb, neck or waist opening gets a typed decision
 keep | gasket | delete. A gasket cuts the POSED limb's cross-section plus the wear clearance into the cap plane, removes the inside and forms a collar - the user's "manifold it" read as an
-engine exhaust / intake MANIFOLD PORT: a formed tubular collar whose free edge is a ROLLED lip, not a raw cut hole. The collar depth (the "flange length") is his number and unruled: building it
-without one answers needs_decision, and `variants` renders three depths for him to pick. REAL binary."""
+engine exhaust / intake MANIFOLD PORT: a formed tubular collar whose free edge is a ROLLED lip, not a raw cut hole. The collar depth (the "flange length") has an authorized20mm starting default, marked physically untested; `variants` retains all three explicit alternatives. REAL binary."""
 
 import json
 
@@ -152,7 +151,11 @@ print("RESULT", json.dumps({"nopose": nopose, "noflange": noflange, "badans": ba
     o = r.results[0]
     assert o["nopose"]["ok"] is False and "never the rest pose" in o["nopose"]["error"] and "fit_pose" in o["nopose"]["error"]
     nd = o["noflange"]
-    assert nd["ok"] is True and nd["needs_decision"]["what"] == "collar depth (flange length)" and nd["needs_decision"]["suggested_mm"] == [10, 20, 35] and "variants" in nd["needs_decision"]["how"]
+    assert nd["ok"] is True and "needs_decision" not in nd
+    assert nd["defaults"]["collar_depth_mm"]["value"] == 20
+    assert nd["defaults"]["collar_depth_mm"]["physical_status"] == "untested"
+    assert nd["openings"][0]["collar_depth_mm"] == 20
+    assert nd["check"]["non_manifold_edges"] == nd["check"]["bad_winding_edges"] == 0
     assert "keep | gasket | delete" in o["badans"]["error"] and "OP999" in o["unknown"]["error"]
     assert o["tex"]["ok"] is False and "discards the studio texture" in o["tex"]["error"] and o["ack"]["ok"] is True
 

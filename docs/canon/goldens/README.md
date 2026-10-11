@@ -31,6 +31,7 @@ from the construction; where a value is a property of a known-WRONG method (a fa
 | C12_gasket | 06 | a capped site, rim radius at clearance, manifold result | silent default collar depth |
 | C13_retopo | 12 | property targets on a dense sphere | one-sided deviation (to build: G12.2) |
 | C14_controls | 05 | the crossing control capped at half the piece's extent | the uncapped 1 cm push buries a rivet |
+| C15_ac65_defaults | 06, 08, 09, normalization | all six judgment defaults, complete sided DOFs/curls, untested proof limit and sign probes | missing default; wrong side/sign; physical-status promotion |
 | R01_mapping | 16 | naming family by table hits; slot map; tie refusal; missing spine joints at reference arc-length fractions | substring mapping (`hand_l` -> `LeftHandIndex1`); midpoint synthesis (65.3 mm) |
 | R02_rest_frames | 17, 21 | frames from joints + up hint, Blender (Y along) and UE axes (X along); the convention classifier | track-then-apply keeps the input roll (40 deg) |
 | R03_apply_scale | 18 | exact translation transfer under non-uniform object scale; uniform control | per-channel scaling: 0.2236 m, equal to GRT 4.3.0 measured on Blender 5.2.1 |

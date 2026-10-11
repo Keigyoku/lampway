@@ -63,6 +63,9 @@
 #include "RE_engine.h"
 
 #include "WM_api.hh"
+#ifdef LAMPWAY
+#  include "WM_mixar.hh"
+#endif
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 #include "wm.hh"
@@ -1538,10 +1541,24 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
 
 uint8_t *WM_window_pixels_read(bContext *C, wmWindow *win, int r_size[2])
 {
+#ifdef LAMPWAY
+  /* LAMPWAY: a front-buffer capability does not guarantee preserved pixels after
+   * redraw/swap (notably EGL on X11). Screenshot operators redraw immediately
+   * before this call, so read the maintained offscreen composition instead.
+   * Restore the drawable even if offscreen allocation/readback fails. */
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  const bool switched = Mixar_window_gpu_context_push(wm, win);
+  uint8_t *pixels = WM_window_pixels_read_from_offscreen(C, win, r_size);
+  if (switched) {
+    Mixar_window_gpu_context_pop(wm);
+  }
+  return pixels;
+#else
   if (WM_capabilities_flag() & WM_CAPABILITY_GPU_FRONT_BUFFER_READ) {
     return WM_window_pixels_read_from_frontbuffer(CTX_wm_manager(C), win, r_size);
   }
   return WM_window_pixels_read_from_offscreen(C, win, r_size);
+#endif
 }
 
 bool WM_window_pixels_read_sample(bContext *C, wmWindow *win, const int pos[2], float r_col[3])

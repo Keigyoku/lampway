@@ -86,10 +86,18 @@ The auditor's tool refused this file, so the coordinator wrote it from the audit
 | D1 | Two frame layers (working canonical, plus canon 22's interchange via adapters) | yes |
 | D2 | The canonical container | `.blend` plus `.canon.json` |
 | D3 | When armour becomes real-scale | at intake, which changes the pipeline order |
-| D4 | One scale per left/right pair, or per side | no recommendation without a measurement |
+| D4 | One scale per left/right pair, or per side | successor ruling 2026-10-07: `per_side`, authorized judgment; physically untested |
 | D5 | The weld default for generated meshes | 1e-5 m with a 5 % guard; never authored rigs |
-| D6 | Facing | a per-piece recipe turn, checked against the plates, with a refusal margin |
+| D6 | Facing | per-piece declared turn checked against plates; successor margin `0.05` authorized by judgment 2026-10-07, physically untested |
 | D7 | Rollout | the `LEGACY` ratchet |
 | D8 | Thresholds tuned on raw pieces | re-measure at real scale |
 | D9 | Stamp integrity | hash-bound now; signing only if a forgery is seen |
 | D10 | Pivot for an unplaced asset | bounding-box bottom-centre |
+
+## Successor decision record
+
+| Date | What | Ruling | Source |
+|---|---|---|---|
+| 2026-10-07 | AC65 D4/D6 starting defaults | per_side pair scale and 0.05 IoU separation margin, authorized judgment; physically untested | captain authorization; AC65-DECISION-AUDIT.md |
+
+The audit counts and implementation findings above describe the dated 2026-10-06 audit, not the successor implementation. The new defaults do not establish original-asset physical acceptance.

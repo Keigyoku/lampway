@@ -173,12 +173,16 @@ def test_check_compares_the_document_with_the_measured_facts():
     assert any("bbox" in e for e in CA.check(d, dict(facts, bbox_max_m=[9, 9, 9])))
 
 
-def test_the_settings_are_named_and_only_d4_is_still_owed():
+def test_the_settings_keep_prior_rulings_and_record_authorized_untested_defaults():
     assert CA.SETTINGS["weld_m"]["value"] == 1e-5 and CA.SETTINGS["weld_guard_fraction"]["value"] == 0.05
     assert CA.SETTINGS["pivot_rule"]["value"] == "bbox_bottom_centre"
     owed = {k for k, v in CA.SETTINGS.items() if v.get("needs_decision")}
-    assert owed == {"pair_scale_group", "facing_margin"}, owed
-    assert CA.SETTINGS["facing_margin"]["value"] is None                    # D6's number was never given: no default is invented
+    assert owed == set(), owed
+    for name,value in [('pair_scale_group','per_side'),('facing_margin',.05),
+                       ('collar_depth_mm',20.),('boots_scale_anchor','width')]:
+        setting=CA.SETTINGS[name]
+        assert setting['value']==value
+        assert setting['physical_status']=='untested' and setting['source'] and setting['why']
 
 
 def test_digest_is_sha256_hex():

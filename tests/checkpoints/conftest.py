@@ -99,6 +99,8 @@ def tc(monkeypatch, tmp_path):
     }
     for name, attrs in stub.items():
         module = ModuleType(name)
+        if name == "mixar.modules.common":
+            module.__path__ = [str(_MODULES_ROOT / "common")]
         for key, value in attrs.items():
             setattr(module, key, value)
         monkeypatch.setitem(sys.modules, name, module)

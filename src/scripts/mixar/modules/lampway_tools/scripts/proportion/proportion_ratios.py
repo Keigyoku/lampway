@@ -15,7 +15,7 @@
 #   Ratios vs the body's: chest D/W, neck W / chest W, axilla-to-collar / chest W, arm span / chest W. Score = RMS of their log
 #   deviations (0 = the body's proportions). Placement report: scaled by chest width (+40 mm budget), axilla aligned.
 # Usage: <python with numpy> proportion_ratios.py <out.json> <body.npz> <name>=<piece.npz>:<turn_deg> [...]
-#   npz from mesh_to_npz.py; turn_deg brings the piece to face -Y with wearer's left at +X (Tripo FBX / Triangle glb: -90).
+#   npz from mesh_to_npz.py; turn_deg brings the piece to face -Y with wearer's left at +X (declare each piece; canonical npz uses 0).
 import argparse, json, os, sys, warnings, numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')); import axi_out as ax
 ME = 'scripts/proportion/proportion_ratios.py'
@@ -90,8 +90,9 @@ def main(out, body_npz, *pieces, cw=(0.04, 0.12), nw=(1.60, 1.64), nwu=(0.90, 0.
     body = dict(zA=zA, Wc=Wc, Dc=Dc, Wn=Wn, zN=zN, Wa=Wa, DW=Dc / Wc, WnWc=Wn / Wc, LenWc=(zN - zA) / Wc, WaWc=Wa / Wc)
     rows = {}
     for spec in pieces:
-        name, rest = spec.split('=', 1); f, turn = rest.rsplit(':', 1); d = np.load(f); V = d['V'].astype(float); T = d['T']
-        th = np.radians(float(turn)); R = np.array([[np.cos(th), -np.sin(th), 0], [np.sin(th), np.cos(th), 0], [0, 0, 1]]); V = V @ R.T
+        name, rest = spec.split('=', 1); f, turn = rest.rsplit(':', 1)
+        from proportion.frame import load_piece
+        V, T = load_piece(f, float(turn))
         lo, hi = V.min(0), V.max(0); V = (V - [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]]) / (hi[2] - lo[2])
         z, first = piece_profile(V, T); W, D = WD(first)
         zA_ = cross_up(z, W, thrP, int(np.argmin(abs(z - 0.40)))); sw = (z >= zA_ - cw[1] / s0) & (z <= zA_ - cw[0] / s0)
@@ -115,7 +116,7 @@ def main(out, body_npz, *pieces, cw=(0.04, 0.12), nw=(1.60, 1.64), nwu=(0.90, 0.
     ax.table('ranking', [dict(name=n, rms=rows[n]['rms_logdev'], neck=rows[n]['dev_pct']['WnWc'], length=rows[n]['dev_pct']['LenWc'], arms=rows[n]['dev_pct']['WaWc'],
                               collar_mm=rows[n]['placed']['collar_rim_vs_body_neck_mm'], tight_front=rows[n]['tight_front']) for n in order],
              ['name', 'rms', 'neck', 'length', 'arms', 'collar_mm', 'tight_front'])
-    ax.helps([f'python3 scripts/studios/tripo/seed_db.py ingest-scores {out}', 'python3 scripts/studios/tripo/seed_db.py'])
+    ax.helps(['lampway_seed_audit stage=measure piece=<piece> seeds=<npz_paths> scores=<seed_scores>'])
 
 
 if __name__ == '__main__':
@@ -123,10 +124,10 @@ if __name__ == '__main__':
         ax.home(__file__, 'Primary proportion score of a torso piece against the MetaHuman body: scale-free landmark ratios (0 = the body)')
         ax.kv({'method': 'chest D/W, neck/chest W, axilla-to-collar/chest W, arm span/chest W; RMS log deviation', 'validated': 'auditor 2026-10-04 (<shelf scratch>/proportion/audit/report.md)',
                'known_flaw': f'depth is compared with the bare body, so a too-shallow piece scores well; tight_front flags chest depth < {TIGHT_FRONT_MM:.0f} mm over body+40 mm'})
-        ax.helps([f'python3 {ME} <out.json> <body.npz> <name>=<piece.npz>:<turn_deg> ...', 'blender -b -P scripts/proportion/mesh_to_npz.py -- <out.npz> piece|body <mesh>']); sys.exit(0)
+        ax.helps(['lampway_proportion_ratios out=<out.json> body=<body.npz> pieces=[<name=piece.npz:turn_deg>]' , 'lampway_mesh_to_npz out=<out.npz> mode=<piece|body> file=<mesh>']); sys.exit(0)
     ap = argparse.ArgumentParser(description='Primary proportion score vs the MetaHuman body (AXI: no args shows the method).')
     ap.add_argument('out'); ap.add_argument('body_npz'); ap.add_argument('pieces', nargs='+', help='<name>=<piece.npz>:<turn_deg>')
     a = ap.parse_args()
     for f in [a.body_npz] + [x.split('=', 1)[-1].rsplit(':', 1)[0] for x in a.pieces]:
-        if not os.path.exists(f): ax.refuse(f'{f} not found', ['blender -b -P scripts/proportion/mesh_to_npz.py -- <out.npz> piece <mesh>'])
+        if not os.path.exists(f): ax.refuse(f'{f} not found', ['lampway_mesh_to_npz out=<piece.npz> mode=piece file=<mesh>'])
     main(a.out, a.body_npz, *a.pieces)

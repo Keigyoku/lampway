@@ -11,6 +11,7 @@ import os
 import bpy
 import bmesh
 
+from .source_identity import stamp_source
 from . import common as C
 
 
@@ -200,7 +201,9 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
         bpy.context.view_layer.update()
         if not keep_original_visible:
             src.hide_set(True)
-        return {"object": new.name, "source": src.name, "method": "quadriflow", "requested_method": method, "target_faces": target_faces,
+        stamp_source(new, src)
+        achieved = len(new.data.polygons)
+        return {"achieved_faces": achieved, "note": f"achieved {achieved} faces against target {target_faces}", "object": new.name, "source": src.name, "method": "quadriflow", "requested_method": method, "target_faces": target_faces,
                 "preserve_sharp": bool(preserve_sharp), "per_part": pp, "report": C.mesh_report(new, ref=src), "source_faces": len(src.data.polygons)}
     new = C.duplicate(src, "_retopo")
     used = method
@@ -240,5 +243,8 @@ def retopo(object, target_faces=2000, method="quadriflow", engine="algorithmic",
     bpy.context.view_layer.update()
     if not keep_original_visible:
         src.hide_set(True)
-    return {"object": new.name, "source": src.name, "method": used, "requested_method": method, "target_faces": target_faces,
+    stamp_source(new, src)
+    achieved = len(new.data.polygons)
+    extra["note"] = (extra.get("note", "") + f"; achieved {achieved} faces against target {target_faces}").lstrip("; ")
+    return {"achieved_faces": achieved, "object": new.name, "source": src.name, "method": used, "requested_method": method, "target_faces": target_faces,
             "report": C.mesh_report(new, ref=src), "source_faces": len(src.data.polygons), **extra}

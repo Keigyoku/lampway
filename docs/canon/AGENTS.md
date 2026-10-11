@@ -15,6 +15,13 @@ schema and its door (`normalization/`), and the goldens with their generators, r
 `lampway-canon` skill before any fit, rig, weight, pose, placement, proportion, retopology, UV, bake, clearance or normalization
 work.
 
+
+Issue2 supersedes the inevitably refused default export recipe with selection from measured normalized frames, retaining explicit Titan and mandatory physical M-RIG-01 confirmation. Keep native metacarpal fanout and120° corrective-roll default-export falsifiers.
+
+The captain authorized AC65 starting defaults by judgment on 2026-10-07 using supplied MetaHumanBase/gear documentary references. Record 0.05 facing margin, per_side pair scale, 20 mm collar, boot width and complete canon08 pose/curl tables with physical_status untested. Preserve explicit alternatives and experimental candidate provenance; original physical acceptance remains separate.
+
+Canon22 profile rotations and adapter basis must publish deterministic fixed points of the bounded normalize/round orbit. Rebuilding remains exactly byte-equal and hash-checked; preserve corrupted-profile refusals. Canonical sample publication must also settle the bounded declared adapter inverse/forward orbit so normalize → adapt → normalize remains byte-identical without retained input data. A native A1-bar pass cannot stand in for byte equality.
+
 ## Invariants
 
 1. **This copy is the source of truth.** It replaced the spec shelf's `specs/canon/` on 2026-10-06; edits land here, through a
@@ -28,6 +35,28 @@ work.
 5. **No large binaries and no owner assets.** The goldens are synthetic; the MetaTailor exports stay out of git and
    `goldens/metatailor/README.md` records their SHA-256. A number measured on one of the captain's pieces is cited, not committed.
 
+Canon 03 records analytical seam topology and generalized winding for native
+openings; Canon 17 records authored MetaHuman corrective fan-out frames. R02's
+regenerated corrective golden preserves 120° roll and retains the existing frame
+and retarget falsifiers. The applied normalizer is verified on the corresponding
+binary shape, while actual owner-asset receipts are reported separately.
+
+Canon 08 distinguishes its accepted complete helmet table from the newly authorized, physically untested waist/boots/gauntlets starting tables. The implementation uses named axes and retains sign falsifiers; the glove engine wiring does not infer mirror labels or substitute a pose model.
+
+The normalize_mesh contract names the native cardinal-facing golden and symmetric tie falsifier. Canon 10 fixes native plate aspect and border-ring keying; the authorized D6 default is 0.05 with untested physical provenance, while explicit margins and symmetric-tie refusals remain available.
+
+Current fit descriptions distinguish implemented composite order, independent
+glove engines, accepted helmet and authorized starting pose tables, and exact
+bind-return from original-asset physical acceptance. `AC65-DECISION-AUDIT.md`
+records all six chosen defaults, their rationale, documentary provenance and
+untested limits. Do not delay these explicitly authorized defaults for new
+measurement permission or describe them as physically validated. Boot height
+anchors remain knee-to-sole, with translation controls; rerun earlier height
+candidates on corrected source before physical comparison. Width is the
+judgment-selected boot default, not a result inferred from those controls.
+
+Canon08 weighted region seeds admit actual anatomical descendants with nearest configured ancestry partitioning. Retain original weighted bone identities and nonempty admission before rays, plus unchanged pose thresholds, sign and golden metrics. Do not substitute a recorded distribution replay for the private original body rerun.
+
 ## Test
 
 ```bash
@@ -37,13 +66,82 @@ python3 docs/canon/check_canon.py --self-test   # a hand-edited golden in a scra
 
 CI runs both on every push and pull request (`.github/workflows/canon.yml`).
 
+Audit the complete measured342-edge native profile before mutation. Anatomical core terminals use canonical parent-line endpoints; exact verified auxiliaries preserve authored frames and are excluded from anatomical convention classification. Share validated/fingerprint-bound endpoints with weighting and posed openings; unknown/reparented edges refuse. Missing native rows are explicit and cannot publish a full body/export.
+
+Canonical rest-frame serialization may project only positive-determinant float32 producer errors within the documented spectral admission budget and unchanged axis bar. Retain valid values, strict CA validation, raw reads/fingerprints and authored matrices; refuse material shear/reflection and retain the hashed full private receipt with bounded public correction metrics.
+
 ## Owner
 
 The canon's authors (the canon and normalization auditors) wrote it; from 2026-10-06 a change is made by the lane whose work
 needs it and lands through the integration lane. Statuses, thresholds and the decisions a page names are the captain's.
+
+Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration.
+
+The verified native342 conform path requires an explicit reference: source_copy preserves authored rest and skin with an identity map and matching measured convention, while mixed/unknown frames refuse. Default convention exports name only the disposable container Armature under the verified installed UE Blender predicate; occupied names refuse before allocation. For admitted pinned-writer centimetre files, cross-check authored node, BindPose and cluster binds under unchanged shortest-quaternion bars; refuse unsupported layouts without projecting matrices or falling back to inferred display tails. Keep imported display errors visible. Source preservation and authored-file verification never establish independent native UE parity.
+
+The motion_graphics/ group contains normative method, scene and agent/receipt contracts and is indexed beside rig_tools/. Its acceptance and measured history live in ../reports/motion-graphics-acceptance.md. Preserve existing open decisions and refusal/threshold falsifiers; the 3D goldens do not certify motion behavior.
+
+Canon03-H2 candidate admission is ruled on2026-10-08: implement and measure ARAP with delegated, documented solver defaults. Those defaults and original-piece fit remain physically untested. Numerical clearance/seam targets remain caller-explicit; candidate convergence never substitutes for unchanged rigid/source ledgers, output-render review or native motion acceptance.
+
+Canon17/21 distinguish strict joint-angle classification from independently
+verified native writer axes. Complete342 matching native references carry exact
+authored frames through the fixed writer bridge; private source/bind/rest pins
+and all unchanged bind bars govern recipe admission and file readback. Retain
+mixed joint diagnostics and refuse stale or unsupported inputs. Headless
+reference/file matches do not certify a fresh actual UE import.
+
+Canon03 authored FACE preparation retains original vertex/face identities and
+source seams rather than approving new cuts. Exact corner-vector provenance is
+separate from native normal encoding quantization. Canon20 procedural example
+weighting follows the verified Titan body construction and transfer; canon07's
+quarter-shorter-bone law is a joint-owned width, and its historical 0.4–7 cm
+range is a measurement rather than a clamp. Preserve genuine outside-joint and
+physical motion acceptance gates.
+
+Canon07 current implementation documents explicit source-bound planar flexible seam recipes and preserves all native influences by default. Keep historical gap lists pinned to their original commits, require complete source contact authority, and retain strict rigid-anchor and physical review gates.
+
+Canon07 permits only explicitly authorized source-bound articulated contact domains on validated derived FACE-part copies. Recheck full pair closure, identities and membership at plan/weights/return/apply; preserve the retained third pairing, undeclared strict anchors and physical review. The2026-10-10 shoulder ruling permits candidate implementation, never automatic fit acceptance.
+
+Canon20's own-rig measurement correction shares the existing canon11 B8 engine
+through `centre:rig:<armature>`. Keep open-ring and hidden base heads, bind the
+receipt to the example's geometry, restore source state and retain independent
+outside-joint checks. A manually corrected view candidate does not establish
+detector calibration, anatomical authority or accepted physical motion.
 
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-06 | canon into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the canon lived on an off-tree shelf, so agents had no tracked page to load and nothing kept its goldens honest | the canon copied to docs/canon as the source of truth, its invariants stated, `check_canon.py` and its self-test in CI | captain ruling, 2026-10-06 |
+
+| 2026-10-07 | native topology and corrective-root canon | issue 2 G2/G4 | closed-only intake and continuation-only normalization rejected native shapes | document analytical winding intake and authored corrective frames with regenerated R02 evidence | issue 2 acceptance receipts |
+
+| 2026-10-07 | accepted helmet table | captain requested canon-recommended typed defaults | complete proposal remained stubbed while other numeric rows were absent | record the complete helmet proposal as accepted and keep other absent numerical rows explicit | issue 2 |
+
+| 2026-10-07 | cardinal facing golden | issue 2 AC65 | plate registration had no implementation despite its existing canon engine contract | pin winning rotation and tie refusal against real rendered masks with explicit margin | canon 10 and normalization contract |
+| 2026-10-07 | native MetaHuman normalization and export defaults | actual owner G4/G5 failures and issue2 default-chain instruction | metacarpal slide fanout lacked continuation and default recipe always rejected normalized frames | Issue2 supersedes the inevitably refused default export recipe with selection from measured normalized frames, retaining explicit Titan and mandatory physical M-RIG-01 confirmation. Keep native metacarpal fanout and120° corrective-roll default-export falsifiers. | native metacarpal and both-convention export RED/GREEN; UE proof remains pending |
+| 2026-10-07 | measured fit decision paths | captain: measure issue2 AC65 before defaults | configurable algorithm gaps and unmeasured proposals obscured required choices | Unruled AC65 values need actual owner measurements before recommendation. Keep experimental tables distinct from defaults; canon08/09 cover proper per-side maps and curled-hand falsifiers. | canon08/09 tests and disposable measurement runner |
+
+| 2026-10-07 | terminal finger helper-only leaf continuity | actual c4e91 native pinky03 fanout refusal | two helpers refused and a single helper silently became the bone direction | Native terminal finger03 joints with only exact same-finger/same-side bulge/half drivers use the canonical0.8 parent-line leaf endpoint, including one-driver cases. Unknown terminal children refuse; normalized stamps and shared weighting endpoints use the same predicate. | native terminal one/two-driver RED and all-ten-joint GREEN with unknown-child falsifiers |
+
+| 2026-10-07 | complete native topology roles and consumers | actual terminal half-driver refusal and full342graph receipt | serial continuation additions missed auxiliary chains, convention classification measured drivers and core minimum claimed full roster | Audit the complete measured342-edge native profile before mutation. Anatomical core terminals use canonical parent-line endpoints; exact verified auxiliaries preserve authored frames and are excluded from anatomical convention classification. Share validated/fingerprint-bound endpoints with weighting and posed openings; unknown/reparented edges refuse. Missing native rows are explicit and cannot publish a full body/export. | complete342native RED/GREEN, unknown/reparented/stale controls and partial-publication refusals |
+| 2026-10-07 | bounded native rest-frame serialization | actual complete-rig proper-rotation failure | independently normalized float32 columns retained cancellation error beyond the strict validator | Canonical rest-frame serialization may project only positive-determinant float32 producer errors within the documented spectral admission budget and unchanged axis bar. Retain valid values, strict CA validation, raw reads/fingerprints and authored matrices; refuse material shear/reflection and retain the hashed full private receipt with bounded public correction metrics. | actual three-frame external receipt, complete342 oblique graph and material-error falsifiers |
+| 2026-10-07 | current AC65 descriptions and boot height covariance | six-default audit after native-frame repair | stale no-orchestrator/glove/return claims hid implemented engines; absolute knee height changed boot scale when the body moved | distinguish engines from physical defaults, document all six evidence prerequisites and require sole-relative boot height with rerun of older candidates | body-only and both-input translation RED/GREEN; current fit regression receipts |
+
+| 2026-10-07 | nonempty descendant pose regions | actual9f90 vacuous arm receipt | native descendant samples were excluded by exact seed-name membership | document measured ancestry membership and empty-region refusal, retaining thresholds/rays and original-input rerun requirement | weighted descendants and malformed/empty ancestry falsifiers |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 now separates explicit centimetre export copies, raw identity Null/bone admission and pinned importer representation decoding. The old UnitScaleFactor-only pass cannot hide scale100 ancestry. Preserve unchanged bind bars, actual operator bounds, original source data and pending native frame calibration. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |
+
+| 2026-10-08 | actual native conform and container correction | actual source-copy and installed UE predicate evidence | a161-bone implicit reference rewrote native342 frames and a differently named Null became an extra root | Require explicit native reference or bounded source_copy, preserve authored data, and reserve Armature for disposable exports only under the verified predicate. Cross-check redundant authored binds under existing bars and retain display reconstruction errors. Keep native pose calibration and physical acceptance separate. | native default-reference/container RED, source-copy, bind corruption and near-bar controls |
+
+| 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07, using supplied body/gear references | prerequisites-only doctrine blocked an explicitly authorized choice; arbitrary defaults could be mistaken for measurement | record chosen defaults and complete pose/curl tables with untested provenance, explicit overrides and falsifiers; keep physical acceptance separate | default-path RED/GREEN and documentary hashes; no original gear validation |
+| 2026-10-08 | motion contracts in canon | captain: write specifications like the other canon and reports | formal motion requirements lived outside the canonical documentation layout | keep normative inputs, invariants, methods and gaps here and measurements in reports | canon index and linked motion acceptance report |
+| 2026-10-08 | admitted ARAP candidate | captain explicitly admits03-H2 and delegates untested solver defaults | the open decision kept item14 unimplemented and could be confused with per-piece visual admission | date the ruling, document solver choices as physically untested and retain explicit limits/rigid/source/render-review gates | generated soft seam/shape/anchor/nonconvergence controls and disposable native candidate checks |
+
+| 2026-10-08 | independently referenced native bind axes | supplied actual342 stage audit and original-input replay | child-based frame reconstruction lost329 independently captured frames and authored feet are not universally joint-aligned | distinguish strict joint diagnostics from complete native bind calibration, carry the fixed writer bridge and recheck pinned independent binds under unchanged bars | actual native conform and authored-file proof; fresh actual UE import remains unverified |
+
+| 2026-10-08 | exact generated animation profile publication | I04 actual generated profile self-refusal | nine-decimal quaternion normalization moved two components on rebuild | publish a bounded exact rotation fixed point for profile transforms and basis; settle the coupled declared adapter orbit for canonical samples; retain exact hashes and corruption refusals | supplied profile RED, synthetic exact rebuild controls and actual Walking profile/extract/normalize/adapt/compare/verify GREEN |
+| 2026-10-09 | authored source seam and canonical example-body implementation | actual labelled gear and template quality follow-up | copied topology could hide seams and constant global falloff omitted the canonical procedural body | preserve source identity and normal provenance; implement referenced joint-owned widths without turning measured ranges into thresholds or waiving physical gates | authored preparation/stale-seam controls and independent native procedural weight comparison |
+| 2026-10-09 | canonical seam engine and native influence defaults | canon07 B.6/B.9 implementation review | historical method claims obscured disconnected public band composition and silent four-influence cap | document the bounded cut interface and uncapped default with guarded physical status | C03/native transfer RED/GREEN and unchanged canon goldens |
+| 2026-10-10 | bounded shoulder-contact ruling | captain authorizes proposed exception to match generated reference motion | global positional coupling blocked independent pauldrons at thirteen source bridge vertices | authorize only pinned complete pair declarations on derived copies, retain third-party contacts and all physical gates | source-bound contact and stale/incomplete/undeclared falsifiers |
+| 2026-10-10 | shared own-rig centering contract | original I05 outside-joint replay | disconnected base-head measurement could not complete a geometry-bound fit | specify the existing canon11 B8 correction through the public selector with unchanged source and inside gates | pure ring controls and native public/state receipts; physical candidate status remains explicit |

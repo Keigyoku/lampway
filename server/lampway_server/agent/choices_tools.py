@@ -102,4 +102,4 @@ async def call(name: str, arguments: dict, origin: str = "agent:main") -> tuple:
     try:
         return json.dumps(await asyncio.to_thread(_answer, arguments if isinstance(arguments, dict) else {}, origin), default=str), False
     except (ValueError, CH.Refused, CH.NoChoice, REG.UnknownPurpose) as exc:
-        return str(exc), True
+        return str(exc) + "\nNext call: lampway_choices action=list", True

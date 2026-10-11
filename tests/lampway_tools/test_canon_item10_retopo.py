@@ -21,20 +21,28 @@ top = bm.verts.new((a.co + b.co) / 2 + Vector((0, 0, 0.3)))
 bm.faces.new([a, b, top])                                                       # a third face on it: non-manifold
 me = bpy.data.meshes.new("nm"); bm.to_mesh(me); bm.free()
 ob = bpy.data.objects.new("nm", me); bpy.context.scene.collection.objects.link(ob)
+bpy.context.view_layer.update(); ob.select_set(True); bpy.context.view_layer.objects.active = ob
 '''
 
 
-def test_a_refused_quadriflow_is_refused_unless_the_voxel_fallback_is_asked_for():
-    r = run_script(PRE + NONMANIFOLD + '''
+def test_a_refused_quadriflow_is_refused_unless_the_voxel_fallback_is_asked_for(tmp_path):
+    from isolated_binary import run
+    r = run(tmp_path, NONMANIFOLD + '''
 a = api.retopo("nm", target_faces=200, method="quadriflow")
 left = sorted(o.name for o in bpy.data.objects)
 b = api.retopo("nm", target_faces=200, method="quadriflow", fallback=True)
-res({"a_ok": a.get("ok"), "a_err": a.get("error"), "a_method": a.get("method"), "left": left, "b_method": b.get("method"), "b_note": b.get("note")})
-''', timeout=300)
+assert b.get("ok"), b
+print("RESULT", json.dumps({"a_ok": a.get("ok"), "a_err": a.get("error"), "a_method": a.get("method"), "left": left,
+    "b_method": b.get("method"), "b_note": b.get("note"), "b_faces": b["report"]["faces"],
+    "b_achieved": b["achieved_faces"], "b_target": b["target_faces"],
+    "actual_faces": len(bpy.data.objects[b["object"]].data.polygons)}))
+''')
     assert r.rc == 0, r.out[-1500:]
     d = r.results[-1]
     assert d["a_ok"] is False and "fallback" in d["a_err"] and d["left"] == ["nm"], d
     assert d["b_method"] == "voxel" and "fallback" in (d["b_note"] or ""), d
+    assert d["b_faces"] == d["b_achieved"] == d["actual_faces"] > 0 and d["b_target"] == 200, d
+    assert f"achieved {d['actual_faces']} faces against target 200" in d["b_note"], d
 
 
 HARD = r'''

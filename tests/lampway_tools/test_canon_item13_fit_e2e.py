@@ -113,3 +113,39 @@ def test_the_same_run_on_a_package_without_its_native_sidecar_stops_at_weights(t
     assert list(st)[-1] == "weights" and all(v["ok"] for k, v in st.items() if k != "weights"), {k: v.get("error") for k, v in st.items()}
     assert st["weights"]["ok"] is False and "weights come from the native asset" in st["weights"]["error"], st["weights"]
     assert r.results[-1]["status"]["next"] == ["lampway_fit stage=weights"]
+
+
+def test_seam_split_body_with_native_head_opening_runs_every_real_fit_stage(tmp_path):
+    seam_open = r'''
+body.data.calc_loop_triangles()
+old = body.data
+triangles = [tuple(t.vertices) for t in old.loop_triangles]
+remove = next(i for i,t in enumerate(triangles) if min(old.vertices[k].co.z for k in t) > 1.7)
+triangles.pop(remove)
+points = [old.vertices[k].co[:] for t in triangles for k in t]
+weights_by_vertex = [[(g.group,g.weight) for g in old.vertices[k].groups] for t in triangles for k in t]
+group_names = [g.name for g in body.vertex_groups]
+mesh = bpy.data.meshes.new("seam_split_native_openings")
+mesh.from_pydata(points,[],[(i,i+1,i+2) for i in range(0,len(points),3)]); mesh.update()
+body.data = mesh
+for name in group_names:
+    body.vertex_groups.new(name=name)
+for i, groups in enumerate(weights_by_vertex):
+    for group, weight in groups:
+        body.vertex_groups[group].add([i],weight,"REPLACE")
+native_vertex_count = len(body.data.vertices)
+'''
+    script = E2E.replace('body, arm = figure()','body, arm = figure()\n'+seam_open)
+    script = script.replace('res(out)', 'out["body_state"] = api.fit_body("verify",out=P)["body"]\nout["native_vertex_count"] = native_vertex_count\nout["packaged_vertices"] = len(np.load(os.path.join(root,body_npz))["V"])\nres(out)')
+    r = run_script(FIT_PRE + "WITH_SIDECAR = True\n" + script, env={"LW_KEEP_ROOT": str(tmp_path)},timeout=900)
+    assert r.rc == 0, r.out[-3000:]
+    d = r.results[-1]
+    assert not [(k,v.get("error")) for k,v in d["stages"].items() if not v.get("ok")], d["stages"]
+    assert len(d["stages"]) == 11 and d["status"]["next"] == []
+    state = d["body_state"]
+    assert state["raw_boundary_edges"] > state["boundary_edges"] > 0 and not state["closed"]
+    assert state["head_winding"] > 0.5 and state["native_openings_accepted"]
+    assert d["native_vertex_count"] == d["packaged_vertices"]
+    assert d["stages"]["weights"]["result"]["fit_bind"]["body_package_sha256"]
+    assert d["stages"]["validate"]["result"]["summary"]["ok"]
+    assert d["stages"]["export"]["result"]["readback"]["ok"]

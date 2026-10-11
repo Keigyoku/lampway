@@ -2732,6 +2732,12 @@ msgstr ""
 msgid "Scroll Notification"
 msgstr "ﻥﻼ﻿ﻋﺍ ﺶﯾﺎﻤﯿﭘ"
 
+msgid "Matrix"
+msgstr ""
+
+msgid "Euler"
+msgstr ""
+
 msgid "Wavefront (.obj)"
 msgstr ""
 
@@ -5568,6 +5574,9 @@ msgid "Lampway setup"
 msgstr ""
 
 msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "Continue to the next setup step"
 msgstr ""
 
 msgid "The step before"
@@ -21803,6 +21812,21 @@ msgstr "{reason} .ﺪﺷ ﯽﻀﻘﻨﻣ ﺖﺴﺸﻧ"
 
 msgid "Browser login did not complete. Please try again."
 msgstr ".ﺪﯿﻨﮐ ﺵﻼ﻿ﺗ ﻩﺭﺎﺑﻭﺩ ﺎًﻔﻄﻟ .ﺪﺸﻧ ﻞﻣﺎﮐ ﺮﮔﺭﻭﺮﻣ ﺩﻭﺭﻭ"
+
+msgid "Open the documentation served by this Lampway installation"
+msgstr ""
+
+msgid "Open Lampway's local bug report instructions"
+msgstr ""
+
+msgid "Local password"
+msgstr ""
+
+msgid "Sign in to Lampway"
+msgstr ""
+
+msgid "Leave empty if your local account has no password"
+msgstr ""
 
 msgid "Login failed"
 msgstr "ﺩﻮﺑ ﻖﻓﻮﻣﺎﻧ ﺩﻭﺭﻭ"

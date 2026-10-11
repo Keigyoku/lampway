@@ -65,6 +65,8 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
   `$XDG_STATE_HOME/lampway/keyring.json` (an older `$LAMPWAY_HOME/keyring.json` is moved there once, verified) and points the server
   at Connections' file store, `LAMPWAY_SECRETS_DIR` (default `$XDG_STATE_HOME/lampway-secrets`). A test never uses the real ones.
 
+The launcher's `--help` and `-h` print the supported flags and exit successfully before build checks, profile writes or process launch. They never print secret values; unknown flags retain exit2.
+
 ## 3. Test suites
 
 | suite | command | needs |
@@ -171,3 +173,4 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | merge of lp/wave5 into lp/facelift | the facelift lane's merge: lp/wave5 named LAMPWAY_SECRETS_DIR in the launcher bullet where lp/facelift had added the install bullet above it | two lanes edited neighbouring lines of section 2; the merged section carries the install bullet and the three-variable launcher bullet | section 2 | none |
 | 2026-10-06 | the shelf in the reference environment | coordinator: "make them run in test_all's defined environment (LAMPWAY_SHELF_DIR provided, read only) rather than skipping everywhere" | the placement pins skipped in every suite run, so the only measurement of the MetaHuman-sized cases ran only by hand | test_all requires the shelf's placement fixtures, the conftest fails a shelf skip inside test_all, a run that wrote to the shelf is RED; the paragraph in section 3 | none |
 | 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |
+| 2026-10-08 | conventional launcher help | inherited setup audit I12 | --help refused before users could discover supported flags | static help exits0 without build/profile/server/app or secret access, unknown flags retain2 | two genuine RED help flags;32 launcher/Linux controls GREEN |

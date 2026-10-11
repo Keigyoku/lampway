@@ -3,8 +3,7 @@
 
 # Canon 06 — Openings: keep, gasket or delete a cap, cut from the posed body
 
-Status: **DRAFT** — the decision rule and the cut are canonical; the collar depth (flange length) and lip are the captain's
-numbers and unruled (BUILD_ORDER decision 1). Implemented by: LT `features/opening.py` (built, synthetic tests only);
+Status: **DRAFT** — the decision rule and the cut are canonical; the collar depth is an authorized 20 mm starting default (2026-10-07), **physically untested**; lip radius/UV-island choices remain open. Implemented by: LT `features/opening.py` (built, synthetic tests only);
 ancestor shelf `partseg/delete_caps.py` (hand-typed footprint).
 
 ## A. Problem
@@ -14,7 +13,7 @@ decision recorded append-only: **keep** (hidden or intended), **gasket** (open i
 "make a hole, base on the MetaHuman base body, and manifold it" (the captain, 2026-10-05), read on 2026-10-05 as "an engine
 exhaust or intake manifold hole": a formed tubular collar with a rolled lip, not a raw cut (memory fit-and-decisions-rulings-1005).
 Inputs: the piece (rebuilt mesh with `orig_poly`, `owner_poly`), the POSED body (canon 08 `pose.json`), the opening's axis
-and plane, `clearance_mm` (default 15, PIECE_PIPELINE), `flange_mm` (no default), `lip_mm`. Output: a new mesh `<piece>_openings`,
+and plane, `clearance_mm` (default 15, PIECE_PIPELINE), `flange_mm` (default 20 mm, physically untested), `lip_mm`. Output: a new mesh `<piece>_openings`,
 `orig_poly = -1` for new faces, the decision rows, a manifold report. Frame: body frame (canon 01).
 
 ## B. Method
@@ -46,6 +45,7 @@ and plane, `clearance_mm` (default 15, PIECE_PIPELINE), `flange_mm` (no default)
 
 | Date | What | Lesson | Source |
 |---|---|---|---|
+| 2026-10-07 | AC65 collar default | 20 mm, middle proposed depth; explicit overrides retained; physical opening validation untested | captain explicitly authorized judgment using supplied body/gear references; AC65-DECISION-AUDIT.md |
 | 2026-10-04 | Chest `pose_uv1` (cap present): neck penetration fraction over 2 mm 0.2538, worst 79.4 mm; with the cap deleted 0.0 / 0.0 | caps are real penetration sources; detect them | `<shelf-scratch>/proportion/pose_uv1*/pose_clearance.json` |
 | 2026-09-26 | Greave lid read as inner wall, cage pushed the top out 3 cm (the "collar") | a cap is a defect to open, not geometry to conform around | GENERATED-EQUIPMENT §7j |
 | 2026-10-06 | MetaTailor MT-4 (synthetic lidded greave, Pants): no opening was detected. The lid apex, 41 mm inside the leg, was pushed out to +6 mm and 14 tube vertices moved; the closed lid survived as a skewed cone (apex 55.6 -> 11.9 mm from the wall) | a fitter that treats a cap as collision keeps the cap; detect and open it first (GMT.6) | `goldens/metatailor` MT-4 |
@@ -59,7 +59,7 @@ and plane, `clearance_mm` (default 15, PIECE_PIPELINE), `flange_mm` (no default)
 | G06.2 gasket at 15 mm | + `flange_mm` given | rim radius 0.070 ± 1.5 mm; boundary loops 1 -> 2; non-manifold 0; bad winding 0 | `clearance_mm=0`: rim at 0.055 fails the radius check |
 | G06.3 keep | answer keep | mesh sha unchanged; one decision row | — |
 | G06.4 too small | neck radius 0.08 | REFUSED: section + clearance does not fit | a tool that scales the cap out |
-| G06.5 no flange | gasket without `flange_mm` | `needs_decision` with three rendered depths | a silent default depth |
+| G06.5 default flange | gasket without `flange_mm` | 20 mm with untested default provenance; explicit depth overrides | missing provenance or an explicit depth ignored |
 
 ## F. Implementation gap (LT `features/opening.py`)
 
@@ -78,16 +78,16 @@ and plane, `clearance_mm` (default 15, PIECE_PIPELINE), `flange_mm` (no default)
 ```json
 {"stage": "detect|propose|rule|variants|apply|check", "object": "piece", "piece": "id", "kind": "chest|helmet|waist|boots|gauntlets",
  "body": "fit_body package dir", "pose": "pose.json (REQUIRED for variants/apply)", "answers": {"OP000": "keep|gasket|delete"},
- "captain_words": "verbatim", "clearance_mm": 15, "flange_mm": "REQUIRED for gasket (no default)", "lip_mm": 4,
+ "captain_words": "verbatim", "clearance_mm": 15, "flange_mm": "optional; default 20 mm (physically untested)", "lip_mm": 4,
  "texture_discard_ack": false}
 ```
-Refusals: no pose; gasket without `flange_mm` (returns `needs_decision` + `variants` hint); an answer outside the three words;
+Refusals: no pose; an invalid flange depth; an answer outside the three words;
 an unknown id; an undecided opening at `apply`; a texture present without the ack; cutter does not fit; offset self-intersects.
 Receipt: `openings.json` per opening `{answer, removed_orig_ids, rim_radius_mm, flange_faces, min_clearance_mm, manifold}` plus
 `decisions.jsonl` rows `{question: opening_decision, descriptor, descriptor_sha256, answer, decider, captain_words}`.
 
 ## H. Decisions owed by the captain
 
-1. Collar depth (flange length) — render variants (10 / 20 / 35 mm proposed) and pick.
+1. Collar depth: 20 mm authorized by judgment on 2026-10-07, the middle proposed variant, limiting intrusion while retaining a formed collar. Physical posed-opening review remains untested; the omitted-depth path records its default provenance.
 2. Lip radius and whether the collar is its own UV island or joins the bordering island.
 3. Default answer per site (proposal rules are placeholders until ruled).

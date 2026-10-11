@@ -4,11 +4,14 @@
 
 """Turn checkpoints: one timeline of turns per chat, revert and reapply.
 
-Capture (``capture``): right before a fresh message goes out, the whole
-document is written with ``save_as_mainfile(copy=True)`` to
+Capture: a fresh send arms only the previous transcript boundary. Immediately
+before its first uncertified client script, ``before_script`` writes the whole
+document with ``save_as_mainfile(copy=True)`` to
 ``~/.mixar/checkpoints/<session>/<id>.mixar`` as the ``turn`` record "before
 turn N". Chat bubbles and the session id live in scene properties, so the
-file already holds the conversation as it was at that moment. Identical
+restore trims the transcript to the boundary remembered at send time. Read-only
+turns write no document snapshot. Direct ``capture`` remains the path for tip
+and safety records. Identical
 bytes are stored once (sha256), and only the newest ``MAX_PER_SESSION``
 turns of a session are kept.
 
@@ -57,6 +60,9 @@ composer refuses to send while they are in flight
 mixar-backend.
 """
 
+import ast
+import hashlib
+import json
 import os
 import time
 import uuid
@@ -131,7 +137,119 @@ def _prune_sessions_once_per_day(keep_session_id: str = "") -> None:
 # Capture
 # =============================================================================
 
-def capture(scene, label: str, *, kind: str = "turn", session_id: str = "", protect_id: str = ""):
+# Pending metadata has no document bytes. A new send replaces any completed
+# read-only turn; unknown scripts cannot opt out through a tool name or flag.
+_pending_turns = {}
+
+
+def _pending_key(scene):
+    pointer = getattr(scene, "as_pointer", None)
+    return pointer() if callable(pointer) else id(scene)
+
+_SUMMARY_BODY_SHA256 = "798755d493162da738ab4d1bf80cb7d6c4f4b6edc1350c3833b410b77f8e5a97"
+
+
+def certified_read_script(script: str) -> bool:
+    """Certify complete maintained templates; any extra code pays for a copy."""
+    try:
+        header, separator, body = script.partition("\n")
+        if separator and hashlib.sha256(body.encode()).hexdigest() == _SUMMARY_BODY_SHA256:
+            parsed = ast.parse(header)
+            if len(parsed.body) != 1 or not isinstance(parsed.body[0], ast.Assign):
+                return False
+            assignment = parsed.body[0]
+            expected = ast.parse("_LIMIT, _OFFSET, _FULL = 100, 0, False").body[0]
+            if ast.dump(assignment.targets[0]) != ast.dump(expected.targets[0]) or len(assignment.targets) != 1:
+                return False
+            limit, offset, full = ast.literal_eval(assignment.value)
+            return type(limit) is int and 1 <= limit <= 1000 and type(offset) is int and offset >= 0 and type(full) is bool
+        parsed = ast.parse(script)
+        if len(parsed.body) != 2:
+            return False
+        first, last = parsed.body
+        expected_import = ast.parse("from mixar.modules.lampway_tools import api").body[0]
+        if ast.dump(first) != ast.dump(expected_import) or not isinstance(last, ast.Assign):
+            return False
+        if len(last.targets) != 1 or not isinstance(last.targets[0], ast.Name) or last.targets[0].id != "__RESULT__":
+            return False
+        call = last.value
+        if not isinstance(call, ast.Call) or call.keywords or len(call.args) != 2:
+            return False
+        if ast.dump(call.func) != ast.dump(ast.parse("api.call('inspect', '{}')").body[0].value.func):
+            return False
+        if ast.literal_eval(call.args[0]) != "inspect":
+            return False
+        payload = ast.literal_eval(call.args[1])
+        return isinstance(payload, str) and isinstance(json.loads(payload), dict)
+    except (ValueError, TypeError, SyntaxError, AttributeError, RecursionError):
+        return False
+
+
+def arm(scene, label: str):
+    """Remember the pre-turn chat boundary without saving the document."""
+    if DEV_MODE or scene is None:
+        return None
+    pending = {
+        "pending": True, "label": label, "position": _user_message_count(scene),
+        "message_count": len(getattr(scene, "mixie_chat_messages", None) or []),
+        "session_was_new": not bool(getattr(scene, "mixie_session_id", "")),
+        "request_id": "",
+    }
+    _pending_turns[_pending_key(scene)] = pending
+    # Even a read-only new turn forks a reverted timeline. Retire the old
+    # future now using only index metadata, without a document copy.
+    session_id = getattr(scene, "mixie_session_id", "") or ""
+    if session_id:
+        try:
+            items = _load_index(session_id)
+            dropped = [item for item in items if item.get("kind") == "tip"
+                       or int(item.get("turn_index", 0) or 0) > pending["position"]]
+            if dropped:
+                kept = [item for item in items if item not in dropped]
+                _remove_files(dropped, kept)
+                _write_index(session_id, kept)
+        except Exception:  # metadata housekeeping never blocks a send
+            logger.warning("Turn checkpoint branch prune skipped", exc_info=True)
+    return pending
+
+
+def discard_pending(scene) -> None:
+    if scene is not None:
+        _pending_turns.pop(_pending_key(scene), None)
+
+
+def discard_all_pending() -> None:
+    """Retire document-bound metadata before any file replacement."""
+    _pending_turns.clear()
+
+
+def before_script(scene, req):
+    """On main, immediately before the first uncertified script, save once."""
+    if scene is None or certified_read_script(req.script):
+        return None
+    pending = _pending_turns.get(_pending_key(scene))
+    if pending is None:
+        return None
+    turn_id = (getattr(req, "agent_ctx", None) or {}).get("turn_id")
+    if turn_id and pending["request_id"] and turn_id != pending["request_id"]:
+        return None
+    return before_mutation(scene)
+
+
+def before_mutation(scene):
+    """Shared first-write hook for scripts and admitted typed commits."""
+    if scene is None:
+        return None
+    pending = _pending_turns.pop(_pending_key(scene), None)
+    if pending is None:
+        return None
+    record = capture(scene, pending["label"], _before=pending)
+    if record is not None:
+        bind_request(record, pending["request_id"])
+    return record
+
+
+def capture(scene, label: str, *, kind: str = "turn", session_id: str = "", protect_id: str = "", _before=None):
     """Snapshot the whole document. Returns the record, or None when nothing
     was written. Never raises: a checkpoint must not stop a send.
 
@@ -193,7 +311,7 @@ def capture(scene, label: str, *, kind: str = "turn", session_id: str = "", prot
         digest = _sha256(tmp)
         size = os.path.getsize(tmp)
         items = _load_index(session_id)
-        position = _user_message_count(scene)
+        position = _before["position"] if _before is not None else _user_message_count(scene)
         if kind == "turn":
             # A message sent from a reverted position starts a new line of
             # turns: the reverted ones (and the tip they led to) can never
@@ -227,9 +345,11 @@ def capture(scene, label: str, *, kind: str = "turn", session_id: str = "", prot
             "sha256": digest,
             "bytes": size,
             "original_path": bpy.data.filepath or "",
-            "session_was_new": session_was_new,
-            "message_count": len(getattr(scene, "mixie_chat_messages", None) or []),
+            "session_was_new": _before["session_was_new"] if _before is not None else session_was_new,
+            "message_count": _before["message_count"] if _before is not None else len(getattr(scene, "mixie_chat_messages", None) or []),
         }
+        if _before is not None:
+            record["trim_transcript"] = True
         items.append(record)
         _remove_files(dropped, items)
         _write_index(session_id, _prune(session_id, items, protect_id))
@@ -244,6 +364,9 @@ def capture(scene, label: str, *, kind: str = "turn", session_id: str = "", prot
 def bind_request(record: dict, request_id: str) -> None:
     """Attach the turn's command id — the backend's request id — to its checkpoint."""
     if not record or not request_id:
+        return
+    if record.get("pending"):
+        record["request_id"] = request_id
         return
     try:
         record["request_id"] = request_id
@@ -428,6 +551,15 @@ def _after_load(scene, record: dict, mark_request_id: str) -> None:
     from .turn_events import drop_scene
     from .ui_utils import bump_layout_epoch, redraw_chat_areas
 
+    if record.get("trim_transcript"):
+        messages = scene.mixie_chat_messages
+        keep = max(0, int(record.get("message_count", 0)))
+        while len(messages) > keep:
+            if isinstance(messages, list):
+                messages.pop()
+            else:
+                messages.remove(len(messages) - 1)
+    discard_pending(scene)
     session = get_session_manager()
     session.set_run(scene, "", False)
     if session.is_connected(scene):

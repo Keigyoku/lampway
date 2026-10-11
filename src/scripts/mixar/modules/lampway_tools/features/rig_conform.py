@@ -15,6 +15,10 @@ merges only the groups named in merge_weights, and verifies:
 * the skins under a test pose given in WORLD terms (each source bone turned about its own head by its own angle, the same in both rigs):
   a skin deforms the same whatever the rest frames are, so a vertex group that did not follow its bone shows here.
 
+For a verified complete native topology, implicit Manny is refused. Reserved reference='source_copy' preserves authored rest data
+on independent copies, with identity mapping and no synthesis, offsets, IK additions or weight merging. The measured anatomical
+convention must match the requested convention. This is source preservation, not independent native UE bind acceptance.
+
 The source armature, its meshes and its actions are never touched; the copy carries no animation (rig_retarget / rig_convert carry motion
 across frames). Never: delete a bone, clear every parent, apply a pose as rest, exec scene text."""
 
@@ -31,6 +35,7 @@ from mathutils import Matrix, Quaternion, Vector
 from . import common as C
 from . import rig_tools as RT
 from ..rig_tools import core as RC
+from ..canon_geom import native_topology as NT
 
 POSE_AXIS = (0.267261242, 0.534522484, 0.801783726)       # the test pose's axis (1, 2, 3)/|.|: no bone of a symmetric rig lies on it
 POSED_BAR_M = 1e-5                                        # float32 skinning of a posed mesh: the posed skins agree to this
@@ -54,14 +59,16 @@ def reference_rig(path, ob):
     k = float(doc["adapter"]["centimeters_per_unit"]) / 100.0
     inv = ob.matrix_world.inverted()
     inv3 = np.array(inv.to_3x3())
-    names, parents, heads, frames = [], {}, {}, {}
+    names, parents, heads, frames, scales = [], {}, {}, {}, {}
     for b in doc["bones"]:
         t, q = b["bind"]["translation"], b["bind"]["rotation"]
         names.append(b["name"])
         parents[b["name"]] = b["parent"]
         heads[b["name"]] = tuple(inv @ Vector((t[0] * k, -t[1] * k, t[2] * k)))
         frames[b["name"]] = inv3 @ np.array(_q((-q[0], q[1], -q[2], q[3])).to_matrix())
-    return {"names": names, "parents": parents, "heads": heads, "frames": frames, "name": f"{doc.get('name')} ({p.name})", "sha256": RC.sha(doc["bones"])}
+        scales[b["name"]] = b["bind"].get("scale", [1, 1, 1])
+    return {"names": names, "parents": parents, "heads": heads, "frames": frames, "scales": scales,
+            "name": f"{doc.get('name')} ({p.name})", "sha256": RC.sha(doc["bones"])}
 
 
 def _source(ob):
@@ -167,12 +174,24 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
         raise C.FeatureError(f"{mp.name} was made from a different rest of {ob.name} (its source sha differs): run lampway_rig_map again")
     if any(abs(s - 1.0) > 1e-9 for s in ob.scale):
         raise C.FeatureError(f"{ob.name} carries object scale {list(ob.scale)}: run lampway_rig_normalize (canon 18) before conforming")
-    ref = reference_rig(Path(root, reference) if reference and not os.path.isabs(reference) else reference, ob)
     src = _source(ob)
+    preserving = reference == "source_copy"
+    if not reference and src["parents"] == NT.PARENTS:
+        raise C.FeatureError("the verified native rig needs an explicit native reference; reference='source_copy' preserves its authored rest without claiming UE parity; implicit Manny is refused")
+    if preserving:
+        if merge_weights:
+            raise C.FeatureError("source_copy cannot merge weights")
+        ref = {"name": "source_copy", "sha256": stamp["input"]}
+    else:
+        ref = reference_rig(Path(root, reference) if reference and not os.path.isabs(reference) else reference, ob)
     mapping = {s: v["source"] for s, v in doc["map"].items()}
     synth = {s: v["fraction"] for s, v in doc.get("synthesized", {}).items()}
     try:
-        plan = RC.conform_plan(src, mapping, synth, ref, convention, offsets, bool(ik_bones))
+        if preserving:
+            measured = RC.classify_convention(list(RT.convention_angles(RT.read(ob)).values()))
+            plan = RC.source_copy_plan(src, mapping, synth, convention, measured, offsets, bool(ik_bones))
+        else:
+            plan = RC.conform_plan(src, mapping, synth, ref, convention, offsets, bool(ik_bones))
     except RC.RigRefused as exc:
         raise C.FeatureError(str(exc)) from None
     meshes = _skinned(ob)
@@ -193,43 +212,55 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
                "reparented": plan["reparented"], "frames": plan["frames"], "unreferenced": plan["unreferenced"], "meshes": [m.name for m in meshes],
                "merged_groups": merge, "reference": ref["name"],
                "sha256": {"input": stamp["input"], "map": _file_sha(mp), "reference": ref["sha256"]}}
+    if preserving:
+        summary.update(reference_scope="source_preservation", engine_bind_acceptance="unverified; source rest preservation is not native UE parity")
+    elif plan.get("reference_scope") == "independent_native_bind":
+        summary.update(reference_scope=plan["reference_scope"], engine_bind_acceptance="unverified; independent-reference frames require actual UE import acceptance")
     if dry_run:
         return {**summary, "dry_run": True, "how": "dry_run=false writes the conformed copy (the source is never touched)"}
+    visibility = [(o.hide_viewport, o.hide_get()) for o in [ob, *meshes]]
     made = []
     try:
         new, copies = _copy(ob, name, meshes, suffix)
         made += [new, *copies]
         base, base_meshes = _copy(ob, f"{name}__baseline", meshes, f"__baseline_{name}")
         made += [base, *base_meshes]
-        groups = [[g.name for g in c.vertex_groups] for c in copies]
-        tmp = {old: f"lw_conform_tmp_{i}" for i, old in enumerate(rename)}
-        for old in rename:                                  # two phases, so a rename never lands on a name still in use
-            new.data.bones[old].name = tmp[old]
-        for old, n in rename.items():
-            new.data.bones[tmp[old]].name = n
-        C.activate(new)
-        bpy.ops.object.mode_set(mode="EDIT")
-        ebs = new.data.edit_bones
-        for b in plan["bones"]:
-            if b["name"] not in ebs:
-                e = ebs.new(b["name"])
-                e.head, e.tail = b["head"], np.add(b["head"], (0.0, 0.0, max(b["length"], 1e-3)))
-        for b in plan["bones"]:
-            e = ebs[b["name"]]
-            e.use_connect = False
-            e.parent = ebs[b["parent"]] if b["parent"] else None
-        for b in plan["bones"]:
-            e = ebs[b["name"]]
-            R = np.asarray(b["frame"], float)
-            M = Matrix(((*R[0], b["head"][0]), (*R[1], b["head"][1]), (*R[2], b["head"][2]), (0, 0, 0, 1)))
-            e.matrix = M
-            e.length = max(b["length"], 1e-4)
-        bpy.ops.object.mode_set(mode="OBJECT")
-        for c, names in zip(copies, groups):                # the vertex groups follow their bones, by index (two phases)
-            for i, g in enumerate(c.vertex_groups):
-                g.name = f"lw_conform_vg_{i}"
-            for i, g in enumerate(c.vertex_groups):
-                g.name = rename.get(names[i], names[i])
+        # The source is never revealed. Only disposable working copies must
+        # participate in Edit Mode and depsgraph skin verification.
+        for working in made:
+            working.hide_viewport = False
+            working.hide_set(False)
+        bpy.context.view_layer.update()
+        if not preserving:
+            groups = [[g.name for g in c.vertex_groups] for c in copies]
+            tmp = {old: f"lw_conform_tmp_{i}" for i, old in enumerate(rename)}
+            for old in rename:                                  # two phases, so a rename never lands on a name still in use
+                new.data.bones[old].name = tmp[old]
+            for old, n in rename.items():
+                new.data.bones[tmp[old]].name = n
+            C.activate(new)
+            bpy.ops.object.mode_set(mode="EDIT")
+            ebs = new.data.edit_bones
+            for b in plan["bones"]:
+                if b["name"] not in ebs:
+                    e = ebs.new(b["name"])
+                    e.head, e.tail = b["head"], np.add(b["head"], (0.0, 0.0, max(b["length"], 1e-3)))
+            for b in plan["bones"]:
+                e = ebs[b["name"]]
+                e.use_connect = False
+                e.parent = ebs[b["parent"]] if b["parent"] else None
+            for b in plan["bones"]:
+                e = ebs[b["name"]]
+                R = np.asarray(b["frame"], float)
+                M = Matrix(((*R[0], b["head"][0]), (*R[1], b["head"][1]), (*R[2], b["head"][2]), (0, 0, 0, 1)))
+                e.matrix = M
+                e.length = max(b["length"], 1e-4)
+            bpy.ops.object.mode_set(mode="OBJECT")
+            for c, names in zip(copies, groups):                # the vertex groups follow their bones, by index (two phases)
+                for i, g in enumerate(c.vertex_groups):
+                    g.name = f"lw_conform_vg_{i}"
+                for i, g in enumerate(c.vertex_groups):
+                    g.name = rename.get(names[i], names[i])
         merged = {}
         for c in copies:
             for g, to in merge.items():
@@ -257,6 +288,8 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
         frame_errs = {b["name"]: RC.angle_deg(np.array(new.data.bones[b["name"]].matrix_local.to_3x3()), b["frame"]) for b in plan["bones"]}
         worst = max(frame_errs, key=frame_errs.get)
         frame_err = {"bone": worst, "deg": frame_errs[worst]}
+        if plan.get("reference_scope") == "independent_native_bind" and frame_errs[worst] > RC.BARS["rotation_deg"]:
+            raise C.FeatureError(f"{worst}: native frame storage error {frame_errs[worst]:.6g} deg exceeds the unchanged bind rotation bar: rolled back")
         rest_new, rest_base = _evaluated(copies), _evaluated(base_meshes)
         drift = max((float(np.max(np.abs(a - b))) for a, b in zip(rest_new, rest_base) if len(a)), default=0.0)
         span = max((float(np.max(np.abs(a))) for a in rest_base if len(a)), default=1.0)
@@ -291,9 +324,24 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
             bpy.ops.object.mode_set(mode="OBJECT")
         raise
     _remove([base, *base_meshes])
+    for output, (viewport, hidden) in zip([new, *copies], visibility):
+        output.hide_viewport = viewport
+        output.hide_set(hidden)
     out = {**summary, "dry_run": False, "meshes_out": [c.name for c in copies], "merged_groups": merged, "rest_vertex_drift_m": drift,
            "rest_bar_m": bar, "posed_skin_drift_m": posed, "posed_bar_m": POSED_BAR_M, "max_frame_error_deg": frame_err,
            "animation": "not carried: the copy has no action (rig_retarget or rig_convert carries motion across rest frames)",
            "help": [f"run lampway_rig_inspect armature={name} before the next rig tool"]}
     out["sha256"] = {**summary["sha256"], "output": RT._fingerprint(new, RT.read(new))}
+    if plan.get("reference_scope") == "independent_native_bind":
+        mw = np.array(new.matrix_world)
+        binds = {n: {"head_m": (mw[:3, :3] @ np.asarray(ref["heads"][n]) + mw[:3, 3]).tolist(),
+                     "frame_engine": (mw[:3, :3] @ np.asarray(ref["frames"][n])).tolist()} for n in ref["names"]}
+        new["lw_native_reference_bind"] = json.dumps({"schema": "lampway.native-reference-bind/1",
+            "convention": convention, "reference_sha256": ref["sha256"], "output_rest": out["sha256"]["output"],
+            "binds": binds, "binds_sha256": RC.sha(binds)}, separators=(",", ":"))
+        try:
+            RT.reference_convention(new)
+        except Exception:
+            _remove([new, *copies])
+            raise
     return out

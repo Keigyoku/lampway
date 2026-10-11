@@ -381,3 +381,20 @@ def test_a_session_without_a_unique_scene_refuses_the_commit(env):
     env.bpy.data.scenes = []                                # the tab was closed
     out = commit.append_collection(_params(env), bpy_module=env.bpy, journal=env.journal)
     assert out["error_type"] == "stale_scene"
+
+
+def test_checkpoint_only_after_admission_before_first_write_not_replay(env, monkeypatch):
+    calls = []
+    def checkpoint(scene):
+        assert scene is env.bpy.context.scene
+        assert env.bpy.loads == []
+        calls.append(scene)
+    monkeypatch.setattr(commit, '_checkpoint_before_write', checkpoint, raising=False)
+    env.bpy.context.mode = 'PAINT_TEXTURE'
+    assert commit.append_collection(_params(env), bpy_module=env.bpy, journal=env.journal)['error_type'] == 'deferred'
+    assert calls == []
+    env.bpy.context.mode = 'OBJECT'
+    assert commit.append_collection(_params(env), bpy_module=env.bpy, journal=env.journal)['success']
+    assert len(calls) == 1
+    assert commit.append_collection(_params(env), bpy_module=env.bpy, journal=env.journal)['replayed']
+    assert len(calls) == 1

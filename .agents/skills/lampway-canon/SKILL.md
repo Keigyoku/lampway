@@ -31,6 +31,8 @@ python3 docs/canon/check_canon.py               # the three self-tests + generat
 python3 docs/canon/check_canon.py --self-test   # proves the check refuses a hand-edited golden
 ```
 
+Canon08 anatomical membership uses actual weighted-bone ancestry to the nearest configured region seed and refuses empty requested regions before solving. Preserve weighted bone transforms/rays and existing thresholds; recorded counts and synthetic native proofs do not replace an original body rerun.
+
 ## The pages
 
 | topic | page | the Lampway tools it governs |
@@ -69,13 +71,16 @@ python3 docs/canon/check_canon.py --self-test   # proves the check refuses a han
 3. **Build to the page.** An implementation item is RED-first against the page's named goldens: the golden's falsifier must be
    seen failing the OLD code before the new code lands. Load a golden's case from `docs/canon/goldens/` in the Lampway suite;
    never copy it elsewhere and never weaken its tolerance.
-4. **A page's open decision is not yours.** Where the page says DRAFT and names a ruling owed (a threshold, a range, a per-type
-   table), stub the behaviour as `needs_decision` and route the question; never pick a value.
+4. **Follow the captain's decision authority.** An open threshold, range or per-type table remains `needs_decision` unless the captain rules or explicitly delegates judgment. With delegated judgment, select the bounded value/table, record its dated ruling and rationale in the owning page's D table and settings, and label physical validation untested when it has not run. Retain explicit overrides and falsifiers; documentary references and synthetic tests do not establish original-asset physical acceptance. AC65's 2026-10-07 authorization adopts the defaults in `docs/canon/AC65-DECISION-AUDIT.md`; do not re-open that authorization as a measurement prerequisite.
 5. **When the page is wrong,** prove it with a measurement and change the page here, through your lane, with the ruling or
    measurement it rests on and `check_canon.py` green; never fork the canon in code.
 
 Provenance: `docs/canon/INDEX.md` and `IMPLEMENTATION_PLAN.md` §3 (the agent skill entries), written 2026-10-05/06 against
 `lp/wave5` at `b806617f` and copied into this repository on 2026-10-06.
+
+Canon21 centimetre export copies cancel the pinned writer unit carrier, admit raw Null/bone scales, and decode only the pinned importer representation without changing rest or mesh data. Preserve operator bounds and bind bars; neither Blender self-reference nor variable left quaternion deltas establishes physical native frame parity.
+
+The verified native342 conform path requires an explicit reference: source_copy preserves authored rest and skin with an identity map and matching measured convention, while mixed/unknown frames refuse. Default convention exports name only the disposable container Armature under the verified installed UE Blender predicate; occupied names refuse before allocation. For admitted pinned-writer centimetre files, cross-check authored node, BindPose and cluster binds under unchanged shortest-quaternion bars; refuse unsupported layouts without projecting matrices or falling back to inferred display tails. Keep imported display errors visible. Source preservation and authored-file verification never establish independent native UE parity.
 
 ## Anneal log
 
@@ -84,3 +89,11 @@ Provenance: `docs/canon/INDEX.md` and `IMPLEMENTATION_PLAN.md` §3 (the agent sk
 | 2026-10-05 | rail adoption | the canon's implementation plan §3 asks for a canon skill; captain: "make the DOE x DOX AGENTS rail for Lampway" | agents re-derived frames, weights and thresholds from memory and repeated recorded failures | load the canon page before any fit or geometry work, call its tool, route its open decisions; the canon's location stated honestly while it is off-tree | canon plan §3 |
 | 2026-10-06 | the canon moved into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the skill sent agents to an off-tree shelf and covered pages 01-15 only | point at docs/canon as the source of truth; pages 16-22, rig_tools and normalization in the table; check_canon.py named; page fixes land in the repo through a lane | captain ruling, 2026-10-06 |
 | 2026-10-06 | the check's dependencies declared | coordinator: "Declare jsonschema (and numpy) as dependencies of whatever imports them at runtime"; they were missing from the tools venv | numpy and jsonschema were named only in an inline CI pip line, so a fresh environment could not run check_canon.py | docs/canon/requirements.txt declares them, the canon workflow installs from it, the skill names the install line, a test ties every canon import to its manifest | coordinator, 2026-10-06 |
+
+| 2026-10-07 | measured pose-region admission | actual chest9f90 reported empty-arm success | exact seed matching lost native descendants and admitted vacuous metrics | follow canon08 actual ancestry/nonempty admission while retaining weighted identities and strict geometry proof grades | descendant and empty-region controls |
+
+| 2026-10-07 | actual unit-carrier and frame diagnosis | owner UE derived342-row capture | Blender self-readback hid scale100 Null ancestry; applying import object scale violated the existing drift guard | Canon21 centimetre export copies cancel the pinned writer unit carrier, admit raw Null/bone scales, and decode only the pinned importer representation without changing rest or mesh data. Preserve operator bounds and bind bars; neither Blender self-reference nor variable left quaternion deltas establishes physical native frame parity. | old-default rawNull100 RED; disposable writer/skin/action/unit-factor and quaternion-order controls |
+
+| 2026-10-08 | actual native conform and container correction | actual source-copy and installed UE predicate evidence | a161-bone implicit reference rewrote native342 frames and a differently named Null became an extra root | Require explicit native reference or bounded source_copy, preserve authored data, and reserve Armature for disposable exports only under the verified predicate. Cross-check redundant authored binds under existing bars and retain display reconstruction errors. Keep native pose calibration and physical acceptance separate. | native default-reference/container RED, source-copy, bind corruption and near-bar controls |
+
+| 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07 | an unconditional open-decision stub ignored explicit delegated authority | record dated chosen values, rationale and untested physical status; retain overrides/falsifiers and separate documentary/synthetic evidence from physical acceptance | AC65 decision audit and default-path RED/GREEN; original gear validation remains untested |

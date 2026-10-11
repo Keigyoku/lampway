@@ -93,7 +93,7 @@ RIG_DEFS = [
          P("dry_run", "boolean", "default true: return the plan")],
         api="rig_conform"),
     Def("lampway_rig_export_ue", "Write the FBX the engine reads and prove it bone by bone (canon 21): the recipe states EVERY exporter argument "
-        "(titan_cm_native, the default: centimetre-native, FBX_SCALE_NONE + apply_unit_scale, primary Z / secondary X, deform only, no leaf bones; "
+        "(auto, the default: measured normalized blender frames select X/-Y and ue_axes frames select Y/X; explicit titan_cm_native retains legacy Z/X. All are centimetre-native, FBX_SCALE_NONE + apply_unit_scale, deform only, no leaf bones; "
         "or a recipe JSON - shipped: cm_native_blender_convention (primary X / secondary -Y, measured for a rig with local Y along the limb) and "
         "cm_native_ue_axes (primary Y / secondary X, for X along)); the written file is imported back RAW (automatic bone orientation off, no axis "
         "correction) and every bone compared with the reference at the bind_mismatch bars (0.01 cm, 0.01 deg, 1e-4 scale); the file's own "
@@ -105,21 +105,18 @@ RIG_DEFS = [
         "normals, UnitScaleFactor and the sha256 of the file, the reference and the armature's rest." + _PATHS,
         [P("armature", required=True), P("out", required=True, desc="e.g. export/<name>.fbx"), P("meshes", "array", "mesh objects; default every mesh it deforms"),
          P("actions", "array", "at most one action name (one clip per file)"), P("reference", desc="empty (the armature in engine axes) | armature | <reference>.fbx"),
-         P("recipe", desc="titan_cm_native (default) | a recipe JSON path"), P("readback", "boolean", "must stay true")],
+         P("recipe", desc="auto (default, measured normalized frame convention) | titan_cm_native (explicit legacy engine-native Z/X) | cm_native_blender_convention | cm_native_ue_axes | a recipe JSON path"), P("readback", "boolean", "must stay true")],
         api="rig_export_ue"),
-    Def("lampway_rig_fit_template", "Rig the fitted example at its OWN joints, the rig step of the three-input pipeline (canon 20; TITAN rig-axi's "
-        "design): joints from a titan.rig-joints/1 file MEASURED on the example (its example_sha256 must equal the example's: the scene mesh's "
-        "geometry sha256, or the file's when example is a .glb/.fbx/.obj) or 'rig:<armature>' (the example's own deforming rig); the template "
-        "(default the UE5 Manny profile, 161 bones) gets its heads written to the measured joints (residual 0), every other bone placed by its "
-        "nearest measured segment (twists, metacarpals, correctives, ik bones on their targets; parentless ones by the similarity of all joints), "
-        "frames by canon 17 (blender | ue_axes), an inside check of six axis rays per joint, and the example's OWN weights on the body grammar "
-        "from the fitted segments (canon 07 falloff, 3 cm margin; never copied from the native body). Writes <example>_rig and a weighted copy "
-        "<example>_rigged (the example is untouched) and saves both to out (.blend). Refused: copied_not_fitted (every bone length within 0.1 % "
-        "of the template's: joints taken from the template's body, the 2026-09-28 defect), a joints file measured on another mesh, a required "
-        "joint missing (TITAN's 55: body + fingers), joints outside the example unless allow_outside names them, joints or hands from views (the "
-        "pose environment is not installed), an existing output. The receipt: residual, ratios, synthesized with their rule, hidden, outside, "
-        "rays per joint, weights, sha256 of example, joints, template and out." + _PATHS,
-        [P("example", required=True, desc="the example mesh object, or a .glb/.fbx/.obj"), P("joints", required=True, desc="joints.json | rig:<armature> | views"),
+    Def("lampway_rig_fit_template", "Fit a copied example to its OWN 55 measured body/finger joints (canon20). Sources: titan.rig-joints/1 with "
+        "matching example_sha256 (scene geometry or imported file), rig:<armature> from its deforming rig, or centre:rig:<armature>: own REST "
+        "heads corrected by canon11 B8 (16 rays, three projected hit-mean passes, 12 hits/10 fingers; open/hidden heads retained). "
+        "Template default UE5 Manny161: write measured heads, synthesize other bones along measured segments, IK at targets, parentless "
+        "bones by joint similarity; canon17 blender/ue_axes frames. OWN procedural body weights: canon07 quarter-shorter-bone blends, "
+        "nearest-face transfer; never native-body weights. Writes <example>_rig and <example>_rigged to out.blend; source untouched. "
+        "Refuses copied_not_fitted (all lengths within0.1% of template), wrong mesh SHA, missing joints, outside six-axis rays unless "
+        "allow_outside, views/hands without pose environment, existing out. Receipt: residual, ratios, synthesis rules, hidden/outside, "
+        "ray diagnostics, weights and example/joints/template/out SHA256." + _PATHS,
+        [P("example", required=True, desc="the example mesh object, or a .glb/.fbx/.obj"), P("joints", required=True, desc="joints.json | rig:<armature> | centre:rig:<armature> | views"),
          P("template", desc="a titan.animation-profile/1; default UE5 Manny"), P("hands", desc="none (views needs the pose environment)"),
          P("hidden", "array", "joints under armour or cloth to name (default pelvis, thigh_l, thigh_r)"), P("convention", desc="blender (default) | ue_axes"),
          P("weights", desc="procedural (default) | none"), P("allow_outside", "array", "joints allowed outside the example"),
@@ -141,7 +138,10 @@ RIG_DEFS = [
          P("extract", desc="deform (default) | selected | selected_deform | deform_and_selected"), P("hierarchy", desc="keep (default) | rigify_fix | flat"),
          P("constraint", desc="lotrot (default) | transform | none"), P("root_scale_from", desc="auto (default) | <bone> | none"),
          P("bbones", desc="refuse (default) | convert"), P("rebind_meshes", "boolean", "re-point the control's meshes (default true)"),
-         P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")],
+         P("collection", desc="the bone collection of the game rig (default Deform)"), P("dry_run", "boolean", "return the plan only")] + [P("fields", "array", "Top-level receipt fields; omitted uses control, game, bones, dry_run and follow"),
+         P("limit", "integer", "Maximum rows per receipt table, default 50", minimum=1, maximum=1000),
+         P("offset", "integer", "Zero-based table row offset, default 0", minimum=0),
+         P("full", "boolean", "Include detailed receipt fields, default false; pagination remains in effect")],
         api="rig_game_extract"),
     Def("lampway_rig_bake", "Constraint-driven motion to plain keys, action by action (canon 19 B.6; Game Rig Tools' Action Bakery semantics, "
         "the bake re-implemented): for each listed action of the driver (e.g. the control rig after lampway_rig_game_extract), the target's "
