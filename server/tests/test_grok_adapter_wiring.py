@@ -13,8 +13,19 @@ from lampway_server.herdr.harnesses.base import DirectServer, PaneSpec
 from lampway_server.herdr.harnesses.grok import Grok
 
 
+@pytest.fixture(autouse=True)
+def synthetic_prior_human_consent(tmp_path, monkeypatch):
+    from lampway_server import capabilities as CAP
+    board = CAP.Store(tmp_path / "consent-state")
+    monkeypatch.setattr(CAP, "ACTIVE", board)
+    disclosure = CAP.grok_compat_disclosure()
+    board.set("grok.worker_compat", enabled=True, options={
+        "consent_version": disclosure["consent_version"], "effects_sha256": disclosure["effects_sha256"]},
+        project=str(tmp_path), by="user")
+
+
 def worker(tmp_path, **changes):
-    values = dict(cwd=str(tmp_path), desktop=False,
+    values = dict(cwd=str(tmp_path), project_root=str(tmp_path), desktop=False,
         mcp_config_path=str(tmp_path / "root/panes/worker/mcp.json"),
         direct=(DirectServer("lampway", "http://127.0.0.1:9/api/v1/mcp/pane",
             {"X-Mixar-Session-Id": "swarm:one:worker"}, "WORKER_TOKEN", "synthetic-secret"),))
@@ -30,7 +41,7 @@ def test_candidate_native_wrap_uses_production_wiring_and_one_literal_task(tmp_p
     description = dict(native="/synthetic/grok", native_sha256="a" * 64,
         bwrap="/synthetic/bwrap", bwrap_sha256="b" * 64,
         connector=dict(command="/synthetic/lampway-pane-mcp", args=[], sha256="c" * 64))
-    monkeypatch.setattr(N, "grok_worker_description", lambda binary, *, cwd: dict(description))
+    monkeypatch.setattr(N, "grok_worker_description", lambda binary, *, cwd, project: dict(description))
     task = "--leading-option literal 'quotes' $NOT_AN_ENV; $(no-shell)\nsecond line"
     wiring = adapter.lampway_tools(pane)
     metadata_path = str(Path(pane.mcp_config_path).with_name("grok-worker.json"))
@@ -74,6 +85,6 @@ def test_readiness_queries_native_identity_at_project_and_requires_namespace_suc
         return (0, "[]") if "mcp" in argv else (1, "")
     monkeypatch.setattr(L, "worker_probe", probe)
     with pytest.raises(ValueError, match="unprivileged namespaces"):
-        N.grok_worker_description("/native/grok", cwd=str(tmp_path))
+        N.grok_worker_description("/native/grok", cwd=str(tmp_path), project=str(tmp_path))
     assert calls == [(["/native/grok", "mcp", "list", "--json"], {}, {"cwd": str(tmp_path)}),
         (["/native/bwrap", "--", "/bin/true"], {}, {})]

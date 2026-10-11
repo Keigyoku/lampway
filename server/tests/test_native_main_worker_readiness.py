@@ -16,6 +16,14 @@ from .worker_choice_support import install_worker_harness
 
 
 def selected(tmp_path, monkeypatch, harness):
+    if harness == 'grok':
+        # Explicit synthetic human consent reaches the independent native-readiness refusal.
+        from lampway_server import capabilities as CAP
+        board = CAP.Store(tmp_path / 'consent-state')
+        monkeypatch.setattr(CAP, 'ACTIVE', board)
+        disclosure = CAP.grok_compat_disclosure()
+        board.set('grok.worker_compat', enabled=True, options={
+            'consent_version': disclosure['consent_version'], 'effects_sha256': disclosure['effects_sha256']}, by='user')
     install_worker_harness(tmp_path, monkeypatch, harness)
     monkeypatch.setenv('LAMPWAY_LOCAL_CLI', '1')
     EG.ACTIVE.set_route(f'byoa:{harness}', True)

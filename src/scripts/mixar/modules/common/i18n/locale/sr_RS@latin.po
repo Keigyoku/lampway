@@ -6558,6 +6558,10 @@ msgstr ""
 msgid "Turn on"
 msgstr ""
 
+# derived
+msgid "Unavailable"
+msgstr "Nedostupno"
+
 msgid "Accept for this project"
 msgstr ""
 
@@ -6574,6 +6578,12 @@ msgid "Changes apply to this project only"
 msgstr ""
 
 msgid "Changes apply to every project"
+msgstr ""
+
+msgid "Grok Swarm-Worker compatibility"
+msgstr ""
+
+msgid "Refresh to read the server's Grok worker compatibility setting"
 msgstr ""
 
 msgid "This Lampway server has no Capabilities yet: update it, then Refresh"
@@ -6893,6 +6903,57 @@ msgstr ""
 msgid "Tab of the face"
 msgstr ""
 
+msgid "Refresh Agent preferences: this server cannot describe Grok worker compatibility safely"
+msgstr ""
+
+msgid "The project or scene changed: review Grok again"
+msgstr ""
+
+msgid "Refresh Agent preferences before reviewing Grok"
+msgstr ""
+
+msgid "The Grok review could not open; try again from Agent preferences"
+msgstr ""
+
+msgid "Grok worker execution is unavailable until qualification"
+msgstr ""
+
+msgid "Configure Grok workers"
+msgstr ""
+
+msgid "Review worker compatibility; MAIN selection does not enable it"
+msgstr ""
+
+msgid "Review Grok worker compatibility"
+msgstr ""
+
+msgid "Enable worker compatibility"
+msgstr ""
+
+msgid "Continue with native MAIN"
+msgstr ""
+
+msgid "Grok MAIN uses its normal native configuration. This switch changes only Grok swarm workers."
+msgstr ""
+
+msgid "This does not enable a network route, transfer a login, or qualify worker execution."
+msgstr ""
+
+msgid "Continue selects native MAIN without enabling worker compatibility."
+msgstr ""
+
+msgid "Configure workers separately"
+msgstr ""
+
+msgid "Enable applies to this project only."
+msgstr ""
+
+msgid "Enable applies to every project."
+msgstr ""
+
+msgid "The project, scene or disclosure changed: review Grok again"
+msgstr ""
+
 msgid "The account notice or launch request failed; refresh and try again."
 msgstr ""
 
@@ -6932,6 +6993,9 @@ msgstr ""
 msgid "OpenRouter, in dollars: a click above the first amount, never past the caps"
 msgstr ""
 
+msgid "Review and consent separately in Agent preferences."
+msgstr ""
+
 msgid "Continue saves your language and keys only"
 msgstr ""
 
@@ -6965,6 +7029,13 @@ msgstr ""
 msgid "A stand-in that answers on this machine and thinks nothing"
 msgstr ""
 
+# derived
+msgid "On"
+msgstr "Uključeno"
+
+msgid "Off"
+msgstr "Isključeno"
+
 msgid "Page {page} of {pages}"
 msgstr ""
 
@@ -6977,10 +7048,6 @@ msgstr ""
 msgid "Per day"
 msgstr ""
 
-# derived
-msgid "On"
-msgstr "Uključeno"
-
 msgid "Let data go over this route"
 msgstr ""
 
@@ -6991,6 +7058,9 @@ msgid "Lampway setup"
 msgstr ""
 
 msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "Continue to the next setup step"
 msgstr ""
 
 msgid "The step before"
@@ -7045,9 +7115,6 @@ msgstr ""
 
 msgid "Nothing is leaving this machine"
 msgstr ""
-
-msgid "Off"
-msgstr "Isključeno"
 
 msgid "Let it leave"
 msgstr ""
@@ -10617,10 +10684,6 @@ msgstr "Završeno"
 # derived
 msgid "Generation completed"
 msgstr "Generisanje je završeno"
-
-# derived
-msgid "Unavailable"
-msgstr "Nedostupno"
 
 # derived
 msgid "No supported 3D service is available"

@@ -85,6 +85,7 @@ CATALOGUE = (
     C("skills.write", "Write and improve its own skills", "Write new skills and change its own skills.", "writes_project",
       hermes=("skill_manage", "curator")),
     C("subagents", "Start helper agents", "Start helper agents for parts of a task.", "runs_code", hermes=("delegate_task",)),
+    C("grok.worker_compat", "Grok Swarm-Worker compatibility", "Allow the disclosed temporary Grok worker compatibility view; native qualification is still required.", "runs_code"),
     C("swarm", "Run parallel Lampway workers", "Start up to six Lampway workers, each in its own headless Lampway.", "runs_code",
       lampway=("swarm",)),
     C("schedule", "Run tasks on a schedule", "Run tasks on a schedule while the server runs.", "runs_code", hermes=("cron",)),
@@ -100,6 +101,34 @@ CATALOGUE = (
       "Lampway's own herdr server.", "acts_outside", lampway=("panes.drive",)),
 )
 _BY_ID = {c.id: c for c in CATALOGUE}
+
+
+GROK_WORKER_COMPAT = "grok.worker_compat"
+
+
+def grok_compat_disclosure() -> dict:
+    """Version and exact effects are owned by the native wrapper, never client copy."""
+    from .. import grok_worker as G
+    version = getattr(G, "COMPAT_VERSION", 1)
+    effects = list(getattr(G, "COMPAT_EFFECTS", ()))
+    import hashlib
+    digest = hashlib.sha256(json.dumps({"version": version, "effects": effects}, sort_keys=True).encode()).hexdigest()
+    from ..herdr.harnesses import get as harness
+    qualified = bool(harness("grok").worker_ok)  # Acceptance constant only; no detect/login/native probe.
+    return {"consent_version": version, "effects": effects, "effects_sha256": digest,
+            "warning": "Grok MAIN is unchanged. This opt-in changes only new Grok swarm workers, for the worker lifetime.",
+            "qualification": "Consent does not qualify native startup or authorize an account/provider call.",
+            "ready": qualified, "reason": ("Installed native startup is still checked before each worker." if qualified
+                                           else "Native Grok worker safety qualification remains unproved.")}
+
+
+def grok_worker_problem(project=None, *, state_dir=None) -> str:
+    """Current persisted human consent; no native inspection, files or egress grants."""
+    store = Store(state_dir) if state_dir is not None else ACTIVE
+    if store is None:
+        return "Grok worker compatibility is off: enable its disclosed switch in Agent preferences first"
+    on, why = store.effective(GROK_WORKER_COMPAT, project)
+    return "" if on else why
 
 
 def get(cid: str) -> Capability:
@@ -193,8 +222,16 @@ class Store:
     def effective(self, cid: str, project: Optional[str] = None, routes_on: Optional[Callable] = None) -> tuple:
         """(in force, why not). Chosen on AND every route it needs on."""
         cap = get(cid)
-        if not self.setting(cid, project)["enabled"]:
+        setting = self.setting(cid, project)
+        if not setting["enabled"]:
             return False, f"{cid} is off"
+        if cid == GROK_WORKER_COMPAT:
+            disclosure = grok_compat_disclosure()
+            options = setting.get("options") or {}
+            if (not isinstance(options, dict) or not disclosure["effects"] or type(options.get("consent_version")) is not int
+                    or options.get("consent_version") != disclosure["consent_version"]
+                    or options.get("effects_sha256") != disclosure["effects_sha256"]):
+                return False, "Grok worker compatibility needs renewed human consent for its exact current effects"
         routes_on = routes_on or _routes_on_default
         off = [r for r in cap.routes if not routes_on(r)]
         if off:
@@ -211,6 +248,9 @@ class Store:
                          "in_force": on, "why_not": why, "approval": s["approval"], "options": list(cap.options),
                          "chosen_options": s["options"], "scope": s["scope"], "default": cap.default,
                          "routes": [{"id": r, "on": bool(routes_on(r))} for r in cap.routes]})
+        for row in rows:
+            if row["id"] == GROK_WORKER_COMPAT:
+                row["worker_compat"] = grok_compat_disclosure()
         return rows
 
     def proposals(self) -> list:
@@ -225,6 +265,21 @@ class Store:
             raise Refused(AGENT_WRITE, 403)
         if approval is not None and approval not in APPROVALS:
             raise Refused(f"approval is one of {', '.join(APPROVALS)}")
+        if cid == GROK_WORKER_COMPAT:
+            if enabled is not None and type(enabled) is not bool:
+                raise Refused("Grok worker compatibility enabled must be a boolean")
+            if options is not None and (not isinstance(options, dict) or set(options) != {"consent_version", "effects_sha256"}):
+                raise Refused("Review Grok worker compatibility in Agent preferences: enabling requires its displayed consent_version and exact effects_sha256")
+            if enabled is True:
+                disclosure = grok_compat_disclosure()
+                if (not disclosure["effects"] or not isinstance(options, dict)
+                        or type(options.get("consent_version")) is not int
+                        or options["consent_version"] != disclosure["consent_version"]
+                        or options.get("effects_sha256") != disclosure["effects_sha256"]):
+                    raise Refused("Review Grok worker compatibility in Agent preferences and consent to the displayed exact effects before enabling")
+                options = {"consent_version": disclosure["consent_version"], "effects_sha256": disclosure["effects_sha256"]}
+            elif options is not None:
+                raise Refused("Consent is recorded only by explicitly enabling after review")
         with self._lock:
             doc = self._doc()
             layer = doc["projects"].setdefault(project, {}) if project else doc["global"]
@@ -268,6 +323,8 @@ class Store:
             if action == "accept":
                 cid = prop["id"]
                 get(cid)
+                if cid == GROK_WORKER_COMPAT and (change.get("enabled") or "options" in change):
+                    raise Refused("Review the Grok worker compatibility warning and enable its switch directly; a generic proposal acceptance cannot record consent")
                 layer = doc["projects"].setdefault(project, {}) if project else doc["global"]
                 entry = layer.setdefault(cid, {})
                 for key in ("enabled", "approval", "options"):

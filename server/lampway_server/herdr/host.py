@@ -198,6 +198,10 @@ class Cockpit:
             raise CockpitError("a command session needs the command")
         if api_key and by != "user":
             raise CockpitError("only the user can bill a pane to an API key, with their own click in the cockpit: an agent never can")
+        if swarm_worker is not None and agent == "grok":
+            from ..capabilities import grok_worker_problem
+            if (problem := grok_worker_problem(pr)):
+                raise CockpitError(problem)
         if not L.server_status(self.root).get("running"):
             raise CockpitError("the herdr server is not running: start it from the cockpit first (nothing is launched automatically)")
         ad = HN.ADAPTERS.get(agent) or HN.LAMPWAY_ADAPTERS.get(agent)
@@ -213,7 +217,7 @@ class Cockpit:
         if swarm_worker is not None:
             if by != "swarm":
                 raise CockpitError("only a swarm opens a worker pane")
-            if ad is None or (note := HN.worker_problem(ad)):
+            if ad is None or (note := HN.worker_problem(ad, project=pr)):
                 note = note if ad is not None else ""
                 raise CockpitError(note or f"{agent} cannot run a swarm worker yet: no recorded way to point it at Lampway's own endpoint")
             if not self.pane_mcp_url:

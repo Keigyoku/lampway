@@ -180,6 +180,9 @@ class PaneBrain:
             job.meta["choice"] = self.choice
         if self.mode_choice is not None:
             job.meta["mode_choice"] = self.mode_choice
+        # Runtime-owned facts, never supplied by MCP arguments or inferred from the parent.
+        job.meta["worker_harness"] = self.harness
+        job.meta["worker_project_root"] = self.project_root
         binding, token = self.bindings.issue(name, job)
         loop = asyncio.get_running_loop()
         opening = asyncio.ensure_future(asyncio.to_thread(

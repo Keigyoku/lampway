@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The first run's steps 2-5 (facelift contract 02, P1, DESIGN.md 13): a dialog per step on the lit path. Step 1 (language and keys) is the
+"""The first run's steps 2-5 (facelift contract 02, P1, DESIGN.md 13): one popup on the lit path with explicit Back and Continue buttons. Step 1 (language and keys) is the
 splash's Quick Setup, whose Continue opens this; the last button names the outcome ("Continue with 1 route on"), saves the preferences as
 Quick Setup always did and writes the routes, the capabilities and the caps to Lampway's server. A server without Capabilities has no step 4:
 the walk is the four steps it was.
@@ -11,7 +11,7 @@ Every route row is one line: the shield (its policy is the hover text), the name
 The capabilities step ("What may your agent do?", E2) is one line per capability under its risk: an info button (its sentence is the hover
 text), the name, the tick, with the server's defaults ticked; a ticked one that runs code or acts outside Lampway says what it allows, and a
 ticked one whose route is off says where to switch it.
-Nothing here reaches the network in a draw: the walk is read once, when the dialog opens."""
+Nothing here reaches the network in a draw: the walk is read once, when the popup opens. Step changes rebuild that same popup."""
 
 import textwrap
 
@@ -39,6 +39,7 @@ STEP_TEXT = {"agent": n_("The agent thinks with the provider you pick here; noth
              "routes": n_("Every route is off until you switch it on"),
              "capabilities": n_("Your agent can do only what you tick here. Change it any time in Choices and privacy."),
              "spending": n_("OpenRouter, in dollars: a click above the first amount, never past the caps")}
+DEDICATED_CONSENT = n_("Review and consent separately in Agent preferences.")
 OFFLINE_NEXT = n_("Continue saves your language and keys only")
 SHIELD = {"ok": 'LAMPWAY_SHIELD', "conditional": 'LAMPWAY_SHIELD_HALF', "retains": 'LAMPWAY_SHIELD_OPEN', "unknown": 'LAMPWAY_SHIELD_UNKNOWN'}
 PROVIDERS = (("chatgpt_plan", "ChatGPT plan", "Your ChatGPT subscription, signed in from Providers"),
@@ -79,10 +80,6 @@ def draw_rail(layout, walk):
         icon = 'LAMPWAY_NODE_LIT' if i < walk.step else 'LAMPWAY_NODE_HALF' if i == walk.step else 'LAMPWAY_NODE'
         col.label(text=name, icon=icon)
     col.separator()
-    if walk.step > 2:    # Back lives under the steps, never on the bottom row where the step before had Continue (audit F23)
-        col.operator("lampway.onboarding_back", text="Back")
-    else:
-        col.label(text="")
 
 
 def wrapped(layout, text, icon='NONE'):
@@ -109,6 +106,11 @@ def body_rows(walk) -> int:
                _lines(STEP_TEXT["spending"]) + 3)
 
 
+def requires_separate_consent(cap) -> bool:
+    """A server-provided worker descriptor requires its own review, even if incomplete."""
+    return "worker_compat" in cap
+
+
 def capability_pages(walk) -> list:
     """Stable risk-ordered pages reserve possible warnings, without drawing empty padding.
 
@@ -118,7 +120,8 @@ def capability_pages(walk) -> list:
     pages, page, rows, risk = [], [], 0, None
     for group in face.groups(walk.capability_rows):
         for cap in group["rows"]:
-            cost = 1 + int(face.needs_confirm(cap)) + int(bool(cap.get("routes")))
+            cost = (1 + int(face.needs_confirm(cap)) + int(bool(cap.get("routes")))
+                    + _lines(DEDICATED_CONSENT) * int(requires_separate_consent(cap)))
             heading = 2 if risk != group["risk"] else 0
             if page and rows + heading + cost > CAPABILITY_PAGE_ROWS:
                 pages.append(page)
@@ -145,6 +148,7 @@ def capability_rows(walk) -> int:
     pages, _, caps = _capability_page(walk)
     return (_lines(STEP_TEXT["capabilities"]) + 2 * len(face.groups(caps)) + len(caps)
             + sum(bool(walk.capability_warning(c["id"])) + bool(walk.capability_note(c["id"])) for c in caps)
+            + sum(_lines(DEDICATED_CONSENT) for c in caps if requires_separate_consent(c))
             + int(len(pages) > 1))
 
 
@@ -176,8 +180,14 @@ def draw_capabilities(layout, walk, cap_rows) -> int:
             row = layout.row(align=True)
             row.operator("lampway.onboarding_capability_info", text="", icon='INFO', emboss=False).cap_id = cap["id"]
             row.label(text=cap.get("label") or cap["id"])
-            row.prop(item, "enabled", text="")
+            if requires_separate_consent(cap):
+                row.label(text=iface_(n_("On")) if walk.capability_chosen[cap["id"]] else iface_(n_("Off")), translate=False)
+            else:
+                row.prop(item, "enabled", text="")
             drawn += 1
+            if requires_separate_consent(cap):
+                wrapped(layout, DEDICATED_CONSENT, icon='INFO')
+                drawn += _lines(DEDICATED_CONSENT)
             for text, icon in ((walk.capability_warning(cap["id"]), 'ERROR'), (walk.capability_note(cap["id"]), 'INFO')):
                 if text:
                     layout.label(text=text, icon=icon)
@@ -235,7 +245,9 @@ def _draw_body(body, walk, rows, cap_rows=()) -> int:
 
 
 def _redraw_all(context):
-    """The step before's dialog must not stay painted behind this one (audit F23)."""
+    """Refresh surrounding editors after setup content changes."""
+    if getattr(context, "window", None) is None:
+        return
     for area in [*context.window.screen.areas, *context.window.global_areas]:
         area.tag_redraw()
 
@@ -253,7 +265,15 @@ def _provider_picked(self, context):
 
 def _capability_switched(self, context):
     walk = WALK["walk"]
-    if walk is not None and walk.capability_chosen.get(self.cap_id) != self.enabled:
+    if walk is None:
+        return
+    cap = next((c for c in walk.capability_rows or [] if c["id"] == self.cap_id), {})
+    if requires_separate_consent(cap):
+        saved = walk.capability_chosen[self.cap_id]
+        if self.enabled != saved:
+            self.enabled = saved
+        return
+    if walk.capability_chosen.get(self.cap_id) != self.enabled:
         walk.click_capability(self.cap_id, self.enabled)
 
 
@@ -304,19 +324,26 @@ class LAMPWAY_OT_onboarding(Operator):
 
     def invoke(self, context, event):
         walk = WALK["walk"] or _begin(context)
-        # every step opens where the first did: one size, one place, so Continue never moves (audit F23)
+        # Anchor the one popup when it opens; step buttons refresh it in place (audit F23).
         if WALK["anchor"] is None:
             WALK["anchor"] = (event.mouse_x, event.mouse_y)
         elif (event.mouse_x, event.mouse_y) != WALK["anchor"]:
             context.window.cursor_warp(*WALK["anchor"])
         _redraw_all(context)
-        text = walk.continue_label() if walk.step == len(walk.steps) and walk.online else "Continue"
-        return context.window_manager.invoke_props_dialog(self, width=640, title=walk.steps[walk.step - 1], confirm_text=text)
+        return context.window_manager.invoke_popup(self, width=640)
 
     def draw(self, context):
         walk = WALK["walk"]
         if walk is not None:
+            self.layout.label(text=walk.steps[walk.step - 1])
             draw_step(self.layout, walk, context.window_manager.lampway_onboarding_routes, context.window_manager.lampway_onboarding_caps)
+            self.layout.separator()
+            footer = self.layout.row(align=True)
+            back = footer.row()
+            back.enabled = walk.step > 2
+            back.operator("lampway.onboarding_back", text="Back")
+            text = walk.continue_label() if walk.step == len(walk.steps) and walk.online else "Continue"
+            footer.operator("lampway.onboarding_next", text=text)
 
     def execute(self, context):
         walk = WALK["walk"]
@@ -326,16 +353,40 @@ class LAMPWAY_OT_onboarding(Operator):
             why = walk.next()
             if why:
                 self.report({'ERROR'}, why)
-            return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+            _refresh_step(context)
+            return {'FINISHED'}
         try:
             saved = walk.finish(_door() if walk.online else None)
         except Exception as exc:  # noqa: BLE001  (the server refused or went away: say so, keep the walk to try again)
             self.report({'ERROR'}, f"Lampway's server did not take the setup: {exc}")
-            return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+            _refresh_step(context)
+            return {'FINISHED'}
         bpy.ops.wm.save_userpref()
         WALK.update(walk=None, anchor=None, capability_page=0)
         self.report({'INFO'}, "Saved: " + ", ".join(saved))
         return {'FINISHED'}
+
+
+def _refresh_step(context):
+    """Rebuild the existing popup's layout, then redraw it and its editor."""
+    # Button context.region is the editor; it cannot refresh temporary popup content.
+    popup = getattr(context, "region_popup", None)
+    if popup is not None and popup.type == 'TEMPORARY':
+        popup.tag_refresh_ui()
+        popup.tag_redraw()
+    region = getattr(context, "region", None)
+    if region is not None:
+        region.tag_redraw()
+    _redraw_all(context)
+
+
+class LAMPWAY_OT_onboarding_next(Operator):
+    """Continue to the next setup step"""
+    bl_idname = "lampway.onboarding_next"
+    bl_label = "Continue"
+
+    def execute(self, context):
+        return LAMPWAY_OT_onboarding.execute(self, context)
 
 
 class LAMPWAY_OT_onboarding_back(Operator):
@@ -346,7 +397,8 @@ class LAMPWAY_OT_onboarding_back(Operator):
     def execute(self, context):
         if WALK["walk"] is not None:
             WALK["walk"].back()
-        return bpy.ops.lampway.onboarding('INVOKE_DEFAULT')
+        _refresh_step(context)
+        return {'FINISHED'}
 
 
 class LAMPWAY_OT_onboarding_capability_page(Operator):
@@ -402,7 +454,7 @@ class LAMPWAY_OT_onboarding_capability_info(Operator):
         return {'FINISHED'}
 
 
-classes = (LampwayOnboardingRoute, LampwayOnboardingCapability, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_capability_page, LAMPWAY_OT_onboarding_policy,
+classes = (LampwayOnboardingRoute, LampwayOnboardingCapability, LAMPWAY_OT_onboarding, LAMPWAY_OT_onboarding_back, LAMPWAY_OT_onboarding_next, LAMPWAY_OT_onboarding_capability_page, LAMPWAY_OT_onboarding_policy,
            LAMPWAY_OT_onboarding_capability_info)
 _PROPS = ("lampway_onboarding_routes", "lampway_onboarding_caps", "lampway_onboarding_provider", "lampway_onboarding_job_cap", "lampway_onboarding_day_cap",
           "lampway_onboarding_above")

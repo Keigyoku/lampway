@@ -25,7 +25,7 @@
 # trimmed clearance standard deviation over torso+neck at the best fit, with penetration reported separately
 # (worst mm, fraction of rays). A seed whose shape matches the body needs no penetration to sit evenly.
 # Usage: blender -b -P proportion_fit.py -- <out_dir> <body.glb> <piece>:<turn_deg> [<piece>:<turn_deg> ...]
-#   turn_deg: rotation about Z that brings the piece to face -Y with its wearer's left at +X (Tripo FBX and Triangle glb: -90).
+#   turn_deg: rotation about Z that brings the piece to face -Y with its wearer's left at +X (declare each piece; no generator-wide facing default).
 # --- AXI prelude (tools/AXI.md): no args shows what this is; too few args or an unknown flag refuses on stdout (script runs only, never on import) ---
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..')); import axi_out as _ax

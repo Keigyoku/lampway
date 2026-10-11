@@ -84,6 +84,9 @@ class Grok(Adapter):
 
     def _main_only(self, pane):
         if not pane.desktop:
+            from ...capabilities import grok_worker_problem
+            if (problem := grok_worker_problem(pane.project_root)):
+                raise ValueError(problem)
             if not self.worker_ok:
                 raise ValueError(self.worker_note)
             binding = direct_binding(pane) or ""
@@ -92,9 +95,12 @@ class Grok(Adapter):
                     or (pane.scene_session_id and pane.scene_session_id != binding)):
                 raise ValueError("Grok worker requires one owned direct-only swarm MCP binding")
 
-    def worker_compatibility_note(self):
+    def worker_compatibility_note(self, *, project=None):
         from ...native_worker_readiness import grok_worker_note
-        return grok_worker_note(self.locate())
+        from ...capabilities import grok_worker_problem
+        if (problem := grok_worker_problem(project)):
+            return problem
+        return grok_worker_note(self.locate(), project=project)
 
     def launch(self, pane, task=None):
         if pane.desktop:
@@ -132,7 +138,13 @@ class Grok(Adapter):
         if not pane.desktop:
             from ...native_worker_readiness import grok_worker_description
             metadata = Path(path).with_name("grok-worker.json")
-            description = grok_worker_description(self.locate(), cwd=pane.cwd)
+            description = grok_worker_description(self.locate(), cwd=pane.cwd, project=pane.project_root)
+            from ... import capabilities as CAP
+            from ... import grok_worker as G
+            # Recheck after qualification; a concurrent OFF never emits enrolled metadata.
+            if (problem := CAP.grok_worker_problem(pane.project_root)):
+                raise ValueError(problem)
+            description["compat_view"] = G.compat_metadata(Path.home(), pane.project_root, CAP.ACTIVE.state_dir)
             description.update(version=1, root=env[ROOT_ENV], cwd=pane.cwd,
                                inner_socket=str(metadata.with_name("grok-inner.sock")),
                                outer_socket=str(metadata.with_name("grok-outer.sock")))

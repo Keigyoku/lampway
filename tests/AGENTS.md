@@ -113,6 +113,21 @@ no role or text heuristic identifies transient rows. Exercise actual patched fac
 callback/busy state on pending snapshots, independent gateway admission, SID changes and real reconnect invalidation.
 Holding one controller instance throughout a pure test cannot qualify native render lifetime.
 
+Bounded issue #11 intake preserves named tests, original algorithms, refusal assertions, tolerances and native deadlines.
+AXI goldens follow the accepted PR1 canonical renderer while decoded values and commands remain; expanded help/newline
+forms can still be legal decoder input. Synthetic RED/GREEN controls prove components only. F23 controls preserve dynamic
+walk steps/defaults and plant missing temporary popup refresh; physical clicks, layout and save remain native acceptance.
+Hidden-copy controls retain source visibility/collection state and restoration after exceptions, including repeated conform calls after baseline removal. The imported issue2 helper
+requires an outer exact matching binary/overlay fingerprint receipt; absent binaries or owner assets are NOT RUN. Pure
+frame arrays do not replace native normalization or private-asset proportion/appearance proof.
+
+Grok worker compatibility tests preserve OFF behavior and the original native unrestricted discovery/auth/persona baseline.
+Explicit ON enrollment uses the exact displayed version/effects digest and scope; missing or stale consent refuses before
+native lookup/probes/files. Preserve hostile-reload canonical availability, foreign initialization/call refusals and the
+original twenty-second deadlines. Test-instance candidate admission never promotes production worker readiness. UI
+controls retain MAIN/B5 paths, warn on every Grok selection, and plant mutable-disclosure and stale-server digest failures.
+Native QA planning uses only its owned fixture environment and restores the full caller environment after success or failure. The STDIO diagnostic removes every exact HTTP shim mount only from its copied policy-only probe boundary; loopback uses the unchanged production plan. Retained malformed consent options refuse renewal without changing state. Use the production AST extractor on client consent messages; verify whole-sentence translation before wrapping, translated action labels and unchanged exact server disclosure/digest. Source passes and consent do not establish native mount behavior, configuration preservation or worker qualification.
+
 ## Test
 
 ```bash
@@ -162,3 +177,9 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | native MCP hot-reload completion versus filtered no-op | exact native 1.0.46 loopback baseline failure and eight controlled ordering REDs | update acknowledgement preceded handshake, while filtered no-op updates cannot emit fresh completion | offline QA paragraph: pre-update current-session fence, fresh restart completion, or one current ready no-op catalogue; shared twenty-second budget, no sleep or retry | original ten readiness controls preserved with seventeen new pure reload controls; repaired actual native/CI remains NOT RUN |
 | 2026-10-10 | gateway-owned native history controller lifetime | b1 native compression still hides later USER rows and causal factory-recreation RED | native React renders recreated the handler and discarded its revision baseline | history paragraph: preserve controller state per gateway owner with fresh callbacks, isolate independent gateways and real resets, retain no transcript | actual compressed-history failures and causal recreated-factory RED retained; unchanged rebuilt terminal qualification remains required |
 | 2026-10-11 | normal engine prerequisites and affirmative baseline reconciliation | issue #11 P4-T02/T03 | tag-only test paths rejected valid SHA builds and 122 passing identities remained in the baseline | compiler prerequisites use the normal resolved manifest; baseline entries need exact PASS receipts, preserving every other failure; qualify completed FDCA integrated native cases by their scope | causal tagless RED; 45 focused passes; verified archive and all 122 original baseline identities pass again in cloud; whole-client remains RED |
+| 2026-10-11 | bounded issue #11 dependency qualification | accepted exact PR1 intake and inherited hidden-copy correction | canonical output migration, mocked popup refresh and pure geometry could be overstated as native proof | intake paragraph: retained semantic controls and original assertions, explicit native/helper fingerprint prerequisites and physical scope | causal AXI 9F21P to39P, F23 10F43P to53P, hidden5F2P to7P; native proof separate |
+| 2026-10-11 | Grok compatibility controls retain native acceptance | explicit worker-only consent ruling and source review | consent metadata ignored effects and async enable could accept an unseen warning; pure guards could overstate safety | Grok paragraph: exactdigest OFF/ON gates, unchanged native baseline/deadlines, MAIN/B5 and stale-state controls, candidate-only QA admission | causal boundary6F, UI4F and digest/preflight REDs retained; native safety qualification remains separate |
+
+| 2026-10-11 | consent QA environment and repeated visibility controls | integrated native diagnostic and independent review | stale view-layer entries broke a second conform; native QA planned under the wrong HOME and retained a repeated HTTP shim | synchronize before visibility snapshots; retain repeated-call controls, exact fixture-environment restoration and all exact STDIO shim removal; malformed consent refuses | causal RED/GREEN plus actual historical-native diagnostic; final-head native acceptance remains open |
+
+| 2026-10-11 | consent extraction and translation controls | new consent UI catalog review | positional messages escaped extraction and wrapped fragments would not match catalog messages | production extractor and whole-message translation controls preserve exact server effects/digest | four causal REDs; canonical catalog regeneration remains a separate check |

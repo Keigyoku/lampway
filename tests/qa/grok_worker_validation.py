@@ -11,6 +11,7 @@ Receipts survive every failure; absent proof fails rather than becoming a skip.
 import argparse
 import asyncio
 import ctypes
+from contextlib import contextmanager
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -57,6 +58,119 @@ def enabled_native_servers(reply):
                 raise ValueError('native canonical MCP server is not ready')
             enabled.append(row['name'])
     return enabled
+
+
+@contextmanager
+def fixture_environment(env):
+    """Use only the owned fixture environment for in-process native planning."""
+    original = dict(os.environ)
+    try:
+        os.environ.clear()
+        os.environ.update(env)
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(original)
+
+
+def stdio_diagnostic_boundary(plan):
+    """Remove only exact HTTP shim binds from the copied STDIO probe boundary."""
+    boundary = plan['argv'][:plan['argv'].index('--') + 1]
+    triple = ['--ro-bind', plan['shim'], str(Path(plan['connector']).resolve())]
+    result, removed, index = [], 0, 0
+    while index < len(boundary):
+        if boundary[index:index + 3] == triple:
+            removed += 1
+            index += 3
+        else:
+            if boundary[index] == plan['shim']:
+                raise ValueError('STDIO diagnostic shim mount is malformed or has an unexpected target')
+            result.append(boundary[index])
+            index += 1
+    if not removed:
+        raise ValueError('STDIO diagnostic requires an exact production shim mount')
+    return result
+
+
+def compatibility_environment(plan, *, selected):
+    """Exact explicit temporary effect, never inferred from a launch flag."""
+    boundary = plan['argv'][:plan['argv'].index('--')]
+    pairs = {}
+    for index, token in enumerate(boundary):
+        if token != '--setenv':
+            continue
+        if index + 2 >= len(boundary) or boundary[index + 1] in pairs:
+            raise ValueError('compatibility environment override is malformed or duplicated')
+        pairs[boundary[index + 1]] = boundary[index + 2]
+    expected = {'GROK_CURSOR_MCPS_ENABLED': 'false'} if selected else {}
+    if pairs != expected:
+        raise ValueError('compatibility environment differs from explicit QA selection')
+    return pairs
+
+
+def compatibility_view(config, env, plan):
+    """Verify every declared temporary mount/effect on synthetic fixture paths."""
+    enrollment = config.get('compat_view')
+    view = plan.get('compat_view')
+    if enrollment is None:
+        if view is not None:
+            raise ValueError('OFF compatibility view was introduced')
+        return None
+    if (not isinstance(view, dict) or type(view.get('version')) is not int or view.get('version') != 1 or
+            view.get('enrollment') != enrollment or enrollment.get('home') != env['HOME']):
+        raise ValueError('compatibility view enrollment differs from explicit selection')
+    home = Path(env['HOME'])
+    skeleton = Path(plan['work']) / 'home-view'
+    if view.get('skeleton') != str(skeleton) or view.get('sentinel_path') != str(skeleton / '.cursor/mcp.json'):
+        raise ValueError('compatibility view must be under the owned boundary')
+    expected_sentinel = {'mcpServers': {'lampway_pane': {
+        'command': config['connector']['command'], 'args': config['connector']['args'], 'enabled': True}}}
+    sentinel = view.get('sentinel')
+    if (not isinstance(sentinel, str) or json.loads(sentinel) != expected_sentinel or
+            hashlib.sha256(sentinel.encode()).hexdigest() != view.get('sentinel_sha256')):
+        raise ValueError('compatibility attribution sentinel differs from exact canonical identity')
+    sources = view['sources']
+    if (sources['home']['path'] != str(home) or
+            any(Path(row['path']).parent != home for row in sources['children']) or
+            any(Path(row['path']).parent != home / '.cursor' for row in sources['cursor_children'])):
+        raise ValueError('compatibility view source paths differ from unchanged HOME')
+    entries = [{**row, 'relative': Path(row['path']).name} for row in sources['children']
+               if Path(row['path']).name != '.cursor']
+    entries += [{**row, 'relative': '.cursor/' + Path(row['path']).name} for row in sources['cursor_children']
+                if Path(row['path']).name != 'mcp.json']
+    mounts = ['--ro-bind', str(skeleton), str(home)]
+    for row in entries:
+        if row['kind'] != 'symlink':
+            mounts += ['--bind', row['path'], str(home / row['relative'])]
+    mounts += ['--setenv', 'GROK_CURSOR_MCPS_ENABLED', 'false']
+    manifest = hashlib.sha256(json.dumps({'sources': sources, 'mounts': mounts, 'sentinel': sentinel},
+                                         sort_keys=True).encode()).hexdigest()
+    boundary = plan['argv'][:plan['argv'].index('--')]
+    critical_targets = {str(home), str(home / '.cursor'), str(home / '.cursor/mcp.json')}
+    critical_mounts = [boundary[i:i + 3] for i, token in enumerate(boundary)
+                       if token in ('--bind', '--ro-bind') and i + 2 < len(boundary)
+                       and boundary[i + 2] in critical_targets]
+    if critical_mounts != [['--ro-bind', str(skeleton), str(home)]]:
+        raise ValueError('compatibility view has an extra HOME or Cursor mask')
+    if (view.get('entries') != entries or view.get('mounts') != mounts or
+            view.get('manifest_sha256') != manifest or
+            sum(boundary[i:i + len(mounts)] == mounts for i in range(len(boundary))) != 1):
+        raise ValueError('compatibility view changed an undeclared native mount/effect')
+    return view
+
+
+def enroll_compatibility_fixture(config):
+    """Synthetic prior human choice only; never a production readiness grant."""
+    from lampway_server import capabilities as CAP
+    view = config['compat_view']
+    store = CAP.Store(view['state_dir'])
+    disclosure = CAP.grok_compat_disclosure()
+    store.set('grok.worker_compat', enabled=True,
+              options={'consent_version': 1, 'effects_sha256': disclosure['effects_sha256']},
+              project=view['project_root'], by='user')
+    if not store.effective('grok.worker_compat', view['project_root'])[0]:
+        raise ValueError('synthetic compatibility fixture enrollment was refused')
+    return store
 
 
 def digest(path):
@@ -264,6 +378,9 @@ class Validator:
         self.receipt = {'phase': options.phase, 'cases': [], 'commands': [], 'worker_ready': False,
                         'scope': 'Owned synthetic homes, offline fixture only; no accounts/model service or native user files.'}
         self.http = None
+        self.receipt['compatibility_layer'] = {
+            'selected': getattr(options, 'compatibility_layer', False) is True,
+            'scope': 'Explicit synthetic QA selection only; not production human consent or readiness.'}
 
     def check(self, name, value, evidence=None):
         self.receipt['cases'].append({'name': name, 'passed': bool(value), 'evidence': evidence})
@@ -313,9 +430,17 @@ class Validator:
         for name in ['requirements.toml', 'managed_config.toml']:
             policy = gh / name
             policy.write_text('# Original synthetic native policy cache; no grants.\n'); policy.chmod(0o600)
-        # A compat sentinel is a native source, never silently disabled through env.
+        # The unrestricted/OFF baseline retains native compat discovery. Explicit
+        # enrolled worker changes are separately checked; no silent env override.
         (home / '.claude.json').write_text(json.dumps({'mcpServers': {'foreign_compat': {
             'command': sys.executable, 'args': [str(Path(__file__).resolve()), '--fake-mcp', str(self.output / 'foreign-compat.jsonl')]}}}))
+        if getattr(self.options, 'cursor_fixture', 'absent') == 'present':
+            cursor = home / '.cursor'; cursor.mkdir(mode=0o700)
+            cursor_config = cursor / 'mcp.json'
+            cursor_config.write_text(json.dumps({'mcpServers': {'foreign_cursor': {
+                'command': sys.executable, 'args': [str(Path(__file__).resolve()), '--fake-mcp',
+                    str(self.output / 'foreign-cursor.jsonl')]}}}))
+            cursor_config.chmod(0o600)
         # User-scope trust is native; activation is the explicit synthetic
         # preference above. No trust command, grant or marketplace is used.
         plugin = gh / 'plugins' / 'owned-sentinel'
@@ -345,11 +470,17 @@ class Validator:
                   'bwrap_sha256': digest(self.options.bwrap), 'connector': {'command': str(connector), 'args': [], 'sha256': digest(connector)},
                   'inner_socket': str(pane / 'inner.sock'), 'outer_socket': str(pane / 'outer.sock'),
                   'task': 'synthetic_no_data_probe'}
+        if getattr(self.options, 'compatibility_layer', False) is True:
+            config['compat_view'] = {'version': 1, 'home': str(home),
+                                     'project_root': str(cwd), 'state_dir': str(root)}
         path = pane / 'grok-worker.json'; path.write_text(json.dumps(config)); path.chmod(0o600)
         self.receipt['synthetic_inputs'] = {str(p): file_state(p) for p in
             [auth, persona, gh / 'config.toml', gh / 'requirements.toml', gh / 'managed_config.toml',
              home / '.claude.json', plugin / '.mcp.json', plugin / '.grok-plugin' / 'plugin.json', connector,
              gh / 'trusted_folders.toml', gh / 'trusted-plugins']}
+        if getattr(self.options, 'cursor_fixture', 'absent') == 'present':
+            self.receipt['synthetic_inputs'][str(home / '.cursor/mcp.json')] = file_state(home / '.cursor/mcp.json')
+        self.receipt['cursor_fixture'] = getattr(self.options, 'cursor_fixture', 'absent')
         return path, env, cwd, config
 
     async def acp(self, argv, env, cwd, label, *, expect_owned=True):
@@ -506,7 +637,7 @@ class Validator:
                     before_enabled == ['lampway_pane'], before)
                 self.check('catalogue excludes inherited foreign servers', 'error' not in before and
                     not any(name in before_enabled for name in
-                            ['foreign_user', 'foreign_compat', 'foreign_plugin', 'foreign_same_command']), before)
+                            ['foreign_user', 'foreign_compat', 'foreign_plugin', 'foreign_same_command', 'foreign_cursor']), before)
                 injected = [{'name': name, 'command': sys.executable, 'args': [str(Path(__file__).resolve()),
                     '--fake-mcp', str(self.output / ('foreign-' + name + '.jsonl'))], 'env': []}
                     for name in ['dynamic', 'lampway_pane']]
@@ -564,6 +695,8 @@ class Validator:
             self.http.events = []; self.http.binding = 'swarm:owned:one'; self.http.hold_model = False
             threading.Thread(target=self.http.serve_forever, daemon=True).start()
         path, env, cwd, config = self.make_fixture()
+        if getattr(self.options, 'compatibility_layer', False) is True:
+            enroll_compatibility_fixture(config)
         self.receipt['versions'] = {'grok': self.run([str(self.options.grok), '--version'], env=env, cwd=cwd),
                                    'bwrap': self.run([str(self.options.bwrap), '--version'], env=env, cwd=cwd)}
         repo = Path(__file__).resolve().parents[2]
@@ -579,6 +712,9 @@ class Validator:
         for source in ['user', 'compat', 'plugin']:
             self.check('baseline foreign ' + source + ' source really initialized',
                        any(e.get('method') == 'initialize' for e in read_events(self.output / ('foreign-' + source + '.jsonl'))))
+        if getattr(self.options, 'cursor_fixture', 'absent') == 'present':
+            self.check('baseline foreign Cursor source really initialized',
+                any(e.get('method') == 'initialize' for e in read_events(self.output / 'foreign-cursor.jsonl')))
         # Warmed vendor configuration, auth and persona are the comparison baseline.
         warmed = {p: file_state(p) for p in self.receipt['synthetic_inputs']}
         untouched = [Path(env['GROK_AUTH_PATH']), Path(env['GROK_HOME']) / 'original-agent.md']
@@ -589,7 +725,24 @@ class Validator:
         self.receipt['preservation_qualification'] = 'Compare warmed native baseline; vendor first-start cache changes are separately recorded.'
         self.save()
         for log in self.output.glob('foreign-*.jsonl'): log.rename(log.with_suffix('.baseline.jsonl'))
-        plan = G.build_plan(path); G.prepare(plan)
+        with fixture_environment(env):
+            plan = G.build_plan(path)
+            selected = getattr(self.options, 'compatibility_layer', False) is True
+            self.check('explicit worker compatibility environment matches selection',
+                       compatibility_environment(plan, selected=selected) ==
+                       ({'GROK_CURSOR_MCPS_ENABLED': 'false'} if selected else {}))
+            self.check('unrestricted baseline retains native compatibility environment',
+                       'GROK_CURSOR_MCPS_ENABLED' not in env)
+            view = compatibility_view(config, env, plan)
+            if view is not None:
+                self.receipt['compatibility_layer'].update(
+                    version=view['version'], effects_sha256=view['effects_sha256'],
+                    sentinel_sha256=view['sentinel_sha256'], manifest_sha256=view['manifest_sha256'])
+            G.prepare(plan)
+        if view is not None:
+            sentinel = Path(view['sentinel_path'])
+            self.check('explicit temporary attribution sentinel exact and read-only',
+                       file_state(sentinel) == {'sha256': view['sentinel_sha256'], 'mode': 0o400})
         split = plan['argv'].index('--')
         policy = Path(plan['policy_path'])
         # A writable alternate pathname would defeat a read-only /etc bind.
@@ -605,13 +758,14 @@ class Validator:
             # This phase proves native policy against a stdio stand-in only.
             # The production shim invokes the HTTP helper and cannot operate
             # under all-INET denial. It is executed unchanged in loopback phase.
-            shim_index = boundary.index(plan['shim'])
-            del boundary[shim_index - 1:shim_index + 2]
+            boundary = stdio_diagnostic_boundary(plan)
             self.receipt['stdio_qualification'] = 'Policy-only ACP probe; fake stdio connector, no production shim/helper claim.'
         restricted = boundary + [config['native'], 'agent', '--no-leader', 'stdio']
         asyncio.run(self.acp(restricted, env, cwd, 'restricted'))
         self.check('foreign user blocked before initialization', not read_events(self.output / 'foreign-user.jsonl'))
         self.check('foreign compat blocked before initialization', not read_events(self.output / 'foreign-compat.jsonl'))
+        if getattr(self.options, 'cursor_fixture', 'absent') == 'present':
+            self.check('foreign Cursor blocked before initialization', not read_events(self.output / 'foreign-cursor.jsonl'))
         self.check('trusted user plugin blocked before initialization', not read_events(self.output / 'foreign-plugin.jsonl'))
         self.check('warmed original persona/auth/config/policy preserved', warmed == {p: file_state(p) for p in warmed})
         if self.options.phase == 'loopback':
@@ -665,6 +819,8 @@ class Validator:
         from lampway_server.herdr.harnesses.grok import Grok
         from lampway_server.herdr.harnesses.base import PaneSpec, DirectServer
         from lampway_server import grok_worker as G
+        from lampway_server import capabilities as CAP
+        old_capabilities = CAP.ACTIVE
         self.check('pinned herdr supplied', self.options.herdr is not None)
         self.receipt['versions']['herdr'] = self.run([str(self.options.herdr), '--version'])
         herdr_root = self.output / 'herdr'
@@ -691,6 +847,8 @@ class Validator:
             return not any(still_alive(r) for r in rows)
         panes = []
         try:
+            if getattr(self.options, 'compatibility_layer', False) is True:
+                CAP.set_active(enroll_compatibility_fixture(config))
             candidate = G.candidate_paths(str(self.options.grok.resolve()))
             self.receipt['candidate_paths'] = candidate; self.save()
             self.check('production lookup pins native artifact',
@@ -714,7 +872,7 @@ class Validator:
                 pane_dir.mkdir(mode=0o700)
                 original = json.loads(path.with_name('mcp.json').read_text())
                 entry = original['direct'][0]
-                spec = PaneSpec(cwd=str(cwd), desktop=False, scene_session_id=original['binding'],
+                spec = PaneSpec(cwd=str(cwd), project_root=str(cwd), desktop=False, scene_session_id=original['binding'],
                     mcp_config_path=str(pane_dir / 'mcp.json'), direct=(DirectServer('lampway', entry['url'],
                         entry['headers'], '', 'fixture-only'),))
                 adapter = Grok()
@@ -791,7 +949,7 @@ class Validator:
                 command(['pane', 'close', pane]); panes.remove(pane)
                 self.check(action + ' all owned worker descendants absent', gone(workers), workers)
                 self.check(action + ' herdr survives worker cleanup', still_alive(self.receipt['herdr_identity']))
-                for source in ['user', 'compat', 'plugin', 'dynamic', 'lampway_pane']:
+                for source in ['user', 'compat', 'plugin', 'dynamic', 'lampway_pane', 'cursor']:
                     self.check(action + ' no foreign ' + source + ' initialization',
                         not read_events(self.output / ('foreign-' + source + '.jsonl')))
         finally:
@@ -806,6 +964,7 @@ class Validator:
                     finally:
                         self.check('owned herdr and descendants absent', gone(list(owned.values())), list(owned.values()))
             finally:
+                CAP.set_active(old_capabilities)
                 os.environ.clear(); os.environ.update(old_env)
 
 
@@ -816,6 +975,10 @@ def main():
     parser.add_argument('--grok', type=Path, required=True); parser.add_argument('--bwrap', type=Path, required=True)
     parser.add_argument('--herdr', type=Path)
     parser.add_argument('--output', type=Path, required=True); parser.add_argument('--phase', choices=['stdio', 'loopback'], required=True)
+    parser.add_argument('--cursor-fixture', choices=['absent', 'present'], default='absent',
+        help='Synthetic original Cursor fixture; stdio absent and loopback present qualify both layouts')
+    parser.add_argument('--compatibility-layer', action='store_true',
+        help='Explicit synthetic QA enrollment for the temporary Grok worker MCP compatibility view; not user consent')
     options = parser.parse_args(); validator = Validator(options)
     try:
         enable_owned_reaping()

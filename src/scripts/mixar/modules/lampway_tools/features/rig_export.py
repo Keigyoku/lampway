@@ -18,6 +18,7 @@ A failing file is moved to export/rejected/ and the rows over tolerance are name
 one action exported is made active for the export and the previous one restored."""
 
 import hashlib
+from contextlib import contextmanager
 import json
 import os
 import shutil
@@ -39,6 +40,27 @@ RAW_IMPORT = {"automatic_bone_orientation": False, "primary_bone_axis": "Y", "se
               "use_custom_normals": True, "ignore_leaf_bones": False}
 ENGINE_FROM_BLENDER = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])   # X_e = Y_b, Y_e = -X_b, Z_e = Z_b
 
+
+@contextmanager
+def _export_visibility(objects):
+    """Admit only the requested export objects to FBX's selected-object query.
+
+    Copies inherit viewport/select restrictions from hidden source rigs. Blender
+    excludes those from context.selected_objects even after select_set(True).
+    Restore flags on exit as metre recipes may be exporting the source itself.
+    """
+    states = [(ob, ob.hide_viewport, ob.hide_render, ob.hide_select, ob.hide_get()) for ob in objects]
+    try:
+        for ob, *_flags in states:
+            ob.hide_viewport = ob.hide_render = ob.hide_select = False
+            ob.hide_set(False)
+        bpy.context.view_layer.update()
+        yield
+    finally:
+        for ob, viewport, render, select, layer in states:
+            ob.hide_viewport, ob.hide_render, ob.hide_select = viewport, render, select
+            ob.hide_set(layer)
+        bpy.context.view_layer.update()
 
 def _recipe(recipe, root):
     if recipe in ("", "titan_cm_native"):
@@ -213,11 +235,12 @@ def export_ue(armature, out, root, meshes=None, actions=None, reference="", reci
     try:
         if act is not None:
             ob.animation_data_create().action = act
-        for o in layer:
-            o.select_set(o is ob or o in mesh_obs)
-        bpy.context.view_layer.objects.active = ob
-        bpy.ops.export_scene.fbx(filepath=str(writing), use_selection=True, bake_anim=act is not None, bake_anim_use_all_actions=False,
-                                 bake_anim_use_nla_strips=False, **ex)
+        with _export_visibility([ob, *mesh_obs]):
+            for o in layer:
+                o.select_set(o is ob or o in mesh_obs)
+            bpy.context.view_layer.objects.active = ob
+            bpy.ops.export_scene.fbx(filepath=str(writing), use_selection=True, bake_anim=act is not None, bake_anim_use_all_actions=False,
+                                     bake_anim_use_nla_strips=False, **ex)
     finally:
         if act is not None:
             ob.animation_data.action = keep

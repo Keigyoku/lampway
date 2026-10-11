@@ -33,7 +33,7 @@ res({"build": b, "verify": v, "receipt": json.load(open(os.path.join(b["package"
     assert d["build"]["ok"], d["build"]
     rc = d["receipt"]
     assert rc["sidecar"]["schema"] == "titan.native-weight-sidecar/1" and rc["sidecar"]["vertices"] == 24 and rc["sidecar"]["bones"] == 5, rc["sidecar"]
-    assert rc["body"] == {"closed": True, "boundary_edges": 0, "head_included": True, "head_joint": "head"}, rc["body"]
+    assert {k: rc["body"][k] for k in ("closed", "boundary_edges", "head_included", "head_joint")} == {"closed": True, "boundary_edges": 0, "head_included": True, "head_joint": "head"}, rc["body"]
     assert d["verify"]["ok"] and d["verify"]["body"]["closed"] and d["verify"]["body"]["head_included"] and d["verify"]["sidecar"], d["verify"]
 
 
@@ -48,7 +48,7 @@ for tag, kw in (("headless", {"head": False}), ("open", {"open_body": True})):
 res(out)
 ''')
     assert d["headless"]["closed"] is True and d["headless"]["head_included"] is False, d["headless"]
-    assert d["open"]["closed"] is False and d["open"]["boundary_edges"] > 0 and d["open"]["head_included"] is False, d["open"]
+    assert d["open"]["closed"] is False and d["open"]["boundary_edges"] > 0 and d["open"]["head_included"] is True and d["open"]["native_openings_accepted"], d["open"]
 
 
 def test_a_sidecar_that_is_not_the_engines_weights_or_names_a_foreign_bone_is_refused_and_nothing_is_written(tmp_path):
@@ -69,3 +69,33 @@ res({"bad": bad, "foreign": foreign, "dirs": sorted(os.listdir(os.path.join(root
     for tag in ("wrong", "foreign"):
         assert not (Path(str(tmp_path)) / "fit" / tag).exists() or not any(
             (q / "receipt.json").exists() for q in (Path(str(tmp_path)) / "fit" / tag).iterdir()), f"a refused build wrote a package under fit/{tag}"
+
+
+def test_seam_split_topology_and_native_openings_use_winding_without_welding_authored_vertices(tmp_path):
+    d = run(tmp_path, '''
+body, arm = human()
+me = body.data; me.calc_loop_triangles()
+verts, faces = [], []
+for tri in me.loop_triangles:
+    i = len(verts)
+    verts.extend([tuple(me.vertices[k].co) for k in tri.vertices])
+    faces.append((i, i + 1, i + 2))
+split = bpy.data.meshes.new("seam_split"); split.from_pydata(verts, [], faces); body.data = split
+n_before = len(split.vertices)
+b = api.fit_body("build", armature="rig", mesh="body", out="fit/split")
+st = json.load(open(os.path.join(b["package"], "receipt.json")))["body"]
+# One head triangle removed represents an authored facial opening. It does not
+# remove the head or convert the authored source to welded publication geometry.
+faces.pop(-1)
+opened = bpy.data.meshes.new("native_opening"); opened.from_pydata(verts, [], faces); body.data = opened
+c = api.fit_body("build", armature="rig", mesh="body", out="fit/opening")
+cs = json.load(open(os.path.join(c["package"], "receipt.json")))["body"]
+res({"split": st, "open": cs, "source_vertices": n_before, "split_package_vertices": b["vertices"], "unchanged": len(opened.vertices) == n_before})
+''')
+    assert d["split"]["raw_boundary_edges"] > 0
+    assert d["split"]["boundary_edges"] == 0 and d["split"]["non_manifold_edges"] == 0
+    assert d["split"]["closed"] and d["split"]["head_included"]
+    assert d["open"]["boundary_edges"] == 3 and not d["open"]["closed"]
+    assert d["open"]["head_included"] and d["open"]["native_openings_accepted"]
+    assert d["open"]["head_winding"] > 0.5
+    assert d["source_vertices"] == d["split_package_vertices"] and d["unchanged"]

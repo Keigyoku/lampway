@@ -80,9 +80,21 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    Claude uses its native strict MCP config; Pi workers require stable 1.0.4 or newer and its public replacement MCP extension
    with native MCP disabled and other extension registrations excluded. Hermes workers use an owned startup hook guarding
    discovery, reload, reconnect and transport entry, after a native Python/gateway preflight; unsupported console scripts,
-   interpreter/source overrides, attached gateways or missing installed helper refuse. No native home is replaced.
-   Grok's preserving-home namespace boundary remains a candidate until the exact native policy and herdr/helper CI proof
-   succeeds; it never replaces occupied native policy slots or changes host namespace/security permissions. Its namespace
+   interpreter/source overrides, attached gateways or missing installed helper refuse. Hermes keeps its native home.
+   Grok's worker namespace remains a candidate until exact native policy and herdr/helper proof succeeds. Its independent
+   `grok.worker_compat` capability defaults off; authenticated human consent must supply the displayed version and exact
+   effects digest for the captured global/project scope. Generic proposals or setup ticks cannot record that consent.
+   MAIN selection shows the worker disclosure but never enables this setting or changes MAIN configuration. Enrollment
+   grants no route, trust, security, account access or native qualification. Metadata-only HOME-layout preflight follows
+   current consent before native probes or worker activation; owned runtime metadata and persisted consent are rechecked
+   before staging and immediately before exec. Unsupported redirects/layouts, changed identities and revoked consent refuse.
+   Only consented workers receive the temporary read-only HOME/.cursor directory view and canonical Cursor attribution
+   file, with Cursor MCP imports disabled. Existing child backing, in-place writes and writes inside backed directories remain, except the masked MCP file;
+   immediate HOME/.cursor name creation, removal, rename and atomic replacement are refused and HOME directory identity changes. An absent .cursor exists
+   only in the temporary view. No native config/credential contents are copied or persistent host paths created. Native
+   login, persona, model, budgets and built-ins remain; occupied policy slots and host namespace/security permissions
+   remain protected. Turning off prevents new workers and refuses their further tool calls, retaining owned completion
+   receipts and never killing unknown panes. Production worker readiness stays independent of consent. Its namespace
    uses a private standard `/dev` after the root bind in both the readiness probe and worker plan; ordinary bind mounts
    remain nodev, and no host device tree is admitted. Offline qualification uses native session-scoped MCP calls without
    waiting for a deliberately denied model turn. Its enabled synthetic user-plugin baseline must initialize before exclusion
@@ -393,6 +405,11 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
     can file anything further; the island-task and native-pane Stop paths share this boundary.
 
 
+13. **Studio CLI output shares the existing renderer.** `studios/axi.py` delegates scalar normalization, quoting and
+    structured stdout to `compute/toon_out.py` without importing the client. NumPy scalar tables/kv follow the paired codec;
+    unsupported values, empty state, lossless numbers, commands and stdout refusal/exit 1 remain. Canonical output goldens
+    follow that encoder. Engine transport and external output schemas remain independently owned and untouched.
+
 ## Test
 
 Install the declared test extra (`pip install -e '.[test]'` from `server/`) for the standalone suite.
@@ -549,3 +566,7 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-10 | incremental native transcript reads and stale task isolation | cloud MAIN adapter audit and causal pure controls | rows larger than one poll stalled completion, replaced or unseen old task events closed newer turns, and duplicate activity completion set newer work idle | invariant 6 requires bounded incremental spooling with exact complete offsets and lifecycle cleanup, retired/foreign explicit task isolation, and duplicate checks before activity mutation | reader RED 1 failure then 44 focused passes; observer RED 20 and 8 failures then 57 focused passes; account and matching-app proof remain separate |
 | 2026-10-11 | model-free Pi adapter fixture isolation | issue #11 P4-T01 and controlled ambient 0.84.2 RED | positive argv/wiring fixtures reached the correct ambient compatibility refusal before their assertions | Test: owned verified compatible Pi fixture only on positives; missing, older, unknown, prerelease and original worker refusal controls stay independent | causal seven failures; guarded 40 passes and focused 79 passes; original assertions unchanged; complete server qualification remains required |
+| 2026-10-11 | accepted PR1 studio AXI renderer | exact 6b99d173 intake and NumPy table RED | independent formatting fed NumPy constructor repr into Decimal while existing codec already normalized it | invariant 13: delegate to unchanged compute/toon_out, retain CLI semantics and independent transport ownership | scratch39 focused passes; integrated full-server qualification separate |
+| 2026-10-11 | consented Grok worker compatibility and scoped admission | captain requests explicit default-off config layer and Mode2 warning | native same-name hot reload evicted canonical before policy refusal, and no exact-effects consent gate existed | invariant6: version/digest human consent, disclosed temporary view and metadata preflight, persisted runtime/call-time rechecks; MAIN retained and native readiness independent | causal enrollment/TOCTOU/preflight REDs; scratch197 affected and58 boundary passes; actual native qualification separate |
+
+| 2026-10-11 | retained consent and precise temporary-write limits | independent integrated review | malformed stored options raised instead of refusing; temporary read-only parent names also block atomic replacement | require dictionary consent options and warn about immediate-name rename/atomic replacement while preserving in-place and backed-directory writes | malformed-record causal RED/GREEN; native qualification remains independently required |

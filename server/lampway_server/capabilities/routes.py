@@ -19,13 +19,14 @@ from ..connections.routes import _agent_declared, _body, _cross_origin
 from . import AGENT_WRITE, Refused, UnknownCapability
 
 
-def capabilities_routes(bearer_ok) -> list:
+def capabilities_routes(bearer_ok, caller_origin=None) -> list:
     from .. import capabilities as CAP
 
     def guard(request, write=False):
         if not bearer_ok(request):
             return JSONResponse({"detail": "Not authenticated"}, status_code=401)
-        if write and (_agent_declared(request) or _cross_origin(request)):
+        if write and (_agent_declared(request) or _cross_origin(request)
+                      or (caller_origin is not None and caller_origin(request) != "user")):
             return JSONResponse({"detail": AGENT_WRITE}, status_code=403)
         if CAP.ACTIVE is None:
             return JSONResponse({"detail": "the Capabilities board is not available"}, status_code=503)

@@ -111,6 +111,13 @@ class MIXIE_CHAT_OT_agent_mode_set(Operator):
             if not plan.get("ok"):
                 self.report({'ERROR'}, " ".join([plan.get("error") or "", *plan.get("help", [])]).strip())
                 return {'CANCELLED'}
+            if self.mode == AM.BYOA and self.harness == 'grok':
+                from mixar.modules.lampway_tools.ui import grok_worker_compat
+                scene_name, session_id = scene.name, getattr(scene, 'mixie_session_id', '')
+                def unchanged_valid():
+                    current = bpy.data.scenes.get(scene_name)
+                    return current is not None and getattr(current, 'mixie_session_id', '') == session_id
+                grok_worker_compat.review_main(lambda: None, unchanged_valid)
             return {'FINISHED'}
         client = CLIENT_FACTORY()
         if self.mode == AM.BYOA:
@@ -122,10 +129,16 @@ class MIXIE_CHAT_OT_agent_mode_set(Operator):
             def valid():
                 current = bpy.data.scenes.get(scene_name)
                 return current is not None and getattr(current, 'mixie_session_id', '') == plan['old']
-            launch_notice.request(
-                lambda: client.mode_notice(plan['new'], plan['mode'], harness=plan['harness'], pane=plan['pane'],
-                                           previous=plan['old'] or None, name=plan['name']),
-                lambda nonce: AM.ask_server(plan, client, notice_nonce=nonce), done, valid)
+            def proceed():
+                launch_notice.request(
+                    lambda: client.mode_notice(plan['new'], plan['mode'], harness=plan['harness'], pane=plan['pane'],
+                                               previous=plan['old'] or None, name=plan['name']),
+                    lambda nonce: AM.ask_server(plan, client, notice_nonce=nonce), done, valid)
+            if plan['harness'] == 'grok':
+                from mixar.modules.lampway_tools.ui import grok_worker_compat
+                grok_worker_compat.review_main(proceed, valid, lambda error: done(None, error))
+            else:
+                proceed()
         else:
             _run(_ask, scene.name, plan, client)
         self.report({'INFO'}, "Starting your agent…" if self.mode == AM.BYOA else "Switching to Lampway Agent…")

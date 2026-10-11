@@ -129,6 +129,11 @@ class LAMPWAY_OT_capability_switch(_Write):
 
     def write(self, client):
         row = _row(self.cap_id)
+        if self.cap_id == 'grok.worker_compat' and self.enabled:
+            from . import grok_worker_compat
+            state.STATE['pending'] = ''
+            grok_worker_compat.review_enable()
+            return 'Review the Grok worker compatibility disclosure before enabling it', False
         if self.enabled and face.needs_confirm(row) and not (self.confirm and state.STATE["pending"] == self.cap_id):
             state.STATE["pending"] = self.cap_id
             return f"Read the warning below and confirm to let your agent use {row.get('label') or self.cap_id}", False
@@ -276,7 +281,7 @@ def _draw_row(layout, r, st) -> None:
     sw = line.operator("lampway.capability_switch", text="", icon="CHECKBOX_HLT" if v["enabled"] else "CHECKBOX_DEHLT", emboss=False)
     sw.cap_id, sw.enabled, sw.confirm = v["id"], not v["enabled"], False
     _info(line, v["label"], v["does"])
-    line.label(text=v["word"])
+    line.label(text="Unavailable" if r.get('id') == 'grok.worker_compat' and v['enabled'] and not r.get('in_force') else v["word"])
     if v["scope_tag"]:
         line.label(text=v["scope_tag"])
     _wrapped(layout, v["does"])
@@ -343,6 +348,15 @@ def draw_agent_features(layout) -> None:
             _draw_row(box, rows[cid], st)
         else:
             box.label(text=cid + ": not listed by this server")
+
+    grok = box.box()
+    grok.label(text="Grok Swarm-Worker compatibility")
+    if 'grok.worker_compat' in rows:
+        from . import grok_worker_compat
+        _draw_row(grok, rows['grok.worker_compat'], st)
+        grok_worker_compat.draw_status(grok, rows['grok.worker_compat'])
+    else:
+        grok.label(text="Refresh to read the server's Grok worker compatibility setting")
 
 
 def draw_capabilities(layout, context=None) -> None:

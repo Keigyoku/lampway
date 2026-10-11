@@ -1537,7 +1537,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
     choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
-    routes += capabilities_routes(_bearer_ok)
+    routes += capabilities_routes(_bearer_ok, _wb_origin)
     from .engine.context_settings import Store as ContextStore, routes as context_routes
     context_store = ContextStore(settings.state_dir)
     routes += context_routes(context_store, _bearer_ok, agent, _wb_origin)

@@ -272,6 +272,9 @@ class McpServer:
                 return "lampway_worker_done needs `summary`: one sentence saying what you made", True
             self.workers.finish(binding, summary)
             return "Done: your work is being brought into the user's scene. You can stop now.", False
+        if binding.job.meta.get("worker_harness") == "grok":
+            if (problem := CAP.grok_worker_problem(binding.job.meta.get("worker_project_root"))):
+                return f"refused: {problem}", True
         refusal = CAP.check_tool(name, arguments, origin=f"worker:{binding.name}")
         if refusal is not None:
             return refusal, True

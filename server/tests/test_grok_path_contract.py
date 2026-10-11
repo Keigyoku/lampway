@@ -45,6 +45,12 @@ def no_launches(monkeypatch):
 @pytest.fixture
 def installed(tmp_path, monkeypatch):
     from lampway_server import grok_worker as G
+    from lampway_server import capabilities as CAP
+    board = CAP.Store(tmp_path / 'consent-state')
+    monkeypatch.setattr(CAP, 'ACTIVE', board)
+    disclosure = CAP.grok_compat_disclosure()
+    board.set('grok.worker_compat', enabled=True, options={
+        'consent_version': disclosure['consent_version'], 'effects_sha256': disclosure['effects_sha256']}, by='user')
     directory = tmp_path / 'installed'
     directory.mkdir()
     paths = {key: directory / name for key, name in [
@@ -79,7 +85,7 @@ def test_readiness_consumes_actual_mapping_before_probing(installed, monkeypatch
         return dict(description)
     monkeypatch.setattr(R.L, 'worker_probe', probe)
     monkeypatch.setattr(G, 'preflight', preflight)
-    result = R.grok_worker_description(str(paths['native']), cwd=tmp_path)
+    result = R.grok_worker_description(str(paths['native']), cwd=tmp_path, project=str(tmp_path))
     assert result == {key: value for key, value in description.items() if key != 'namespace_probe'}
     assert len(seen) == 2
 
@@ -94,7 +100,7 @@ def test_failed_native_or_namespace_probe_refuses_without_files(installed, monke
     monkeypatch.setattr(R.L, 'worker_probe', probe)
     monkeypatch.setattr(G, 'preflight', lambda *args: {'namespace_probe': ['mock namespace']})
     before = sorted(paths['native'].parent.iterdir())
-    assert R.grok_worker_note(str(paths['native'])) == R.GROK_REFUSAL
+    assert R.grok_worker_note(str(paths['native']), project=str(paths['native'].parent.parent)) == R.GROK_REFUSAL
     assert sorted(paths['native'].parent.iterdir()) == before
 
 
@@ -103,7 +109,7 @@ def test_malformed_path_contract_refuses_before_any_probe(installed, monkeypatch
     G, paths = installed
     R = load('lampway_server._candidate_readiness_malformed', READINESS_SOURCE)
     monkeypatch.setattr(G, 'candidate_paths', lambda *args: mapping)
-    assert R.grok_worker_note(str(paths['native'])) == R.GROK_REFUSAL
+    assert R.grok_worker_note(str(paths['native']), project=str(paths['native'].parent.parent)) == R.GROK_REFUSAL
 
 
 @pytest.mark.parametrize('bad_pin', [None, 'native', 'bwrap', 'connector'])

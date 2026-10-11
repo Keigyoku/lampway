@@ -38,11 +38,13 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
 9. **What an agent may do is the user's click, and the Client holds no default of its own.** A capability is switched, its approval or
    options changed and an agent's proposal accepted only by the user's click (`ui/capabilities.py` through `capabilities_client.py`,
    every write behind `human_gate`; the first-run walk's step in `onboarding.py` writes only what the user ticked differently from the
-   server's own defaults). The capability-enabled first-run walk sizes each current step from its actual content, and
-   paginates the capability catalog within a fixed content-row budget. Its partition reserves possible warning rows so
-   ticking a choice cannot move it between pages; paging refreshes the original native dialog through
-   `Window.mixar_refresh_popups`, preserves choices and never opens a second modal or writes settings. Legacy walks retain
-   their existing sizing behavior. Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
+   server's own defaults). The capability-enabled first-run walk sizes each current step from its actual content and
+   paginates capability rows within a fixed budget, reserving possible warnings so ticks keep their page membership.
+   Setup opens one native popup with explicit footer Back and Continue. Navigation, provider refusal and failed save
+   rebuild that popup's temporary-region layout rather than opening another modal; editor redraw alone is insufficient.
+   Step titles and final-step detection follow the current walk's dynamic steps and kind. Capability paging retains
+   `Window.mixar_refresh_popups`, preserves choices and writes no settings. Legacy walks retain their existing sizing.
+   Turning on one that runs code or acts outside Lampway shows its plain warning first. The page reads a cache
    (`capabilities_state`) filled by a worker thread; a draw never reaches the network, and the page never switches a route.
    Agent preferences exposes the same server-backed native Hermes delegation, cron and background choices. Every enable
    action displays the explicit untested layering warning and requires user confirmation; all default off on the server.
@@ -62,6 +64,27 @@ a sample asset or a test. Adding a tool: the `lampway-tool-authoring` skill; the
    browser admission off-thread, opens only the fixed local consent page on main-thread publication, and refuses scripts
    both before scheduling and on publication. The browser form separately confirms the fixed probe. Draw is cache-only;
    failed browser opening reports a visible error without automatic retry or retaining an ended operator RNA instance.
+
+   Grok Swarm-Worker compatibility is server-owned and defaults off. Agent preferences opens a separate human consent
+   dialog with the exact versioned effects and qualification state. Enable sends the displayed effects digest and version
+   for the captured project/global scope; scripts, cancellation, replay and stale project/scene/disclosure refuse. Reads and
+   enables run off-thread with main-thread scoped publication. Every Mode2 Grok selection, including already-selected
+   MAIN, shows the worker-only disclosure. Continue selects ordinary MAIN without enabling compatibility. No client
+   config/default, route, login or trust grant is created; native readiness remains independent. First-run setup displays this setting and directs the user to its separate Agent preferences review; the generic setup toggle cannot enable it. Client-owned consent, scope, confirmation and recovery messages use explicit extraction markers and translate whole sentences before wrapping. Translated chunks disable label translation; server disclosure strings and their captured digest stay exact.
+
+10. **AXI CLI output shares the existing codec.** `axi.py` renders structured stdout through `common/toon/codec.py`.
+    Standalone CLIs load that authoritative sibling by path without importing Blender. NumPy scalar normalization,
+    lossless numbers, quoting, empty state, next-step commands and refusal exit 1 are retained. Canonical TOON 4.3 output
+    uses the shared encoder's inline primitive arrays and no trailing newline; paired codec bytes and transport are untouched.
+11. **Native openings and piece facing are measured.** Body intake records raw and position-identity analytical topology
+    at 1e-5 m plus generalized head winding. Never weld authored vertices or native weight IDs for publication. Verified
+    head inclusion can admit native openings while retaining `closed=false`; unverified/headless packages refuse. Signed
+    measurements retain the declared opening-band rule. Raw pieces consume their declared turn once; canonical arrays
+    require zero turn. Non-chest scoring remains unvalidated and native sidecar/source-part refusals remain intact.
+12. **Visibility admission preserves source state.** Export temporarily admits only its requested objects and restores flags.
+    Conform admits only owned output and baseline copies through editing and original deformation verification. An owned
+    temporary visible collection handles excluded source collections without unhiding them. Success and failure restore
+    original selection/active state and copy flags and remove only the owned collection; geometry laws and tolerances remain. Synchronize the view layer before snapshotting selection so removed baseline objects cannot enter the next conform.
 
 ## Test
 
@@ -98,3 +121,11 @@ page; the canon's open decisions are the captain's.
 | 2026-10-10 | first human native-agent disclosure | agent-modes spec B5 | cockpit and scene launch had no independent first-account warning, and failed popup/queue callbacks retained pending requests | invariant 9: explicit human notice, cached draw, off-thread preparation and cancellation/stale-scene cleanup | four causal client dialog REDs; 30 focused client checks pass; matching physical native dialog proof remains required |
 
 | 2026-10-10 | Q1 native human browser admission | raw loopback cookie/nonce causal RED bypassed explicit human consent | browser-only nonce minting could not distinguish a native agent HTTP client | invariant 9: authenticated ticket from a human-gated native action, off-thread transport/main-thread browser publication and visible non-retrying failures | pure client controls only; matching native execution remains unverified |
+| 2026-10-11 | bounded PR1 AXI/native-opening/frame intake | captain authorizes exact 6b99d173 dependency preserving PR4 | legacy scalar formatter failed NumPy and seam topology rejected measured native openings; canonical turns could run twice | invariants 10/11: unchanged shared codec, analytical topology and verified winding, explicit once-only facing | retained causal REDs; scratch AXI 39 and seam/frame 21 passes; actual native qualification separate |
+| 2026-10-11 | hidden armature export and conform admission | issue #11 inherited failure and bounded intake authorization | copied viewport restrictions blocked selected-object export and Edit Mode; excluded collections lacked visible bases | invariant 12: exact PR1 export admission and copy-only conform guard, source collection/selection restoration and original verification | original pure 5 failures/2 passes; candidate 7 passes; actual Blender acceptance separate |
+| 2026-10-11 | F23 footer reconciliation preserves PR4 wizard | accepted PR1 repair with dynamic capability steps | repeated step dialogs stacked and area redraw did not rebuild temporary popup content | invariant 9: one popup, explicit footer and temporary-region refresh; dynamic sizing, defaults and native pager preserved | original 10 fail/43 pass; candidate 53 pass; native physical acceptance separate |
+| 2026-10-11 | exact Grok worker disclosure and human consent | captain requests worker-only switch and MAIN selection warning | generic confirmation lacked exact version/effects binding and repeated MAIN choice bypassed disclosure | invariant9: independent server-backed modal, captured digest/scope fences and every MAIN selection warns without enabling | initial4 UI REDs plus digest-race RED,104 scratchpasses and aliasplant failure; native physical proof separate |
+
+| 2026-10-11 | repeated conform and dedicated first-run consent | actual native diagnostic and review of generic setup writes | removed baseline entries survived into the next selection snapshot; generic first-run writes lacked exact effects consent | update the view layer before copying selection; first-run shows Grok state and separate review guidance without staging consent | native diagnostic causal failure and dedicated setup RED/GREEN; physical UI proof remains open |
+
+| 2026-10-11 | complete Grok consent message extraction | canonical catalog review | positional notes and variable confirmation labels were invisible to extraction; wrapped fragments missed whole-message lookup | invariant9: explicit markers and translation before wrapping without translating exact server disclosure | four causal extraction/translation REDs and 172 portable controls; canonical catalogs regenerated separately |

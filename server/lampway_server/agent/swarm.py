@@ -232,7 +232,7 @@ class SwarmManager:
                 compatibility = adapter.compatibility_note() if hasattr(adapter, "compatibility_note") else ""
                 if compatibility:
                     raise ValueError(compatibility)
-                if (problem := HN.worker_problem(adapter)):
+                if (problem := HN.worker_problem(adapter, project=ctx.project_root)):
                     raise ValueError(f"{adapter.label} cannot run a worker: {problem}")
             elif mode_choice.option == "local:lampway_hermes":
                 choice = CH.resolve("agent.worker", CH.Job(project=ctx.project_root, origin="agent"))

@@ -962,6 +962,7 @@ everything that runs code, leaves the machine or acts outside Lampway off until 
 | `skills.write` | Write and improve its own skills | Hermes `skill_manage`, curator | writes_project | – | off |
 | `subagents` | Start helper agents | Hermes `delegate_task` | runs_code | – | off |
 | `background` | Run Hermes background agents | Native side questions, background review and curator | runs_code | – | off |
+| `grok.worker_compat` | Grok Swarm-Worker compatibility | Explicit worker-only native configuration view; qualification required | runs_code | – | off |
 | `swarm` | Run parallel Lampway workers | Lampway swarm | runs_code | – | off |
 | `schedule` | Run tasks on a schedule while the server runs | Hermes `cron` | runs_code | – | off |
 | `computer.use` | Control this computer's desktop | Hermes `computer_use` | acts_outside | – | off |
@@ -1156,6 +1157,16 @@ superseded by this one:
   denied internet access. Account-backed model tool execution, image attachment and live-turn Stop remain unverified.
   Their swarm workers refuse unproved exclusive discovery: Hermes combines native-tool and MCP filtering, and Grok's
   preserving-home policy namespace could not be proved on the cloud runner. See [setup and evidence](byoa-native-connectors.md).
+- **Grok worker compatibility, captain ruling 2026-10-11.** A separate default-off Agent preferences capability requires
+  explicit human consent to the current version and exact effects digest, for the chosen project/global scope. Every Mode2
+  Grok selection shows its worker-only warning; MAIN Continue never enables it. Consented workers use a temporary read-only
+  HOME/.cursor directory view: existing child backing, in-place writes and writes inside backed directories remain, except `.cursor/mcp.json` is masked by
+  canonical-name attribution and Cursor MCP imports are disabled inside the worker. Creating, removing, renaming or atomically replacing immediate HOME/.cursor names is refused. HOME directory identity changes, and an absent .cursor exists only in that private view.
+  Native config/credential contents are not copied and no persistent host path is created. Native login/persona/model/
+  budgets/built-ins, existing restrictive policies and pane binding remain. Unsupported layouts or changed/revoked consent
+  refuse before probes/activation and again before exec; OFF refuses further worker tools while retaining completion.
+  This consent grants no route, trust, security, account call or readiness. Actual pinned native canonical retention and
+  configuration-preservation proof remain required; production Grok workers remain refused until qualified.
 - **Pi has MCP.** The spec's "Pi has no MCP by design" was true of the old `@mariozechner/pi-coding-agent`; Pi 1.x has it built
   in, but reads only `~/.pi/agent/mcp.json` and the trust-gated `.pi/mcp.json`. Lampway's Pi extension
   (`harnesses/lampway_pi_extension.js`) is a wrapper only: it reads the pane's own 0600 config (`LAMPWAY_PI_MCP`) and calls

@@ -28,6 +28,10 @@ work.
 5. **No large binaries and no owner assets.** The goldens are synthetic; the MetaTailor exports stay out of git and
    `goldens/metatailor/README.md` records their SHA-256. A number measured on one of the captain's pieces is cited, not committed.
 
+Native body topology at intake uses analytical position identities only, retaining authored geometry and weight IDs.
+Verified generalized head winding can admit recorded native openings without claiming watertightness. Page 03 states
+that intake rule and preserves its headless/unverified refusal, signed-opening limits and all open captain decisions.
+
 ## Test
 
 ```bash
@@ -47,3 +51,4 @@ needs it and lands through the integration lane. Statuses, thresholds and the de
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-06 | canon into the repository | coordinator: "GO for rail row 1" (the captain's recommendation 1) | the canon lived on an off-tree shelf, so agents had no tracked page to load and nothing kept its goldens honest | the canon copied to docs/canon as the source of truth, its invariants stated, `check_canon.py` and its self-test in CI | captain ruling, 2026-10-06 |
+| 2026-10-11 | exact PR1 native-opening canon intake | captain authorizes bounded 6b99d173 dependency | closed-body wording rejected verified native facial openings and could imply welding publication geometry | body paragraph and page03: analytical-only topology, verified head inclusion, honest closed=false and retained refusals | original intake causal RED retained; pure21 passes; native body acceptance separate |

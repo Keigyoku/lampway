@@ -31,7 +31,7 @@ def board(tmp_path):
 
 def test_the_catalogue_is_the_specs_table_with_the_captains_defaults():
     ids = [c.id for c in CAP.CATALOGUE]
-    assert len(ids) == len(set(ids)) == 22
+    assert len(ids) == len(set(ids)) == 23
     assert {"messaging.*", "mcp.*", "web.browse", "terminal", "panes.drive", "swarm", "background"} <= set(ids)
     assert {c.id for c in CAP.CATALOGUE if c.default} == ON_BY_DEFAULT
     for c in CAP.CATALOGUE:

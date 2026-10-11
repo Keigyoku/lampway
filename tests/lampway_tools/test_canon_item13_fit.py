@@ -235,3 +235,14 @@ def test_a_later_stage_takes_the_kind_recorded_at_intake(tmp_path):
     _through(tmp_path, call, "match")
     assert _run(tmp_path, "place", call)["ok"]                      # no kind passed: the intake's record names it
     assert call.calls[-1] == ("fit_place", {"kind": "chest"}), call.calls[-1]
+
+
+def test_intake_accepts_measured_native_openings_without_claiming_watertightness(tmp_path):
+    body = {"closed": False, "boundary_edges": 6, "raw_boundary_edges": 108,
+            "non_manifold_edges": 0, "raw_non_manifold_edges": 0,
+            "head_included": True, "head_joint": "head", "head_winding": 0.9,
+            "inside_method": "generalized_winding_number", "native_openings_accepted": True}
+    call = Fake(body=body)
+    result = _run(tmp_path, "intake", call, roles=ROLES, body=BODY, args=dict(INTAKE))
+    assert result["ok"], result
+    assert "normalize_mesh" in call.tools()

@@ -41,6 +41,10 @@ establish a completed restart; describe actual event ordering and current readin
 Describe native lifecycle and hostile-reload failures even when earlier source controls pass; handler-instance mocks and
 post-filter route exclusion do not establish rendered history or preservation of an available canonical connector.
 
+Worker compatibility documentation distinguishes human enrollment from actual native qualification. State every temporary
+configuration-view effect, its default-off setting and scope, retained MAIN behavior and exact native proof status. A consent
+receipt never counts as a repaired hostile-reload or matching application-build result.
+
 ## Test
 
 ```bash
@@ -65,3 +69,4 @@ writes its own report; the integration lane lands them. What the product promise
 | 2026-10-10 | distinguish native persistence from pane display | committed native compaction and resume preserve user rows, but actual scrolling finds only the first external user header | stored history was mistaken for proof of all rendered user turns | native diagnostic paragraph: observe persistence and rendering separately; require committed compaction before later proof | retained native frames and unchanged physical assertions expose the missing user rows |
 | 2026-10-10 | distinguish configured MCP metadata and reload acknowledgement from readiness | 9af native CI advances past startup, then fails catalogue and environment-reload checks | disabled configurations were counted as admitted routes and asynchronous update acknowledgement was treated as a completed handshake | native diagnostic paragraph: explicit session admission and actual reload ordering, with source versions separately qualified | retained pinned native CI wire shows resolved blocked entries and progress before acknowledgement; repaired native proof remains required |
 | 2026-10-10 | source controls retain native lifecycle and reload limits | b1 native compression and Grok hostile-reload failures after earlier controlled passes | static single-instance checks missed handler recreation and post-merge exclusion disabled the canonical route | diagnostic paragraph: distinguish native lifecycle and canonical availability from earlier source passes, preserving actual failed assertions | b1 history four passes, compression two failures and both Grok native failures retained; later matching proof remains required |
+| 2026-10-11 | explicit Grok compatibility documentation | captain authorizes worker-only layer with human warning | a config opt-in could be mistaken for native safety proof or silent persistent configuration replacement | body paragraph: exacttemporaryeffects/default/scope, retained MAIN and independent qualification | version1 disclosure and controlled RED/GREEN retained; actual native acceptance separate |

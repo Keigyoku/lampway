@@ -50,8 +50,12 @@ def get(hid: str) -> Adapter:
         raise KeyError(f"no harness {hid!r}: the harnesses are {', '.join(ADAPTERS)}") from None
 
 
-def worker_problem(adapter) -> str:
+def worker_problem(adapter, *, project=None) -> str:
     """Worker qualification is distinct from MAIN connectivity and rechecked before activation."""
+    if adapter.id == "grok":
+        from ...capabilities import grok_worker_problem
+        if (problem := grok_worker_problem(project)):
+            return problem
     if not adapter.direct_ok:
         return adapter.tools_note or "no supported per-pane worker endpoint"
     if not adapter.worker_ok:
@@ -60,7 +64,7 @@ def worker_problem(adapter) -> str:
     if check is None:
         return ""
     try:
-        note = check()
+        note = check(project=project) if adapter.id == "grok" else check()
     except (OSError, ValueError, RuntimeError):
         return "installed worker startup qualification failed; retry with a supported native installation"
     return note if isinstance(note, str) else "installed worker startup returned no valid qualification"
@@ -105,6 +109,9 @@ def listing() -> list:
                      "tools": a.tools_reachable and not compatibility, "tools_note": compatibility or a.tools_note,
                      "images": a.takes_image_paths, "images_note": "" if a.takes_image_paths else a.images_note,
                      "stop": bool(a.interrupt_keys)})
+        if a.id == "grok":
+            from ...capabilities import grok_compat_disclosure
+            rows[-1]["worker_compat"] = grok_compat_disclosure()
     return rows
 
 

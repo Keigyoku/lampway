@@ -66,26 +66,26 @@ def document(project: Optional[str] = None, env=None) -> dict:
     return out
 
 
-def world():
+def world(project=None):
     if WORLD_FACTORY is not None:
         return WORLD_FACTORY()
     from .snapshot import live_world
-    return live_world()
+    return live_world(project=project)
 
 
 def resolve(pid: str, job: Optional[Job] = None, *, world_=None, doc=None) -> Resolution:
     job = job or Job()
-    return _resolve(pid, job, world_ or world(), doc or document(job.project))
+    return _resolve(pid, job, world_ or world(job.project), doc or document(job.project))
 
 
 def purpose_view(pid: str, job: Optional[Job] = None) -> dict:
     job = job or Job()
-    return V.view(pid, job, world(), document(job.project), proposals=active_store().proposals(state="open"))
+    return V.view(pid, job, world(job.project), document(job.project), proposals=active_store().proposals(state="open"))
 
 
 def list_view(job: Optional[Job] = None, group: Optional[str] = None) -> dict:
     job = job or Job()
-    w, d = world(), document(job.project)
+    w, d = world(job.project), document(job.project)
     groups = []
     for gid, label in REG.GROUPS:
         if group and gid != group:
@@ -135,7 +135,7 @@ def passing(pid: str, job: Optional[Job] = None, world_=None, doc=None) -> list:
     """Every option of the chain in force that passes all seven constraints, in the user's order (for a caller that tries them in turn)."""
     from .resolver import _check, _in_force
     job = job or Job()
-    w, d = world_ or world(), doc or document(job.project)
+    w, d = world_ or world(job.project), doc or document(job.project)
     purpose = REG.get(pid)
     return [o for o in _in_force(pid, d)[1] if _check(purpose, o, job, w, d) is None]
 

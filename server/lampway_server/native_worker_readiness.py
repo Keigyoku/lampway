@@ -130,13 +130,20 @@ def hermes_worker_note(binary) -> str:
     return ""
 
 
-def grok_worker_description(binary, *, cwd=None) -> dict:
+def grok_worker_description(binary, *, cwd=None, project=None) -> dict:
     """Native read-only identity query and no-op namespace qualification, before any pane files."""
+    from . import capabilities as CAP
+    if (problem := CAP.grok_worker_problem(project)):
+        raise ValueError(problem)
     from . import grok_worker as G
+    directory = str(Path(cwd or project or os.getcwd()).resolve())
+    if CAP.ACTIVE is None or not project:
+        raise ValueError("Grok worker compatibility needs its owning project root and human consent board")
+    enrollment = G.compat_metadata(Path.home(), project, CAP.ACTIVE.state_dir)
+    G.compat_preflight(enrollment, directory)  # Metadata only, before native lookup/probes and owned pane files.
     paths = G.candidate_paths(binary)
     native, bwrap, connector = (paths[key] for key in ('native', 'bwrap', 'connector'))
-    project = str(Path(cwd or os.getcwd()).resolve())
-    code, listing = L.worker_probe([str(native), "mcp", "list", "--json"], {}, cwd=project)
+    code, listing = L.worker_probe([str(native), "mcp", "list", "--json"], {}, cwd=directory)
     if code != 0:
         raise ValueError(GROK_REFUSAL)
     description = G.preflight(native, bwrap, connector, listing)
@@ -146,9 +153,12 @@ def grok_worker_description(binary, *, cwd=None) -> dict:
     return description
 
 
-def grok_worker_note(binary) -> str:
+def grok_worker_note(binary, *, project=None) -> str:
+    from .capabilities import grok_worker_problem
+    if (problem := grok_worker_problem(project)):
+        return problem
     try:
-        grok_worker_description(binary)
+        grok_worker_description(binary, project=project)
     except (OSError, ValueError, TypeError, KeyError, IndexError):
         return GROK_REFUSAL
     return ""

@@ -8,6 +8,8 @@ on:
       - .github/workflows/byoa-worker-validation.yml
       - server/lampway_server/grok_worker.py
       - server/lampway_server/pane_mcp.py
+      - server/lampway_server/mcp.py
+      - server/lampway_server/herdr/swarm_brain.py
       - server/lampway_server/native_worker_readiness.py
       - server/lampway_server/herdr/harnesses/grok.py
       - server/lampway_server/herdr/host.py
@@ -18,6 +20,15 @@ on:
       - server/tests/test_grok_worker_workflow.py
       - server/tests/test_grok_path_contract.py
       - server/tests/test_native_worker_readiness.py
+      - server/tests/test_grok_worker_compat_qa.py
+      - server/tests/test_grok_worker_compat_view.py
+      - server/tests/test_grok_worker_consent.py
+      - server/tests/test_grok_retained_consent_options.py
+      - server/lampway_server/capabilities/**
+      - server/lampway_server/app.py
+      - server/lampway_server/herdr/harnesses/__init__.py
+      - server/lampway_server/agent/swarm.py
+      - server/lampway_server/choices/**
       - tests/qa/grok_worker_validation.py
       - third_party/herdr
 permissions:
@@ -74,14 +85,14 @@ jobs:
           python -c 'import os,pathlib; p=next(pathlib.Path(os.environ["LAMPWAY_HERDR_BUILDS"]).glob("*/herdr")); print("LAMPWAY_HERDR_BIN=" + str(p))' >> "$GITHUB_ENV"
       - name: Controlled refusal regression tests
         working-directory: server
-        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
+        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
       - name: Native policy proof with all INET sockets denied
         run: |
-          python tests/qa/grok_worker_validation.py --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
+          python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
       - name: Full helper and native pane chain inside loopback-only namespace
         if: ${{ !cancelled() }}
         run: |
-          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture present --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
