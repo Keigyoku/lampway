@@ -47,6 +47,16 @@ def _render(board, **kw):
     return HC.render(board, None, GATEWAY, TOKEN, MODEL, **kw)
 
 
+def _enable_all_capabilities(board):
+    """Synthetic prior human choices, including exact reviewed Grok consent; no readiness grant."""
+    disclosure = CAP.grok_compat_disclosure()
+    for capability in CAP.CATALOGUE:
+        options = ({"consent_version": disclosure["consent_version"],
+                    "effects_sha256": disclosure["effects_sha256"]}
+                   if capability.id == CAP.GROK_WORKER_COMPAT else None)
+        board.set(capability.id, enabled=True, options=options, by="user")
+
+
 @pytest.mark.parametrize("asks_user", [True, False])
 def test_owned_panes_preserve_resumable_sessions_and_do_not_archive_open_ones(board, asks_user):
     # Native auto_prune deletes transcripts; auto_archive can hide unended sessions. Q2 permits neither.
@@ -195,8 +205,7 @@ def test_a_worker_never_asks_the_user_and_reaches_its_own_endpoint(board):
 def test_the_client_surface_toolsets_are_never_on(board):
     """``hermes serve``'s sessions fold the client surface's toolsets in (``project`` for the TUI, tui_gateway/server.py:1842-1858
     at the pin): Lampway's pane is no Hermes Desktop, so they are named off."""
-    for c in CAP.CATALOGUE:
-        board.set(c.id, enabled=True)
+    _enable_all_capabilities(board)
     disabled = set(_render(board, routes_on=lambda r: True)["agent"]["disabled_toolsets"])
     assert {"project", "desktop_ui"} <= disabled
 
@@ -210,8 +219,7 @@ def test_the_model_is_lampways_gateway_and_nothing_else(board):
 
 
 def test_config_gate_no_provider_but_custom_anywhere(board):
-    for c in CAP.CATALOGUE:
-        board.set(c.id, enabled=True)
+    _enable_all_capabilities(board)
     cfg = _render(board, routes_on=lambda r: True, context={"compression": {"enabled": True}})
     providers = [(p, v) for p, v in _walk(cfg) if p and p[-1] == "provider"]
     assert providers, "the gate must see the model's provider"
@@ -233,8 +241,7 @@ def test_no_key_from_the_environment_reaches_the_config(board, monkeypatch):
     for var in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OPENROUTER_API_KEY", "NOUS_API_KEY", "HERMES_API_KEY", "OPENAI_BASE_URL",
                 "XAI_API_KEY", "GEMINI_API_KEY", "LAMPWAY_ENGINE_TOKEN"):
         monkeypatch.setenv(var, sentinel)
-    for c in CAP.CATALOGUE:
-        board.set(c.id, enabled=True)
+    _enable_all_capabilities(board)
     text = HC.to_yaml(_render(board, routes_on=lambda r: True))
     assert text and sentinel not in text
     source = Path(HC.__file__).read_text()
@@ -359,8 +366,7 @@ def test_lampways_instructions_are_hermess_own_system_prompt_setting(board):
 def test_the_written_config_reads_back_as_the_dict_it_was_rendered_from(board, tmp_path):
     """A pane's config is re-rendered when the user switches a capability while it runs (spec E2): the server reads back its own
     file for the pane's keys (it keeps only their digests), so ``read`` must give exactly what ``render`` gave."""
-    for c in CAP.CATALOGUE:
-        board.set(c.id, enabled=True)
+    _enable_all_capabilities(board)
     board.set("terminal", options={"backend": "docker"})
     rendered = {}
     HC.write(tmp_path / "h", board, "/proj ect", GATEWAY, TOKEN, MODEL, mcp_url="http://127.0.0.1:8799/engine/mcp/u 1",

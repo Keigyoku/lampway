@@ -122,7 +122,7 @@ def test_unknown_adapter_does_not_guess_or_call_status(notice_stack, monkeypatch
 
 def test_worker_and_agent_cannot_manufacture_first_acknowledgement(notice_stack, monkeypatch):
     s = notice_stack
-    monkeypatch.setattr(H, 'worker_problem', lambda _: '')
+    monkeypatch.setattr(H, 'worker_problem', lambda _, project=None: '')
     s.cp.pane_mcp_url = 'http://127.0.0.1:8787/api/v1/mcp/pane'
     from lampway_server.herdr.launch_notice import NoticeRequired
     with pytest.raises(NoticeRequired):
@@ -240,7 +240,7 @@ def test_fresh_host_route_off_remains_first_actionable_refusal(notice_stack):
 def test_fresh_unsupported_worker_refuses_readiness_before_notice(notice_stack, monkeypatch):
     from lampway_server.herdr.host import CockpitError
     s = notice_stack
-    monkeypatch.setattr(H, 'worker_problem', lambda _: 'synthetic unsupported worker endpoint')
+    monkeypatch.setattr(H, 'worker_problem', lambda _, project=None: 'synthetic unsupported worker endpoint')
     with pytest.raises(CockpitError, match='synthetic unsupported worker endpoint'):
         s.cp.create_session('claude', 'Synthetic worker', str(s.tmp), by='swarm',
                             swarm_worker=('swarm:owned:w1', 'synthetic-token'))

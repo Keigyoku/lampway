@@ -104,6 +104,8 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
             requests.append(request)
             assert request['method'] != 'session/prompt', 'MCP proof must not wait on a denied model turn'
             result = {'sessionId': 'owned-native-id'} if request['method'] == 'session/new' else {}
+            if request['method'] == 'initialize':
+                result = {'agentCapabilities': {'mcpCapabilities': {'http': True, 'sse': True}}}
             if request['method'] == '_x.ai/mcp/list':
                 # Native 1.0.46 extensions wrap their payload and retain blocked
                 # configured entries. Only session.enabled describes admission.
@@ -153,6 +155,7 @@ def test_native_mcp_calls_never_require_a_model_prompt(tmp_path, monkeypatch, la
     expected += ['_x.ai/mcp/call']
     if label == 'restricted':
         expected += ['_x.ai/mcp/list', '_x.ai/session/update_mcp_servers', '_x.ai/mcp/list']
+        expected += ['_x.ai/mcp/list', '_x.ai/session/update_mcp_servers', '_x.ai/mcp/list', '_x.ai/mcp/call'] * 2
     assert [r['method'] for r in requests] == expected
     assert all(r['params']['sessionId'] == 'owned-native-id' for r in requests[2:])
     # Each unchanged request bounds drain and reply; pool completion is one

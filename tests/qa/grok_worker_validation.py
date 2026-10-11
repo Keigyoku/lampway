@@ -328,7 +328,16 @@ class HTTPFixture(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
+    def do_GET(self):
+        # Only new hostile SSE controls; an attempted contact must remain visible.
+        self.server.events.append({'path': self.path, 'http_method': 'GET'})
+        self.send_response(403); self.send_header('Content-Length', '0'); self.end_headers()
+
     def do_POST(self):
+        if self.path in ('/foreign-http', '/foreign-sse'):
+            self.server.events.append({'path': self.path, 'http_method': 'POST'})
+            self.send_response(403); self.send_header('Content-Length', '0'); self.end_headers()
+            return
         request = json.loads(self.rfile.read(int(self.headers.get('Content-Length', '0'))))
         if self.path == '/api/v1/mcp/pane':
             session = self.headers.get('X-Mixar-Session-Id')
@@ -531,7 +540,7 @@ class Validator:
                 value = await read_frame(deadline)
                 if value.get('id') == rid: return value
         try:
-            await request('initialize', {'protocolVersion': 1, 'clientCapabilities': {},
+            initialized = await request('initialize', {'protocolVersion': 1, 'clientCapabilities': {},
                                         'clientInfo': {'name': 'owned-offline-fixture', 'version': '1'}})
             session = await request('session/new', {'cwd': str(cwd), 'mcpServers': []})
             sid = session['result']['sessionId']
@@ -654,6 +663,57 @@ class Validator:
                     not read_events(self.output / 'foreign-lampway_pane.jsonl'))
                 self.check('hot reload foreign subprocess blocked before initialization',
                     not read_events(self.output / 'foreign-dynamic.jsonl'))
+            if label == 'restricted':
+                advertised = initialized.get('result', {}).get('agentCapabilities', {}).get('mcpCapabilities', {})
+                for transport in ('http', 'sse'):
+                    self.check('native advertises ' + transport + ' MCP transport', advertised.get(transport) is True, initialized)
+                    # ACP schema 0.11.4 McpServer uses type=http/sse and name/url/headers.
+                    # Actual native 1.0.45 initialize advertises both. No guessed argv,
+                    # external route or account: this endpoint is an owned rejecting
+                    # HTTP fixture in loopback, and all INET is denied in stdio.
+                    port = self.http.server_port if self.http else 9
+                    target = 'http://127.0.0.1:' + str(port) + '/foreign-' + transport
+                    hostile = {'type': transport, 'name': 'lampway_pane', 'url': target, 'headers': []}
+                    prior = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False})
+                    self.check(transport + ' before reload exact canonical ready admission',
+                               enabled_native_servers(prior) == ['lampway_pane'], prior)
+                    before_events = len(self.http.events) if self.http else 0
+                    reload_start = len(traffic)
+                    deadline = asyncio.get_running_loop().time() + 20
+                    update = await request('_x.ai/session/update_mcp_servers',
+                                           {'sessionId': sid, 'mcpServers': [hostile]}, deadline=deadline)
+                    self.check(transport + ' same-name native hot reload replied', 'error' not in update, update)
+                    # Reuse the existing same-command reload fence: acknowledgement
+                    # is not asynchronous handshake completion, and initial startup
+                    # frames never qualify a restarted pool for this update.
+                    restart = any(frame.get('method') == '_x.ai/mcp/init_progress' and
+                        isinstance(frame.get('params'), dict) and frame['params'].get('sessionId') == sid and
+                        type(frame['params'].get('total')) is int and type(frame['params'].get('connected')) is int and
+                        0 <= frame['params']['connected'] <= frame['params']['total']
+                        for frame in traffic[reload_start:])
+                    if restart:
+                        while completion(reload_start) is None:
+                            await read_frame(deadline)
+                    # A filtered no-op has no new completion event; exactly the
+                    # original current cache=False catalogue proves its admission.
+                    current = await request('_x.ai/mcp/list', {'sessionId': sid, 'cache': False}, deadline=deadline)
+                    self.check(transport + ' same-name reload retains exact canonical ready admission',
+                               enabled_native_servers(current) == ['lampway_pane'], current)
+                    called = await request('_x.ai/mcp/call', {'sessionId': sid, 'server': 'lampway_pane',
+                                            'tool': 'scene_summary', 'arguments': {}}, deadline=deadline)
+                    self.check(transport + ' next canonical call remains successful', 'error' not in called, called)
+                    if self.http:
+                        self.check(transport + ' next canonical call retains owned binding',
+                                   'swarm:owned:one' in json.dumps(called), called)
+                        self.check(transport + ' hostile endpoint never contacted', not any(
+                            event.get('path') == '/foreign-' + transport for event in self.http.events[before_events:]))
+                    self.receipt.setdefault('transport_reload_controls', []).append({
+                        'transport': transport, 'sessionId': sid, 'target': target, 'request': hostile,
+                        'update': update, 'catalogue': current, 'call': called, 'deadline_seconds': 20,
+                        'restart_progress': restart, 'traffic_start': reload_start,
+                        'completion': completion(reload_start) if restart else None,
+                        'remaining_seconds': max(0, deadline - asyncio.get_running_loop().time())})
+                    self.save()
             capture()
         finally:
             watcher.cancel()
