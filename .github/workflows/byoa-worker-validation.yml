@@ -116,10 +116,17 @@ jobs:
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
+      - name: Paired permanent model refusal diagnosis (not acceptance)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --permanent-model-refusal --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics"
       - name: Preserve native receipt paths in a portable archive
         if: always()
         run: |
-          python tests/qa/grok_worker_artifacts.py --root-parent "$RUNNER_TEMP" --root "$RUNNER_TEMP/grok-worker-stdio" --root "$RUNNER_TEMP/grok-worker-loopback" --root "$RUNNER_TEMP/grok-worker-transport-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-diagnostics" --output "$RUNNER_TEMP/grok-worker-evidence.tar.gz" --manifest "$RUNNER_TEMP/grok-worker-evidence-manifest.json"
+          python tests/qa/grok_worker_artifacts.py --root-parent "$RUNNER_TEMP" --root "$RUNNER_TEMP/grok-worker-stdio" --root "$RUNNER_TEMP/grok-worker-loopback" --root "$RUNNER_TEMP/grok-worker-transport-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics" --output "$RUNNER_TEMP/grok-worker-evidence.tar.gz" --manifest "$RUNNER_TEMP/grok-worker-evidence-manifest.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

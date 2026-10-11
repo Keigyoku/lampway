@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = 'f4907583260d28cb226466b471e81a7b2d27fc5b23d1cf98b3413dce253c756b'
+QA_SHA256 = 'a03f2e1e7a8e1365d893128e7e43b2760c43d13a79e60c4e9bc4d91c0ec317fb'
 
 
 def load_qa(repo):
@@ -44,6 +44,30 @@ def author_inline_profile(persona, connector):
     entry = {'lampway_pane': {'command': connector['command'], 'args': connector['args']}}
     persona.write_text('---\n' + frontmatter + 'mcpServers: ' + json.dumps([entry]) + '\n---\n' + body)
     return {'original_frontmatter': frontmatter, 'original_body': body, 'inline': entry}
+
+
+
+def http_fixture_type(qa, *, permanent=False):
+    """Select only the explicit diagnostic's local HTTP refusal status."""
+    if not permanent:
+        return qa.HTTPFixture
+
+    class PermanentModelRefusal(qa.HTTPFixture):
+        def send_response(self, code, message=None):
+            return super().send_response(400 if code == 503 else code, message)
+
+    return PermanentModelRefusal
+
+
+def model_refusal_fixture(qa, *, permanent=False):
+    handler = http_fixture_type(qa, permanent=permanent)
+    return handler, {
+        'permanent_model_refusal': permanent,
+        'unheld_model_status': 400 if permanent else 503,
+        'handler': handler.__module__ + '.' + handler.__qualname__,
+        'original_handler': qa.HTTPFixture.__module__ + '.' + qa.HTTPFixture.__qualname__,
+        'scope': 'local synthetic model refusal only; inherited body, hold and MCP handlers unchanged',
+    }
 
 
 def validator_type(qa):
@@ -76,7 +100,10 @@ def validator_type(qa):
                 self.check('external route refused', True)
             finally:
                 probe.close()
-            self.http = qa.ThreadingHTTPServer(('127.0.0.1', 0), qa.HTTPFixture)
+            handler, refusal = model_refusal_fixture(qa, permanent=
+                getattr(self.options, 'permanent_model_refusal', False) is True)
+            self.receipt['model_refusal_fixture'] = refusal
+            self.http = qa.ThreadingHTTPServer(('127.0.0.1', 0), handler)
             self.http.events = []; self.http.binding = 'swarm:owned:one'; self.http.hold_model = False
             threading.Thread(target=self.http.serve_forever, daemon=True).start()
             path, env, cwd, config = self.make_fixture()
@@ -172,6 +199,8 @@ def main():
     parser.add_argument('--repo', type=Path, required=True); parser.add_argument('--head', required=True)
     parser.add_argument('--grok', type=Path, required=True); parser.add_argument('--bwrap', type=Path, required=True)
     parser.add_argument('--herdr', type=Path, required=True); parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--permanent-model-refusal', action='store_true',
+        help='Independent paired diagnostic: local model refusal HTTP400 instead of original503; not acceptance')
     options = parser.parse_args(); options.repo = options.repo.resolve()
     admission_gate(options.head)
     options.repo = check_checkout(options.repo, options.head)

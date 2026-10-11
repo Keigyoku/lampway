@@ -232,6 +232,7 @@ def test_actual_finally_restores_environment_even_when_save_capability_or_monito
         'old_capabilities': 'owned-prior-store',
         'os': SimpleNamespace(environ=environment),
         'old_env': before,
+        'native_failure': None,
     }
     module = ast.fix_missing_locations(ast.Module(
         body=[copy.deepcopy(restoration)], type_ignores=[],
@@ -271,3 +272,73 @@ def test_actual_observation_condition_waits_for_current_pending_ctrlc_request(
     # Evaluate only the actual production QA condition. These are pure owned
     # HTTP-fixture event values, never emitted native frames or readiness state.
     assert eval(compile(expression, str(QA), 'eval'), scope) is expected
+
+
+@pytest.mark.parametrize('witness_failure, save_failure, restore_failure', [
+    (False, False, False),
+    (True, False, False),
+    (False, True, False),
+    (False, False, True),
+    (True, True, True),
+])
+def test_actual_failure_witness_preserves_primary_and_owned_cleanup(
+        witness_failure, save_failure, restore_failure):
+    import sys
+    import threading
+
+    outer = next(node for node in METHOD.body if isinstance(node, ast.Try))
+    primary = RuntimeError('original native startup timeout')
+    receipt = {}
+    calls = []
+    environment = {'LAMPWAY_OWNED_FIXTURE_ONLY': 'temporary'}
+    before = {'LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED': 'original'}
+
+    def command(args):
+        calls.append(args)
+        assert args in [
+            ['pane', 'read', 'owned-pane'],
+            ['agent', 'get', 'owned-0'],
+            ['pane', 'close', 'owned-pane'],
+        ]
+        if witness_failure and args[1] in ['read', 'get']:
+            raise RuntimeError('owned witness unavailable')
+        return 'controlled owned witness value'
+
+    def save():
+        if save_failure:
+            raise RuntimeError('owned receipt save unavailable')
+
+    def restore(value):
+        assert value == 'original-capabilities'
+        calls.append('capabilities-restored')
+        if restore_failure:
+            raise RuntimeError('owned capability restore unavailable')
+
+    controlled = copy.deepcopy(outer)
+    controlled.body = [ast.Raise(exc=ast.Name(id='primary', ctx=ast.Load()), cause=None)]
+    module = ast.fix_missing_locations(ast.Module(body=[controlled], type_ignores=[]))
+    scope = {
+        'primary': primary, 'native_failure': None, 'sys': sys, 'traceback': Q.traceback,
+        'panes': ['owned-pane'], 'pane_agents': {'owned-pane': 'owned-0'},
+        'command': command, 'self': SimpleNamespace(receipt=receipt, save=save),
+        'L': SimpleNamespace(server_info=lambda root: None), 'herdr_root': 'owned-root',
+        'monitor_stop': threading.Event(), 'monitor': None, 'monitor_errors': [],
+        'owned_rows': lambda: [], 'CAP': SimpleNamespace(set_active=restore),
+        'old_capabilities': 'original-capabilities',
+        'os': SimpleNamespace(environ=environment), 'old_env': before,
+    }
+    with pytest.raises(RuntimeError) as failure:
+        exec(compile(module, str(QA), 'exec'), scope)
+    assert failure.value is primary
+    assert 'original native startup timeout' in receipt['native_panes_failure']
+    witness = receipt['native_panes_failure_witnesses'][0]
+    assert witness['pane'] == 'owned-pane' and witness['agent_name'] == 'owned-0'
+    if witness_failure:
+        assert 'owned witness unavailable' in witness['screen_failure']
+        assert 'owned witness unavailable' in witness['agent_failure']
+    else:
+        assert witness['screen'] == witness['agent'] == 'controlled owned witness value'
+    assert calls[:2] == [['pane', 'read', 'owned-pane'], ['agent', 'get', 'owned-0']]
+    assert ['pane', 'close', 'owned-pane'] in calls
+    assert 'capabilities-restored' in calls
+    assert environment == before

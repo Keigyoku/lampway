@@ -141,3 +141,52 @@ def test_original_admission_refuses_missing_slot_before_any_execution(monkeypatc
     monkeypatch.delenv('LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED', raising=False)
     with pytest.raises(ValueError, match='slot grant'):
         D.admission_gate('a'*40)
+
+
+@pytest.mark.parametrize('permanent,code,expected', [
+    (False, 503, 503), (True, 503, 400),
+    (False, 200, 200), (True, 200, 200),
+    (False, 403, 403), (True, 403, 403),
+    (False, 418, 418), (True, 418, 418),
+])
+def test_only_opted_in_local_retryable_refusal_changes(qa, monkeypatch, permanent, code, expected):
+    import http.server
+    observed = []
+    monkeypatch.setattr(http.server.BaseHTTPRequestHandler, 'send_response',
+        lambda self, status, message=None: observed.append((status, message)))
+    handler = object.__new__(D.http_fixture_type(qa, permanent=permanent))
+    handler.send_response(code, 'Exact original response message')
+    assert observed == [(expected, 'Exact original response message')]
+
+
+def test_default_retains_exact_original_http_handler(qa):
+    assert D.http_fixture_type(qa) is qa.HTTPFixture
+    assert D.http_fixture_type(qa, permanent=False) is qa.HTTPFixture
+
+
+def test_permanent_refusal_inherits_body_hold_and_mcp_handlers(qa):
+    cls = D.http_fixture_type(qa, permanent=True)
+    assert issubclass(cls, qa.HTTPFixture)
+    assert cls.do_POST is qa.HTTPFixture.do_POST
+    assert cls.do_GET is qa.HTTPFixture.do_GET
+    assert cls.log_message is qa.HTTPFixture.log_message
+    assert cls.__dict__.keys() - {'__module__', '__doc__', '__qualname__'} == {'send_response'}
+
+
+@pytest.mark.parametrize('permanent', [False, True])
+def test_refusal_receipt_records_exact_selected_handler(qa, permanent):
+    handler, record = D.model_refusal_fixture(qa, permanent=permanent)
+    assert record['permanent_model_refusal'] is permanent
+    assert record['unheld_model_status'] == (400 if permanent else 503)
+    assert record['handler'] == handler.__module__ + '.' + handler.__qualname__
+    assert record['original_handler'] == qa.HTTPFixture.__module__ + '.' + qa.HTTPFixture.__qualname__
+
+
+def test_permanent_refusal_option_is_explicit_default_false():
+    import ast
+    tree = ast.parse(PATH.read_text())
+    option = next(n for n in ast.walk(tree) if isinstance(n, ast.Call) and
+        isinstance(n.func, ast.Attribute) and n.func.attr == 'add_argument' and
+        n.args and isinstance(n.args[0], ast.Constant) and n.args[0].value == '--permanent-model-refusal')
+    assert {k.arg: ast.literal_eval(k.value) for k in option.keywords}['action'] == 'store_true'
+    assert not any(k.arg == 'default' for k in option.keywords)

@@ -932,6 +932,8 @@ class Validator:
                 time.sleep(0.05)
             return not any(still_alive(r) for r in rows)
         panes = []
+        pane_agents = {}
+        native_failure = None
         try:
             if getattr(self.options, 'compatibility_layer', False) is True:
                 CAP.set_active(enroll_compatibility_fixture(config))
@@ -958,6 +960,7 @@ class Validator:
             for index, action in enumerate(['ctrl-c', 'hup-term', 'hard-close']):
                 pane = layout.created_pane(command(layout.workspace_create(str(cwd), flags)))['pane_id']
                 panes.append(pane)
+                pane_agents[pane] = 'owned-' + str(index)
                 pane_dir = Path(config['root']) / 'panes' / pane
                 pane_dir.mkdir(mode=0o700)
                 original = json.loads(path.with_name('mcp.json').read_text())
@@ -1050,8 +1053,24 @@ class Validator:
                     self.check(action + ' no foreign ' + source + ' initialization',
                         not read_events(self.output / ('foreign-' + source + '.jsonl')))
         except Exception:
+            _, native_failure, native_failure_traceback = sys.exc_info()
             self.receipt['native_panes_failure'] = traceback.format_exc()
-            self.save()
+            # Bounded reads of this fixture's known panes before closing them.
+            # Witness errors must not replace the original native failure.
+            for failed_pane in list(panes):
+                witness = {'pane': failed_pane, 'agent_name': pane_agents[failed_pane]}
+                for label, args in [
+                        ('screen', ['pane', 'read', failed_pane]),
+                        ('agent', ['agent', 'get', pane_agents[failed_pane]])]:
+                    try:
+                        witness[label] = command(args)
+                    except Exception:
+                        witness[label + '_failure'] = traceback.format_exc()
+                self.receipt.setdefault('native_panes_failure_witnesses', []).append(witness)
+            try:
+                self.save()
+            except Exception:
+                self.receipt['native_panes_failure_save_error'] = traceback.format_exc()
             raise
         finally:
             for pane in panes:
@@ -1086,7 +1105,11 @@ class Validator:
                     try:
                         CAP.set_active(old_capabilities)
                     finally:
-                        os.environ.clear(); os.environ.update(old_env)
+                        try:
+                            os.environ.clear(); os.environ.update(old_env)
+                        finally:
+                            if native_failure is not None:
+                                raise native_failure.with_traceback(native_failure_traceback)
 
 
 def main():
