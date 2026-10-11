@@ -35,7 +35,7 @@ from .library import rest as library_rest
 from .library.vault import Vault
 from . import brand_page as BP
 from .cards import routes as cards_routes
-from .mcp import McpServer, parse as mcp_parse
+from .mcp import LOOPBACK as MCP_LOOPBACK, McpServer, parse as mcp_parse
 from .rest import envelope, stub_routes
 from .ws import AgentSocket, ConnectionHub, bearer_from
 from starlette.responses import Response
@@ -165,6 +165,15 @@ def _local_job_services(settings: Settings):
     return JB.default_registry(work=work)
 
 
+def _register_endpoint_host(base_url: str) -> None:
+    """Law 2 for the user's own OpenAI-compatible endpoint: loopback is local; any other host (a LAN box included) belongs to the
+    custom_llm route, which is off until the user opts in."""
+    from urllib.parse import urlsplit
+    from . import egress as _EG
+    if not str(base_url).startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")) and _EG.ACTIVE is not None:
+        _EG.ACTIVE.register_host("custom_llm", urlsplit(str(base_url)).hostname or "")
+
+
 def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provider_factory=None, job_backends=None, transcriber=None, studio_service=None, video=None, higgsfield_auth=None, prompts=None, job_services=None, job_receipts=None, cockpit=None, egress=None,
                handwriting_reader=None, connections_transport=None) -> Starlette:
     from . import egress as _EG
@@ -173,9 +182,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     elif _EG.ACTIVE is None:
         _EG.set_active(_EG.Egress(settings.state_dir))                              # production: strict, every route off until the user opts in
     _EG.install()
-    if not str(settings.openai_base_url).startswith(("http://127.0.0.1", "http://localhost", "http://[::1]")):
-        from urllib.parse import urlsplit
-        _EG.ACTIVE.register_host("custom_llm", urlsplit(settings.openai_base_url).hostname or "")
+    _register_endpoint_host(settings.openai_base_url)
     logredact.install()          # no OAuth code/state/token in any log line, uvicorn's access log included
     provider_prefs.apply_saved(settings, provider_prefs.load(settings.state_dir))   # the saved provider choices apply where the environment is silent (an env var is the session's override)
     chatgpt = chatgpt_auth or ChatGPTAuth(settings.state_dir, redirect_port=settings.port)
@@ -196,6 +203,20 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         if not auth.check_password(username, password):
             return unauthorized("Incorrect username or password")
         return JSONResponse(auth.issue_pair())
+
+    async def local_docs(request: Request):
+        return html_page(BP.page(title="Lampway - Docs", headline="Getting started with Lampway",
+            line="Lampway runs locally. Provider calls use only the routes you enable.",
+            parts=(BP.status("Open setup to choose your language and keys, enable outbound routes, choose the agent provider and save per-job and per-day spending caps."),
+                   BP.status("To connect an AI app, open Connect AI Apps (MCP) in your profile. Enable MCP and explicitly allow interface control if you want screenshots or UI actions."),
+                   BP.status("Use Inspect to read scene and object information before editing. View can focus objects, capture editors and render a still using your current settings."),
+                   BP.status("Source, installation and reference documentation", link=("Lampway repository", "https://github.com/Keigyoku/lampway")))))
+
+    async def local_bug_report(request: Request):
+        return html_page(BP.page(title="Lampway - Report a Bug", headline="Report a Lampway bug",
+            line="For this local installation, include the app version, what you clicked, what you expected and the exact error.",
+            parts=(BP.status("Use a minimal synthetic scene when possible. Remove credentials, private file paths and personal content from any logs or screenshots before sharing."),
+                   BP.status("Public reports are tracked in the project repository", link=("Create an issue", "https://github.com/Keigyoku/lampway/issues/new")))))
 
     async def me(request: Request):
         token = bearer_token(request)
@@ -257,7 +278,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         st = chatgpt.status()
         if st["signed_in"] and st["plan_usage_enabled"]:
             return (BP.status(f"({st['email'] or 'signed in'}).", strong="Using ChatGPT plan", link=("Manage usage", st["manage_usage_url"])),
-                    BP.form("/app/chatgpt/signout", "Sign out", primary=False))
+                    BP.form("/app/chatgpt/signout", "Sign out", primary=False),
+                    BP.status("To check image support, use Check ChatGPT image support in Lampway's Agent preferences."))
         if st["signed_in"]:
             return (BP.status("Signed in, but ChatGPT plan usage is not enabled for this sign-in: enable it, or use an API key."),
                     BP.form("/app/chatgpt/start", "Enable ChatGPT plan usage"))
@@ -308,6 +330,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return RedirectResponse("/app/chatgpt", status_code=303)
 
     routes = [
+        Route("/app/docs", local_docs, methods=["GET"]),
+        Route("/app/bug-report", local_bug_report, methods=["GET"]),
         Route("/app/chatgpt", chatgpt_home, methods=["GET"]),
         Route("/app/chatgpt/start", chatgpt_start, methods=["POST"]),
         Route("/auth/callback", chatgpt_callback, methods=["GET"]),
@@ -354,7 +378,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     choice_hook = []                                          # filled below, once the agent exists: a saved choice rebuilds what it decides
     routes += stub_routes(auth, store, settings, jobs, on_choice=lambda pid: [f(pid) for f in choice_hook])
     if swarm_provider_factory is None and provider is None:        # the configured provider's cheap swarm model
-        swarm_provider_factory = lambda label: make_swarm_provider(settings, label, chatgpt_auth=chatgpt)  # noqa: E731  (one sign-in)
+        swarm_provider_factory = lambda label, resolution=None: make_swarm_provider(settings, label, chatgpt_auth=chatgpt, resolution=resolution)  # noqa: E731  (one sign-in)
     from .herdr.host import Cockpit
     cockpit = cockpit if cockpit is not None else Cockpit(Path(os.environ.get("LAMPWAY_HERDR_ROOT") or (Path(os.environ.get("LAMPWAY_HOME") or settings.state_dir) / "herdr")), project_root=str(_project_root()))
     assets = AssetIndex(settings.state_dir)                  # the legacy /asset-search endpoints the Client's Train/Search UI calls
@@ -369,7 +393,11 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         except (ValueError, RuntimeError):
             return make_provider(settings, chatgpt_auth=chatgpt)
     agent = AgentHub(provider if provider is not None else _main_provider(),
-                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault)
+                     swarm_provider_factory=swarm_provider_factory, studio=studio, video=video_system, prompts=prompt_service, jobs=jobs, cockpit=cockpit, assets=vault,
+                     switch_dir=settings.state_dir)
+    agent.settings_store = store                              # the key dialog's choice (R3: whether the model sees images)
+    from .agent.swarm_island import SwarmIsland
+    agent.swarm.island = SwarmIsland(agent)                   # every swarm's Parallel Agents cards, in its unit's island (spec S1, S3)
 
     async def agent_ws(websocket):
         await AgentSocket(websocket, websocket.path_params["instance_id"], auth, hub, agent=agent, jobs=jobs).run()
@@ -454,7 +482,11 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             return JSONResponse({"detail": f"material generation failed: {type(exc).__name__}"}, status_code=502)
         return JSONResponse(material.as_dict())
 
-    mcp = McpServer(hub, agent, ledger=Ledger(Ledger_default_path()), caps=lambda: {"video_max_job_usd": settings.video_max_job_usd})
+    from .herdr import harnesses as _HN
+    mcp = McpServer(hub, agent, ledger=Ledger(Ledger_default_path()), caps=lambda: {"video_max_job_usd": settings.video_max_job_usd},
+                    byoa_enabled=lambda: _HN.enabled(settings.state_dir))
+    if getattr(cockpit, "pane_mcp_url", False) is None:      # spec S3: where a pane's own entries reach this server (loopback)
+        cockpit.pane_mcp_url = f"http://127.0.0.1:{settings.port}/api/v1/mcp/pane"
 
     def _metadata(value):
         """The form's ``metadata`` JSON list, or None when it is not a list of objects."""
@@ -546,6 +578,23 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         reply = await mcp.handle(message, request.headers.get("x-mixar-instance-id", ""), request.headers.get("x-mixar-session-id", ""))
         return Response(status_code=202) if reply is None else JSONResponse(reply)
 
+    async def mcp_pane_route(request: Request):
+        """One MCP JSON-RPC message from a pane Lampway started (mcp.py, spec S3): a swarm worker's pane or a bound BYOA pane's swarm
+        entry. Loopback only; the bearer is the pane's own token or key, never the user's login."""
+        if (request.client.host if request.client else "") not in MCP_LOOPBACK:
+            return JSONResponse({"detail": "loopback only"}, status_code=403)
+        auth = request.headers.get("authorization") or ""
+        caller = await asyncio.to_thread(mcp.pane_caller, auth[7:].strip() if auth.lower().startswith("bearer ") else "",
+                                         request.headers.get("x-mixar-session-id", ""))
+        if caller is None:
+            return JSONResponse({"detail": "not a pane Lampway started: this endpoint takes only a pane's own key or a worker's own token"},
+                                status_code=401)
+        message, failure = mcp_parse(await request.body())
+        if failure is not None:
+            return JSONResponse(failure)
+        reply = await mcp.handle_pane(message, caller)
+        return Response(status_code=202) if reply is None else JSONResponse(reply)
+
     async def mcp_eligibility(request: Request):
         """200 only when this desktop instance has a live agent socket; a 404 with another detail than "Not Found" is what the
         client maps to "desktop not connected"."""
@@ -569,6 +618,7 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         *library_rest.routes(vault, _bearer_ok),
         *cards_routes.routes(_bearer_ok, api_port=settings.port),
         Route("/api/v1/mcp", mcp_route, methods=["POST"]),
+        Route("/api/v1/mcp/pane", mcp_pane_route, methods=["POST"]),
         Route("/api/v1/mcp-desktop/eligibility", mcp_eligibility, methods=["GET"]),
         Route("/api/v1/matgen", matgen_route, methods=["POST"]),
         Route("/api/v1/job-queue/jobs", job_submit, methods=["POST"]),
@@ -903,21 +953,35 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     async def wb_create(request: Request):
         if (r := _wb(request)) is not None:
             return r
-        from .agent import cli_adapters
+        from .herdr import harnesses as _HN
         body = await _json_body(request)
         if body.get("bypass") and os.environ.get("LAMPWAY_ALLOW_BYPASS_ROUTE") != "1":
             return _wb_err("bypass can only be raised by the user's own click in the cockpit: a request cannot lift the permission level", 403)
-        if body.get("agent") in ("claude", "codex", "opencode"):
+        if body.get("api_key") and _wb_origin(request) != "user":
+            return _wb_err("only your click in the cockpit bills a pane to an API key: a request from an agent cannot", 403)
+        if body.get("agent") in _HN.ids():
             try:
-                cli_adapters.require_enabled(settings.state_dir)
+                _HN.require_enabled(settings.state_dir)
             except ValueError as exc:
                 return _wb_err(f"the local CLI switch is off: {exc}", 403)
+            from .herdr.launch_notice import admission, NoticeRequired
+            try:
+                notice = await asyncio.to_thread(admission, cockpit, _HN.get(body['agent']), request, body, _wb_origin(request))
+                if notice is not None:
+                    return JSONResponse(notice, headers={'Cache-Control': 'no-store'})
+            except NoticeRequired as exc:
+                return JSONResponse({'code': 'launch_notice_required', 'detail': str(exc)}, status_code=409)
+            except (PermissionError, OSError, ValueError) as exc:
+                return _wb_err(exc, 403)
         try:
             rec = await asyncio.to_thread(cockpit.create_session, body.get("agent"), body.get("name"), body.get("cwd") or str(_project_root()), body.get("task") or "", body.get("effort"),
-                                          False, body.get("resume_id"), body.get("command"), "user")
+                                          False, body.get("resume_id"), body.get("command"), "user", None, bool(body.get("api_key")),
+                                          str(body.get("scene_session_id") or "") or None)
             return JSONResponse(rec)
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
+        except PermissionError as exc:                                               # egress consent: the harness's byoa route is off (spec B5)
+            return _wb_err(exc, 403)
 
     async def wb_screen(request: Request):
         if (r := _wb(request)) is not None:
@@ -927,12 +991,26 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
 
+    def _wb_origin(request: Request) -> str:
+        """Who is typing, decided from the caller and never from ``body.by`` (agent-modes spec B6): a request that declares an agent
+        origin, a cross-origin request, or a token minted for an agent or an MCP client is an agent send; the user's own Client (the
+        cockpit page, the Blender panel) is the user."""
+        from .connections.routes import _cross_origin
+        if any((request.headers.get(h) or "").strip().lower() in ("agent", "mcp") for h in ("x-lampway-origin", "x-mixar-job-origin")):
+            return "agent"
+        if _cross_origin(request):
+            return "agent"
+        claims = auth.verify_access(bearer_token(request) or "") or {}
+        if str(claims.get("origin") or "").lower() in ("agent", "mcp") or str(claims.get("aud") or "").lower() == "mcp":
+            return "agent"
+        return "user"
+
     async def wb_input(request: Request):
         if (r := _wb(request)) is not None:
             return r
         body = await _json_body(request)
         try:
-            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), body.get("by") or "agent", body.get("user_typed_at"))
+            await asyncio.to_thread(cockpit.send_input, request.path_params["sid"], str(body.get("text") or ""), bool(body.get("submit", True)), _wb_origin(request), body.get("user_typed_at"))
             return JSONResponse({"sent": True})
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
@@ -945,6 +1023,124 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
             return JSONResponse(await asyncio.to_thread(cockpit.close_session, request.path_params["sid"], bool(body.get("confirm"))))
         except (CockpitError, _HL.HerdrError) as exc:
             return _wb_err(exc)
+
+    async def wb_binding(request: Request):
+        """Bind a harness pane to a scene tab, or unbind it (null): the user's Client only (closing a tab unbinds); the pane itself is
+        never touched (agent-modes spec B2, law 5)."""
+        if (r := _wb(request)) is not None:
+            return r
+        if _wb_origin(request) != "user":
+            return _wb_err("only your Client binds a pane to a scene tab: an agent cannot", 403)
+        body = await _json_body(request)
+        try:
+            return JSONResponse(await asyncio.to_thread(cockpit.bind, request.path_params["sid"], str(body.get("scene_session_id") or "") or None))
+        except CockpitError as exc:
+            return _wb_err(exc)
+
+    async def wb_harnesses(request: Request):
+        """The island's "Your agent" list (agent-modes spec M0, B1): every harness adapter, installed or not, with how to install a
+        missing one, and whether the user's switch for their own agents is on. Read-only: only each found binary's version flag runs."""
+        if (r := _wb(request)) is not None:
+            return r
+        from .herdr import harnesses as _HN
+        rows = await asyncio.to_thread(_HN.listing)
+        return JSONResponse({"harnesses": rows, "enabled": _HN.enabled(settings.state_dir), "terms": _HN.TERMS_NOTE})
+
+    async def wb_mode(request: Request):
+        """One scene tab's agent mode, the server's half of the island's switch (agent-modes spec M0, B2). ``runtime`` unbinds every
+        pane from the tab (never touching a pane, law 5); ``byoa`` binds the tab's pane: the ``pane`` the user picked, or a live pane
+        of the picked ``harness`` already bound to the tab, or a new one started for it (the BYOA switch, the harness's egress route
+        and a running herdr server are the create route's own checks). ``previous_session_id`` hands a pane over from the tab's
+        previous chat session (a New Chat in Your agent mode). Only the user's Client switches a tab."""
+        if (r := _wb(request)) is not None:
+            return r
+        if _wb_origin(request) != "user":
+            return _wb_err("only your Client switches a scene tab's agent mode: an agent cannot", 403)
+        from .herdr import harnesses as _HN
+        body = await _json_body(request)
+        scene = str(body.get("scene_session_id") or "").strip()
+        mode = body.get("mode")
+        harness, pane = body.get("harness"), body.get("pane")
+        if not scene or mode not in ("runtime", "byoa"):
+            return _wb_err("scene_session_id and a mode (runtime or byoa) are required", 400)
+        if mode == "byoa" and not (harness or pane):
+            return _wb_err("Your agent needs the harness to start or the pane to bind", 400)
+
+        def unbind_all(sid, keep=None):
+            out = []
+            for rec in cockpit.find_by_scene(sid) if sid else []:
+                if rec["id"] != keep:
+                    cockpit.unbind(rec["id"])
+                    out.append(rec["id"])
+            return out
+
+        scene_name = str(body.get("name") or "").strip() or None      # the Client sends the scene's name: the unit's herdr tab label (A4)
+
+        def switch():
+            prev = str(body.get("previous_session_id") or "").strip()
+            if mode == "runtime":
+                return {"mode": "runtime", "unbound": unbind_all(scene) + (unbind_all(prev) if prev and prev != scene else [])}
+            if pane:
+                rec = next((s for s in cockpit.list_sessions() if s["id"] == pane), None)
+                if rec is None or not rec.get("harness"):
+                    raise CockpitError("only a harness pane can be bound to a scene tab: a shell or a command has no Lampway tools")
+            else:
+                if harness not in _HN.ids():
+                    raise CockpitError(f"unknown harness {harness!r}: the harnesses are {', '.join(_HN.ids())}")
+                rec = next((s for s in cockpit.find_by_scene(scene) if s.get("harness") == harness and s.get("state") == "live"), None)
+            if rec is None:
+                _HN.require_enabled(settings.state_dir)
+            elif 'notice_nonce' in body:
+                from .herdr.launch_notice import admission
+                admission(cockpit, _HN.get(rec['harness']), request, body, _wb_origin(request))
+                if body.get('notice_request') is True:
+                    return {'notice': {'required': False}}
+            elif body.get('notice_request') is True:
+                return {'notice': {'required': False}}
+            if prev and prev != scene:
+                # Notice admission must happen before relinquishing the previous scene binding.
+                if rec is None:
+                    from .herdr.launch_notice import admission
+                    notice = admission(cockpit, _HN.get(harness), request, body, _wb_origin(request))
+                    if notice is not None:
+                        return notice
+                unbind_all(prev)
+            if rec is None:
+                _HN.require_enabled(settings.state_dir)
+                ad = _HN.get(harness)
+                if not (prev and prev != scene):
+                    from .herdr.launch_notice import admission
+                    notice = admission(cockpit, ad, request, body, _wb_origin(request))
+                    if notice is not None:
+                        return notice
+                name = str(body.get("name") or "").strip()[:80] or f"{ad.label} for a scene tab"
+                rec = cockpit.create_session(harness, name if len(name) >= 2 else f"{ad.label} for a scene tab", str(_project_root()),
+                                             by="user", scene_session_id=scene, unit_label=scene_name)
+            else:
+                rec = cockpit.bind(rec["id"], scene, unit_label=scene_name)
+            unbind_all(scene, keep=rec["id"])
+            ad = _HN.ADAPTERS.get(rec.get("harness"))
+            obs = ad.observe(rec) if ad is not None else None
+            view = "transcript" if obs is not None and obs.kind in ("session_file", "rollout") else "screen"
+            return {"mode": "byoa", "pane": rec, "view": view}
+
+        try:
+            out = await asyncio.to_thread(switch)
+            if 'notice' in out:
+                return JSONResponse(out, headers={'Cache-Control': 'no-store'})
+            agent.byoa.forget(scene, str(body.get("previous_session_id") or "").strip())   # a new watch starts on the next observe
+            return JSONResponse(out)
+        except PermissionError as exc:
+            from .herdr.launch_notice import NoticeRequired
+            if isinstance(exc, NoticeRequired):
+                return JSONResponse({'code': 'launch_notice_required', 'detail': str(exc)}, status_code=409)
+            return _wb_err(exc, 403)
+        except (CockpitError, _HL.HerdrError) as exc:
+            return _wb_err(exc)
+        except ValueError as exc:                                            # the BYOA switch is off
+            return _wb_err(f"the local CLI switch is off: {exc}", 403)
+        except PermissionError as exc:                                       # the harness's byoa route is off (spec B5)
+            return _wb_err(exc, 403)
 
     async def wb_agent_sends(request: Request):
         if (r := _wb(request)) is not None:
@@ -962,7 +1158,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                Route("/app/workbench/server/stop", wb_server_stop, methods=["POST"]), Route("/app/workbench/reconcile", wb_reconcile, methods=["POST"]),
                Route("/app/workbench/sessions", wb_create, methods=["POST"]), Route("/app/workbench/sessions/{sid}/screen", wb_screen, methods=["GET"]),
                Route("/app/workbench/sessions/{sid}/input", wb_input, methods=["POST"]), Route("/app/workbench/sessions/{sid}/close", wb_close, methods=["POST"]),
-               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"])]
+               Route("/app/workbench/sessions/{sid}/agent-sends", wb_agent_sends, methods=["POST"]),
+               Route("/app/workbench/sessions/{sid}/binding", wb_binding, methods=["POST"]),
+               Route("/app/workbench/harnesses", wb_harnesses, methods=["GET"]), Route("/app/workbench/mode", wb_mode, methods=["POST"])]
     routes += [Route("/app/studio", studio_home, methods=["GET"]), Route("/app/studio/plan", studio_plan, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/confirm", studio_confirm, methods=["POST"]),
                Route("/app/studio/approvals/{approval_id}/reject", studio_reject, methods=["POST"]),
@@ -1304,6 +1502,9 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     from . import choices as CHO
     from .choices.routes import choices_routes
     CHO.set_active(CHO.FileStore(settings.state_dir), settings.state_dir)
+    from . import capabilities as CAPS
+    from .capabilities.routes import capabilities_routes
+    CAPS.set_active(CAPS.Store(settings.state_dir))                             # spec E2: what an agent may do, the user's switches
     try:
         CHO.propose_dead_preferences(store._data.get("preferences") or {})      # HC22: proposed once, never applied silently
     except Exception:  # noqa: BLE001 - a migration note must never stop the server
@@ -1329,12 +1530,47 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 logging.getLogger("lampway.choices").warning("the main agent's choice could not be built: %s", exc)
                 return
             agent.provider = new_main
-        for k in ("provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
+        _register_endpoint_host(trial.openai_base_url)                # a remote endpoint is the custom_llm route's, off until opted in
+        for k in ("provider", "anthropic_model", "openai_model", "openai_base_url", "chatgpt_model", "chatgpt_effort", "openrouter_model", "swarm_provider",
                   "claude_swarm_model", "chatgpt_swarm_model", "openrouter_swarm_model", "image_backend", "image_purposes", "video_purposes"):
             setattr(settings, k, getattr(trial, k))
         settings.sources.update({k: v for k, v in trial.sources.items() if v == "choices"})
     choice_hook.append(choice_changed)
     routes += choices_routes(_bearer_ok, choice_changed)
+    routes += capabilities_routes(_bearer_ok)
+    from .engine.context_settings import Store as ContextStore, routes as context_routes
+    context_store = ContextStore(settings.state_dir)
+    routes += context_routes(context_store, _bearer_ok, agent, _wb_origin)
+    from .chatgpt_vision_routes import routes as chatgpt_vision_routes
+    def chatgpt_vision_changed():
+        units = getattr(engine_wiring, "units", None)
+        if units is not None:
+            units.capabilities_changed()  # existing coalesced native config refresh; never starts a pane or model turn
+    def chatgpt_vision_human_session(request):
+        if _wb(request) is not None or _wb_origin(request) != "user":
+            return None
+        token = bearer_token(request)
+        claims = auth.verify_access(token)
+        import hashlib
+        import math
+        import time
+        if not isinstance(claims, dict):
+            return None
+        expires = claims.get("exp")
+        if type(expires) not in (int, float) or not math.isfinite(expires) or expires <= time.time():
+            return None
+        return hashlib.sha256(token.encode()).hexdigest(), expires
+    routes += chatgpt_vision_routes(chatgpt,
+        lambda: agent.provider.model if getattr(agent.provider, "name", "") == "chatgpt_plan" else settings.chatgpt_model,
+        _wb_origin, human_session=chatgpt_vision_human_session, on_change=chatgpt_vision_changed)
+    from .engine.mcp_endpoint import engine_mcp_routes
+    routes += engine_mcp_routes(lambda: agent.engine)                        # spec E1.6: the engine's own MCP endpoint
+    from .engine import gateway as ENG                                          # spec E1.4: the engine's one model endpoint, on loopback
+    engine_tokens = ENG.Registry()
+    ENG.set_active(engine_tokens)
+    from .engine import wiring as ENGW                                          # spec E1, A5: Hermes in Mode 1's seat whenever it is built
+    engine_wiring = ENGW.wire(settings, agent, engine_tokens, chatgpt_auth=chatgpt)
+    routes += ENG.gateway_routes(engine_tokens, ENGW.provider_getter(agent, settings=settings, chatgpt_auth=chatgpt))
     routes.append(Route("/app/swarm", swarm_status, methods=["GET"]))
     routes.append(Route("/app/swarm/{swarm_id}/cancel/{worker}", swarm_cancel, methods=["POST"]))
     @contextlib.asynccontextmanager
@@ -1351,8 +1587,17 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
 
         render_stop = threading.Event()
         render_thread = renderer.start(render_stop) if renderer is not None else None     # one worker thread: due previews, then thumbnails nobody asked for yet
+        if engine_wiring is not None:
+            try:
+                await engine_wiring.start()                        # the egress proxy on loopback, then the runtime in the seat
+            except Exception as exc:  # noqa: BLE001 - nothing else runs Mode 1 (spec A5): its chats are refused, saying why
+                agent.engine, agent.engine_problem = None, tuple(ENGW.start_failed(exc))
+                logging.getLogger("lampway.engine").warning("the engine could not start; Mode 1 chats are refused", exc_info=True)
+
+        expiry_task = None
 
         async def tick():
+            nonlocal expiry_task
             while True:
                 await asyncio.sleep(60)                            # never a remote check at start: the first poll is a minute in
                 try:
@@ -1360,14 +1605,35 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
                 except Exception:  # noqa: BLE001
                     pass
                 try:
+                    expiry_task = asyncio.create_task(asyncio.to_thread(cockpit.expire_pane_images),
+                                                      name="lampway-pane-image-expiry")
+                    await asyncio.shield(expiry_task)              # shutdown joins any in-flight filesystem cleanup
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.panes").warning("pane image expiry failed", exc_info=True)
+                expiry_task = None
+                if engine_wiring is not None:
+                    try:
+                        await engine_wiring.tick()                 # native history visibility only; no pane reap (A0, Q2)
+                    except Exception:  # noqa: BLE001
+                        logging.getLogger("lampway.engine").warning("native session visibility maintenance failed", exc_info=True)
+                try:
                     await asyncio.to_thread(conn_hub.poll)          # C2: reads only, routes on, used in the last day, every 30 min
                 except Exception:  # noqa: BLE001
                     logging.getLogger("lampway.connections").warning("the connections poll failed", exc_info=True)
-        task = asyncio.get_running_loop().create_task(tick())
+        task = asyncio.get_running_loop().create_task(tick(), name="lampway-maintenance")
         try:
             yield
         finally:
             task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+            if expiry_task is not None:
+                try:
+                    await expiry_task                             # cancelling to_thread never stops its filesystem worker
+                except Exception:  # noqa: BLE001
+                    logging.getLogger("lampway.panes").warning("pane image expiry failed during shutdown", exc_info=True)
+            if engine_wiring is not None:
+                await engine_wiring.stop()                         # this server's connections to the panes, then the proxy
             render_stop.set()
             if render_thread is not None:
                 render_thread.join(10)                                # a preview in flight finishes before its library closes
@@ -1381,6 +1647,8 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
     app.state.auth = auth
     app.state.store = store
     app.state.provider = provider
+    app.state.engine_tokens = engine_tokens
+    app.state.engine_wiring = engine_wiring
     app.state.chatgpt = chatgpt
     app.state.video = video_system
     app.state.jobs = jobs

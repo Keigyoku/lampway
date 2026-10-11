@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Cześć, jestem Naman z Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+W kilka minut pokażę ci naszą aplikację.
+
+3
+00:00:06,760 --> 00:00:08,250
+To twój widok 3D.
+
+4
+00:00:08,250 --> 00:00:10,300
+Przestrzeń 3D, w której możesz się poruszać.
+
+5
+00:00:11,000 --> 00:00:13,200
+Obracaj środkowym przyciskiem, przybliżaj kółkiem.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift i środkowy przycisk przesuwają widok.
+
+7
+00:00:15,850 --> 00:00:17,160
+Wypróbuj to.
+
+8
+00:00:18,180 --> 00:00:20,700
+Kliknij, aby zaznaczyć, G — przesuń,
+
+9
+00:00:20,700 --> 00:00:22,600
+R — obróć, S — skaluj.
+
+10
+00:00:22,600 --> 00:00:25,410
+Oto kilka przydatnych skrótów.
+
+11
+00:00:26,040 --> 00:00:29,500
+Widzisz wysepkę na dole? To Mixie, twój agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Kliknij, aby otworzyć.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie ma zakładki.
+
+14
+00:00:33,920 --> 00:00:38,800
+W Agent opisz zadanie zwykłymi słowami. Agent zmieni twoją scenę.
+
+15
+00:00:39,400 --> 00:00:43,300
+Agent korzysta z modeli Tripo, Meshy i Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Aby mieć więcej kontroli, otwórz inne zakładki:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video lub World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Wybierz model i dostosuj ustawienia.
+
+19
+00:00:53,560 --> 00:00:55,730
+Wszystko, co wygenerujesz, trafia do biblioteki.
+
+20
+00:00:56,670 --> 00:00:58,700
+Tutaj znajdziesz swoje wyniki.
+
+21
+00:00:59,140 --> 00:01:03,000
+Podłącz własną bibliotekę, aby agent używał twoich zasobów,
+
+22
+00:01:03,000 --> 00:01:06,320
+oszczędzając kredyty.
+
+23
+00:01:06,830 --> 00:01:09,550
+W lewym górnym rogu jest panel scen.
+
+24
+00:01:09,550 --> 00:01:12,980
+Każda scena ma własną zakładkę i agenta Mixie.
+
+25
+00:01:12,980 --> 00:01:17,010
+Uruchamiaj zadania równolegle i przełączaj się między nimi.
+
+26
+00:01:17,640 --> 00:01:21,100
+Gdy scena jest gotowa, przejdź do Cinema Mode,
+
+27
+00:01:21,100 --> 00:01:24,510
+aby sterować kamerą i tworzyć procesy wideo.
+
+28
+00:01:25,000 --> 00:01:26,700
+Pomysły zaczynają się w 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Wysuń moodboard z prawej lub naciśnij tyldę.
+
+30
+00:01:30,860 --> 00:01:33,500
+To płótno na inspiracje i koncepcje.
+
+31
+00:01:33,500 --> 00:01:36,270
+Dodawaj tu obrazy, filmy i szkice.
+
+32
+00:01:36,940 --> 00:01:40,930
+Buduj grafy węzłów modeli generatywnych, jak w ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Jesteś w Zen Mode, najprostszym widoku.
+
+34
+00:01:44,400 --> 00:01:46,840
+Znasz Blender? Przełącz na Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Jest tu cały obszar roboczy Blendera, każdy panel i skrót.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie działa w obu trybach. Wybierz wygodniejszy.
+
+37
+00:01:56,560 --> 00:01:57,570
+Wróćmy do Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Nasz program partnerski dla twórców zapewnia kredyty
+
+39
+00:02:02,200 --> 00:02:05,900
+i społeczność kształtującą przyszłość AI i 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+To wszystko. Wiesz już, gdzie co jest.
+
+41
+00:02:08,550 --> 00:02:10,240
+Twórzmy razem w 3D.

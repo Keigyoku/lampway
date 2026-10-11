@@ -5,7 +5,21 @@ app instance named by ``X-Mixar-Instance-Id`` and the scene session named by ``X
 round trip inside an MCP operation (``mcp.begin_operation`` leases the scene, the script carries its ``mcp_operation_id``,
 ``mcp.end_operation`` releases it), the client's condition for admitting a script from an external app. Offered: the scene tools, the Lampway tools that are one script in Blender, and the Asset Vault family
 (``lampway_vault_*``, run here on the server with the external client's authority: read and curate, never spend, never enrol a folder).
-NOT offered: the studio tools (they spend credits on the owner's subscription), the swarm and ``ask_user`` (they need the agent loop).
+NOT offered: the studio tools (they spend credits on the owner's subscription) and the swarm (only a Lampway pane bound to a scene tab
+starts one, below). The other server-run tools are Lampway Agent's (Mode 1, through its unit's endpoint, ``engine/mcp_endpoint.py``).
+
+The pane endpoint (``POST /api/v1/mcp/pane``, docs/reports/agent-modes-spec.md S3) is not for external apps. Loopback only, it
+answers only a pane Lampway started on its own herdr server, proven by that pane's own bearer, which lives only in the pane's own
+MCP config (0600 under the Lampway root):
+  * a **swarm worker pane** (session header ``swarm:<swarm_id>:<worker_id>``, bearer = that worker's token, minted by its
+    ``PaneBrain``): offered ``worker_tools()`` as Capabilities allow, plus ``lampway_worker_done``; every call runs through the
+    worker's ``WorkerJob.call_tool``, on the worker's own headless Lampway. Never the swarm, the studios or the workbench;
+  * a **bound BYOA pane** (B2; bearer = the pane's key, its sha256 in the cockpit's record): offered only ``swarm_start``,
+    ``swarm_status``, ``swarm_cancel`` and ``swarm_collect``, only with capability ``swarm`` in force and the BYOA switch on. Its
+    swarm is Mode 2's: its workers are panes on the pane's own harness (``PaneBrain``, the one brain; the unit's mode picks the
+    adapter), split into the pane's tab, and its work lands in the pane's bound scene tab; it reaches only the swarms it started.
+    No swarm tool spends.
+On the external route a ``swarm:`` session header is refused: a binding is not a credential.
 """
 
 import asyncio
@@ -30,6 +44,11 @@ SERVER_TOOLS = (
 )
 
 PROTOCOL_VERSION = "2025-06-18"
+LOOPBACK = {"127.0.0.1", "::1", "localhost", "testclient"}
+WORKER_INSTRUCTIONS = ("You are one worker of a Lampway swarm. These tools act on YOUR OWN headless Lampway scene, never the user's. "
+                       "Do your task, then call lampway_worker_done once with one sentence saying what you made.")
+PANE_INSTRUCTIONS = ("Lampway's swarm for this pane's scene tab: swarm_start runs workers, each in its own pane with its own headless "
+                     "Lampway; swarm_collect brings their work into this tab. Scene tools are on the pane's lampway entry.")
 MAX_LEASE_SECONDS = 600            # the client caps an operation at 600 s (mcp_bridge/constants.py MAX_TIMEOUT_SECONDS)
 LEASE_MARGIN_SECONDS = 30          # the lease outlives the script's own timeout
 LEASE_RPC_SECONDS = 30             # begin/end are main-thread bookkeeping in the client
@@ -50,12 +69,17 @@ def _error(request_id, code, message):
 
 
 class McpServer:
-    def __init__(self, hub, agent, ledger=None, caps=None):
+    def __init__(self, hub, agent, ledger=None, caps=None, byoa_enabled=None):
+        from .herdr.swarm_brain import WorkerBindings
         self.hub = hub
         self.agent = agent
         self.ledger = ledger
         self.caps = caps or (lambda: {})
         self.journal: "OrderedDict[str, dict]" = OrderedDict()               # call id -> recorded outcome (bounded)
+        # spec S3: the swarm's worker panes, by binding: the swarm's own table, whichever mode started it
+        swarm = getattr(agent, "swarm", None)
+        self.workers = swarm.bindings if swarm is not None else WorkerBindings()
+        self.byoa_enabled = byoa_enabled or (lambda: False)
 
     def tools_payload(self) -> list:
         return [{"name": t.name, "description": t.description, "inputSchema": t.parameters, "_meta": {"spend": False, "spend_policy": SPEND_POLICY}} for t in offered_tools()]
@@ -108,6 +132,13 @@ class McpServer:
         name = params.get("name")
         if name not in {t.name for t in offered_tools()}:
             return _error(request_id, INVALID_PARAMS, f"unknown or not offered tool {name!r}")
+        if str(session_id or "").startswith("swarm:"):                 # spec S3: a binding is not a credential
+            return self._result(request_id, "refused: a swarm worker's binding is served only to that worker's own pane, on Lampway's pane "
+                                            "endpoint with its own token; this route never reaches a worker", True)
+        from . import capabilities as CAP
+        refusal = CAP.check_tool(name, params.get("arguments") or {}, origin="mcp:" + (instance_id or "client"))   # spec E2
+        if refusal is not None:
+            return self._result(request_id, refusal, True)
         if name == "lampway_credit_balance":
             return self._result(request_id, json.dumps(self._credit_balance()), False)
         if name in CNT.NAMES:                                       # the same read-only projection the main agent gets
@@ -176,6 +207,106 @@ class McpServer:
     @staticmethod
     def _result(request_id, text, is_error):
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": text}], "isError": bool(is_error)}}
+
+
+    # ------------------------------------------------------------------------------------------------- the pane endpoint (spec S3)
+    def pane_caller(self, token: str, session: str):
+        """("worker", binding) for a swarm worker's own pane, ("pane", record) for a bound BYOA pane's key, else None."""
+        if str(session or "").startswith("swarm:"):
+            binding = self.workers.resolve(session, token)
+            return ("worker", binding) if binding is not None else None
+        cockpit = getattr(self.agent, "cockpit", None)
+        rec = cockpit.pane_for_key(token) if token and hasattr(cockpit, "pane_for_key") else None
+        return ("pane", rec) if rec is not None else None
+
+    @staticmethod
+    def worker_specs() -> list:
+        from . import capabilities as CAP
+        from .agent.swarm import worker_tools
+        from .herdr.swarm_brain import WORKER_DONE
+        return [t for t in worker_tools() if CAP.tool_offered(t.name)] + [WORKER_DONE]
+
+    @staticmethod
+    def pane_specs() -> list:
+        from . import capabilities as CAP
+        from .agent.swarm import SWARM_SPECS
+        return [s for s in SWARM_SPECS if CAP.tool_offered(s.name)]
+
+    async def handle_pane(self, message, caller):
+        """One JSON-RPC message from a pane ``pane_caller`` proved; None for a notification."""
+        kind, who = caller
+        if not isinstance(message, dict) or message.get("jsonrpc") != "2.0":
+            return _error(None, -32600, "not a JSON-RPC 2.0 request")
+        method, request_id, params = message.get("method"), message.get("id"), message.get("params") or {}
+        if request_id is None:
+            return None
+        if method == "initialize":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {
+                "protocolVersion": (params.get("protocolVersion") if isinstance(params, dict) else None) or PROTOCOL_VERSION,
+                "capabilities": {"tools": {"listChanged": False}}, "serverInfo": {"name": "lampway", "version": "0.1.0"},
+                "instructions": WORKER_INSTRUCTIONS if kind == "worker" else PANE_INSTRUCTIONS}}
+        if method == "ping":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {}}
+        specs = self.worker_specs() if kind == "worker" else self.pane_specs()
+        if method == "tools/list":
+            return {"jsonrpc": "2.0", "id": request_id, "result": {"tools": [
+                {"name": t.name, "description": t.description, "inputSchema": t.parameters, "_meta": {"spend": False}} for t in specs]}}
+        if method == "tools/call":
+            name = str(params.get("name") or "")
+            arguments = params.get("arguments") if isinstance(params.get("arguments"), dict) else {}
+            text, is_error = await (self._worker_call(who, name, arguments, specs) if kind == "worker" else self._pane_call(who, name, arguments))
+            return self._result(request_id, text, is_error)
+        return _error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
+
+    async def _worker_call(self, binding, name, arguments, specs) -> tuple:
+        from . import capabilities as CAP
+        from .herdr.swarm_brain import WORKER_DONE
+        if name not in {t.name for t in specs}:
+            return f"refused: {name} is not one of a swarm worker's tools (call lampway_worker_done when your task is done)", True
+        if not binding.live:
+            return (f"refused: {binding.name} has {'finished' if binding.state == 'done' else 'been stopped'}: this pane can no longer "
+                    "use Lampway's tools"), True
+        if name == WORKER_DONE.name:
+            summary = " ".join(str(arguments.get("summary") or "").split())[:2000]
+            if not summary:
+                return "lampway_worker_done needs `summary`: one sentence saying what you made", True
+            self.workers.finish(binding, summary)
+            return "Done: your work is being brought into the user's scene. You can stop now.", False
+        refusal = CAP.check_tool(name, arguments, origin=f"worker:{binding.name}")
+        if refusal is not None:
+            return refusal, True
+        try:
+            return await binding.job.call_tool(name, arguments)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - the worker's Lampway silent or gone: the pane is told
+            return f"{name} could not run: {type(exc).__name__}: {exc}", True
+
+    async def _pane_call(self, rec, name, arguments) -> tuple:
+        from . import capabilities as CAP
+        from .agent.swarm import SWARM_NAMES, SwarmContext
+        if name not in SWARM_NAMES:
+            return f"refused: {name} is not served here: this entry is the swarm's; Lampway's scene tools are on the pane's lampway entry", True
+        refusal = CAP.check_tool(name, arguments, origin=f"pane:{rec['id']}")
+        if refusal is not None:
+            return refusal, True
+        if not rec.get("scene_session_id"):
+            return ("refused: this pane is not bound to a scene tab: bind it to a tab in Lampway first (a swarm's work lands in "
+                    "that tab)"), True
+        if not self.byoa_enabled():
+            return "refused: your own agents in Lampway's panes are off (the BYOA switch): the user switches them on", True
+        owned = getattr(self.agent.swarm.swarms.get(str(arguments.get("swarm_id") or "")), "owner", None)
+        if name != "swarm_start" and owned != f"pane:{rec['id']}":           # its own swarms, and their Retry (the user's click)
+            return f"refused: swarm {arguments.get('swarm_id')!r} was not started by this pane", True
+        desktops = [s for s in self.hub.sockets.values() if getattr(s, "role", "") != "sandbox"]
+        if name == "swarm_start" and len(desktops) != 1:
+            return ("the desktop app is not connected to this server (open Lampway and sign in)" if not desktops else
+                    "several Lampway apps are connected to this server: a pane's swarm needs exactly one"), True
+        # Mode 2 (a bound pane): its workers run on the pane's own harness (S3, Q10), in its unit's tab (the bound scene tab, A4)
+        ctx = SwarmContext(socket=desktops[0] if len(desktops) == 1 else None, session_id=rec["scene_session_id"], turn_id=f"pane:{rec['id']}",
+                           call_id=str(uuid.uuid4()), mode="byoa", harness=rec.get("harness") or rec.get("agent"), cwd=rec.get("cwd"),
+                           project_root=rec.get("project_root"), owner=f"pane:{rec['id']}")
+        return await self.agent.swarm.call(name, arguments, ctx)
 
 
 def parse(body: bytes):

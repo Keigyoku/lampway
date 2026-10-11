@@ -5,7 +5,7 @@
 
 Lampway has no hosted backend. Everything that thinks or generates runs on an account or a machine you own, through the server on `127.0.0.1:8787`. Three families:
 
-1. **Inference providers** run the main agent and the swarm workers.
+1. **Inference providers** answer the agent's model requests: Lampway's agent (Mode 1) is the pinned Hermes runtime, and it thinks only through Lampway's loopback gateway, which the main provider answers ([agent modes](reports/agent-modes-spec.md) A1, A5; Lampway runs no agent loop of its own). Your own agent (Mode 2) uses its own login, not these.
 2. **Generation providers** make images and video (OpenRouter and Higgsfield).
 3. **Studios** make 3D (Tripo, Meshy, Hi3D, Hyper3D) and are reached through your sign-in or your API key.
 
@@ -19,19 +19,17 @@ Pick the main provider with `LAMPWAY_PROVIDER`, the launcher's `--provider`, or 
 
 | `LAMPWAY_PROVIDER` | What it uses | Route (Privacy) | Status |
 |---|---|---|---|
-| `mock` | no model: lists the scene; a message starting `py:` runs the rest as a Blender script | none (local) | live |
+| `mock` | no model: a deterministic stand-in behind the gateway that drives Lampway's agent (Hermes) with Lampway's own tools, by the names Hermes offers them: any message gets the scene's summary from Blender, a message starting `py:` runs the rest as a script in the scene, and Hermes's title call gets text only. It never calls a tool Hermes did not offer | none (local) | built; live-tested against the pinned Hermes (`test_engine_pane_live.py`) |
 | `anthropic` | the official SDK with `ANTHROPIC_API_KEY` (model `LAMPWAY_ANTHROPIC_MODEL`, default `claude-sonnet-5-5`) | `claude_plan` (api.anthropic.com; the label says "plan" but this is the API-key path) | built; the Anthropic SDK path has not been run against a live model (the live agent runs used OpenRouter) |
-| `openai` | any OpenAI-compatible `chat/completions` endpoint: Ollama, LM Studio, llama.cpp, vLLM, OpenAI. `OPENAI_BASE_URL`, `LAMPWAY_OPENAI_MODEL` (required), optional `OPENAI_API_KEY` | none for a loopback URL; `custom_llm` for any other host | built |
+| `openai` | any OpenAI-compatible `chat/completions` endpoint: Ollama, LM Studio, llama.cpp, vLLM, OpenAI. `OPENAI_BASE_URL`, `LAMPWAY_OPENAI_MODEL` (required), optional `OPENAI_API_KEY`; or the client's API-key dialog (provider *Local* or *OpenAI*, with the endpoint's address), which sets the same thing | none for a loopback URL; `custom_llm` for any other host, a LAN box included | built |
 | `openrouter` | OpenRouter, main model `anthropic/claude-sonnet-5.5` by default, `max_tokens` on every request, a session budget ceiling (default $3) | `openrouter` | live |
 | `chatgpt_plan` | your ChatGPT Plus or Pro plan through OpenAI's documented "Sign in with ChatGPT" flow; default model `gpt-6.1-sol` | `chatgpt_plan` | built to the documented protocol; the maintainer's build order records a live check on 2026-10-05 that is not reproduced in the committed reports |
-| `codex_cli`, `claude_cli` | your own `codex` / `claude` binary, run as you; **off unless `LAMPWAY_LOCAL_CLI=1`** | the binary uses its own network | live once each with tiny prompts |
-| `codex_app_server` | `codex app-server` over one persistent child, with Lampway's tools registered as dynamic tools; also behind the local-CLI switch | the binary's own | built |
 
 **Sign in with ChatGPT.** Open `http://127.0.0.1:8787/app/chatgpt`, choose *Continue with ChatGPT*, approve in the browser, then set `LAMPWAY_PROVIDER=chatgpt_plan`. The flow is the documented one (dynamic client registration, PKCE S256, a loopback callback, ID-token validation, the `chatgpt.tokens.use.direct` scope). Tokens stay in `<state>/chatgpt_auth.json`, mode 0600, and are never read from Codex's own files. Image generation is not available on this route.
 
-**Local CLI adapters and the terms.** They start the official binary you are already logged into and never read its credential files. They are for personal use on your own machine. Anthropic's terms say they do not permit third-party developers to offer Claude.ai login in their applications or to route requests through Free, Pro or Max plan credentials on behalf of their users; read them before enabling `claude_cli`, and do not ship it enabled for anyone else. The `anthropic` provider (an API key) is the compliant way to use Claude in a product.
+**Claude Code, Codex and other agent CLIs are your own agent, not a provider.** Lampway's agent no longer runs on an agent CLI wrapped as its model: the `claude_cli`, `codex_cli` and `codex_app_server` providers and the `codex_cli` image backend were retired, and the client's "Codex (ChatGPT sub)" key option, which read `~/.codex/auth.json`, is gone. To work with Claude Code or Codex on your own plan, run it yourself in a pane of the [cockpit](cockpit.md), and add Lampway's MCP connector to it to reach Lampway's tools (each pane wiring itself is planned: [agent modes](reports/agent-modes-spec.md) B1). A saved choice of a retired provider is set aside at start and the default runs. The `anthropic` provider (an API key) and Sign in with ChatGPT are the ways to put those models behind Lampway's own agent.
 
-**Swarm.** The agent can start up to 6 parallel workers per swarm, each a headless Blender process with a typed, fenced commit back to your scene. Workers use the main provider's own swarm model, or `claude_cli` or `openrouter` when `LAMPWAY_SWARM_PROVIDER` (or the dialog) says so. Defaults: OpenRouter workers `deepseek/deepseek-v4.1-flash`; ChatGPT workers `gpt-6.1-sol` at effort `low`; Claude CLI workers `claude-sonnet-5-5`. A free OpenRouter stealth model answered 0 of 6 concurrent worker requests, which is why it is not the default. Live: 3 workers on OpenRouter models, all three collections landed. Not run on the Claude CLI adapter. A worker model call is bounded to 300 s.
+**Swarm.** The agent can start up to 6 parallel workers per swarm, each a pane (Hermes in Mode 1, your harness in Mode 2) working in its own headless Blender scene, with a typed, fenced commit back to your scene. In Mode 1 the gateway answers every worker pane with the main provider today; the swarm model settings (`LAMPWAY_SWARM_PROVIDER`, the dialog; defaults: OpenRouter workers `deepseek/deepseek-v4.1-flash`, ChatGPT workers `gpt-6.1-sol` at effort `low`) were the removed built-in workers' and are not read by the gateway. Measured on those built-in workers: a free OpenRouter stealth model answered 0 of 6 concurrent worker requests; 3 workers on OpenRouter models landed all three collections.
 
 ### OpenRouter
 
@@ -54,7 +52,7 @@ OpenRouter's images API, with one model **per purpose**, validated against the m
 | `concept` | `black-forest-labs/flux-3-image` | 2K |
 | `tile` (seamless tiles) | `openai/gpt-image-2.5-flare` | 2048x2048 |
 
-GPT Image takes `size` (about 8.3 MP, at most 3840 per edge; 2880x2880 and 2160x3840 work, 3840x3840 does not); FLUX, Seedream, Gemini and Riverflow take `resolution` plus `aspect_ratio`. Backends for the mesh-paint image step: `tripo` (the Tripo Studio driver), `codex_cli` (your own Codex login; off unless enabled) and `openrouter`. Live: one image, $0.067.
+GPT Image takes `size` (about 8.3 MP, at most 3840 per edge; 2880x2880 and 2160x3840 work, 3840x3840 does not); FLUX, Seedream, Gemini and Riverflow take `resolution` plus `aspect_ratio`. Backends for the mesh-paint image step: `tripo` (the Tripo Studio driver) and `openrouter`. Live: one image, $0.067.
 
 Every image and video job accepts a prompt-library template and variables instead of a raw prompt, stores the rendered prompt, enforces reference order, and is logged with its cost.
 

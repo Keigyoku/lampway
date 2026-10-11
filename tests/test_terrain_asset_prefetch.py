@@ -17,7 +17,7 @@ from mixar.modules.common.agent_execution import asset_cache
 from mixar.modules.space_mixie_chat.core import script_prefetch
 from mixar.modules.space_mixie_chat.core.sandbox_modules import RESTRICTED_URLLIB
 
-URL = "https://bucket.s3.amazonaws.com/tree.blend?X-Amz-" + "Signature=secret"   # split so a secret scanner does not read a fake as a signed URL
+URL = "http://127.0.0.1:8787/tree.blend?X-Amz-" + "Signature=secret"   # split so a secret scanner does not read a fake as a signed URL
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +57,7 @@ def test_cache_reuses_rotated_signatures_but_not_content_selectors():
     path = asset_cache.download(URL, opener=lambda *a, **kw: io.BytesIO(b"asset"))
     assert asset_cache.cached_path(URL.replace("secret", "rotated")) == path
     assert asset_cache.cached_path(URL + "&versionId=2") is None
-    assert asset_cache.cached_path(URL.replace("bucket.", "other.")) is None
+    assert asset_cache.cached_path(URL.replace("127.0.0.1", "localhost")) is None
     assert asset_cache.cached_path(URL.replace("tree.blend", "rock.blend")) is None
 
 
@@ -103,10 +103,22 @@ def test_failed_transfer_cleans_partial_file_and_can_retry(tmp_path):
     assert asset_cache.download(URL, opener=lambda *a, **kw: io.BytesIO(b"ok"))
 
 
-@pytest.mark.parametrize("url", ["https://evil.example/tree.blend", "file://amazonaws.com/tree.blend"])
+@pytest.mark.parametrize("url", ["https://evil.example/tree.blend", "https://bucket.s3.amazonaws.com/tree.blend",
+                                 "file://amazonaws.com/tree.blend", "file://127.0.0.1/tree.blend"])
 def test_cache_consumer_keeps_the_host_and_transport_gate(url):
     with pytest.raises(PermissionError):
         RESTRICTED_URLLIB.cached_file(url)
+
+
+def test_queued_remote_terrain_is_refused_before_any_transfer(monkeypatch):
+    opener = MagicMock(side_effect=AssertionError("remote transfer attempted"))
+    monkeypatch.setattr(RESTRICTED_URLLIB, "_urlopen", opener)
+    url = "https://bucket.s3.amazonaws.com/tree.blend"
+    handle = script_prefetch.maybe_start_prefetch(f'url = "{url}"', "import_terrain_asset")
+    assert handle._done.wait(2)
+    assert handle.state() == script_prefetch.FAILED
+    opener.assert_not_called()
+    assert asset_cache.cached_path(url) is None
 
 
 def test_terrain_transport_failure_is_refused(monkeypatch):

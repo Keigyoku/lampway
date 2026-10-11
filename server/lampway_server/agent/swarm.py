@@ -2,14 +2,24 @@
 
 Mixar's client already ships this model ("harness v3"); the server speaks it:
   * ``swarm_start`` activates a run on the parent (``agent.execution.activate``), then for every task spawns a headless worker
-    through the parent's sandbox supervisor, binds the task to it (``agent.execution.bind_task``) and runs the worker's own agent
-    loop: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
+    through the parent's sandbox supervisor, binds the task to it (``agent.execution.bind_task``) and lets the worker's brain work
+    there: every worker script goes to the worker's socket on its constant routing session with a v3 envelope. Workers share nothing:
     a worker's ``bpy.data`` is its own, so the name collisions of the old in-process lane scenes cannot happen;
+  * what thinks in a worker is a pane on Lampway's herdr server (``herdr/swarm_brain.py`` ``PaneBrain``, the one brain: spec S1
+    and A5, no agent without a pane). The user's saved ``agent.worker_mode`` Choices picks its mode/harness independently of
+    ``agent.worker``'s Mode 1 service (Q10): an API service
+    runs on Lampway's Hermes pane (A1), a BYOA service on the selected harness, independently of the parent's mode. Hermes starts only on a server running the engine, so
+    elsewhere a Mode 1 ``swarm_start`` is refused with that help before any run is activated or any worker spawned;
   * the worker's objects reach the user's scene only through the typed ``append_collection`` commit of a worker-staged native
     artifact into the AGENT_COLLECTION (brand.py), under the client's epoch / fence / document checks, journalled PREPARED then APPLIED
     (``swarm_collect``); a refused commit fails that task, never the others;
   * the chat's ``todo`` slot carries one row per task with live status, which is what the client's Parallel Agents panel (cat avatar,
-    name, task, outcome) projects (agent_panel/core/cards.py).
+    name, task, outcome) projects (agent_panel/core/cards.py). Every swarm reports there, whoever started it: on the turn that
+    handed it its stream, else on Lampway Agent's live island turn, else on a card turn of its own in its unit's scene tab
+    (``swarm_island.py``); a collected swarm with a failed task offers "Retry failed tasks", and the user's click runs exactly
+    those tasks again as one new swarm in the same mode (``retry``), whose outcome the unit's agent is told (``retry_note``);
+  * a unit's next swarm first closes the previous runs' ENDED worker panes of that unit (spec Q13, ``_close_ended_panes``), so
+    its first worker splits right of the main pane again.
 
 A task may list ``objects``: the parent copies them to a staged artifact the worker loads first, so a worker can work ON a piece
 (the QA tools); what it makes comes back the same way.
@@ -26,17 +36,19 @@ from dataclasses import dataclass, field
 from typing import Awaitable, Callable, Optional
 
 from ..brand import AGENT_COLLECTION
+from .. import choices as CH
 from . import lampway_tools as lt
 from . import vault_tools
 from .harness import Harness, HarnessError, export_script, import_script, reset_script, stage_script
-from .providers.base import Message, ModelRequest, Text, ToolCall, ToolSpec
+from ..herdr import harnesses as HN
+from ..herdr.swarm_brain import PaneBrain, WorkerBindings, WorkerTimeout
+from .swarm_brains import WorkerJob
+from .providers.base import ToolCall, ToolSpec
 from .tools import RUN_BLENDER_PYTHON, SCENE_SUMMARY, TOOLS, UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.swarm")
 
 MAX_WORKERS = 6
-MAX_WORKER_ROUNDS = 24
-MODEL_ROUND_TIMEOUT_S = 300.0      # one model call (a headless CLI process can wedge); the worker fails, the others go on
 _RESULT_CLIP = 6000
 _CALL_LOG_MAX = 40
 _CALL_LOG_CHARS = 600
@@ -89,6 +101,13 @@ class SwarmContext:
     run_id: str = ""
     progress: Callable[[str], None] = lambda text: None
     emit_todo: Optional[Callable[[list], Awaitable]] = None      # the chat's todo slot: the Parallel Agents cards
+    # The caller's mode/harness describe the parent for delivery and Retry.
+    # Workers independently resolve agent.worker_mode, then agent.worker only in Mode 1.
+    mode: str = "runtime"
+    harness: Optional[str] = None
+    cwd: Optional[str] = None                                    # where the worker panes start (default: the cockpit's project root)
+    project_root: Optional[str] = None
+    owner: str = ""                                              # who started it: "pane:<cockpit id>" for a bound pane's swarm (S3)
 
 
 @dataclass
@@ -103,10 +122,12 @@ class Worker:
     created: list = field(default_factory=list)
     summary: str = ""
     error: str = ""
+    error_code: str = ""
+    timeout_s: Optional[float] = None
     calls: list = field(default_factory=list)       # what this worker did, for the owner (not sent to the model)
     handle: object = None
     receipt: Optional[dict] = None
-    choice: Optional[dict] = None                   # the agent.worker option that served it, when it was a fallback (HC23)
+    choice: Optional[dict] = None                   # separate spawn-time mode and (Mode 1 only) service receipts
     inputs_loaded: list = field(default_factory=list)
     task: Optional[asyncio.Task] = None
 
@@ -117,6 +138,10 @@ class Worker:
             out["inputs"] = list(self.objects)
         if self.error:
             out["error"] = self.error
+        if self.error_code:
+            out["error_code"] = self.error_code
+        if self.timeout_s is not None:
+            out["timeout_s"] = self.timeout_s
         if self.receipt:
             out["receipt"] = self.receipt
         if self.choice:
@@ -134,10 +159,18 @@ class Swarm:
     workers: list
     run: object = None
     harness: object = None
+    brain: object = None             # the swarm's one PaneBrain (one swarm, one adapter)
     emit_todo: Optional[Callable[[list], Awaitable]] = None
     collected: bool = False
     collected_turn: str = ""         # the turn whose swarm_collect ended it: that turn offers Retry failed tasks
     retried: bool = False            # its failed tasks were re-run once (by a Retry): they are not offered again
+    retried_as: str = ""             # the swarm that re-ran them (the agent sees it in swarm_status)
+    # The caller's mode/harness for delivery and Retry; new workers resolve saved Choices again on that user click.
+    mode: str = "runtime"
+    harness_id: Optional[str] = None
+    cwd: Optional[str] = None
+    project_root: Optional[str] = None
+    owner: str = ""
 
 
 RunScript = Callable[..., Awaitable[dict]]
@@ -169,16 +202,54 @@ def _head(prompt: str) -> str:
 
 
 class SwarmManager:
-    def __init__(self, provider_factory: Callable[[str], object], run_script: RunScript, *, max_workers: int = MAX_WORKERS,
-                 script_timeout_s: float = 600.0):
-        self.provider_factory = provider_factory
+    def __init__(self, run_script: RunScript, *, max_workers: int = MAX_WORKERS, script_timeout_s: float = 600.0,
+                 worker_timeout_s: Optional[float] = None):
         self.run_script = run_script
         self.max_workers = max_workers
         self.script_timeout_s = script_timeout_s
+        self.worker_timeout_s = worker_timeout_s
         self.swarms: dict[str, Swarm] = {}
         self._harness: dict = {}                      # parent socket -> Harness
         self.library = None                           # the Asset Vault (set by the hub)
+        self.cockpit = None                           # Lampway's herdr host, where every worker's pane opens (set by the hub)
+        self.bindings = WorkerBindings()              # the worker panes' bindings; the pane endpoint resolves them (mcp.py)
+        self.island = None                            # agent/swarm_island.SwarmIsland: every swarm's cards in its unit's island (set by the app)
         self._seq = 0
+
+    def worker_brain(self, ctx: SwarmContext) -> PaneBrain:
+        """The swarm's one brain: a ``PaneBrain`` on the user's saved worker mode and service. Refused, with
+        help, when no herdr host is known or the adapter cannot start a pane here (Mode 1's, on a server that is not running the
+        Hermes engine): never run another way."""
+        try:
+            mode_choice = CH.resolve("agent.worker_mode", CH.Job(project=ctx.project_root, origin="agent"))
+            choice = None
+            if mode_choice.option.startswith("byoa:"):
+                HN.require_enabled(getattr(CH.active_store(), "state_dir", None))
+                harness = mode_choice.option.split(":", 1)[1]
+                adapter = HN.get(harness)
+                if harness not in HN.ADAPTERS or not adapter.direct_ok:
+                    raise ValueError(f"{harness} cannot run a swarm worker: no supported per-pane tool endpoint")
+                compatibility = adapter.compatibility_note() if hasattr(adapter, "compatibility_note") else ""
+                if compatibility:
+                    raise ValueError(compatibility)
+                if (problem := HN.worker_problem(adapter)):
+                    raise ValueError(f"{adapter.label} cannot run a worker: {problem}")
+            elif mode_choice.option == "local:lampway_hermes":
+                choice = CH.resolve("agent.worker", CH.Job(project=ctx.project_root, origin="agent"))
+                if choice.provider not in ("chatgpt_plan", "anthropic", "openrouter", "openai", "mock"):
+                    raise ValueError(f"{choice.option} cannot serve a Mode 1 worker: choose its API service in Choices")
+                harness = HN.MODE1_ADAPTER
+            else:
+                raise ValueError(f"{mode_choice.option} cannot run a worker: choose its mode in Choices")
+        except (CH.NoChoice, ValueError, KeyError) as exc:
+            raise SwarmError(f"refused: swarm_start did not run: {exc}") from None
+        if self.cockpit is None:
+            raise SwarmError("refused: swarm_start did not run: every worker runs in a pane on Lampway's herdr server, and this "
+                             "server has no herdr host")
+        if HN.is_lampway(harness) and getattr(self.cockpit, "mode1", None) is None:
+            raise SwarmError(f"refused: swarm_start did not run: {HN.MODE1_UNAVAILABLE}")
+        return PaneBrain(self.cockpit, harness, cwd=ctx.cwd or str(self.cockpit.project_root or "."), project_root=ctx.project_root,
+                         bindings=self.bindings, timeout_s=self.worker_timeout_s, choice=choice, mode_choice=mode_choice)
 
     def harness_for(self, socket) -> Harness:
         h = self._harness.get(socket)
@@ -229,22 +300,47 @@ class SwarmManager:
             if not (isinstance(objects, list) and all(isinstance(o, str) and o for o in objects)):
                 raise SwarmError(f"task {i}: `objects` must be a list of object names")
             clean.append((_safe_name(task["name"], i), task["prompt"], list(dict.fromkeys(objects))))
+        brain = self.worker_brain(ctx)                 # before anything runs: a refused mode activates no run and spawns no worker
         harness = self.harness_for(ctx.socket)
         run = await harness.activate(ctx.run_id or str(uuid.uuid4()), ctx.session_id)
+        closed = await self._close_ended_panes(ctx)    # spec Q13: the unit's previous runs' ended worker panes, before any split
         self._seq += 1
         swarm_id = f"sw{self._seq}"
         workers = [Worker(f"worker-{n}", name, prompt, objects) for n, (name, prompt, objects) in enumerate(clean, 1)]
-        swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, emit_todo=ctx.emit_todo)
+        for worker in workers:
+            worker.choice = {"mode": brain.mode_choice.record(),
+                             **({"service": brain.choice.record()} if brain.choice is not None else {})}
+        swarm = Swarm(swarm_id, ctx.session_id, workers, run=run, harness=harness, brain=brain, emit_todo=ctx.emit_todo,
+                      mode=ctx.mode, harness_id=ctx.harness, cwd=ctx.cwd, project_root=ctx.project_root, owner=ctx.owner)
         self.swarms[swarm_id] = swarm
         await self._todo(swarm)
         for worker in workers:
             worker.task = asyncio.create_task(self._run_worker(swarm, worker, ctx))
         ctx.progress(f"{len(workers)} workers starting")
-        return {"swarm_id": swarm_id, "workers": [w.public() for w in workers]}
+        return {"swarm_id": swarm_id, "workers": [w.public() for w in workers], "closed_panes": closed}
+
+    async def _close_ended_panes(self, ctx: SwarmContext) -> list:
+        """Spec A4, Q13 (built 2026-10-07): a finished worker's pane stays readable until its unit's next swarm; this is that
+        moment. The cockpit closes only panes Lampway opened as this unit's workers whose worker has ended
+        (``Cockpit.close_ended_workers``), so the new run's first worker splits right of the main pane again. Best effort: a
+        herdr that cannot be asked closes nothing and the swarm goes on. Returns what was closed (the agent is told)."""
+        if self.cockpit is None or not ctx.session_id or not hasattr(self.cockpit, "close_ended_workers"):
+            return []
+        try:
+            closed = await asyncio.to_thread(self.cockpit.close_ended_workers, ctx.session_id, self.bindings.is_live)
+        except Exception as exc:  # noqa: BLE001 - herdr gone or refusing: nothing is closed, the swarm goes on
+            log.warning("the unit's ended worker panes were not closed: %s", exc)
+            return []
+        if closed:
+            ctx.progress(f"closed {len(closed)} finished worker pane(s) of the previous run")
+        return [{"id": c["id"], "name": c.get("name"), "why": c.get("why")} for c in closed]
 
     async def _status(self, arguments, ctx) -> dict:
         swarm = self._get(arguments)
-        return {"swarm_id": swarm.id, "collected": swarm.collected, "workers": [w.public() for w in swarm.workers]}
+        out = {"swarm_id": swarm.id, "collected": swarm.collected, "workers": [w.public() for w in swarm.workers]}
+        if swarm.retried_as:
+            out["retried_as"] = swarm.retried_as                   # the user's Retry re-ran its failed tasks as that swarm
+        return out
 
     async def _cancel(self, arguments, ctx) -> dict:
         swarm = self._get(arguments)
@@ -265,14 +361,19 @@ class SwarmManager:
     def _task_id(self, swarm: Swarm, worker: Worker) -> str:
         return f"{swarm.id}:{worker.id}"
 
-    async def _todo(self, swarm: Swarm) -> None:
-        """The chat's todo slot, whole list each time (slot_processor _apply_todo_slot replaces it): the Parallel Agents cards."""
-        if swarm.emit_todo is None:
-            return
+    async def _todo(self, swarm: Swarm, final: bool = False) -> None:
+        """The chat's todo slot, whole list each time (slot_processor _apply_todo_slot replaces it): the Parallel Agents cards. A
+        Mode 1 swarm on a server running Lampway Agent's front, and every swarm no turn handed a stream (a bound pane's, over MCP),
+        report to the island of the unit's scene tab as it is NOW (``swarm_island``: the live island turn, else a card turn), so
+        the cards follow the swarm past the turn that started it; a turn's own stream is used only without the front.
+        ``final``: it is collected (the Retry chip, the card turn's end)."""
         rows = [{"id": self._task_id(swarm, w), "text": f"{w.name}: {_head(w.prompt)}"[:200], "status": TODO_STATUS[w.status]}
                 for w in swarm.workers]
         try:
-            await swarm.emit_todo(rows)
+            if self.island is not None and (swarm.emit_todo is None or self.island.takes_over(swarm)):
+                await self.island.report(swarm, rows, final=final)
+            elif swarm.emit_todo is not None:
+                await swarm.emit_todo(rows)
         except Exception:  # noqa: BLE001 - a closed stream must not stop the work
             log.debug("could not emit the todo slot", exc_info=True)
 
@@ -282,13 +383,22 @@ class SwarmManager:
             raise SwarmError(f"swarm {swarm.id} was already collected")
         if ctx.emit_todo is not None:
             swarm.emit_todo = ctx.emit_todo
+        joined = asyncio.gather(*(w.task for w in swarm.workers if w.task is not None), return_exceptions=True)
         try:
-            await asyncio.gather(*(w.task for w in swarm.workers if w.task is not None), return_exceptions=True)
+            # The collector owns cancellation: repeated Stop must not interrupt a worker's cleanup.
+            await asyncio.shield(joined)
         except asyncio.CancelledError:                          # the orchestrator's turn was stopped: stop the workers too
             self.cancel_all(swarm)
+            closing = asyncio.create_task(self._finish_cancelled_collect(swarm, joined))
+            while True:
+                try:
+                    await asyncio.shield(closing)
+                    break
+                except asyncio.CancelledError:
+                    if closing.cancelled():
+                        raise
             raise
         swarm.collected = True
-        swarm.collected_turn = ctx.turn_id
         operations = {}
         for w in swarm.workers:
             if w.status == "staged":
@@ -299,10 +409,17 @@ class SwarmManager:
                 operations = await swarm.harness.status(ids)
             except Exception as exc:  # noqa: BLE001
                 operations = {"error": str(exc)}
-        await self._todo(swarm)
+        await self._todo(swarm, final=True)
         await self._finish(swarm)
         return {"swarm_id": swarm.id, "workers": [w.public() for w in swarm.workers], "operations": operations,
                 "target_collection": AGENT_COLLECTION}
+
+    async def _finish_cancelled_collect(self, swarm: Swarm, joined) -> None:
+        """Join only this collector's workers, discard staged results and close the swarm for Retry."""
+        await joined
+        swarm.collected = True
+        await self._finish(swarm)
+        await self._todo(swarm, final=True)
 
     async def _commit(self, swarm: Swarm, worker: Worker) -> None:
         art = worker.handle.artifact or {}
@@ -350,6 +467,49 @@ class SwarmManager:
                     for w in swarm.workers if w.status in ("failed", "cancelled")]
         return out
 
+    def retryable(self, session_id: str) -> bool:
+        """Whether the unit has failed tasks its cards offer to retry (collected, not retried yet)."""
+        return bool(self.failed_tasks(session_id))
+
+    async def retry(self, session_id: str, socket, *, emit_todo=None, progress=None, turn_id: str = "", run_id: str = "") -> Optional[dict]:
+        """The user's "Retry failed tasks" click (the cards' chip sends the user's "continue" from the user's own Client socket: the
+        callers, ``HermesFront.drive`` and ``ByoaView.send``, check that): the unit's failed tasks run again as ONE new swarm, in
+        the folder of the swarm they failed in, using the current saved worker mode/service, and it is collected into the scene. The same rules as any swarm:
+        capability ``swarm`` in force, saved Choices picks the workers' mode/service, nothing spends. Returns what happened (None: nothing to
+        retry); the caller tells the unit's agent (``retry_note``)."""
+        from .. import capabilities as CAP
+        sources = [s for s in self.swarms.values() if s.parent_session == session_id and s.collected and not s.retried
+                   and any(w.status in ("failed", "cancelled") for w in s.workers)]
+        if not sources:
+            return None
+        tasks = self.failed_tasks(session_id)
+        out = {"retried_from": [s.id for s in sources], "tasks": [t["name"] for t in tasks]}
+        refusal = CAP.check_tool("swarm_start", {"tasks": tasks}, origin="user:retry")
+        if refusal is not None:
+            return {**out, "error": refusal}
+        last = sources[-1]
+        ctx = SwarmContext(socket=socket, session_id=session_id, turn_id=turn_id or f"retry_{uuid.uuid4().hex[:8]}",
+                           call_id=f"retry_{uuid.uuid4().hex[:8]}", run_id=run_id, progress=progress or (lambda text: None),
+                           emit_todo=emit_todo, mode=last.mode, harness=last.harness_id, cwd=last.cwd, project_root=last.project_root,
+                           owner=last.owner)
+        for s in sources:
+            s.retried = True                              # one click, one retry: a second click finds nothing to run again
+        text, is_error = await self.call("swarm_start", {"tasks": tasks}, ctx)
+        if is_error:
+            for s in sources:
+                s.retried = False                         # nothing ran: the cards still offer it
+            return {**out, "error": text}
+        swarm_id = json.loads(text)["swarm_id"]
+        for s in sources:
+            s.retried_as = swarm_id
+        out["swarm_id"] = swarm_id
+        text, is_error = await self.call("swarm_collect", {"swarm_id": swarm_id}, ctx)
+        if is_error:
+            out["error"] = text
+        else:
+            out["workers"] = json.loads(text)["workers"]
+        return out
+
     def mark_retried(self, session_id: str) -> None:
         for swarm in self.swarms.values():
             if swarm.parent_session == session_id and swarm.collected:
@@ -360,14 +520,41 @@ class SwarmManager:
             if swarm.parent_session == session_id and not swarm.collected:
                 self.cancel_all(swarm)
 
+    async def join_cancelled_session(self, session_id: str) -> int:
+        """Join this unit's already-cancelled workers, without stopping independent running work."""
+        tasks = {worker.task for swarm in self.swarms.values() if swarm.parent_session == session_id
+                 for worker in swarm.workers if worker.status == "cancelled" and worker.task is not None and not worker.task.done()}
+        if not tasks:
+            return 0
+        joined = asyncio.gather(*tasks, return_exceptions=True)
+        cancelled = False
+        while True:
+            try:
+                await asyncio.shield(joined)
+                break
+            except asyncio.CancelledError:
+                if joined.cancelled():
+                    raise
+                cancelled = True
+        if cancelled:
+            raise asyncio.CancelledError
+        return len(tasks)
+
     # ------------------------------------------------------------ one worker
     async def _run_worker(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
-        harness, run = swarm.harness, swarm.run
-        provider = self.provider_factory(worker.id)
-        worker.choice = getattr(provider, "choice", None)
-        system = worker_system_prompt(worker)
-        tools = worker_tools()
-        messages = [Message.user_text(worker.prompt)]
+        """The substrate (spec S1): spawn, bind, reset and seed this worker's own Lampway, let the swarm's brain (its pane) think,
+        then stage. The brain's only door to a scene is the job's ``call_tool``, which runs on this worker's Lampway."""
+        harness, run, brain = swarm.harness, swarm.run, swarm.brain
+
+        async def call_tool(name: str, arguments: dict) -> tuple:
+            content, is_error = await self._worker_tool(swarm, worker, ctx, ToolCall(id=f"{worker.id}-{uuid.uuid4().hex[:8]}",
+                                                                                     name=name, arguments=arguments or {}))
+            worker.tool_calls += 1
+            ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
+            return content, is_error
+
+        job = WorkerJob(worker, worker_system_prompt(worker), worker_tools(), call_tool, ctx.progress,
+                        {"swarm_id": swarm.id, "session_id": ctx.session_id, "turn_id": ctx.turn_id, "workers": len(swarm.workers)})
         try:
             worker.connection_id = await harness.spawn_worker()
             worker.handle = await harness.bind_task(run, self._task_id(swarm, worker), worker.connection_id)
@@ -379,34 +566,27 @@ class SwarmManager:
                 raise RuntimeError(f"{worker.id} could not clear its scene: {_clip_json(reset)}")
             if worker.objects:
                 await self._seed(swarm, worker, ctx)
-            for _round in range(MAX_WORKER_ROUNDS):
-                text, calls = await self._model_round(provider, ModelRequest(system, list(messages), tools))
-                messages.append(Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
-                    {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls]))
-                if not calls:
-                    if not text.strip() and worker.tool_calls == 0:      # nothing said, nothing done: not a finished task
-                        raise RuntimeError("the model returned an empty response")
-                    worker.summary = text.strip() or "(no summary)"
-                    await self._stage(swarm, worker, ctx)
-                    worker.status = "staged"
-                    ctx.progress(f"{worker.id} ({worker.name}) finished")
-                    return
-                results = []
-                for call in calls:
-                    content, is_error = await self._worker_tool(swarm, worker, ctx, call)
-                    worker.tool_calls += 1
-                    results.append({"type": "tool_result", "tool_call_id": call.id, "content": content, "is_error": is_error})
-                messages.append(Message("user", results))
-                ctx.progress(f"{worker.id} ({worker.name}): {worker.tool_calls} tool calls, {len(worker.created)} objects")
-            raise RuntimeError("stopped after too many tool calls")
+            worker.summary = await brain.run(job) or "(no summary)"
+            await self._stage(swarm, worker, ctx)
+            worker.status = "staged"
+            ctx.progress(f"{worker.id} ({worker.name}) finished")
         except asyncio.CancelledError:
             worker.status = "cancelled"
-            await self._todo(swarm)
+            try:
+                await brain.stop(job)
+            finally:
+                await self._todo(swarm)
             raise
         except Exception as exc:  # noqa: BLE001 - one worker's failure must not end the others
             worker.status = "failed"
             worker.error = (f"{exc.error_type}: {exc}" if isinstance(exc, HarnessError) and exc.error_type else str(exc))[:500]
+            if isinstance(exc, WorkerTimeout):
+                worker.error_code, worker.timeout_s = exc.code, exc.timeout_s
             log.warning("%s failed: %s", worker.id, worker.error)
+            try:
+                await brain.stop(job)
+            except Exception:  # noqa: BLE001
+                log.debug("%s: the brain did not stop cleanly", worker.id, exc_info=True)
         finally:
             if worker.status in ("failed", "cancelled"):
                 if worker.handle is not None:
@@ -414,21 +594,6 @@ class SwarmManager:
                 if worker.connection_id:
                     await harness.shutdown_worker(worker.connection_id)
                 await self._todo(swarm)
-
-    @staticmethod
-    async def _model_round(provider, request) -> tuple[str, list]:
-        async def one():
-            text_parts, calls = [], []
-            async for event in provider.stream(request):
-                if isinstance(event, Text):
-                    text_parts.append(event.text)
-                elif isinstance(event, ToolCall):
-                    calls.append(event)
-            return "".join(text_parts), calls
-        try:
-            return await asyncio.wait_for(one(), MODEL_ROUND_TIMEOUT_S)
-        except asyncio.TimeoutError:
-            raise RuntimeError(f"the model did not answer within {MODEL_ROUND_TIMEOUT_S:.0f}s") from None
 
     async def _seed(self, swarm: Swarm, worker: Worker, ctx: SwarmContext) -> None:
         """Copy the worker's input objects from the user's scene into its own: the parent stages them, the worker loads them."""
@@ -483,6 +648,25 @@ class SwarmManager:
 
 class SwarmError(ValueError):
     pass
+
+
+def retry_note(result: Optional[dict]) -> str:
+    """One line for the unit's agent after the user's Retry (nothing is hidden from the agent): what ran again and how it ended.
+    No newline: a pane takes it as one typed line."""
+    if not result:
+        return ""
+    head = (f"(Lampway: the user clicked Retry failed tasks in Lampway's island, so the failed tasks "
+            f"({', '.join(result.get('tasks') or [])}) of swarm {', '.join(result.get('retried_from') or [])}")
+    if result.get("error") and not result.get("swarm_id"):
+        return f"{head} could not run again: {' '.join(str(result['error']).split())[:300]})"
+    parts = []
+    for w in result.get("workers") or []:
+        made = f", made {', '.join(w.get('created_objects') or [])}" if w.get("created_objects") else ""
+        why = f": {' '.join(str(w.get('error') or '').split())[:120]}" if w.get("error") else ""
+        parts.append(f"{w.get('name')} {w.get('status')}{made}{why}")
+    tail = f" ({' '.join(str(result['error']).split())[:200]})" if result.get("error") else ""
+    return (f"{head} ran again as swarm {result.get('swarm_id')} and were collected into the scene: {'; '.join(parts) or 'no workers'}"
+            f"{tail}; swarm_status {result.get('swarm_id')} has the details.)")
 
 
 def _clip_json(value) -> str:

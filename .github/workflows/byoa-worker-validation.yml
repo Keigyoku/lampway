@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: byoa-worker-validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/byoa-worker-validation.yml
+      - server/lampway_server/grok_worker.py
+      - server/lampway_server/pane_mcp.py
+      - server/lampway_server/native_worker_readiness.py
+      - server/lampway_server/herdr/harnesses/grok.py
+      - server/lampway_server/herdr/host.py
+      - server/tests/test_grok_worker.py
+      - server/tests/test_grok_worker_cleanup.py
+      - server/tests/test_grok_worker_readiness.py
+      - server/tests/test_grok_worker_catalogue.py
+      - server/tests/test_grok_worker_workflow.py
+      - server/tests/test_grok_path_contract.py
+      - server/tests/test_native_worker_readiness.py
+      - tests/qa/grok_worker_validation.py
+      - third_party/herdr
+permissions:
+  contents: read
+jobs:
+  owned-offline-worker:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Public dependencies in this runner only
+        run: |
+          printf 'LAMPWAY_HERDR_BUILDS=%s\n' "$RUNNER_TEMP/grok-worker-herdr" >> "$GITHUB_ENV"
+          python -m pip install -e 'server[test]' ziglang==0.16.0
+          python -c 'import pathlib,ziglang; print("ZIG=" + str(pathlib.Path(ziglang.__file__).parent / "zig"))' >> "$GITHUB_ENV"
+      - name: Exact public native artifact and authenticated distro package
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture_tools="$RUNNER_TEMP/grok-worker-tools"
+          mkdir -m 700 "$fixture_tools"
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://x.ai/cli/grok-1.0.46-linux-x86_64 --output "$fixture_tools/grok"
+          printf '%s  %s\n' 41626a53292324140b92556b9d42ff5542e3dcd04aff85eafb8689dd4adb44fc "$fixture_tools/grok" | sha256sum --check
+          chmod 755 "$fixture_tools/grok"
+          apt-cache policy bubblewrap > "$fixture_tools/apt-policy.txt"
+          package_version="$(apt-cache policy bubblewrap | awk '/Candidate:/{print $2}')"
+          test -n "$package_version" && test "$package_version" != '(none)'
+          apt-cache show "bubblewrap=$package_version" > "$fixture_tools/apt-package.txt"
+          cd "$fixture_tools"
+          apt-get download "bubblewrap=$package_version"
+          deb_files=(bubblewrap_*.deb)
+          test "${#deb_files[@]}" -eq 1
+          expected="$(awk '/^SHA256:/{print $2; exit}' apt-package.txt)"
+          test "${#expected}" -eq 64
+          printf '%s  %s\n' "$expected" "${deb_files[0]}" | sha256sum --check
+          dpkg-deb --extract "${deb_files[0]}" package
+          bwrap="$fixture_tools/package/usr/bin/bwrap"
+          test ! -u "$bwrap" && test ! -g "$bwrap"
+          test -z "$(getcap "$bwrap")"
+          sha256sum grok "${deb_files[0]}" "$bwrap" > artifact-hashes.txt
+          ldd "$bwrap" > bwrap-libraries.txt
+          printf '%s\n' "$fixture_tools/package/usr/bin" >> "$GITHUB_PATH"
+          printf 'GROK_WORKER_TOOLS=%s\n' "$fixture_tools" >> "$GITHUB_ENV"
+      - name: Pinned ordinary herdr build (no vendor modifications)
+        run: |
+          git submodule update --init --depth 1 third_party/herdr
+          python scripts/lampway/herdr_env.py
+          python -c 'import os,pathlib; p=next(pathlib.Path(os.environ["LAMPWAY_HERDR_BUILDS"]).glob("*/herdr")); print("LAMPWAY_HERDR_BIN=" + str(p))' >> "$GITHUB_ENV"
+      - name: Controlled refusal regression tests
+        working-directory: server
+        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
+      - name: Native policy proof with all INET sockets denied
+        run: |
+          python tests/qa/grok_worker_validation.py --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
+      - name: Full helper and native pane chain inside loopback-only namespace
+        if: ${{ !cancelled() }}
+        run: |
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owned-offline-grok-worker-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/grok-worker-tools/*.txt
+            ${{ runner.temp }}/grok-worker-stdio/**
+            ${{ runner.temp }}/grok-worker-loopback/**
+            ${{ runner.temp }}/grok-worker-herdr/*/herdr.json

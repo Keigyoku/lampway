@@ -11,18 +11,29 @@ draw reads the cache (choices_state) only. Every write is the user's click and r
 never switches a route (it links to Privacy) and never connects an account (it links to Connections). A server that has
 no Choices yet answers 404: the window then offers the old Providers dialog, so nothing is lost before the server lands."""
 
+import importlib
 import time
 
 import bpy
 from bpy.props import BoolProperty, IntProperty, StringProperty
 from bpy.types import Operator, Panel
 
-from mixar.modules.lampway_tools import choices_client, choices_face, choices_state, human_gate, studio_client
+from mixar.modules.lampway_tools import capabilities_face, capabilities_state, choices_client, choices_face, choices_state, human_gate, studio_client
 
 CLIENT_FACTORY = lambda: choices_client.ChoicesClient()  # noqa: E731  (tests swap it)
 SCRIPT_REFUSAL = "this is the user's click: a script cannot press it"
 POLL_S = 60.0
 SPENDING = "spending"
+CONTEXT = "__context__"
+CAPABILITIES = capabilities_face.PAGE_ID   # not a purpose: the Capabilities page (ui/capabilities.py) has its own server door and its own row
+
+
+def _context_page():
+    return importlib.import_module("mixar.modules.lampway_tools.ui.context_settings")
+
+
+def _capabilities_page():
+    return importlib.import_module("mixar.modules.lampway_tools.ui.capabilities")
 
 
 def _preview(name):
@@ -58,7 +69,12 @@ REFRESH = refresh   # tests swap it
 def select(pid: str) -> None:
     """Choose a purpose and read its view (a click: the network is allowed here, never in draw)."""
     choices_state.STATE["selected"] = pid
-    if pid and pid != SPENDING:
+    if pid == CONTEXT:
+        capabilities_state.STATE["project"] = choices_state.STATE["project"]
+        _context_page().request_refresh()
+    elif pid == CAPABILITIES:
+        _capabilities_page().request_refresh()   # off the main thread; its timer applies the answer
+    elif pid and pid != SPENDING:
         try:
             choices_state.STATE["detail"] = CLIENT_FACTORY().one(pid, choices_state.STATE["project"] or None)
         except studio_client.StudioError as exc:
@@ -287,8 +303,15 @@ def _list(layout):
             op.purpose = s["id"]
             op.hover = f"{c['word']}; {choices_face.now_line(s)}; scope: {(s.get('now') or {}).get('scope') or 'none'}"
             row.label(text=((s.get("now") or {}).get("label") or "")[:22])
+    op = layout.operator("lampway.choices_select", text="Context", icon="PREFERENCES", emboss=st["selected"] == CONTEXT)
+    op.purpose = CONTEXT
+    op.hover = "Hermes runtime context settings for this project"
     op = layout.operator("lampway.choices_select", text="Spending", icon="LAMPWAY_COIN", emboss=st["selected"] == SPENDING)
     op.purpose = SPENDING
+    asked = bool(capabilities_state.cards())   # the one glow of this row: an agent's proposal waits for you
+    op = layout.operator("lampway.choices_select", text="Capabilities", icon="LAMPWAY_SPARK", emboss=st["selected"] == CAPABILITIES, depress=asked)
+    op.purpose = CAPABILITIES
+    op.hover = "what your agent may do: an agent proposal waits for you" if asked else "what your agent may do"
 
 
 def _spending(layout):
@@ -308,6 +331,12 @@ def _detail(layout):
     pid = st["selected"]
     if pid == SPENDING:
         _spending(layout)
+        return
+    if pid == CONTEXT:
+        _context_page().draw_context(layout)
+        return
+    if pid == CAPABILITIES:
+        _capabilities_page().draw_capabilities(layout)
         return
     view = st["detail"] or {}
     if not pid or view.get("id") != pid:

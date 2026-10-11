@@ -4,6 +4,7 @@ files itself. Arguments reach the script as a JSON string literal, so no argumen
 
 import ast
 import json
+from pathlib import Path
 
 import pytest
 
@@ -89,13 +90,76 @@ def test_the_rebuild_tool_says_it_is_a_background_job():
     assert "background" in spec.description.lower() and "lampway_job_status" in spec.description
 
 
+def test_ask_user_is_not_in_the_registry_hermes_asks_with_clarify():
+    """Mode 1's questions are Hermes's own ``clarify`` (spec A2) and no agent was offered ``ask_user`` (A3, A5): it left the
+    registry, so nothing lists it, documents it or routes it; a call by that name is an unknown tool."""
+    assert "ask_user" not in T.TOOL_NAMES and not hasattr(T, "ASK_USER")
+    with pytest.raises(T.UnknownTool, match="unknown tool"):
+        T.script_for("ask_user", {"question": "?"})
+    docs = (Path(__file__).resolve().parents[2] / "docs" / "tools.md").read_text()
+    assert "ask_user" not in docs and "agent loop" not in docs
+
+
 def test_the_system_prompt_names_the_workflow():
     from lampway_server.agent.prompt import SYSTEM_PROMPT
     for needle in ("lampway_qa_setup", "Red", "Delete", "Mislabel", "Hole", "lampway_rebuild"):
         assert needle in SYSTEM_PROMPT
 
 
-EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices"} | PLAN_TOOLS.NAMES | OST.NAMES | MGT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
+def test_the_engine_tool_door_correlates_an_unknown_request_and_stays_usable():
+    """Unsupported RPCs get their own refusal without invoking a tool or poisoning the pane's connection."""
+    from starlette.applications import Starlette
+    from starlette.testclient import TestClient
+    from lampway_server.engine.mcp_endpoint import engine_mcp_routes
+
+    class Front:
+        def session_for_token(self, unit, token):
+            return unit if (unit, token) == ("scene-1", "fixture-key") else None
+
+        async def call_tool(self, *args):
+            pytest.fail("an unknown method must not dispatch a tool")
+
+    with TestClient(Starlette(routes=engine_mcp_routes(lambda: Front()))) as http:
+        headers = {"Authorization": "Bearer fixture-key"}
+        refused = http.post("/engine/mcp/scene-1", headers=headers,
+                            json={"jsonrpc": "2.0", "id": 900, "method": "foo/bar", "params": {}})
+        assert refused.status_code == 200
+        assert refused.json() == {"jsonrpc": "2.0", "id": 900,
+                                  "error": {"code": -32601, "message": "Method not found: foo/bar"}}
+        following = http.post("/engine/mcp/scene-1", headers=headers,
+                              json={"jsonrpc": "2.0", "id": 901, "method": "ping"})
+        assert following.status_code == 200
+        assert following.json() == {"jsonrpc": "2.0", "id": 901, "result": {}}
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("island_turn", [False, True])
+async def test_mode1_stop_joins_its_unit_tool_calls_even_when_hermes_is_idle(island_turn):
+    from types import SimpleNamespace
+    from lampway_server.agent.turns import AgentHub, Session, Turn
+
+    joined = []
+
+    class Front:
+        def is_running(self, unit):
+            return False
+
+        async def cancel_tool_calls(self, unit):
+            joined.append(unit)
+            return 1
+
+    hub = AgentHub(None)
+    hub.engine = Front()
+    if island_turn:
+        # The island-task branch must join MCP work too, even if task.cancel reports it already ended.
+        turn = Turn("scene-1", "turn-1", "run-1", task=SimpleNamespace(cancel=lambda: False))
+        hub.sessions["scene-1"] = Session("scene-1", current=turn)
+    stopped = await hub._cancel(None, {"command_id": "stop-1", "payload": {"session_id": "scene-1"}})
+    assert joined == ["scene-1"]
+    assert stopped["result"]["cancelled"] is True
+
+
+EXTRA_SERVER_TOOLS = {"lampway_engine_project", "lampway_workbench", "lampway_compute", "lampway_agent_files", "lampway_skills_list", "lampway_skill_read", "lampway_note_write"} | LIB.NAMES | {"lampway_cards", "lampway_connections", "lampway_choices", "lampway_capabilities"} | PLAN_TOOLS.NAMES | OST.NAMES | MGT.NAMES          # server-run tools added since the explicit list above (the Asset Vault family: vault_tools)
 
 
 def test_every_tool_script_passes_the_clients_sandbox_dunder_rules():

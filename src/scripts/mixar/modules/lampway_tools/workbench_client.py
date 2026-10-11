@@ -21,14 +21,41 @@ class WorkbenchClient(StudioClient):
     def reconcile(self) -> dict:
         return self._call("POST", "/app/workbench/reconcile", {})
 
-    def create(self, agent, name, cwd="", task="", command=None) -> dict:
-        return self._call("POST", "/app/workbench/sessions", {"agent": agent, "name": name, "cwd": cwd, "task": task, "command": command})
+    def create(self, agent, name, cwd="", task="", command=None, notice_nonce=None, notice_request=False) -> dict:
+        body = {"agent": agent, "name": name, "cwd": cwd, "task": task, "command": command}
+        if notice_nonce is not None:
+            body['notice_nonce'] = notice_nonce
+        if notice_request:
+            body['notice_request'] = True
+        return self._call("POST", "/app/workbench/sessions", body)
+
+    def create_notice(self, *args, **kwargs):
+        return self.create(*args, **kwargs, notice_request=True)['notice']
 
     def screen(self, sid: str, lines: int = 70) -> str:
         return self._call("GET", f"/app/workbench/sessions/{sid}/screen?lines={int(lines)}")["screen"]
 
     def send(self, sid: str, text: str, submit: bool = True) -> dict:
         return self._call("POST", f"/app/workbench/sessions/{sid}/input", {"text": text, "submit": submit, "by": "user"})
+
+    # one agent mode per scene tab (agent-modes spec M0): the island's switch
+    def harnesses(self) -> dict:
+        """``{"harnesses": [row...], "enabled": bool}``: every harness adapter, installed or not (version probes only)."""
+        return self._call("GET", "/app/workbench/harnesses", timeout=20)
+
+    def set_mode(self, scene_session_id: str, mode: str, harness=None, pane=None, previous=None, name=None,
+                 notice_nonce=None, notice_request=False) -> dict:
+        """Bind the tab's pane (``byoa``: the picked harness, started if need be, or ``pane``) or unbind it (``runtime``)."""
+        body = {"scene_session_id": scene_session_id, "mode": mode, "harness": harness, "pane": pane,
+                "previous_session_id": previous, "name": name}
+        if notice_nonce is not None:
+            body['notice_nonce'] = notice_nonce
+        if notice_request:
+            body['notice_request'] = True
+        return self._call("POST", "/app/workbench/mode", {k: v for k, v in body.items() if v is not None}, timeout=150)
+
+    def mode_notice(self, *args, **kwargs):
+        return self.set_mode(*args, **kwargs, notice_request=True)['notice']
 
     def close(self, sid: str, confirm: bool) -> dict:
         return self._call("POST", f"/app/workbench/sessions/{sid}/close", {"confirm": bool(confirm)})

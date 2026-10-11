@@ -58,6 +58,9 @@ class _Scenes(list):
 
 @pytest.fixture
 def rig(live_bpy, monkeypatch):
+    # Collection may have loaded the operators before another suite installed
+    # its bpy double. Static and call-time imports must see this rig's Blender.
+    monkeypatch.setattr(ops, "bpy", live_bpy)
     monkeypatch.setenv("MIXAR_SCENES_DOSSIER_DIR", "0")
     scenes = _Scenes()
     monkeypatch.setattr(live_bpy.data, "scenes", scenes, raising=False)

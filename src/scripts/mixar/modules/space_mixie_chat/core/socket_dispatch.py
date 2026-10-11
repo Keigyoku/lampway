@@ -125,6 +125,7 @@ class SocketDispatch:
             JSONRPCMethod.AGENT_TURN_EVENT,
             JSONRPCMethod.AGENT_TURN_ENDED,
             "agent.command.result", "agent.command.delivered",
+            "agent.pane.new_conversation",   # /new in Lampway Agent's pane (agent-modes spec Q15)
         ):
             # Backend-started turns of an open run (wake-ups). Notifications
             # only; the handler marshals bpy work to the main thread itself.

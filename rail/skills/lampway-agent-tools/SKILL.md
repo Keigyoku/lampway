@@ -40,7 +40,8 @@ does the same job has none of those, and it is the most common way an agent re-d
 - **Egress:** every outbound route is off until the user switches it on in Privacy. A refusal that names a route that is off is
   the user's decision to make, not an error to route around.
 - **Decisions:** a proposal is never a ruling. Mesh-QA verdicts, openings, seed audits and part fixes are the user's typed
-  decisions; tools propose, record and ask (`ask_user`). Never write a ruling on the user's behalf.
+  decisions; tools propose and record, and the agent asks the user (Lampway's agent: Hermes's `clarify`, shown in the island and
+  its pane; your own agent: its own way of asking). Never write a ruling on the user's behalf.
 
 ## The armour runbook keeps its order
 
@@ -63,3 +64,4 @@ Provenance: `server/lampway_server/agent/prompt.py` (the agent's laws), `mcp.py`
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway"; canon plan §3 | agents drove the app with raw scripts, re-deriving what a tool already measured and bypassing its refusals, jails and receipts | find the tool through the generated registry, follow its help, keep the spend, egress and decision gates and the runbook order | captain ruling, 2026-10-05 |
+| 2026-10-07 | `ask_user` left the registry | coordinator brief, Mode 1 loose end 5: no agent was offered `ask_user` after the loop was removed (spec A5) | the decisions gate told an agent to ask with a tool no agent can call | the gate names how each mode asks: Hermes's `clarify` for Lampway's agent, the harness's own for yours | none |

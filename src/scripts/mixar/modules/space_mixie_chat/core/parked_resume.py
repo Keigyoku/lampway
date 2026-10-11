@@ -149,7 +149,7 @@ def _fire_resume(scene_name: str, open_count: int) -> None:
 
 def schedule_after_connect(base_url: str) -> None:
     """Transport (re)connected: collect idle sessions on the main thread,
-    ask the backend off-thread, auto-resume the first eligible park."""
+    ask the backend off-thread, auto-resume each eligible parked session once."""
     import bpy
 
     from ..constants import SessionState

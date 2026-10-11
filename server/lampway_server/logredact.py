@@ -15,6 +15,7 @@ SENSITIVE = ("code", "state", "client_id", "id_token", "access_token", "refresh_
 _QUERY = re.compile(r"(?i)([?&](?:" + "|".join(SENSITIVE) + r")=)[^&\s\"'#]*")
 _JWT = re.compile(r"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+")
 _SK = re.compile(r"sk-[A-Za-z0-9_\-]{16,}")
+_ENGINE = re.compile(r"lwe_[A-Za-z0-9_\-]{8,}")          # the engine gateway's per-process token (engine/gateway.py)
 _installed = False
 _SECRETS: set = set()
 
@@ -31,7 +32,7 @@ def redact_text(text) -> str:
         if secret in out:
             out = out.replace(secret, REDACTED)
     out = _QUERY.sub(lambda m: m.group(1) + REDACTED, out)
-    return _SK.sub(REDACTED, _JWT.sub(REDACTED, out))
+    return _ENGINE.sub(REDACTED, _SK.sub(REDACTED, _JWT.sub(REDACTED, out)))
 
 
 def _clean(value):

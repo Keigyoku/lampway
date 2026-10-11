@@ -7,6 +7,10 @@ from pathlib import Path
 import re
 
 from lampway_server.agent.tools import TOOL_NAMES
+from lampway_server.herdr.swarm_brain import WORKER_DONE
+
+# The registry plus the tool the pane endpoint serves a swarm worker alone (agent-modes spec S3): a name with no tool behind it still fails.
+KNOWN = TOOL_NAMES | {WORKER_DONE.name}
 
 ROOT = Path(__file__).resolve().parents[2]
 NAME = re.compile(r"\blampway_[a-z0-9_]+\b")
@@ -30,7 +34,7 @@ def _named_in_refusals():
 
 
 def test_every_tool_a_refusal_names_is_in_the_registry():
-    missing = sorted({(name, where) for name, where in _named_in_refusals() if name not in TOOL_NAMES})
+    missing = sorted({(name, where) for name, where in _named_in_refusals() if name not in KNOWN})
     assert not missing, missing
 
 

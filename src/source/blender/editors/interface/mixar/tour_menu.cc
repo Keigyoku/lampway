@@ -220,9 +220,9 @@ bool Mixar_tour_menu_close(wmWindow *win)
  * dialog whose `draw()` reads async state (Refer a Friend's "Getting your
  * invite link…") therefore stays stale until some unrelated window event.
  *
- * Only operator dialogs (a handle with `popup_op`) are tagged: menus and
- * popovers are left alone, since a forced popover refresh is the path that
- * once read a freed button (see the file comment above). */
+ * Operator dialogs are tagged. Lampway also tags refreshable popovers created
+ * without an anchoring button (wm.call_panel): they cannot retain the freed
+ * button described above. Button-attached popovers remain excluded. */
 int Mixar_refresh_popups(wmWindow *win)
 {
   bScreen *screen = win ? WM_window_get_active_screen(win) : nullptr;
@@ -234,14 +234,24 @@ int Mixar_refresh_popups(wmWindow *win)
     if (region.regiontype != RGN_TYPE_TEMPORARY || region.runtime == nullptr) {
       continue;
     }
-    bool is_dialog = false;
+    bool refreshable = false;
     for (ui::Block &block : region.runtime->uiblocks) {
       if (block.handle != nullptr && block.handle->popup_op != nullptr) {
-        is_dialog = true;
+        refreshable = true;
         break;
       }
+#ifdef LAMPWAY
+      /* LAMPWAY: async Context replies must rebuild the original Choices popover.
+       * Only unanchored, refreshable handles are safe; never revive a stale button. */
+      if (block.handle != nullptr && block.handle->can_refresh &&
+          block.handle->popup_create_vars.but == nullptr)
+      {
+        refreshable = true;
+        break;
+      }
+#endif
     }
-    if (is_dialog) {
+    if (refreshable) {
       ED_region_tag_refresh_ui(&region);
       ED_region_tag_redraw(&region);
       count++;

@@ -340,7 +340,10 @@ class ConnectionManager:
         ) -> Optional[dict]:
             """Queue script for main thread execution (non-blocking)."""
             request_sid = (agent_ctx or {}).get("chat_session_id") or session_id or ""
-            if not session.has_active_session(request_sid):
+            # A turn typed in Lampway Agent's pane: its start may still be in the turn inbox (the tab is IDLE until the main
+            # thread renders it), so the main thread decides (mode1_pane.script_refusal, before the session check there).
+            from .mode1_pane import pane_turn_id
+            if not pane_turn_id(agent_ctx) and not session.has_active_session(request_sid):
                 logger.warning(
                     "Rejecting script %s (id: %s) — no active agent session",
                     tool_name, request_id,

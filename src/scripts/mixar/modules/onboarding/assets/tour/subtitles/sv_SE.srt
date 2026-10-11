@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Hej, jag är Naman från Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+På några minuter visar jag dig runt i appen.
+
+3
+00:00:06,760 --> 00:00:08,250
+Det här är din 3D-vy.
+
+4
+00:00:08,250 --> 00:00:10,300
+Ett 3D-utrymme där du kan röra dig.
+
+5
+00:00:11,000 --> 00:00:13,200
+Dra med mittknappen för att rotera, rulla för att zooma.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift och mittknappen panorerar vyn.
+
+7
+00:00:15,850 --> 00:00:17,160
+Prova själv.
+
+8
+00:00:18,180 --> 00:00:20,700
+Klicka för att välja, G för att flytta,
+
+9
+00:00:20,700 --> 00:00:22,600
+R för att rotera, S för att skala.
+
+10
+00:00:22,600 --> 00:00:25,410
+Här är några användbara kortkommandon.
+
+11
+00:00:26,040 --> 00:00:29,500
+Ser du den lilla ön längst ner? Det är Mixie, din agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Klicka för att öppna den.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie har flikar.
+
+14
+00:00:33,920 --> 00:00:38,800
+Beskriv vad du vill i Agent med vanliga ord. Agenten arbetar på scenen.
+
+15
+00:00:39,400 --> 00:00:43,300
+Agenten använder modeller som Tripo, Meshy och Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+För mer kontroll, öppna de andra flikarna:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video eller World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Välj en modell och justera inställningarna.
+
+19
+00:00:53,560 --> 00:00:55,730
+Allt du genererar hamnar i biblioteket.
+
+20
+00:00:56,670 --> 00:00:58,700
+Dina skapelser finns här.
+
+21
+00:00:59,140 --> 00:01:03,000
+Anslut ditt eget bibliotek så att agenten använder dina resurser,
+
+22
+00:01:03,000 --> 00:01:06,320
+och du sparar krediter.
+
+23
+00:01:06,830 --> 00:01:09,550
+Uppe till vänster finns scenpanelen.
+
+24
+00:01:09,550 --> 00:01:12,980
+Varje scen har sin egen flik och Mixie-agent.
+
+25
+00:01:12,980 --> 00:01:17,010
+Kör uppgifter parallellt och växla när du vill.
+
+26
+00:01:17,640 --> 00:01:21,100
+När scenen är klar, byt till Cinema Mode
+
+27
+00:01:21,100 --> 00:01:24,510
+för att styra kameran och skapa videoarbetsflöden.
+
+28
+00:01:25,000 --> 00:01:26,700
+Idéer börjar i 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Dra fram moodboarden från höger eller tryck på tilde.
+
+30
+00:01:30,860 --> 00:01:33,500
+Det är en duk för referenser och koncept.
+
+31
+00:01:33,500 --> 00:01:36,270
+Släpp bilder, videor eller skisser här.
+
+32
+00:01:36,940 --> 00:01:40,930
+Bygg nodgrafer för generativa modeller, som i ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Du är i Zen Mode, den enklaste vyn.
+
+34
+00:01:44,400 --> 00:01:46,840
+Kan du Blender? Byt till Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Hela Blenders arbetsyta finns där, med alla paneler och kortkommandon.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie fungerar i båda. Välj det som passar dig.
+
+37
+00:01:56,560 --> 00:01:57,570
+Vi går tillbaka till Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Vårt program för kreativa partners ger dig krediter
+
+39
+00:02:02,200 --> 00:02:05,900
+och en gemenskap som formar framtiden för AI och 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+Det var allt. Nu vet du var allt finns.
+
+41
+00:02:08,550 --> 00:02:10,240
+Nu skapar vi 3D tillsammans.

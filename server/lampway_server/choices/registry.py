@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The registry: specs/choices/PURPOSES.md as data (55 purposes) plus ``normalize.judge`` (the canon lane's typed judge). One place a
+"""The registry: the model purposes, ``normalize.judge`` and the separate saved worker mode. One place a
 purpose and its options are described; the resolver, the routes, the agent tool and the receipts read it.
 
 An option id names where it runs: ``openrouter:<model>``, ``chatgpt_plan:<model>``, ``anthropic:<model>``, ``openai:<model>`` (the
-OpenAI-compatible endpoint), ``claude_cli[:<model>]``, ``codex_cli[:<model>]``, ``codex_app_server[:<model>]``, ``mock``,
+OpenAI-compatible endpoint), ``mock``,
 ``studio:<Studio action id>``, ``higgsfield:<model>``, ``fal:<endpoint>``, ``compute:<backend>``, ``local:<engine>``,
 ``deterministic:<method>`` and ``follow:<purpose>``. ``option_facts`` derives the connection, the route, where it runs and the retention
 class from the id, so a fact is never written twice."""
@@ -33,10 +33,12 @@ class Purpose:
 
 
 # ---------------------------------------------------------------------------------------------------------------------- option facts
-_ROUTES = {"openrouter": "openrouter", "chatgpt_plan": "chatgpt_plan", "anthropic": "claude_plan", "claude_cli": "claude_plan",
-           "codex_cli": "chatgpt_plan", "codex_app_server": "chatgpt_plan", "higgsfield": "higgsfield", "fal": "fal", "openai": "custom_llm"}
-_CONNECTIONS = {"openrouter": "openrouter", "chatgpt_plan": "chatgpt_plan", "anthropic": "anthropic", "claude_cli": "claude_cli",
-                "codex_cli": "codex_cli", "codex_app_server": "codex_cli", "higgsfield": "higgsfield", "fal": "fal", "openai": "custom_llm"}
+# No agent CLI is an option: claude_cli, codex_cli and codex_app_server were retired from every purpose (agent-modes spec R0); those
+# CLIs run as the user's own agent instead (Bring Your Own Agent).
+_ROUTES = {"openrouter": "openrouter", "chatgpt_plan": "chatgpt_plan", "anthropic": "claude_plan", "higgsfield": "higgsfield", "fal": "fal",
+           "openai": "custom_llm"}
+_CONNECTIONS = {"openrouter": "openrouter", "chatgpt_plan": "chatgpt_plan", "anthropic": "anthropic", "higgsfield": "higgsfield", "fal": "fal",
+                "openai": "custom_llm"}
 _STUDIO_CONNECTIONS = {"tripo": "studio:tripo", "meshy": "studio:meshy", "hyper3d": "studio:hyper3d", "hi3d": "studio:hi3d"}
 
 
@@ -46,7 +48,7 @@ def provider_of(oid: str) -> str:
 
 def model_of(oid: str) -> Optional[str]:
     head, sep, rest = oid.partition(":")
-    return rest if sep and head not in ("studio", "local", "deterministic", "follow", "compute") else None
+    return rest if sep and head not in ("studio", "local", "deterministic", "follow", "compute", "byoa") else None
 
 
 def option_facts(oid: str) -> dict:
@@ -54,6 +56,11 @@ def option_facts(oid: str) -> dict:
     prov = provider_of(oid)
     facts = {"provider": prov, "model": model_of(oid), "runs": "local", "connection": None, "route": None, "retention": "local"}
     if prov in ("local", "deterministic", "mock", "follow"):
+        return facts
+    if prov == "byoa":
+        # The native harness owns its model and login; Choices names only the
+        # worker runtime here. No Lampway credential is read or forwarded.
+        facts.update(runs=oid, route=oid, retention="unknown")
         return facts
     if prov == "studio":
         action = oid.split(":", 1)[1]
@@ -69,15 +76,13 @@ def option_facts(oid: str) -> dict:
         return facts
     facts.update(runs=prov, connection=_CONNECTIONS.get(prov), route=_ROUTES.get(prov),
                  retention="retains" if prov == "fal" else ("zdr?" if prov == "openrouter" else "unknown"))
-    if prov in ("claude_cli", "codex_cli", "codex_app_server"):
-        facts["runs"] = f"{prov} (your own login)"
     return facts
 
 
 # ---------------------------------------------------------------------------------------------------------------------- the purposes
 _OR_IMG = ("openrouter:openai/gpt-image-2.5-flare", "openrouter:openai/gpt-image-2.5-sunburst", "openrouter:sourceful/riverflow-v2.5-pro",
            "openrouter:google/gemini-3.1-flash-image", "openrouter:*")
-_CHAT = ("chatgpt_plan:gpt-6.1-sol", "anthropic:claude-sonnet-5-5", "openrouter:anthropic/claude-sonnet-5.5", "claude_cli", "codex_cli")
+_CHAT = ("chatgpt_plan:gpt-6.1-sol", "anthropic:claude-sonnet-5-5", "openrouter:anthropic/claude-sonnet-5.5")
 _VIDEO = ("openrouter:heygen/heygen-video-1", "openrouter:bytedance/seedance-1-5-pro", "openrouter:bytedance/seedance-2.0-mini",
           "openrouter:black-forest-labs/flux-video-edit", "openrouter:black-forest-labs/flux-video-upscale", "higgsfield:seedance_2_0")
 _DECIDE = ("openrouter:inception/mercury-decide:free", "openrouter:cloudflare/clef", "openrouter:liquid/d1", "openrouter:perplexity/pplx-decider-v1-27b",
@@ -89,13 +94,19 @@ P = Purpose
 _ALL = [
     # ------------------------------------------------------------------------------------------------------------- A. Agents
     P("agent.main", "Main agent", "agents", "text + tools", "private",
-      _CHAT + ("openai:local", "codex_app_server", "mock", "chatgpt_plan:*", "anthropic:*", "openrouter:*"), (), "none",
+      _CHAT + ("openai:local", "mock", "chatgpt_plan:*", "anthropic:*", "openrouter:*"), (), "none",
       note="the shipped chain comes from the settings (provider_prefs)"),
     P("agent.worker", "Swarm workers", "agents", "text + tools, up to 6 at once", "private",
-      ("claude_cli", "openrouter:deepseek/deepseek-v4.1-flash", "chatgpt_plan:gpt-6.1-sol", "follow:agent.main", "chatgpt_plan:*", "openrouter:*"), (), "none"),
+      ("openrouter:deepseek/deepseek-v4.1-flash", "chatgpt_plan:gpt-6.1-sol", "follow:agent.main", "chatgpt_plan:*", "openrouter:*",
+       "anthropic:*", "openai:local", "mock"), (), "none",
+      note="Mode 1's model/service only; agent.worker_mode separately chooses Hermes or the user's own harness."),
+    P("agent.worker_mode", "Swarm worker mode", "agents", "a pane on herdr, up to 6 at once", "private",
+      ("local:lampway_hermes", "byoa:claude", "byoa:codex", "byoa:hermes", "byoa:opencode", "byoa:pi", "byoa:grok", "byoa:cursor"),
+      ("local:lampway_hermes",), "none",
+      note="Mode 1 uses agent.worker's API/model choice in Lampway Hermes. Mode 2 uses the selected native harness on its own service/login; never inherits the parent harness."),
     P("agent.decide", "Decisions judge", "agents", "options in, one choice out", "private", _DECIDE + ("openrouter:*",), _DECIDE),
     P("agent.vision_judge", "Vision judge (view_verify)", "agents", "image + rubric in, JSON verdict out", "private",
-      ("chatgpt_plan:gpt-6.1-sol", "claude_cli", "openrouter:google/gemini-3.1-flash-image", "follow:agent.main", "openrouter:*")),
+      ("chatgpt_plan:gpt-6.1-sol", "openrouter:google/gemini-3.1-flash-image", "follow:agent.main", "openrouter:*")),
     P("agent.dictation", "Dictation", "agents", "audio in, text out", "private", ("openrouter:google/gemini-3.8-flash", "openrouter:*"),
       ("openrouter:google/gemini-3.8-flash",)),
     P("agent.handwriting", "Handwriting", "agents", "image in, text out", "private", ("openrouter:google/gemini-3.1-flash-image", "follow:agent.main")),
@@ -103,11 +114,11 @@ _ALL = [
     P("agent.material_script", "Material scripts (MatGen)", "agents", "text in, code out", "public", ("follow:agent.main",) + _CHAT, ("follow:agent.main",)),
     P("agent.cockpit", "Cockpit pane", "agents", "a terminal session", "private", ("local:claude", "local:codex", "local:opencode", "local:shell"), (), "none"),
     P("normalize.judge", "Normalization judge (System One)", "agents", "a normalization step's evidence in, a typed verdict out", "private",
-      ("follow:agent.main", "chatgpt_plan:gpt-6.1-sol", "claude_cli", "openrouter:anthropic/claude-sonnet-5.5", "openrouter:google/gemini-3.1-flash-image"),
+      ("follow:agent.main", "chatgpt_plan:gpt-6.1-sol", "openrouter:anthropic/claude-sonnet-5.5", "openrouter:google/gemini-3.1-flash-image"),
       ("follow:agent.main",), note="the canon lane's typed judge for normalization"),
     # ------------------------------------------------------------------------------------------------------------- B. Images
     P("image.plates", "Plates", "images", "text + 1-3 ordered references in, image out, 4 variants", "private",
-      _OR_IMG + ("studio:tripo.image", "codex_cli:imagegen"), (), "chain", {"size": "2880x2880", "template": "plate-4k-crisper"}),
+      _OR_IMG + ("studio:tripo.image",), (), "chain", {"size": "2880x2880", "template": "plate-4k-crisper"}),
     P("image.mask", "Material-ID masks", "images", "image in, flat colour zones out", "private", _OR_IMG + ("local:material_id",), ()),
     P("image.concept", "Concepts", "images", "text (+ refs) in", "private",
       ("openrouter:black-forest-labs/flux-3-image", "openrouter:bytedance-seed/seedream-5-0-lite", "openrouter:qwen/qwen-image-3") + _OR_IMG, ()),

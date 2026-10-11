@@ -11,6 +11,7 @@ from bpy.props import BoolProperty, EnumProperty, StringProperty
 from bpy.types import Operator
 
 from mixar.modules.lampway_tools import human_gate, studio_client, workbench_client, workbench_state
+from .. import launch_notice
 
 CLIENT_FACTORY = lambda: workbench_client.WorkbenchClient()  # noqa: E731  (tests swap it)
 OPEN_URL = lambda url: __import__("webbrowser").open(url)  # noqa: E731  (tests swap it)
@@ -136,12 +137,20 @@ class LAMPWAY_OT_wb_new(_UserClick):
     def execute(self, context):
         if (r := self._gate(context)) is not None:
             return r
-        try:
-            rec = CLIENT_FACTORY().create(self.agent, self.name, "", self.task)
-        except studio_client.StudioError as exc:
-            return self._done(context, str(exc), ok=False)
-        refresh_state()
-        return self._done(context, f"session {rec['name']} started")
+        client = CLIENT_FACTORY()
+        args = (self.agent, self.name, '', self.task)
+        def done(rec, error):
+            if error:
+                self._done(context, error, ok=False)
+            else:
+                refresh_state()
+                self._done(context, f"session {rec['name']} started")
+        if self.agent in ('shell', 'command'):
+            launch_notice._background(lambda: client.create(*args), done)
+        else:
+            launch_notice.request(lambda: client.create_notice(*args),
+                                  lambda nonce: client.create(*args, notice_nonce=nonce), done)
+        return {'FINISHED'}
 
 
 class LAMPWAY_OT_wb_read_to_text(_WbOp):
@@ -318,7 +327,7 @@ class LAMPWAY_OT_wb_page_open(_WbOp):
 
 
 classes = [LAMPWAY_OT_terminal_get, LAMPWAY_OT_terminal_open, LAMPWAY_OT_terminal_remove, LAMPWAY_OT_wb_page_open, LAMPWAY_OT_wb_refresh, LAMPWAY_OT_wb_start_server, LAMPWAY_OT_wb_reconcile, LAMPWAY_OT_wb_new, LAMPWAY_OT_wb_read_to_text, LAMPWAY_OT_wb_send, LAMPWAY_OT_wb_close,
-           LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout]
+           LAMPWAY_OT_wb_stop_server, LAMPWAY_OT_wb_popout, launch_notice.LAMPWAY_OT_native_launch_confirm]
 
 
 _KEYMAP = []

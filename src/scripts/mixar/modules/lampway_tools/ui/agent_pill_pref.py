@@ -9,6 +9,59 @@ import bpy
 from bpy.props import BoolProperty
 from bpy.types import Operator, Panel
 
+from .onboarding import iface_, n_
+
+_VISION_ERROR = ''
+
+
+def _vision_failed(message):
+    """Publish on the main thread without keeping an ended operator's RNA alive."""
+    global _VISION_ERROR
+    _VISION_ERROR = message
+    for window in getattr(bpy.context.window_manager, 'windows', ()):
+        for area in window.screen.areas:
+            area.tag_redraw()
+
+
+class LAMPWAY_OT_chatgpt_vision_open(Operator):
+    """A human click prepares the browser form; the form's separate consent runs the check."""
+    bl_idname = "lampway.chatgpt_vision_open"
+    bl_label = "Check ChatGPT image support"
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+    def execute(self, context):
+        from .. import human_gate, studio_client
+        from . import launch_notice
+        if human_gate.script_running():
+            return {'CANCELLED'}
+        global _VISION_ERROR
+        _VISION_ERROR = ''
+        client = studio_client.StudioClient()
+        def done(result, error):
+            failure = iface_(n_('The vision check could not open; try again from Agent preferences.'))
+            if error:
+                _vision_failed(failure)
+                return
+            if human_gate.script_running():
+                _vision_failed(failure)
+                return
+            import re
+            path = result.get('path') if isinstance(result, dict) else None
+            if not isinstance(path, str) or not re.fullmatch(r'/app/chatgpt/vision\?ticket=[A-Za-z0-9_-]{32}', path):
+                _vision_failed(failure)
+                return
+            import webbrowser
+            try:
+                opened = webbrowser.open(client.base() + path)
+            except Exception:
+                opened = False
+            if not opened:
+                _vision_failed(failure)
+        launch_notice._background(client.chatgpt_vision_ticket, done)
+        return {'FINISHED'}
+
 
 def _get(self):
     from mixar.modules.agent_bubble.core import pill_pref
@@ -65,9 +118,14 @@ class LAMPWAY_PT_agent_pill_preferences(Panel):
 
     def draw(self, context):
         self.layout.prop(context.window_manager, "lampway_floating_agent_pill")
+        from . import capabilities
+        capabilities.draw_agent_features(self.layout)
+        self.layout.operator("lampway.chatgpt_vision_open", text=iface_(n_("Check ChatGPT image support")))
+        if _VISION_ERROR:
+            self.layout.label(text=_VISION_ERROR, icon='ERROR', translate=False)
 
 
-classes = (LAMPWAY_OT_agent_pill_note_dismiss, LAMPWAY_PT_agent_pill_preferences)
+classes = (LAMPWAY_OT_agent_pill_note_dismiss, LAMPWAY_OT_chatgpt_vision_open, LAMPWAY_PT_agent_pill_preferences)
 
 
 def register():

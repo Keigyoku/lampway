@@ -52,9 +52,9 @@ def test_the_provider_step_refuses_a_provider_whose_route_is_off():
     assert w.step == 3, "the step stays"
     w.back()
     assert w.step == 2, "Back reaches the routes"
-    local = walk("claude_cli")
-    local.step = 3
-    assert local.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
+    keyed = walk("anthropic")
+    keyed.step = 3
+    assert keyed.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
     free = walk("mock")
     free.step = 3
     assert free.next() is None

@@ -116,7 +116,6 @@ def wipe_transient_secrets(wm) -> None:
         return
     for attr in (
         'byok_form_api_key',
-        'byok_form_codex_bundle',
         'byok_form_local_custom_key',
     ):
         try:
@@ -130,7 +129,6 @@ _WM_ATTRS = (
     'byok_form_model',
     'byok_form_api_key',
     'byok_form_openrouter_model',
-    'byok_form_codex_bundle',
     'byok_form_local_mode',
     'byok_form_local_model',
     'byok_form_local_detected',
@@ -184,20 +182,6 @@ def register():
         name="Model",
         description="Any model slug from openrouter.ai/models (e.g. anthropic/claude-opus-4.8)",
         default=OPENROUTER_DEFAULT_MODEL,
-    )
-
-    # --- Codex form field (shown when provider == 'codex') ---
-    # The bundle is the full ~/.codex/auth.json (multi-KB, contains JWTs), so
-    # a generous maxlen; PASSWORD hides the tokens (the Paste button + a char
-    # count confirm it landed). The model uses the shared catalog-backed
-    # byok_form_model dropdown (served from the "openai" catalog group).
-    WM.byok_form_codex_bundle = StringProperty(
-        name="Codex auth.json",
-        description="Contents of ~/.codex/auth.json (run `codex login` first)",
-        maxlen=16384,
-        default='',
-        subtype='PASSWORD',
-        options={'SKIP_SAVE'},
     )
 
     # --- Local (this computer) form fields (shown when provider == 'local') ---

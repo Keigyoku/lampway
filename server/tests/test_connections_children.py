@@ -71,35 +71,6 @@ def test_a_tripo_browser_driver_gets_no_key(server_env, tmp_path):
     assert seen and _clean(seen[0]) == [] and "MESHY_API_KEY" not in seen[0]
 
 
-def test_a_claude_cli_run_sees_no_key(server_env, monkeypatch):
-    from lampway_server.agent import cli_adapters as CA
-    captured = {}
-
-    async def fake_exec(*cmd, **kw):
-        captured.update(kw)
-        raise FileNotFoundError(cmd[0])
-    monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_exec)
-    with pytest.raises(CA.CLIError):
-        asyncio.run(CA._run(["claude", "-p"], "hello", 5))
-    env = captured["env"]
-    assert env is not None, "the child must not inherit the whole server environment"
-    assert _clean(env) == [] and "MESHY_API_KEY" not in env and env["HOME"] == "/home/user"
-
-
-def test_codex_image_sees_no_key(server_env, monkeypatch, tmp_path):
-    from lampway_server.agent import cli_adapters as CA
-    import subprocess
-    captured = {}
-
-    def fake_run(cmd, **kw):
-        captured.update(kw)
-        raise FileNotFoundError(cmd[0])
-    monkeypatch.setattr(subprocess, "run", fake_run)
-    with pytest.raises(CA.CLIError):
-        CA.codex_image("codex", "a helmet", [], tmp_path / "out", "x")
-    assert captured.get("env") is not None and _clean(captured["env"]) == []
-
-
 def test_a_server_tool_driver_sees_no_key_and_keeps_the_owners_arming(server_env, monkeypatch):
     from lampway_server.agent import server_tools as ST
     monkeypatch.setenv("LAMPWAY_STUDIO_ARMED", "1")

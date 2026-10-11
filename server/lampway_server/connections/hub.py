@@ -27,6 +27,11 @@ from .errors import AGENT_WRITE, NotConnected, Refused
 from .views import Views
 from .actions import Actions
 
+#: Variables a child never inherits by name: an agent CLI's own session markers and the common provider keys (they were kept with
+#: the retired Codex app-server provider; agent-modes spec R0).
+DROP_EXACT = {"CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "CODEX_THREAD_ID", "CODEX_TURN_ID", "CODEX_SHELL", "OPENROUTER_API_KEY", "OPENAI_API_KEY",
+              "ANTHROPIC_API_KEY", "GITHUB_TOKEN", "GH_TOKEN"}
+
 REMOTE_FRESH_S = 30 * 60
 LOCAL_FRESH_S = 60
 POLL_EVERY_S = 30 * 60
@@ -193,7 +198,6 @@ class Hub(Views, Actions):
     def env_for(self, ids=()) -> dict:
         """A child's environment: ours scrubbed of every secret-shaped variable and every registry name, plus exactly these connections."""
         drop = {n for s in R.SPECS.values() for names in list(s.env.values()) + list(s.file_env.values()) for n in names}
-        from ..agent.providers.codex_app_server import DROP_EXACT
         out = {}
         for k, v in self.env.items():
             up = k.upper()

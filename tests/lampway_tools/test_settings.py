@@ -118,6 +118,6 @@ def test_the_image_backend_is_a_setting_so_the_app_does_not_depend_on_the_launch
     home.mkdir()
     (home / "settings.json").write_text(json.dumps({"image_backend": "openrouter"}))
     assert S.load().image_backend == "openrouter"
-    monkeypatch.setenv("LAMPWAY_IMAGE_BACKEND", "codex_cli")
-    assert S.load().image_backend == "codex_cli"
+    monkeypatch.setenv("LAMPWAY_IMAGE_BACKEND", "openrouter")
+    assert S.load().image_backend == "openrouter"
     assert S.load({"LAMPWAY_HOME": str(home)}).image_backend == "openrouter"

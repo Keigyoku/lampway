@@ -69,18 +69,6 @@ OPENROUTER_PROVIDER_ITEM = (
 # Prefilled model slug — a sensible, widely-available default the user can edit.
 OPENROUTER_DEFAULT_MODEL = "anthropic/claude-opus-4.8"
 
-# "Codex (ChatGPT)" — a client-side-only provider option (not in the backend
-# catalog). Selecting it swaps the credential field to a paste field for the
-# ~/.codex/auth.json bundle; the user routes the agent through their ChatGPT
-# subscription instead of an API key. The model dropdown reuses the backend
-# catalog's "openai" group (see model_suggestions._MODEL_SOURCE_PROVIDER).
-CODEX_PROVIDER_ID = 'codex'
-CODEX_PROVIDER_ITEM = (
-    CODEX_PROVIDER_ID,
-    "Codex (ChatGPT sub)",
-    "Use your ChatGPT/Codex subscription — paste ~/.codex/auth.json after `codex login`",
-)
-
 # "Local (this computer)" — a client-side-only provider option: the agent's
 # LLM calls are relayed over the agent WebSocket to a model server running on
 # the user's own machine (managed llama-server via modules/local_models, or a

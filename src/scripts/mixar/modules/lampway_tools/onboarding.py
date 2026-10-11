@@ -2,20 +2,26 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""The first run's four steps (facelift contract 02, P1): language and keys, what may leave this machine, where the agent thinks, spending
-caps. The routes come before the provider (the audit's F3, the captain's ruling): a plan provider needs its route, so it is switched first. No bpy and no import beyond the standard library: the popup (``ui/onboarding.py``) draws a ``Walk`` and the server tests drive one.
+"""The first run's steps (facelift contract 02, P1): language and keys, what may leave this machine, where the agent thinks, what may your agent do
+(E2, only when the server has Capabilities), spending caps. The routes come before the provider (the audit's F3, the captain's ruling): a plan
+provider needs its route, so it is switched first. No bpy, and the walk's logic (``read``, ``next``, ``finish``) imports nothing beyond the
+standard library: the popup (``ui/onboarding.py``) draws a ``Walk`` and ``server/tests/test_onboarding_walk.py`` loads this file by its path and drives
+one. The words of the capabilities step (``capability_warning``, ``capability_note``) come from ``capabilities_face``, imported where they are used.
 
-Every route starts as the server has it (off on a fresh install) and changes only by the user's click, which is recorded. Nothing leaves the
-machine during the walk: ``finish`` writes the choices to Lampway's own server, and only then."""
+Every route starts as the server has it (off on a fresh install) and changes only by the user's click, which is recorded. So does every
+capability: the walk shows the server's defaults ticked and writes only what the user changed. Nothing leaves the machine during the walk:
+``finish`` writes the choices to Lampway's own server, and only then."""
 
 STEPS = ("Language and keys", "What may leave this machine", "Where the agent thinks", "Spending caps")
-ROUTES_STEP, PROVIDER_STEP, CAPS_STEP = 2, 3, 4
+STEP_CAPABILITIES = "What may your agent do?"
+KINDS = ("language", "routes", "agent", "spending")
+ROUTES_STEP, PROVIDER_STEP = 2, 3        # fixed: the capabilities step, when there is one, comes after both
 OFFLINE = "Lampway's server is not running: Start it"
 # The captain's ruling 5 (2026-10-07): a saved per-day total, $1 per job, $5 per local day, a click above $0.25 (OpenRouter, dollars).
 DEFAULT_CAPS = {"job_cap": 1.0, "day_cap": 5.0, "above": 0.25}
 # The route a main provider needs to think; a provider with none runs on this machine. Labels are the egress route's own.
-PROVIDER_ROUTE = {"anthropic": "claude_plan", "claude_cli": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan",
-                  "codex_cli": "chatgpt_plan", "codex_app_server": "chatgpt_plan", "openrouter": "openrouter"}
+# Claude Code and Codex are not here: they run as the user's own agent, not as Lampway's model (agent-modes spec R0).
+PROVIDER_ROUTE = {"anthropic": "claude_plan", "openai": "chatgpt_plan", "chatgpt_plan": "chatgpt_plan", "openrouter": "openrouter"}
 ROUTE_HOST = {"claude_plan": "api.anthropic.com", "chatgpt_plan": "chatgpt.com", "openrouter": "openrouter.ai"}
 ROUTE_LABEL = {"claude_plan": "Claude plan", "chatgpt_plan": "ChatGPT plan", "openrouter": "OpenRouter"}
 
@@ -25,7 +31,7 @@ def continue_label(n: int) -> str:
 
 
 class Walk:
-    def __init__(self, routes=None, provider="", caps=None):
+    def __init__(self, routes=None, provider="", caps=None, capabilities=None):
         self.online = routes is not None
         self.routes = [dict(r) for r in routes or []]
         self._server = {r["id"]: bool(r.get("enabled")) for r in self.routes}
@@ -35,6 +41,13 @@ class Walk:
         self.caps = dict(DEFAULT_CAPS if caps is None else caps)
         self.clicks = []
         self.step = 1
+        # The capabilities step exists only when the server answered with something a person can switch: a family (messaging.*, mcp.*) has no
+        # platform or server to switch on yet, so it is left to the Capabilities page. Offline there is no step and nothing to save.
+        rows = [dict(c) for c in capabilities or [] if "*" not in str(c.get("id"))] if self.online else []
+        self.capability_rows = rows or None
+        self._capability_server = {c["id"]: bool(c.get("enabled")) for c in rows}
+        self.capability_chosen = dict(self._capability_server)
+        self.capability_clicks = []
 
     @classmethod
     def read(cls, client):
@@ -44,7 +57,24 @@ class Walk:
             provider = (client.provider_settings().get("values") or {}).get("provider") or ""
         except Exception:  # noqa: BLE001  (any failure to reach the server reads as offline; the steps say so)
             return cls(routes=None)
-        return cls(routes=routes, provider=provider)
+        try:
+            capabilities = client.capabilities().get("capabilities")
+        except Exception:  # noqa: BLE001  (an older server, a door without the call, a failed read: the walk goes on without the step)
+            capabilities = None
+        return cls(routes=routes, provider=provider, capabilities=capabilities)
+
+    @property
+    def kinds(self) -> tuple:
+        """What each step is, in order: the steps of THIS walk (the capabilities step follows the provider when there is one)."""
+        return KINDS[:3] + ("capabilities",) + KINDS[3:] if self.capability_rows is not None else KINDS
+
+    @property
+    def steps(self) -> tuple:
+        return STEPS[:3] + (STEP_CAPABILITIES,) + STEPS[3:] if self.capability_rows is not None else STEPS
+
+    @property
+    def kind(self) -> str:
+        return self.kinds[self.step - 1]
 
     def routes_on(self) -> list:
         return [r for r, on in self.chosen.items() if on]
@@ -54,6 +84,40 @@ class Walk:
             raise KeyError(f"no route {route!r}")
         self.chosen[route] = bool(on)
         self.clicks.append((route, bool(on)))
+
+    def capabilities_on(self) -> list:
+        return [c for c, on in self.capability_chosen.items() if on]
+
+    def click_capability(self, cid: str, on: bool) -> None:
+        if cid not in self.capability_chosen:
+            raise KeyError(f"no capability {cid!r}")
+        self.capability_chosen[cid] = bool(on)
+        self.capability_clicks.append((cid, bool(on)))
+
+    def _capability(self, cid: str) -> dict:
+        return next(r for r in self.capability_rows if r["id"] == cid)
+
+    def capability_warning(self, cid: str) -> str:
+        """The one plain sentence under a ticked capability that runs code or acts outside Lampway ('' otherwise)."""
+        from . import capabilities_face as face
+        row = self._capability(cid)
+        return face.warning(row) if self.capability_chosen.get(cid) and face.needs_confirm(row) else ""
+
+    def capability_note(self, cid: str) -> str:
+        """Under a ticked capability: the route it needs and where it is switched ('' when none is off). A route chosen in step 2 counts at once."""
+        if not self.capability_chosen.get(cid):
+            return ""
+        from . import capabilities_face as face
+        off = [r["id"] for r in self._capability(cid).get("routes") or [] if not (self.chosen[r["id"]] if r["id"] in self.chosen else r.get("on"))]
+        if not off:
+            return ""
+        unoffered = [r for r in off if r not in self.chosen]
+        named = [face.route_word(r) for r in (unoffered or off)]
+        many = len(named) > 1
+        needs = f"Needs the {', '.join(named)} route{'s' if many else ''}"
+        if unoffered:   # step 2 lists the server's routes: one it does not list cannot be switched on from here
+            return f"{needs}, which this setup does not offer yet"
+        return f"{needs}, which {'are' if many else 'is'} off: switch {'them' if many else 'it'} on in step 2"
 
     def refusal(self):
         """The provider step's refusal: a provider whose route is off cannot think."""
@@ -66,7 +130,7 @@ class Walk:
         """Advance one step; a refusal leaves the step where it is and is returned."""
         if self.step == PROVIDER_STEP and (why := self.refusal()):
             return why
-        self.step = min(self.step + 1, len(STEPS))
+        self.step = min(self.step + 1, len(self.steps))
         return None
 
     def back(self) -> None:
@@ -84,6 +148,12 @@ class Walk:
             if on != self._server.get(route):
                 client.set_route(route, on)
         saved.append("routes")
+        if self.capability_rows is not None:
+            for cid, on in self.capability_chosen.items():
+                if on != self._capability_server.get(cid):
+                    client.set_capability(cid, enabled=on)
+                    self._capability_server[cid] = on   # a retry after a failure writes only the rest
+            saved.append("capabilities")
         values = {"spend_policy": {"openrouter": {"click": "above", **self.caps}}}
         if self.provider != self._provider_was:
             values["provider"] = self.provider

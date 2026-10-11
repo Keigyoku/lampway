@@ -1,6 +1,6 @@
 """Server-side agent tools: the studio drivers.
 
-They never go through Blender. The agent loop runs them here, as a subprocess under the browser python (the one with
+They never go through Blender. The hub's tool door (``AgentHub._run_tool``) runs them here, as a subprocess under the browser python (the one with
 patchright, ``LAMPWAY_PYTHON_BROWSER``), against the owner's logged-in tool browser. Safe by default: read-only commands,
 and image/mesh generation run as a DRY RUN (every setting set and read back, nothing clicked) unless the call says
 ``dry_run: false``; a real generation additionally needs the owner's ``LAMPWAY_STUDIO_ARMED=1`` in THIS server's
@@ -112,13 +112,12 @@ LOCALS += [
 ]
 LOCALS.append(Local(
     "studio_image_generate", "Painted variants of a clay render (the mesh-paint step): through the configured image backend, "
-    "`tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `codex_cli` (the owner's own Codex login, only if "
-    "the local-CLI setting is on) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. "
+    "`tripo` (Tripo Studio driver: GPT Image 2.5, 4 images, 4K, free quota) or `openrouter` (an OpenRouter image model; at most 4 images, each request costs money). refs in order: the clay render, a painted consistency view (optional), the design plate. "
     "Defaults to a dry run (tripo: settings read back, nothing clicked); `live: true` generates, and tripo additionally needs the "
     "owner's LAMPWAY_STUDIO_ARMED=1. Never pass live=true unless the user asked for exactly that.", "imagegen",
     [A("prompt_file", path=True, desc="a raw prompt file (or use template)"), A("template", desc="a prompt-library template id: its rendered prompt is stored as <out_dir>/prompt.txt"),
      A("variables", "object", "the template's variables"), A("refs", "array", "Reference images in order", path=True),
-     A("out_dir", required=True, path=True), A("backend", desc="tripo (default), codex_cli, or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
+     A("out_dir", required=True, path=True), A("backend", desc="tripo (default) or openrouter (an OpenRouter image model; paid, counted against the session spend ceiling, live=true only when asked)"), A("count", "integer", "Default 4"),
      A("size", desc="openrouter only: WIDTHxHEIGHT for this call (e.g. 2048x1152), within the model's pixel budget"),
      A("aspect_ratio", desc="openrouter only: e.g. 3:2 for a non-square plate; the largest size the budget allows"),
      A("purpose", desc="openrouter only: plates (mesh-paint, default) | mask (material-ID drafts) | concept (moodboard; redesigns the piece, never for projection) | tile (seamless); each has its own model and size in the Providers dialog"),
@@ -230,7 +229,7 @@ def _exec_local(cmd: list, env: dict, timeout: float):
 LOCAL_MODULES = {"seed_db"}            # drivers that read local files only
 
 
-_OPTION_BACKEND = {"studio:tripo.image": "tripo", "codex_cli:imagegen": "codex_cli"}
+_OPTION_BACKEND = {"studio:tripo.image": "tripo"}
 
 
 def image_backend_for(purpose: str, backend=None) -> str:
@@ -241,14 +240,12 @@ def image_backend_for(purpose: str, backend=None) -> str:
     override = None
     if backend == "tripo":
         override = "studio:tripo.image"
-    elif backend == "codex_cli":
-        override = "codex_cli:imagegen"
     elif backend == "openrouter":
         model = (provider_prefs.effective().image_purposes.get(purpose) or {}).get("model") or "openai/gpt-image-2.5-flare"
         chain = CH.chain(pid)
         override = next((o for o in chain if o.startswith("openrouter:")), f"openrouter:{model}")
     elif backend:
-        raise BadToolCall(f"backend is tripo, codex_cli or openrouter, not {backend!r}")
+        raise BadToolCall(f"backend is tripo or openrouter, not {backend!r}")
     try:
         r = CH.resolve(pid, CH.Job(override=override, origin="agent"))
     except CH.NoChoice as exc:

@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 license = {text = "GPL-3.0-or-later"}
 dependencies = [
     "starlette>=0.40",
+    "PyYAML>=6",                   # read owned native Hermes configuration after native CLI writes
     "uvicorn>=0.30",
     "websockets>=12",
     "anthropic>=0.60",
@@ -31,11 +32,14 @@ local-embeddings = [
 test = [
     "pytest>=8",
     "pytest-timeout>=2",
+    "pyte>=0.8,<0.9",             # the real pane screen and transcript tests
     "websockets>=12",
 ]
 
 [project.scripts]
 lampway-server = "lampway_server.__main__:main"
+lampway-hermes-mcp = "lampway_server.pane_mcp:main"
+lampway-pane-mcp = "lampway_server.pane_mcp:main"
 
 [tool.setuptools.packages.find]
 include = ["lampway_server*"]

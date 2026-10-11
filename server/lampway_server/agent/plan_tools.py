@@ -1,5 +1,5 @@
 """The Wave 6 server-run planning tools: they read the server's own catalogues and ledger (the video catalogue, the Studio actions, the experiment ledger), so
-they run in the agent loop here and never go through Blender. None of them generates or confirms a spend: a spend is always a needs_approval card the user
+they run here on the server (the hub's tool door, ``AgentHub._run_tool``) and never go through Blender. None of them generates or confirms a spend: a spend is always a needs_approval card the user
 confirms in the Client."""
 
 import asyncio

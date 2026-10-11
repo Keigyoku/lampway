@@ -30,6 +30,17 @@ explains this rail and belongs to `rail/`'s owner. `docs/canon/` is the algorith
    report to the upstream project's hosted services. Attribution uses the brand module's approved wording.
 6. **Licences:** every file carries SPDX lines (an HTML comment at the top of Markdown) or a `REUSE.toml` entry.
 
+Native-only diagnostics state their actual source and pinned engine identities, rendered observations and exact owned
+cleanup. Historical application binaries remain labelled historical; source controls and diagnostic observer corrections
+do not replace matching-build, whole-client or account acceptance. Preserve failed runs when a later repair passes.
+Native persistence and rendered transcript are distinct observations: correct stored user rows do not establish that
+messages sent from another frontend appear in the pane. A compression diagnostic must commit native compaction before
+testing its display, resume and Undo behavior; a native no-op cannot qualify those later steps.
+Likewise, configured MCP entries and session-admitted routes are distinct. A native update acknowledgement does not
+establish a completed restart; describe actual event ordering and current readiness, keeping source versions separate.
+Describe native lifecycle and hostile-reload failures even when earlier source controls pass; handler-instance mocks and
+post-filter route exclusion do not establish rendered history or preservation of an available canonical connector.
+
 ## Test
 
 ```bash
@@ -50,3 +61,7 @@ writes its own report; the integration lane lands them. What the product promise
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the documentation rules (measured claims, generated pages, public paths, media metadata) were spread across the gate, the README and the reports | six invariants with their gates and the owner | captain ruling, 2026-10-05 |
 | 2026-10-06 | the canon beside the docs | coordinator: "GO for rail row 1" | a reader of docs/ could not tell the canon from the user docs | docs/canon named, with its own contract | captain ruling, 2026-10-06 |
+| 2026-10-10 | native diagnostics retain their acceptance limits | actual terminal undo/personality failures and valid-YAML observer correction | diagnostic source checks could be confused with matching application or account proof | native diagnostic paragraph: exact identities, failed runs, historical binaries and separate acceptance scopes | actual pinned native observations and process-refusing source controls retained |
+| 2026-10-10 | distinguish native persistence from pane display | committed native compaction and resume preserve user rows, but actual scrolling finds only the first external user header | stored history was mistaken for proof of all rendered user turns | native diagnostic paragraph: observe persistence and rendering separately; require committed compaction before later proof | retained native frames and unchanged physical assertions expose the missing user rows |
+| 2026-10-10 | distinguish configured MCP metadata and reload acknowledgement from readiness | 9af native CI advances past startup, then fails catalogue and environment-reload checks | disabled configurations were counted as admitted routes and asynchronous update acknowledgement was treated as a completed handshake | native diagnostic paragraph: explicit session admission and actual reload ordering, with source versions separately qualified | retained pinned native CI wire shows resolved blocked entries and progress before acknowledgement; repaired native proof remains required |
+| 2026-10-10 | source controls retain native lifecycle and reload limits | b1 native compression and Grok hostile-reload failures after earlier controlled passes | static single-instance checks missed handler recreation and post-merge exclusion disabled the canonical route | diagnostic paragraph: distinguish native lifecycle and canonical availability from earlier source passes, preserving actual failed assertions | b1 history four passes, compression two failures and both Grok native failures retained; later matching proof remains required |

@@ -77,6 +77,9 @@ def _preference_items(settings) -> list:
             continue
         prov, _, model = entry["preferred"].partition(":")
         label = next((m["label"] for p in models_catalog(settings)["providers"] if p["id"] == prov for m in p["models"] if m["id"] == model), model or prov)
+        if prov == "chatgpt_plan":                                # spec R0a: the chip says whose usage the agent spends
+            from .agent.providers.chatgpt_plan import PLAN_NOTICE
+            label = f"{label} · {PLAN_NOTICE}"
         out.append({"role": role, "provider": prov, "model": model, "label": label, "thinking_level": (entry.get("params") or {}).get("thinking_level"),
                     "eligible": True})
     return out
@@ -130,16 +133,29 @@ def stub_routes(auth, store, settings, jobs=None, on_choice=None):
 
     @guard
     async def byok_put(request):
+        """The user's key or endpoint, and where the main agent thinks (spec R0): the save is the user's click, so it also writes
+        agent.main in Choices and the running agent is rebuilt on it. An agent may not change it (CH3)."""
+        from . import choices as CH
+        from . import connections as C
+        from .agent_settings import byok_choice
+        if _agent_declared(request):
+            return error(403, _AGENT_WRITE)
         body = await _json(request)
         provider, model = body.get("provider"), body.get("model")
         if not provider or not model:
             return error(422, "provider and model are required")
-        from . import connections as C
         try:
-            return ok(store.save_byok(provider, model, body.get("api_key"), body.get("base_url"),
-                                      body.get("supports_vision")), "Credentials saved")
+            view = store.save_byok(provider, model, body.get("api_key"), body.get("base_url"), body.get("supports_vision"))
         except C.Refused as exc:                                  # the key goes into Connections (C5): its refusal names the fix
             return error(exc.status if exc.status != 400 else 422, str(exc))
+        choice = byok_choice(provider, model, body.get("base_url"), settings.openai_base_url)
+        if choice is not None:
+            try:
+                CH.active_store().set("agent.main", "global", None, choice, by="user")
+            except CH.Refused as exc:
+                return error(400, str(exc))
+            _changed("agent.main")
+        return ok(view, "Credentials saved")
 
     @guard
     async def credentials_delete_all(request):

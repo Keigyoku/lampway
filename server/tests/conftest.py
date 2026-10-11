@@ -38,6 +38,17 @@ def _project_root_in_tmp(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_engine_unless_asked(monkeypatch, tmp_path):
+    """The engine runs Mode 1 whenever a build is found (spec A5), so a build on this machine (``$LAMPWAY_ENGINES_DIR``, the
+    repository's ``build/engines``) never puts it in a suite app's seat: a test that wants it names its build in
+    ``LAMPWAY_ENGINES_DIR`` itself."""
+    from lampway_server.engine import wiring as W
+    monkeypatch.delenv("LAMPWAY_ENGINES_DIR", raising=False)
+    monkeypatch.delenv(W.RETIRED_SWITCH, raising=False)
+    monkeypatch.setattr(W, "REPO_ENGINES", tmp_path / "no-engine-build")
+
+
+@pytest.fixture(autouse=True)
 def _egress_permissive(tmp_path):
     """The egress hook is installed for the whole test run with a PERMISSIVE manager (every route on, unmapped hosts allowed, log in the test's tmp): existing provider tests drive fake transports at
     invented hosts. tests/test_egress.py swaps in a strict manager to test the gate itself."""

@@ -41,8 +41,9 @@ def test_get_shows_the_effective_values_where_each_comes_from_and_the_choices(cl
     assert v["provider"] == "mock" and v["swarm_provider"] == "" and v["openrouter_image_model"] and "chatgpt_effort" in v and "image_backend" in v
     assert set(out["source"].values()) <= {"env", "saved", "default"}
     c = out["choices"]
-    assert {"mock", "chatgpt_plan", "claude_cli", "openrouter"} <= set(c["main_providers"]) and {"", "claude_cli", "openrouter"} <= set(c["swarm_providers"])
-    assert set(c["image_backends"]) == {"tripo", "codex_cli", "openrouter"} and "high" in c["image_qualities"] and "medium" in c["efforts"]
+    assert {"mock", "chatgpt_plan", "openrouter"} <= set(c["main_providers"]) and set(c["swarm_providers"]) == {"", "openrouter"}
+    assert not {"claude_cli", "codex_cli", "codex_app_server"} & set(c["main_providers"])            # retired: agent-modes spec R0
+    assert set(c["image_backends"]) == {"tripo", "openrouter"} and "high" in c["image_qualities"] and "medium" in c["efforts"]
     assert not [k for k in v if "key" in k or "token" in k or "secret" in k], "no credential is part of the provider settings"
 
 
@@ -69,8 +70,8 @@ def test_a_swarm_provider_that_cannot_be_built_is_refused_with_why(client, monke
     monkeypatch.delenv("LAMPWAY_OPENROUTER_KEY_FILE", raising=False)
     r = fake.put("/app/provider-settings", json={"values": {"swarm_provider": "openrouter"}})
     assert r.status_code == 400 and "OpenRouter key" in r.json()["detail"] and app.state.settings.swarm_provider == ""
-    r = fake.put("/app/provider-settings", json={"values": {"swarm_provider": "claude_cli"}})        # the local CLI switch is off
-    assert r.status_code == 400 and "claude_cli" in r.json()["detail"].lower() or "cli" in r.json()["detail"].lower()
+    r = fake.put("/app/provider-settings", json={"values": {"swarm_provider": "claude_cli"}})        # retired (agent-modes spec R0)
+    assert r.status_code == 400 and "must be one of" in r.json()["detail"] and app.state.settings.swarm_provider == ""
 
 
 def test_a_bad_choice_is_refused_with_the_reason_and_nothing_changes(client, settings):

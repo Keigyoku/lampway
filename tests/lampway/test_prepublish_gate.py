@@ -109,10 +109,11 @@ def _gate_module():
 
 
 def _committed_matrix_line():
-    # Exact payload from PR1 source a4f2cee; the native test is outside this lane.
-    operator = '@'
-    return ("    expected=(arm.matrix_world" + operator + "arm.pose.bones['lowerarm_l'].head)"
-            "-(arm.matrix_world" + operator + "arm.pose.bones['upperarm_l'].head)")
+    # Exact multiline-payload line from tests/lampway_tools/test_native_complete_topology.py
+    # at f13fa7d9de627bc9e47efa5d3b7c25083ffb8edd; source blob 7655712d34f0af165c11d0fc4c7b37d70b7e0209.
+    # Keep the reproduction independent of that native implementation's publication.
+    # Construct operator tokens separately; the resulting scanner input is byte-exact.
+    return "@".join(('    expected=(arm.matrix_world', "arm.pose.bones['lowerarm_l'].head)-(arm.matrix_world", "arm.pose.bones['upperarm_l'].head)"))
 
 
 def test_actual_committed_matrix_payload_is_not_an_email(tmp_path):

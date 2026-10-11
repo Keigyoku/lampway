@@ -10,7 +10,9 @@ This page takes you from a clone to a first conversation with the agent. Linux i
 - Ubuntu 24.04 (a container or VM is fine) with GCC 14. Blender 5.2 refuses older compilers and Ubuntu 24.04 ships GCC 13 by default, so the build script installs the versioned `gcc-14` pair.
 - About 13 GB of disk per build environment (`Dev` or `Prod`) and 100 GB free as a safety floor (`LAMPWAY_MIN_FREE_GB`, default 100).
 - Python 3.12 or newer for the server (`server/pyproject.toml` says 3.11 or newer; 3.12 and 3.14 have run the suite). The Asset Vault library needs 3.14 today ([asset vault](asset-vault.md)).
-- Optional, per feature: an OpenRouter key, a ChatGPT plan, an Anthropic key, a local OpenAI-compatible server, `herdr` for the cockpit, the `boat` CLI for the compute wrapper. See [providers](providers.md).
+- Optional, per feature: an OpenRouter key, a ChatGPT plan, an Anthropic key, a local OpenAI-compatible server, the `boat` CLI for the compute wrapper.
+- For agent panes (the cockpit, both agent modes): Lampway's pinned herdr (`third_party/herdr`, tag `v0.9.3`). Build it with `scripts/lampway/herdr_env.py`, which needs Rust through rustup and Zig 0.16.0; `--check-deps` names what is missing. See [providers](providers.md).
+- For Lampway's own agent (Mode 1): the pinned Hermes engine (`third_party/hermes-agent`, tag `v2026.9.24`), built with `scripts/lampway/engine_env.py` (`--check-deps` names what is missing; the build also prebuilds Hermes's TUI with npm), and Node.js 22 or 24 at run time (on PATH, or `LAMPWAY_NODE`). Lampway never downloads either at run time. Without them Lampway's agent refuses every message, saying which is missing; your own agent (Mode 2) still works.
 
 ## 2. Get the source
 
@@ -66,7 +68,15 @@ Login is automatic: the client opens the server's loopback sign-in page in your 
 
 ## 6. First conversation
 
-With `--provider mock` the agent needs no model: it lists the scene, and a chat message that begins `py:` runs the rest as a Blender script. That proves the client, the WebSocket, the sandbox and the tool door work. To use a real model, restart with a provider (next section).
+Lampway's agent (Mode 1) is the pinned Hermes runtime in a pane of Lampway's herdr server; the island in the app is a second window onto that same conversation. Before the first message: build the engine and herdr (section 1), have Node.js, and start the herdr server from the cockpit (**Lampway > Agents**). Your first message in a scene tab opens that tab's agent pane; later messages go to the same conversation, which survives a restart of the app or the server.
+
+If something is missing, the message is not sent and the island says what to do: `scripts/lampway/engine_env.py` for the engine, `scripts/lampway/herdr_env.py` (or `LAMPWAY_HERDR_BIN`) for herdr, Node.js 22 or 24 (or `LAMPWAY_NODE`) for the pane's TUI, or starting the herdr server. You can also switch the tab to **Your agent** and work with your own agent CLI in its pane instead. There is no built-in fallback agent.
+
+Lampway gives the agent its guidance on Lampway's tools through the pane's own config (Hermes keeps its identity), and Plan Mode and Auto mode in the island reach it with each message.
+
+What the agent may do is your choice in **Choices and privacy > Capabilities**. A switch reaches a running conversation before its next tool call, without a restart and without losing the conversation (turning **Memory** on is the one exception: Hermes builds its memory with the conversation, so it works from the next new conversation).
+
+The agent thinks with the provider you chose, through the server's loopback gateway. `--provider mock` has no model behind it: it answers Lampway's agent with Lampway's own tools, so any message gets the scene's summary from Blender and a message that starts with `py:` runs the rest as a script in the scene. It thinks nothing; to work with the scene for real, start with a real provider (next section).
 
 ## 7. Choose a provider, then open its route
 
@@ -95,8 +105,8 @@ Profile menu, **Connect AI Apps (MCP)**, enable MCP, pick your app and click **A
 | tool browser | `LAMPWAY_STUDIO_CDP` | the debugging address of the browser holding your studio login (default `http://127.0.0.1:9333`) |
 | studio guard | `LAMPWAY_STUDIO_ARMED=1` | set by the confirmed run for that process only; never set it yourself globally |
 | AutoRemesher | `LAMPWAY_AUTOREMESHER_BIN` | the executable built by `native/quadremesh/build.sh`; the app never downloads one |
-| local CLI adapters | `LAMPWAY_LOCAL_CLI=1` | lets the server start your own `codex` / `claude` binaries (see [providers](providers.md)) |
-| herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)) |
+| your own agents | `LAMPWAY_LOCAL_CLI=1` | lets the cockpit start your own Claude Code, Codex or OpenCode in its panes (see [cockpit](cockpit.md)) |
+| herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_BUILDS`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)): the pinned build under `LAMPWAY_HERDR_BUILDS` (default `build/herdr`) is used ahead of one on PATH; `LAMPWAY_HERDR_BIN` overrides both |
 | server bind | `LAMPWAY_HOST`, `LAMPWAY_PORT` | default `127.0.0.1:8787`; a Host guard answers 421 to any other Host |
 | state dir | `LAMPWAY_STATE_DIR` | secrets, prefs, egress prefs and log, spend log (the launcher sets `<home>/server-state`) |
 
@@ -110,8 +120,12 @@ Tool settings can also be saved in `<home>/settings.json`; the environment wins 
 | `port 8787 is in use by something that is not a Lampway server` | pick another port with `--port` |
 | the server exits at start-up | read `<home>/server.log` |
 | `<route> is off: switch it on in Privacy` | expected; open the route in the Privacy panel |
+| the agent says Lampway's Hermes engine is not running (`engine_not_built`) | build it: `scripts/lampway/engine_env.py`, then restart Lampway; or switch the tab to Your agent |
+| the agent says Node.js was not found (`node_missing`) | install Node.js 22 or 24, or point `LAMPWAY_NODE` at it |
+| the agent says no herdr was found, or the herdr server is not running | build herdr with `scripts/lampway/herdr_env.py` (or set `LAMPWAY_HERDR_BIN`), then start its server from Lampway > Agents |
 | `no OpenRouter key` | set `OPENROUTER_API_KEY` or pass `--openrouter-key-file` |
-| a refusal naming the local-CLI switch | the `codex_cli`, `claude_cli` and `codex_app_server` providers need `LAMPWAY_LOCAL_CLI=1`; read the terms note in [providers](providers.md) first |
+| a refusal naming the local-CLI switch | your own agents in the cockpit's panes need `LAMPWAY_LOCAL_CLI=1` (see [cockpit](cockpit.md)) |
+| `claude_cli is retired` (or `codex_cli`, `codex_app_server`) | those providers are gone: pick an API key, an endpoint you run or Sign in with ChatGPT, and run the CLI as your own agent in the cockpit (see [providers](providers.md)) |
 | startup logs `Failed to import ... procedural_materials` lines from the paint package | upstream withheld that package; Lampway ships a small replacement (see [`BUILD-LAMPWAY.md`](../BUILD-LAMPWAY.md) section 4) |
 
 ## Next

@@ -167,7 +167,7 @@ def _content_class(purpose, job) -> str:
 
 def _needs_click(oid, world) -> bool:
     prov = REG.option_facts(oid)["provider"]
-    if prov in ("local", "deterministic", "mock", "follow") or prov in ("claude_cli", "codex_cli", "codex_app_server", "chatgpt_plan", "openai"):
+    if prov in ("local", "deterministic", "mock", "follow", "byoa") or prov in ("chatgpt_plan", "openai"):
         return False
     key = CLICK_PROVIDER.get(prov, "studios" if prov.startswith("studio:") else prov)
     from ..spendpolicy import DEFAULT_SPEND_POLICY
@@ -211,7 +211,7 @@ def _override_allowed(purpose, job, chain, doc):
         return
     policy = _policy(purpose, doc)
     if policy == "none":
-        if purpose.id in ("agent.main", "agent.worker"):
+        if purpose.id in ("agent.main", "agent.worker", "agent.worker_mode"):
             raise NoChoice("an agent must not change its own provider: say what you would change and why, and the user decides", purpose.id)
     elif policy == "any_local" and REG.option_facts(oid)["provider"] in ("local", "deterministic"):
         return

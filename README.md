@@ -33,7 +33,7 @@ Status words: **built** = implemented and covered by tests; **live** = also run 
 
 | | what it is | status | docs |
 |---|---|---|---|
-| **Agent in the viewport** | A chat agent that drives the scene by running Python in a sandbox. Plan Mode (a plan, then Approve), `ask_user` questions, checkpoints, cancel and reattach. | live | [`docs/reports/harden.md`](docs/reports/harden.md) |
+| **Agent in the viewport** | Two agent modes per scene tab: Lampway's agent, the pinned Hermes runtime in a pane of Lampway's herdr server (thinking through the provider you chose, reaching the scene through Lampway's tools), or your own agent CLI in its pane. The island in the viewport shows and drives either: questions and permission cards, steer, cancel and reattach, and the conversation survives an app or server restart. Lampway runs no agent loop of its own. | built; Lampway's agent live-tested on the real Hermes engine and herdr in the server suite | [`docs/reports/agent-modes-spec.md`](docs/reports/agent-modes-spec.md) |
 | **Your own inference** | Anthropic (API key), any OpenAI-compatible endpoint (Ollama, LM Studio, llama.cpp, vLLM, OpenAI), OpenRouter (session budget ceiling), ChatGPT plan, and opt-in local CLI adapters. A Providers dialog sets the main model, the swarm models and the image and video models. | built; OpenRouter live; ChatGPT plan built to the documented protocol | [`docs/providers.md`](docs/providers.md) |
 | **Swarm** | The agent starts parallel workers, each a headless Blender process. A worker's result reaches your scene only through a typed, fenced commit; a failed worker lands nothing. A Parallel Agents panel shows one card per worker. Up to 6 workers per swarm. | live on OpenRouter models; not run on the Claude CLI adapter | [`docs/reports/studios.md`](docs/reports/studios.md) |
 | **Online studios, with a confirm gate** | Tripo (through your signed-in studio tab, plus REST), Meshy, Hi3D and Hyper3D (REST, your API key), Higgsfield (MCP, your sign-in). Plan first (settings and price read back), then only your click starts a spend. | built; **never run live** (fakes and recorded fixtures only) | [`docs/providers.md`](docs/providers.md), [`docs/spend.md`](docs/spend.md) |
@@ -77,7 +77,7 @@ server/.venv/bin/pip install -e server/
 scripts/lampway/lampway --env Prod --copy --provider mock path/to/scene.blend
 ```
 
-`--provider mock` needs no model and no key: it lists the scene, and a chat message beginning `py:` runs the rest as a Blender script. That is the smoke test. `--plan` prints every resolved setting without starting anything. `--bridge-port 0` turns the live bridge off. The app keeps its profile under `~/.local/share/lampway` (`LAMPWAY_HOME`).
+Lampway's agent runs on the pinned Hermes engine in a herdr pane: build it with `scripts/lampway/engine_env.py` and herdr with `scripts/lampway/herdr_env.py`, have Node.js 22 or 24, and start the herdr server from the cockpit ([getting started](docs/getting-started.md) section 6); without them a message to it is refused with the fix. `--provider mock` needs no model and no key: behind the gateway it drives the agent's pane with Lampway's own tools, answering any message with the scene's summary from Blender and running a message that starts with `py:` as a script in the scene (it still needs the engine, Node.js and herdr, like every Mode 1 chat). `--plan` prints every resolved setting without starting anything. `--bridge-port 0` turns the live bridge off. The app keeps its profile under `~/.local/share/lampway` (`LAMPWAY_HOME`).
 
 **Before a real provider works, open its route.** The server starts with every outbound route off, so the first OpenRouter, ChatGPT or Anthropic call is refused with "route is off: switch it on in Privacy". In the app, open the **Lampway** tab in the 3D viewport sidebar, then **Privacy (what leaves this machine)**, and switch on the route you use. [`docs/privacy.md`](docs/privacy.md) has the command-line way.
 
@@ -107,7 +107,7 @@ flowchart LR
   subgraph You["Your machine"]
     direction LR
     App["Lampway client\nBlender 5.2 core + upstream-derived UI\nsandboxed script runner"]
-    Srv["Lampway server\n127.0.0.1:8787\nagent loop, swarm, job queue, studios,\nprompts, ledger, receipts, egress gate"]
+    Srv["Lampway server\n127.0.0.1:8787\nagent front end, model gateway, swarm, job queue, studios,\nprompts, ledger, receipts, egress gate"]
     Wk["Headless worker processes\n(one per swarm task)"]
     Br["Live bridge\nloopback, peer-uid checked"]
     MCP["lampway-mcp\nstdio launcher"]

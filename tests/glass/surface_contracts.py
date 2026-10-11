@@ -121,7 +121,8 @@ PANE_ENTRY_POINTS = (
 PANE_CALLS = {
     "interface/interface_mixar_liquid_glass_draw.cc": (),
     "interface/interface_mixar_topbar.cc": ("MIXAR_GLASS_PILL",),
-    "interface/interface_mixar_zen_chrome.cc": ("MIXAR_GLASS_ISLAND",),
+    # Lamplight headers have an opaque ToolbarBackground bed, pinned separately
+    # by test_glass_chat_island; they no longer reach the glass painter.
     "space_view3d/view3d_director_cinema_paint.cc": ("MIXAR_GLASS_CARD",),
     "interface/interface_mixar_card_button.cc": ("MIXAR_GLASS_CHIP",),
     "interface/interface_mixar_profile_card_draw.cc": ("MIXAR_GLASS_CHIP",),
@@ -131,6 +132,10 @@ PANE_CALLS = {
     "space_agent_bubble/agent_ui_draw.cc": ("MIXAR_GLASS_PILL",),
     "space_view3d/view3d_agent_panel_draw.cc": ("MIXAR_GLASS_PANEL",),
     "space_mixie_chat/mixie_chat_ui_primitives.cc": ("MIXAR_GLASS_CHAT",),
+    "space_mixie_chat/mixie_chat_rules_chrome.cc": ("MIXAR_GLASS_CARD",),
+    "space_mixie_chat/mixie_chat_rules_editor.cc": ("MIXAR_GLASS_CHAT",),
+    "space_mixie_chat/mixie_chat_rules_rows.cc": ("MIXAR_GLASS_CHAT",),
+    "space_view3d/view3d_scenes_drawer_draw.cc": ("MIXAR_GLASS_PANEL",),
     # Facelift contract 04: the user's message is a raised card with a line border (DESIGN v2), no longer a glass pane,
     # so mixie_chat_ui_widgets.cc and mixie_chat_messages_content.cc left the register.
 }

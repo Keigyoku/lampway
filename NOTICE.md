@@ -71,6 +71,20 @@ The third-party Blender add-ons and tools reviewed for the feature pass (Robust 
 AutoRemesher, NifTools) are not part of Lampway: no code from them was copied. The decisions and licences are in
 [docs/lampway/resource-audit.md](docs/lampway/resource-audit.md).
 
+### Hermes Agent (Lampway's agent engine, pinned)
+
+`third_party/hermes-agent` is a git submodule pinned to a release of Hermes Agent (<https://github.com/NousResearch/hermes-agent>,
+MIT License, Copyright (c) 2025 Nous Research). Lampway runs it as a separate process, its agent engine in Mode 1
+(`docs/reports/agent-modes-spec.md` E1), built by `scripts/lampway/engine_env.py` into its own environment. Anyone who
+redistributes that environment must carry Hermes's MIT notice and the notices of the packages its lock file installs.
+
+### herdr (the terminal server of every agent pane, pinned)
+
+`third_party/herdr` is a git submodule pinned to a release of herdr (<https://github.com/herdrdev/herdr>, Apache License 2.0).
+Lampway runs it as a separate process, its own isolated herdr server (`docs/cockpit.md`), built by `scripts/lampway/herdr_env.py`
+from the pinned commit. The release carries no NOTICE file. Anyone who redistributes the built binary must carry herdr's licence and
+the licences of the crates its `Cargo.lock` builds and of its vendored libghostty-vt.
+
 ### AutoRemesher (built on request, not distributed)
 
 `native/quadremesh/` is Lampway's own Qt-free command line around the quad-remeshing core of AutoRemesher

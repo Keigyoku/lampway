@@ -844,6 +844,23 @@ def register():
         default=False,
     )
 
+    # One agent mode per scene tab (agent-modes spec M0; core/agent_mode.py). Saved with the .blend, so a tab reopens in
+    # the mode it was left in. Only the island's switch (mixie_chat.agent_mode_set) writes them.
+    bpy.types.Scene.lampway_agent_mode = EnumProperty(
+        name="Agent Mode",
+        description="Who this scene tab talks to: Lampway's own agent, or your own agent in a pane bound to the tab",
+        items=[
+            ('runtime', "Lampway Agent", "Lampway's own agent, on the provider you configured"),
+            ('byoa', "Your agent", "Your own agent CLI, on its own login, in a pane bound to this tab"),
+        ],
+        default='runtime',
+    )
+    bpy.types.Scene.lampway_byoa_pane = StringProperty(
+        name="Your Agent's Pane",
+        description="The cockpit session (a pane on Lampway's herdr server) bound to this tab in Your agent mode",
+        default="",
+    )
+
     bpy.types.Scene.mixie_chat_is_busy = BoolProperty(
         name=f"{AGENT_NAME} Is Busy",
         description="True when the agent is processing a request (BUSY state)",
@@ -1088,7 +1105,7 @@ def unregister():
         'mixie_session_id', 'mixie_checkpoint_session_id', 'mixie_chat_credits', 'mixie_chat_user_id',
         'mixie_chat_model', 'mixie_chat_generate_type',
         'mixie_chat_generate_model', 'mixie_chat_plan_enabled',
-        'mixie_chat_auto_mode', 'mixie_chat_is_busy', 'mixie_chat_state', 'mixie_chat_active_turn_mode',
+        'mixie_chat_auto_mode', 'lampway_agent_mode', 'lampway_byoa_pane', 'mixie_chat_is_busy', 'mixie_chat_state', 'mixie_chat_active_turn_mode',
         'mixie_run_open', 'mixie_run_id',
         'mixie_chat_mode', 'mixie_addon_project_id', 'mixie_addon_project_name',
         'mixie_chat_pending_attachments', 'mixie_chat_messages', 'mixie_chat_input',

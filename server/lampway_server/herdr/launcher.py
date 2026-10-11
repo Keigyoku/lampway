@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from typing import Optional
 
 PASS_THROUGH_FOR_PANES = ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "CLAUDE_CONFIG_DIR", "CODEX_HOME")
 SOCK_LIMIT = 100
@@ -15,10 +16,33 @@ class HerdrError(RuntimeError):
     pass
 
 
+#: Where scripts/lampway/herdr_env.py builds the pinned herdr (``third_party/herdr``): ``LAMPWAY_HERDR_BUILDS``, else the repository's
+#: ``build/herdr``.
+REPO_BUILDS = Path(__file__).resolve().parents[3] / "build" / "herdr"
+
+
+def pinned_build() -> Optional[str]:
+    """The newest FINISHED pinned build (``<builds>/<tag>/herdr.json`` written last by herdr_env.py), or None."""
+    base = Path(os.environ.get("LAMPWAY_HERDR_BUILDS") or REPO_BUILDS)
+    done = sorted((p for p in base.glob("*/herdr.json") if p.is_file()), key=lambda p: p.stat().st_mtime) if base.is_dir() else []
+    for rec_path in reversed(done):
+        try:
+            binary = rec_path.parent / json.loads(rec_path.read_text()).get("binary", "herdr")
+        except (OSError, ValueError):
+            continue
+        if binary.is_file() and os.access(binary, os.X_OK):
+            return str(binary)
+    return None
+
+
 def bin_path() -> str:
-    cand = os.environ.get("LAMPWAY_HERDR_BIN") or shutil.which("herdr") or str(Path.home() / ".local/bin/herdr")
+    """The herdr Lampway runs: ``LAMPWAY_HERDR_BIN``; else the pinned build, as Blender is built from its pin; else one on PATH or in
+    ``~/.local/bin``."""
+    cand = (os.environ.get("LAMPWAY_HERDR_BIN") or pinned_build() or shutil.which("herdr")
+            or str(Path.home() / ".local/bin/herdr"))
     if not Path(cand).exists():
-        raise HerdrError("herdr is not installed: install it (or set LAMPWAY_HERDR_BIN) and run it once yourself")
+        raise HerdrError("herdr is not installed: build Lampway's pinned herdr (scripts/lampway/herdr_env.py), or install one "
+                         "(or set LAMPWAY_HERDR_BIN) and run it once yourself")
     return cand
 
 
@@ -39,11 +63,18 @@ def socket_paths(root) -> tuple:
     return a, b
 
 
+def scrubbed_base() -> dict:
+    """The server's environment with every secret-shaped variable and every Connections name removed (connections.env_for([])):
+    herdr, and so every pane, starts from it (agent-modes spec B5). A key reaches a pane only through the user's per-pane opt-in."""
+    from .. import connections
+    return dict(connections.env_for([]))
+
+
 def env_for(root) -> dict:
-    """The full Lampway environment: every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
+    """herdr's environment: the scrubbed base, every herdr variable under the Lampway root, the fleet's HERDR_* scrubbed. The panes' real login environment is passed separately (pane_env)."""
     root = Path(root)
     sock, csock = socket_paths(root)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERDR_")}
+    env = {k: v for k, v in scrubbed_base().items() if not k.startswith("HERDR_")}
     home = root / "home"
     (home / ".config" / "herdr").mkdir(parents=True, exist_ok=True)
     env.update(HOME=str(home), XDG_CONFIG_HOME=str(home / ".config"), HERDR_SOCKET_PATH=str(sock), HERDR_CLIENT_SOCKET_PATH=str(csock),
@@ -72,6 +103,48 @@ def _spawn(cmd: list, env: dict, timeout=30, input=None, detached=False):
     if detached:
         return subprocess.Popen(cmd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, input=input)
+
+
+def _probe_spawn(argv: list, env: dict, timeout: float, cwd=None):
+    """Local version, startup or MCP identity qualification; no model turn or login command."""
+    return subprocess.run(argv, env=env, cwd=cwd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def probe(argv: list, timeout: float = 10) -> tuple:
+    """(exit code, output) of a harness's version flag, run with the scrubbed environment; (None, "") when it cannot run."""
+    try:
+        r = _probe_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
+
+
+def worker_probe(argv: list, env: dict, timeout: float = 10, *, cwd=None) -> tuple:
+    """Local startup/identity qualification; never a provider turn, login or frontend command."""
+    try:
+        args = ([str(a) for a in argv], {**scrubbed_base(), **env}, timeout)
+        r = _probe_spawn(*args, cwd=cwd) if cwd is not None else _probe_spawn(*args)
+    except (OSError, subprocess.TimeoutExpired):
+        return None, ""
+    return r.returncode, (r.stdout or "")[:16384]
+
+
+def _status_spawn(argv: list, env: dict, timeout: float):
+    """A harness's own login status command (harnesses/: Adapter.login_state). Only ever called inside guard(byoa:<harness>)."""
+    return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+
+
+def login_probe(route: str, argv: list, timeout: float = 20) -> tuple:
+    """(exit code, output) of a harness's own status command, inside its egress route (the harness may ask its vendor): refused
+    with the route off, logged before it starts. It runs with the scrubbed environment and the user's real home, so it reads its own
+    login, which Lampway never does (spec B0)."""
+    from .. import egress as EG
+    with EG.guard(route, kind="request"):
+        try:
+            r = _status_spawn([str(a) for a in argv], scrubbed_base(), timeout)
+        except (OSError, subprocess.TimeoutExpired):
+            return None, ""
+    return r.returncode, r.stdout or r.stderr or ""
 
 
 def run(root, args: list, timeout=30, input=None) -> str:

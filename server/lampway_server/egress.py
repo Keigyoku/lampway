@@ -37,6 +37,10 @@ class Route:
 
 
 _UNREAD = "unknown (the provider's terms are not read or recorded: decision D9)"
+#: The card of a BYOA route (agent-modes spec B5): starting the user's own agent in a pane is the opt-in; the traffic is the harness's.
+_BYOA_CARD = ("the harness talks to its vendor directly under your account, on your own login and plan; Lampway does not see or log that "
+              "traffic, it only starts the harness (this route gates the start, and each start is a row here)")
+_BYOA_TERMS = "the vendor's own terms for your account apply; Lampway sends nothing to the vendor itself"
 ROUTES = {r.id: r for r in (
     Route("openrouter", "OpenRouter", ("openrouter.ai",), "per model: Lampway sends zdr + data_collection=deny for private content; otherwise the model provider's policy applies",
           "per model: data_collection=deny is sent for private content", "conditional", (("zdr", True), ("data_collection", "deny"))),
@@ -66,6 +70,12 @@ ROUTES = {r.id: r for r in (
           _UNREAD, "conditional", (("snapshots", False), ("noEnv", True))),
     Route("compute:modal", "Modal (serverless GPU)", ("modal.run", "modal.com"), _UNREAD, _UNREAD, "unknown"),
     Route("compute:runpod", "RunPod (serverless GPU)", ("runpod.ai", "runpod.io", "runpod.net"), _UNREAD, _UNREAD, "unknown"),
+    # the agent's own browser (agent-modes spec E1.5, E2): hosts are not fixed, so none are listed; the engine's egress proxy (engine/proxy.py) is
+    # the only caller, and only while the web.browse capability is on too. Every host it reaches is a log row of its own.
+    Route("web:any", "Any website (the agent's browser)", (), _UNREAD, _UNREAD, "unknown"),
+    *(Route(f"byoa:{hid}", f"Your own {label} in a Lampway pane (BYOA)", (), _BYOA_CARD, _BYOA_TERMS, "unknown") for hid, label in (
+        ("claude", "Claude Code"), ("codex", "Codex CLI"), ("hermes", "Hermes Agent"), ("opencode", "OpenCode"), ("pi", "Pi"),
+        ("grok", "Grok"), ("cursor", "Cursor agent"))),
 )}
 
 # Every process the server starts that is NOT lexically inside ``guard(route)``, with its reason (tests/test_egress_launch_audit.py holds this list to the code):
@@ -74,16 +84,32 @@ ROUTES = {r.id: r for r in (
 #   wrapped        a launch helper injected as a value: every use of it in its module goes through the named wrapper, which holds ``guard``;
 #   driver         a launch inside a studio driver script, which itself only ever runs as a gated process (studios.service._gated_execute, agent.server_tools._exec).
 LAUNCHES: dict = {
-    "agent/cli_adapters.py:_run_gated": ("callers_guard", "the Claude/Codex CLI subprocess; its only caller, _run, holds guard(claude_plan|chatgpt_plan)"),
-    "agent/providers/codex_app_server.py:probe_binary": ("local", "codex --version and generate-json-schema: local schema generation, no model call (measured)"),
-    "agent/providers/codex_app_server.py:_Client.start": ("local", "starts the long-lived codex app-server process; every turn that talks to the provider is gated by guard(chatgpt_plan) in stream()"),
     "agent/server_tools.py:_exec_local": ("local", "the seed catalog driver reads the local seeds.sqlite only (LOCAL_MODULES)"),
     "compute/boat.py:default_runner": ("wrapped", "the Boat CLI; injected as BoatCliBackend.runner and called only inside _cli, which holds guard(compute:boat)"),
     "cards/activity.py:_commits": ("local", "git log on the local repository (the report card's recorded changes)"),
     "job_backends.py:BlenderRun.__call__": ("local", "a niced headless Lampway process for one job, in its own 0700 directory"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "a niced headless Lampway process that writes a test GLB"),
-    "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets"),
+    # Mode 1's pane (agent-modes spec A1): the wrapper runs in Lampway's own herdr pane and starts the pinned Hermes. Lampway's own engine
+    # has no route of its own: its only model endpoint is Lampway's loopback gateway, every proxy variable points at Lampway's egress
+    # proxy (E1.5), which decides and logs each host under the user's routes, and the config switches every outbound check off.
+    "engine/hermes_pane.py:Pane.start_serve": ("local", "Lampway's pinned `hermes serve` on 127.0.0.1 in Mode 1's pane, with a scrubbed environment: "
+                                                        "its model is Lampway's loopback gateway and every other host goes through Lampway's egress proxy (A1, E1.5)"),
+    "engine/hermes_pane.py:Pane.run_tui": ("local", "Hermes's own prebuilt TUI in Mode 1's pane, a client of the pane's serve on loopback; "
+                                                    "HERMES_SKIP_NODE_BOOTSTRAP and HERMES_NODE keep it from fetching or building anything (A1)"),
+    "engine/hermes_pane.py:node_problem": ("local", "`node --version` of the Node the server found for Mode 1's TUI: a local version probe"),
+    "engine/units.py:Mode1Units.maintain_sessions": ("local", "pinned Hermes SessionDB ended-history archive helpers in a recorded Lampway home; no model or network call"),
+    "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
+                                          "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session, "
+                                          "and one that starts Lampway's own Mode 1 pane starts the local wrapper above (route None, A1)"),
+    "grok_worker.py:main": ("local", "executes the local bubblewrap namespace manager for an already gated Grok pane; "
+                                    "the native BYOA launch is authorized and logged by guard(byoa:grok) in "
+                                    "herdr/host.py Cockpit.create_session before native wrap starts this child; "
+                                    "the continuation retains native HOME, provider and egress settings"),
+    "pane_mcp.py:Connector.stdio_request": ("local", "the MAIN pane's owned 0600 binding starts Lampway's desktop stdio launcher with scrubbed environment; it reaches the bound local scene through existing MCP, no provider keys or vendor login environment are forwarded"),
     "herdr/launcher.py:_systemd_ok": ("local", "systemctl --user is-system-running: a local query"),
+    "herdr/launcher.py:_probe_spawn": ("local", "a harness's own version flag (harnesses/ Adapter.detect) with the scrubbed environment: it prints a "
+                                                "version and sends nothing [UNVERIFIED per harness until each adapter's fixture]"),
+    "herdr/launcher.py:_status_spawn": ("callers_guard", "a harness's own login status command; its only caller, login_probe, holds guard(byoa:<harness>)"),
     "job_backends.py:BlenderRun.__call__": ("local", "nice headless Lampway (-b, bridge port 0) running one local mesh job on the uploaded file; no network"),
     "job_backends.py:BlenderRun.make_test_glb": ("local", "nice headless Lampway writing a UV-sphere GLB for the real-run test; no network"),
     "library/ingest.py:extract_video": ("local", "ffprobe on a local file"),
@@ -163,6 +189,8 @@ class Egress:
             p = self._prefs()
             p["routes"][route] = {"enabled": bool(on)}
             self._save(p)
+        from . import capabilities as _CAP
+        _CAP.notify_changed()          # a capability that needs this route comes into or out of force (spec E2)
         return {"route": route, "enabled": bool(on)}
 
     def register_host(self, route: str, host: str) -> None:
@@ -302,6 +330,14 @@ class Egress:
             self._active[route] = self._active.get(route, 0) + 1
             self._last = {"route": route, "t": time.time()}
         return route
+
+    def note_refused(self, host: str, method: str, reason: str, route: Optional[str] = None, **extra) -> None:
+        """A refusal another gate decided before any connection (the engine proxy: a host no capability lets the engine reach). The same row as a
+        refusal ``begin`` writes: the host, the method, the route if there is one, the reason; never a path, a query, a header or content."""
+        spec = ROUTES.get(route) if route else None
+        policy = {"retention": spec.retention, "training": spec.training, "privacy_class": spec.privacy_class} if spec else {}
+        self._append({"event": "refused", "route": route, "provider": host, "method": method, "kind": "request", "bytes": 0, "asset_ids": [],
+                      "content_class": "unclassified", **policy, "reason": reason, **extra})
 
     def end(self, route: str) -> None:
         with self._lock:

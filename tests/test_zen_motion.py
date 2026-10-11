@@ -7,6 +7,8 @@ from pathlib import Path
 import shutil
 import subprocess
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -79,11 +81,43 @@ def test_motion_ownership_and_idle_timer_contract():
     assert "WM_main_add_notifier" not in source
 
 
+def _capture_bodies():
+    directory = ROOT / "src/source/blender/makesrna/intern"
+    registration = (directory / "rna_wm_mixar.cc").read_text()
+    assert '#include "rna_wm_ui_control.cc"' in registration
+    assert '"mixar_qa_capture_frame", "rna_Window_mixar_qa_capture_frame"' in registration
+    source = (directory / "rna_wm_ui_control.cc").read_text()
+    def body(signature):
+        start = source.index(signature)
+        return source[start:source.index("\n}\n", start)]
+    return body("static bool rna_Window_mixar_qa_capture_frame"), body("static bool rna_ui_capture(")
+
+
+def _assert_cached_capture_contract(wrapper, capture):
+    guard = wrapper.index("if (!(G.f & G_FLAG_EVENT_SIMULATE))")
+    assert guard < wrapper.index("return rna_ui_capture(")
+    assert "return false;" in wrapper[guard:wrapper.index("return rna_ui_capture(")]
+    resize = capture.index("if (Mixar_window_resize_dispatch_active())")
+    push = capture.index("Mixar_window_gpu_context_push")
+    read = capture.index("WM_window_pixels_read_from_offscreen")
+    pop = capture.index("Mixar_window_gpu_context_pop")
+    assert resize < push < read < pop < capture.index("if (!pixels)")
+    assert "WM_window_pixels_read_from_frontbuffer" not in capture
+    assert "WM_redraw_windows" not in capture
+    assert capture.index("BKE_imbuf_write") < capture.index("IMB_freeImBuf(buffer)") < capture.index("return saved;")
+
+
 def test_qa_capture_preserves_hover_and_avoids_stale_frontbuffer():
-    source = (ROOT / "src/source/blender/makesrna/intern/rna_wm_mixar.cc").read_text()
-    capture = source[source.index("static bool rna_Window_mixar_qa_capture_frame"):]
-    capture = capture[:capture.index("#else /* RNA_RUNTIME */")]
-    assert "G_FLAG_EVENT_SIMULATE" in capture
-    assert "WM_window_pixels_read_from_offscreen" in capture
-    assert "WM_redraw_windows(C)" not in capture
-    assert "IMB_freeImBuf(buffer)" in capture
+    _assert_cached_capture_contract(*_capture_bodies())
+
+
+@pytest.mark.parametrize("old,new", [
+    ("if (!(G.f & G_FLAG_EVENT_SIMULATE))", "if (false)"),
+    ("WM_window_pixels_read_from_offscreen", "WM_window_pixels_read_from_frontbuffer"),
+    ("IMB_freeImBuf(buffer)", "/* leaked buffer */"),
+    ("Mixar_window_gpu_context_pop", "/* context not restored */"),
+])
+def test_qa_capture_rejects_guard_readback_and_cleanup_corruption(old, new):
+    wrapper, capture = _capture_bodies()
+    with pytest.raises((AssertionError, ValueError)):
+        _assert_cached_capture_contract(wrapper.replace(old, new), capture.replace(old, new))

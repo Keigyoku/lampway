@@ -35,6 +35,11 @@ branch on github.com/Keigyoku/lampway, no auth problem). Tests at HEAD: `pytest 
    `install_linux_packages.py` once the submodule existed.
 2. **Pins**: `HEAD:upstream` = `fbe6228777e7d9afefcd61a413844e790ae75db7` = Blender tag `v5.2.0`; upstream's
    `HEAD:lib/linux_x64` = `30d9f881c4b62c52323fd11637eeea56d460e35c` (= lib-linux_x64 tag v5.2.0).
+   Added 2026-10-07, pinned the same way (a gitlink at a release tag, fetched shallow at the committed pin):
+   - `HEAD:third_party/hermes-agent` = `f97608f178d1ffeca59860195ab7da295f7c8e5f` = Hermes Agent tag `v2026.9.24`, built by
+     `scripts/lampway/engine_env.py`;
+   - `HEAD:third_party/herdr` = `7b116c05bfda646af39d2524c54e70c751f57ee8` = herdr tag `v0.9.3`, built by
+     `scripts/lampway/herdr_env.py` (Rust 1.96.1 from herdr's `rust-toolchain.toml`, Zig 0.16.0).
 3. **TDD on the script** (pytest 9.1.1 on the host; `tests/lampway/test_build_linux.py`, 14 tests, all observed RED
    first — log paths in the per-commit sections of my transcript; final run `14 passed in 0.37s`). The tests use a
    throwaway superproject with a gitlink, so they never read the real `.env`. Two real defects the RED/GREEN loop

@@ -1,4 +1,10 @@
-"""The agent hub: chat sessions, turns, and the event stream the client renders.
+"""The agent hub: the client protocol's front end for Mode 1 (docs/reports/agent-modes-spec.md A2, A5).
+
+Mode 1 runs only on Hermes, in the unit's herdr pane: ``self.engine`` (``engine/front.HermesFront``) drives every turn, and the
+agent's conversation, rounds, history, compression and retries are Hermes's (A0). Lampway's own provider loop is gone (A5). With no
+engine on this server a Mode 1 ``agent.chat`` or ``agent.input`` is refused before any turn starts (``engine_refusal``, with what
+``engine/wiring.py`` found), and nothing answers in the engine's place. What stays here is the protocol the client renders, the
+journal ``agent.attach`` replays, the tool door ``_run_tool`` the engine's MCP endpoint calls (A3), and the swarm substrate.
 
 The client's contract (turn_events.py, queue_processor.py, slot_processor.py):
   * agent.chat is acknowledged with an admission receipt {state: "pending"};
@@ -15,33 +21,30 @@ The client's contract (turn_events.py, queue_processor.py, slot_processor.py):
 
 import asyncio
 import copy
-import json
 import logging
 import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .prompt import PLAN_MODE_PROMPT, SYSTEM_PROMPT
-from .providers.base import Message, ModelRequest, Stop, Text, ToolCall
-from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, orphan_server_tools, marks_context, questions as Q
+from .providers.base import ToolCall
+from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, capabilities_tools, orphan_server_tools, marks_context, questions as Q
+from .. import capabilities as CAP
 from . import plan_tools
 from . import motion_tools
-from .swarm import SWARM_SPECS, SwarmContext, SwarmManager, is_swarm_tool
-from .tools import ASK_USER, TOOLS, UnknownTool, format_tool_result, script_for
+from .swarm import SwarmContext, SwarmManager, is_swarm_tool
+from .tools import UnknownTool, format_tool_result, script_for
 
 log = logging.getLogger("lampway.agent")
 
-MAX_ROUNDS = 64
-MODEL_RESULT_CLIP = 20_000          # characters of one tool result the model is shown
-HISTORY_BUDGET = 200_000            # characters of tool results kept in the context; the oldest are replaced by a note
-_STOP_HINTS = {
-    "length": "the model hit its output or context limit",
-    "max_tokens": "the model hit its output limit",
-    "content_filter": "the provider's content filter stopped it",
-}
-
+MODEL_RESULT_CLIP = 20_000          # characters of one tool result the agent is shown (the engine's MCP endpoint clips with it)
 METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
+#: The other mode, named in every refusal of a Mode 1 chat that cannot run here: the user can still work with their own agent.
+YOUR_AGENT_HELP = ("Or switch this scene tab to Your agent in the island's agent menu (the mode switch above the model list) and "
+                   "work with your own agent in its pane")
+#: Why Mode 1 cannot run on this server when nothing better is known: (code, why, the exact fix).
+NO_ENGINE = ("engine_not_built", "no finished engine build was found",
+             "Build Lampway's pinned Hermes engine: scripts/lampway/engine_env.py (then restart Lampway)")
 
 
 @dataclass
@@ -52,8 +55,12 @@ class Turn:
     events: list[dict] = field(default_factory=list)  # payloads by seq
     status: str = "running"  # running | ended | abandoned
     task: Optional[asyncio.Task] = None
-    plan_mode: bool = False
-    asked: bool = False       # ended on an ask_user question: the run stays in progress until the answer
+    asked: bool = False       # stopped on a question from the pane's Hermes: the run stays in progress until the answer
+    context: dict = field(default_factory=dict)   # what the client sent beside the message (R3): images, rules, folders, notes
+    stream: object = None     # the turn's TurnStream: re-attached to a new socket by agent.attach (A2)
+    detached: bool = False    # the client's socket closed while the pane's turn ran: it journals on and waits for agent.attach
+    card_start: dict = field(default_factory=dict)  # S3 card metadata, replayed before slots when the client missed its start
+    conversation_id: str = ""  # Mode 1's Hermes conversation; /new retires discovery, not this journal
 
     @property
     def last_seq(self) -> int:
@@ -63,12 +70,12 @@ class Turn:
 @dataclass
 class Session:
     session_id: str
-    messages: list[Message] = field(default_factory=list)
     turns: dict[str, Turn] = field(default_factory=dict)
     last_turn_id: Optional[str] = None
     current: Optional[Turn] = None
-    pending_question: Optional[dict] = None   # {interrupt_id, call_id, question} while an ask_user waits for its answer
-    bookmarks: dict = field(default_factory=dict)   # checkpoint request_id -> len(messages) at the mark
+    pending_question: Optional[dict] = None   # {interrupt_id, call_id, question, engine} while the pane's Hermes waits on the island
+    last_user: str = ""                       # the user's latest words in this tab (the island's, or typed in the pane)
+    plan_notice_shown: bool = False           # the ChatGPT-plan disclosure was shown in this session's transcript (R0a)
 
 
 @dataclass
@@ -80,28 +87,35 @@ class Command:
 
 
 class AgentHub:
-    def __init__(self, provider, *, script_timeout_s: float = 600.0, system_prompt: str = SYSTEM_PROMPT,
-                 swarm_provider_factory=None, studio=None, video=None, prompts=None, jobs=None, cockpit=None, assets=None):
-        self.provider = provider
+    def __init__(self, provider, *, script_timeout_s: float = 600.0, swarm_provider_factory=None, studio=None, video=None,
+                 prompts=None, jobs=None, cockpit=None, assets=None, switch_dir=None):
+        self.provider = provider        # the current main provider: the model gateway's door for every Mode 1 pane (E1.4)
+        self.engine = None              # engine/front.HermesFront: Mode 1 is the unit's Hermes pane (spec A1, A2); None = no Mode 1 here
+        self.engine_problem = NO_ENGINE  # (code, why, fix) while self.engine is None: engine/wiring.py says what it found
+        self.client_sockets: dict = {}  # scene session id -> the user's Client socket that last spoke for it (spec A3: where tools go)
         self.assets = assets
         self.studio = studio
         self.video = video
         self.prompts = prompts
         self.jobs = jobs
         self.cockpit = cockpit
+        self.switch_dir = switch_dir    # where the BYOA switch's own file lives (harnesses/switch.py)
         self.ops = None
         if cockpit is not None:
             from ..ops.registry import AgentOps
             import os as _os
-            self.ops = AgentOps(cockpit, cockpit.root / "ops", cwd=_os.environ.get("LAMPWAY_PROJECT_ROOT") or ".")
+            self.ops = AgentOps(cockpit, cockpit.root / "ops", cwd=_os.environ.get("LAMPWAY_PROJECT_ROOT") or ".", switch_dir=switch_dir)
         self.script_timeout_s = script_timeout_s
-        self.system_prompt = system_prompt
         self.sessions: dict[str, Session] = {}
         self.commands: dict[str, Command] = {}
-        # The swarm's workers think with their own (cheaper) provider; with none configured they share the main one.
-        self.swarm = SwarmManager(swarm_provider_factory or (lambda label: self.provider), self._blender_script,
-                                  script_timeout_s=script_timeout_s)
+        from .byoa import ByoaView
+        self.byoa = ByoaView(self)      # spec M0 and B4: a tab in Your agent mode, and its pane shown in the island
+        # The agent.worker choice's provider (Choices), kept for the model gateway's Mode 1 workers (spec A1, S2 as superseded by A):
+        # no worker thinks inside this server; every one is a pane (spec S1, A5).
+        self.swarm_provider_factory = swarm_provider_factory or (lambda label: self.provider)
+        self.swarm = SwarmManager(self._blender_script, script_timeout_s=script_timeout_s)
         self.swarm.library = assets
+        self.swarm.cockpit = cockpit
 
     # ------------------------------------------------------------ dispatch
     async def handle(self, socket, method: str, request_id, params: dict):
@@ -116,10 +130,18 @@ class AgentHub:
             "agent.feedback": self._feedback,
             "agent.checkpoint.mark": self._checkpoint_mark,
             "agent.checkpoint.rewind": self._checkpoint_rewind,
+            "agent.history_sync": self._history_sync,
+            "agent.byoa.observe": self.byoa.observe,
+            "agent.byoa.send": self.byoa.send,
+            "agent.byoa.interrupt": self.byoa.interrupt,
+            "agent.byoa.resume": self.byoa.resume,
+            "agent.byoa.unbind": self.byoa.unbind,
         }.get(method)
         if handler is None:
             await socket.send_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method}")
             return
+        if method != "agent.history_sync":                 # the archive names every session the client keeps, not its open tabs
+            self._note_socket(socket, params)
         try:
             result = await handler(socket, params)
         except InvalidParams as exc:
@@ -127,12 +149,48 @@ class AgentHub:
             return
         await socket.reply(request_id, result)
 
-    def socket_closed(self, socket):
+    def _note_socket(self, socket, params: dict) -> None:
+        """The scene tabs this Client socket speaks for (spec A3): a tool call from a unit's Hermes, whoever started its turn, goes
+        to the socket that last spoke for that tab. A headless worker's socket (it says its role) is never a tab's."""
+        if getattr(socket, "role", ""):
+            return
+        payload = params.get("payload") if isinstance(params.get("payload"), dict) else params
+        ids = [payload.get("session_id"), params.get("session_id")] + list(params.get("session_ids") or [])[:32]
+        for sid in ids:
+            if isinstance(sid, str) and sid:
+                self.client_sockets[sid] = socket
+
+    def socket_for(self, session_id: str):
+        """The scene tab's current Client socket, or None when no Lampway window speaks for it."""
+        return self.client_sockets.get(session_id)
+
+    def socket_closed(self, socket) -> set:
+        """The client's socket closed. Returns the turn tasks that outlive it (the socket cancels the rest)."""
+        for sid in [s for s, sock in self.client_sockets.items() if sock is socket]:
+            del self.client_sockets[sid]
         self.swarm.socket_closed(socket)
+        survivors = set()
         for session in self.sessions.values():
             turn = session.current
             if turn is not None and turn.task is not None and getattr(turn, "socket", None) is socket:
+                if self.engine is not None and self.engine.is_running(session.session_id):
+                    # Spec A2: the island is only a client of the pane's Hermes, whose turn goes on; it journals on here and the
+                    # client re-attaches with agent.attach. A Blender call in flight fails (the socket is gone) and the agent is told.
+                    turn.detached = True
+                    survivors.add(turn.task)
+                    continue
                 turn.task.cancel()
+        return survivors
+
+    def engine_refusal(self) -> dict:
+        """Mode 1 cannot run on this server (no engine build, or it could not start): the refusal, before any turn starts. Nothing
+        else answers in the engine's place (spec A5)."""
+        code, why, fix = self.engine_problem or NO_ENGINE
+        return {"state": "complete", "result": {
+            "ok": False, "code": code, "status_code": 409,
+            "message": f"Lampway Agent runs on Lampway's pinned Hermes engine, and this server is not running it ({why}), so this "
+                       "message was not sent.",
+            "help": [fix, YOUR_AGENT_HELP]}}
 
     # ------------------------------------------------------------ commands
     def _session(self, session_id: str) -> Session:
@@ -147,8 +205,36 @@ class AgentHub:
         message = payload.get("message")
         if not session_id or not isinstance(message, str):
             raise InvalidParams("payload.session_id and payload.message are required")
-        return self._admit(socket, command_id, session_id, message, plan_mode=bool(payload.get("plan_required")),
-                           marks_text=marks_context.describe(payload.get("mark_context")))
+        if (refused := self.byoa.refusal(session_id, payload)) is not None:     # spec M0: the tab is in Your agent mode
+            return refused
+        if self.engine is None:
+            return self.engine_refusal()
+        from ..engine.front import is_skill_review
+        if is_skill_review(message):
+            if (refused := self.engine.skill_review_refusal(socket, session_id, message)) is not None:
+                return refused
+            return await self._message(socket, command_id, session_id, message)
+        if self.engine.has_question(session_id) and message.strip():
+            # A new message while the pane's Hermes waits on the island's question: the message is the answer (a permission card
+            # takes it as deny unless it names a choice), and the turn goes on in this command's turn (spec A2).
+            self._session(session_id).pending_question = None
+            self.engine.answer(session_id, message)
+            return self._admit(socket, command_id, session_id, None)
+        marks = marks_context.describe(payload.get("mark_context"))          # the Scribble marks ride WITH the words
+        return await self._message(socket, command_id, session_id, message + ("\n\n" + marks if marks else ""),
+                                   {k: payload[k] for k in ("content", "rules", "folder_context", "project_context",
+                                                            "attachment_names", "imported_object_names", "plan_required",
+                                                            "auto_mode", "user_preferences") if k in payload})
+
+    async def _message(self, socket, command_id, session_id, text: str, context: Optional[dict] = None):
+        """The user's words for the unit's Hermes: they join a running turn (R4), else open a turn (A2) once the pane may be reached."""
+        if self.engine.is_running(session_id) and text.strip():
+            # R4: a message during the pane's turn joins it (the client's queued bubble settles on this ok); no new turn.
+            await self.engine.steer(session_id, text)
+            return {"state": "complete", "result": {"ok": True, "joined": True}}
+        if (refused := await self.engine.precheck(socket, session_id)) is not None:
+            return refused                                  # spec A1, A5: no pane for this tab, and this message may not open one
+        return self._admit(socket, command_id, session_id, text, context=context)
 
     async def _input(self, socket, params):
         command_id, payload = _command_parts(params)
@@ -156,82 +242,147 @@ class AgentHub:
         text = payload.get("text")
         if not session_id or not isinstance(text, str):
             raise InvalidParams("payload.session_id and payload.text are required")
+        if (refused := self.byoa.refusal(session_id, payload)) is not None:
+            return refused
+        if self.engine is None:
+            return self.engine_refusal()
+        from ..engine.front import is_skill_review
+        if is_skill_review(text):
+            if (refused := self.engine.skill_review_refusal(socket, session_id, text)) is not None:
+                return refused
+            return await self._message(socket, command_id, session_id, text)
         answers = payload.get("answers")
         session = self._session(session_id)
         pending = session.pending_question
         interrupt_id = str(payload.get("interrupt_id") or "")
         if pending is not None and (not interrupt_id or interrupt_id == pending["interrupt_id"]):
-            # The answer to an ask_user question: it is the tool's result, and the model goes on from there.
-            action = payload.get("action")
-            reply = None
-            if pending.get("batch") and action == Q.CANCEL:
-                answer, reply = "The user cancelled these questions; do not go on with what they were for.", "Cancelled: the questions were not answered."
-            elif pending.get("batch"):
-                answer, refused = Q.batch_answer(pending["batch"], answers)
-                if refused:
-                    return {"state": "complete", "result": {"ok": False, "message": refused}}
-            else:
-                answer = Q.single_answer(text, answers, action)
-            session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": pending["call_id"],
-                                                      "content": answer, "is_error": False}]))
+            # The answer to the pane's question (clarify or a permission): the response to serve's request; the turn goes on.
             session.pending_question = None
-            return self._admit(socket, command_id, session_id, None, plan_mode=pending.get("plan_mode", False), reply=reply)
+            self.engine.answer(session_id, Q.single_answer(text, answers, payload.get("action")))
+            return self._admit(socket, command_id, session_id, None)
         if answers:
             text = f"{text}\n{answers}" if text else str(answers)
-        return self._admit(socket, command_id, session_id, text)
+        return await self._message(socket, command_id, session_id, text)
 
-    def _admit(self, socket, command_id, session_id, user_text, plan_mode=False, marks_text="", reply=None):
+    def _admit(self, socket, command_id, session_id, user_text, context=None):
         session = self._session(session_id)
+        if user_text is not None and session.pending_question is not None:
+            # A new message instead of an answer: the waiting question is answered with that, so it never stays open.
+            self._close_question(session, "The user did not answer this question; they sent a new message instead.")
         command = self.commands[command_id] = Command(command_id, session_id)
-        turn = Turn(session_id, command_id, str(uuid.uuid4()), plan_mode=plan_mode)
+        turn = Turn(session_id, command_id, str(uuid.uuid4()), context=dict(context or {}))
         turn.socket = socket  # type: ignore[attr-defined]
         session.turns[command_id] = turn
         session.last_turn_id = command_id
         previous = session.current
         session.current = turn
-        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous, marks_text, reply))
+        turn.task = socket.spawn(self._run_turn(socket, session, turn, command, user_text, previous))
         return {"state": "pending"}
+
+    def _close_question(self, session, answer: str) -> None:
+        session.pending_question = None
+        engine = self.engine
+        if engine is not None and engine.has_question(session.session_id):
+            engine.answer(session.session_id, answer)
 
     async def _cancel(self, socket, params):
         command_id, payload = _command_parts(params)
-        session = self.sessions.get(str(payload.get("session_id") or ""))
+        session_id = str(payload.get("session_id") or "")
+        if session_id and self.byoa.mode_of(session_id, payload) == "byoa":
+            # A tab in Your agent mode (spec M0, B4): Stop interrupts its pane, with the same guards as agent.byoa.interrupt.
+            return await self.byoa.interrupt(socket, params)
+        session = self.sessions.get(session_id)
         cancelled = False
         if session is not None and session.current is not None and session.current.task is not None:
             log.debug("cancelling turn %s", session.current.turn_id)
             cancelled = session.current.task.cancel()
             self.swarm.cancel_session(session.session_id)
+        elif session is not None and session.pending_question is not None:
+            self._close_question(session, "The user cancelled instead of answering this question.")
+            cancelled = True
+        elif self.engine is not None and self.engine.is_running(session_id):
+            cancelled = await self.engine.interrupt(session_id)     # spec A2: session.interrupt
+        try:
+            if self.engine is not None:
+                # MCP tools run in separate requests: Stop joins this unit's work even when the island task or pane ended.
+                cancelled_tools = await self.engine.cancel_tool_calls(session_id)
+                cancelled = bool(cancelled_tools) or cancelled
+        finally:
+            cancelled_workers = await self.swarm.join_cancelled_session(session_id)
+            cancelled = bool(cancelled_workers) or cancelled
         log.debug("cancel for session %s -> %s", payload.get("session_id"), cancelled)
         return {"state": "complete", "result": {"ok": True, "cancelled": cancelled}}
 
     async def _status(self, socket, params):
         turns = {}
-        for session_id in list(params.get("session_ids") or [])[:32]:
+        swarm_cards = {}
+        asked = [str(s) for s in list(params.get("session_ids") or [])[:32] if isinstance(s, str) and s]
+        conversations = await self.engine.conversations(asked) if self.engine is not None else {}
+        for session_id in asked:
             session = self.sessions.get(str(session_id))
-            if session is None or session.last_turn_id is None:
+            if session is None:
+                continue
+            current = conversations.get(session_id, "")
+            cards = [dict(t.card_start) for t in session.turns.values()
+                     if t.card_start and (not t.conversation_id or t.conversation_id == current)]
+            if cards:
+                swarm_cards[session.session_id] = cards
+            if session.last_turn_id is None:
                 continue
             turn = session.turns[session.last_turn_id]
+            if turn.conversation_id and turn.conversation_id != current:
+                continue
             turns[session.session_id] = {
                 "turn_id": turn.turn_id, "run_id": turn.run_id, "replay_available": True,
                 "status": turn.status, "active": turn.status == "running", "last_seq": turn.last_seq,
+                "conversation_id": turn.conversation_id,
             }
-        return {"turns": turns}
+        # The conversation each Mode 1 tab's pane shows (A2, Q15): a client that was away when the pane's /new was followed learns
+        # it here, and files the old chat.
+        return {"turns": turns, "conversations": conversations, "swarm_cards": swarm_cards}
 
     async def _attach(self, socket, params):
         session = self.sessions.get(str(params.get("session_id") or ""))
         turn = session.turns.get(str(params.get("turn_id") or "")) if session else None
         if turn is None:
             return {"status": "unavailable"}
+        if turn.conversation_id:
+            current = await self.engine.conversations([turn.session_id]) if self.engine is not None else {}
+            if current.get(turn.session_id) != turn.conversation_id:
+                return {"status": "unavailable"}  # /new fenced it; never replay or rebind into the unit's new conversation
+        if turn.card_start:
+            await socket.notify("agent.turn.started", {**turn.card_start, "replay": True})
         after = params.get("after_seq", -1)
-        after = after if isinstance(after, int) else -1
-        for seq in range(after + 1, len(turn.events)):
+        seq = after + 1 if isinstance(after, int) else 0
+        while seq < len(turn.events):                         # the journal grows while a detached turn runs: catch up first
+            if turn.conversation_id and self.engine.conversation_of(turn.session_id) != turn.conversation_id:
+                return {"status": "unavailable"}  # /new may have happened during the previous notify's await
             await socket.notify("agent.turn.event", {
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "seq": seq, "event": turn.events[seq],
             })
+            seq += 1
+        if turn.conversation_id and self.engine.conversation_of(turn.session_id) != turn.conversation_id:
+            return {"status": "unavailable"}
+        if turn.status == "running" and turn.detached and turn.stream is not None:
+            # no await between the last replayed event and the rebind: the pane's next event goes to the new socket, in order
+            turn.stream.socket = socket
+            turn.socket = socket  # type: ignore[attr-defined]
+            turn.detached = False
+            if self.engine is not None:
+                self.engine.reattach(session.session_id, socket)
         if turn.status != "running":
             await socket.notify("agent.turn.ended", {
                 "session_id": turn.session_id, "turn_id": turn.turn_id, "last_seq": turn.last_seq,
             })
         return {"status": "ok", "last_seq": turn.last_seq}
+
+    async def _history_sync(self, socket, params):
+        """The client's agent archive (spec R2): served from the units' Hermes sessions; with no engine there is none (and the
+        handshake does not advertise it)."""
+        if self.engine is None:
+            from ..engine.history import OWNER_ID, VERSION
+            return {"version": VERSION, "owner_id": OWNER_ID, "sessions": []}
+        return await self.engine.history_sync(params)
 
     async def _request_status(self, socket, params):
         command = self.commands.get(str(params.get("command_id") or ""))
@@ -246,34 +397,27 @@ class AgentHub:
         return {"status": "success"}
 
     async def _checkpoint_mark(self, socket, params):
-        """Bookmark the conversation where it stands (turn_checkpoints.py: sent after a scene snapshot is written)."""
-        _command_id, payload = _command_parts(params)
-        session = self.sessions.get(str(payload.get("session_id") or ""))
-        request_id = str(payload.get("request_id") or "")
-        if session is None or not request_id:
-            return {"ok": True, "has_conversation": False}
-        session.bookmarks[request_id] = len(session.messages)
-        return {"ok": True, "has_conversation": True}
+        """The client bookmarks the conversation after a scene snapshot (turn_checkpoints.py): the point Hermes's session is at,
+        under the client's id (``HermesFront.checkpoint_mark``). With no pane to reach, nothing is bookmarked, and the reply says
+        so."""
+        _, payload = _command_parts(params)
+        sid, rid = str(payload.get("session_id") or ""), str(payload.get("request_id") or "")
+        marked = self.engine is not None and bool(sid and rid) and await self.engine.checkpoint_mark(sid, rid)
+        return {"ok": True, "has_conversation": bool(marked)}
 
     async def _checkpoint_rewind(self, socket, params):
-        """Forget every turn after the bookmark the restored scene was taken at. ``has_conversation: false`` tells the
-        client there is nothing to rewind to and to start a new session (checkpoint_backend.py)."""
-        _command_id, payload = _command_parts(params)
-        session = self.sessions.get(str(payload.get("session_id") or ""))
-        request_id = str(payload.get("request_id") or "")
-        if session is None or request_id not in session.bookmarks:
-            return {"ok": True, "has_conversation": False}
-        if session.current is not None and session.current.task is not None:
-            session.current.task.cancel()
-        keep = session.bookmarks[request_id]
-        del session.messages[keep:]
-        session.bookmarks = {rid: n for rid, n in session.bookmarks.items() if n <= keep}
-        session.pending_question = None
-        return {"ok": True, "has_conversation": True}
+        """The client restored a scene checkpoint and asks for the conversation to follow: Hermes's session drops the undone turns
+        (``HermesFront.checkpoint_rewind``, serve's ``session.undo``), or the reply refuses, saying why (checkpoint_backend.py
+        then tells the user the agent may still remember them)."""
+        _, payload = _command_parts(params)
+        if self.engine is None:
+            return {"ok": False, "code": "rewind_unavailable",
+                    "message": "Lampway Agent is not running on this server, so there is no conversation to rewind"}
+        return await self.engine.checkpoint_rewind(str(payload.get("session_id") or ""), str(payload.get("request_id") or ""))
 
     # ------------------------------------------------------------ the turn
-    async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: str,
-                        previous: Optional[Turn], marks_text: str = "", reply: Optional[str] = None):
+    async def _run_turn(self, socket, session: Session, turn: Turn, command: Command, user_text: Optional[str],
+                        previous: Optional[Turn]):
         if previous is not None and previous.task is not None and not previous.task.done():
             previous.task.cancel()
             try:
@@ -281,33 +425,29 @@ class AgentHub:
             except (asyncio.CancelledError, Exception):  # noqa: BLE001
                 pass
         stream = TurnStream(socket, turn)
+        turn.stream = stream
         bubble_id = f"{turn.turn_id}:agent"
         steps: list[dict] = []
         status = "completed"
         try:
-            await socket.notify("agent.turn.started", {
-                "session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id,
-            })
+            started = {"session_id": session.session_id, "turn_id": turn.turn_id, "run_id": turn.run_id}
+            conversation = self.engine.conversation_of(session.session_id) if self.engine is not None else None
+            if conversation:
+                turn.conversation_id = conversation
+                started["conversation_id"] = conversation        # the Hermes session the tab's pane shows (A2, Q15)
+            await socket.notify("agent.turn.started", started)
             command.state, command.result = "complete", {"ok": True}
             await socket.notify("agent.command.result", {
                 "session_id": session.session_id, "command_id": turn.turn_id, "ok": True,
             })
             await stream.emit({"type": "run_status", "run_id": turn.run_id, "status": "in_progress"})
+            await self._plan_notice(session, turn, stream)
             await stream.emit({"bubble_id": bubble_id,
                                "loader": {"visible": True, "texts": ["Thinking..."], "rotate_ms": 2000}})
-            if user_text is not None:                      # None: resuming after an ask_user answer
-                message = Message.user_text(user_text)
-                if marks_text:                             # the Scribble marks ride WITH the words, so a follow-up turn still has them in history
-                    message.content.append({"type": "text", "text": "\n\n" + marks_text})
-                session.messages.append(message)
-            if reply is not None:                          # answered here (a cancelled batch): the model is not called again
-                await stream.emit({"bubble_id": bubble_id, "content": {"set": reply}})
-                return
-            if user_text is not None and user_text.strip().lower() == Q.CONTINUE_MESSAGE and self.swarm.failed_tasks(session.session_id):
-                await self._retry_failed(socket, session, turn, stream, bubble_id, steps)
-            await self._agent_loop(socket, session, turn, stream, bubble_id, steps)
-            if not turn.asked and self.swarm.failed_tasks(session.session_id, collected_in=turn.turn_id):
-                await stream.emit({"bubble_id": bubble_id, "actions": [{"label": Q.RETRY_LABEL, "value": Q.RETRY_ACTION, "style": "primary"}]})
+            if user_text is not None:                      # None: going on after the island answered the pane's question
+                session.last_user = user_text
+            # Spec A2: the unit's Hermes pane runs the conversation; this island turn shows it.
+            status = await self.engine.drive(socket, session, turn, stream, bubble_id, steps, user_text, context=turn.context) or status
         except asyncio.CancelledError:
             status = "cancelled"
             raise
@@ -317,7 +457,19 @@ class AgentHub:
         finally:
             await self._finish(socket, session, turn, stream, bubble_id, steps, status)
 
+    async def _plan_notice(self, session, turn, stream):
+        """Spec R0a: the first turn of a session whose model is the user's ChatGPT plan (behind the gateway) says so once, in its own
+        small bubble."""
+        if session.plan_notice_shown or getattr(self.provider, "name", "") != "chatgpt_plan":
+            return
+        from .providers.chatgpt_plan import PLAN_NOTICE, USAGE_URL
+        session.plan_notice_shown = True
+        await stream.emit({"bubble_id": f"{turn.turn_id}:plan", "content": {"set": (
+            f"{PLAN_NOTICE}: Lampway's agent sends this conversation to OpenAI with your ChatGPT sign-in, and it counts toward "
+            f"your plan's usage ({USAGE_URL}).")}})
+
     async def _finish(self, socket, session, turn, stream, bubble_id, steps, status):
+        socket = getattr(turn.stream, "socket", None) or socket          # a re-attached turn ends on the client's new socket
         log.debug("turn %s finishing as %s", turn.turn_id, status)
         try:
             if steps:
@@ -340,112 +492,13 @@ class AgentHub:
             if session.current is turn:
                 session.current = None
 
-    async def _agent_loop(self, socket, session, turn, stream, bubble_id, steps):
-        system = self.system_prompt + (PLAN_MODE_PROMPT if turn.plan_mode else "")
-        for _round in range(MAX_ROUNDS):
-            request = ModelRequest(system, trim_history(session.messages), list(TOOLS) + SWARM_SPECS, session_id=session.session_id)
-            text_parts: list[str] = []
-            calls: list[ToolCall] = []
-            stop = ""
-            async for event in self.provider.stream(request):
-                if isinstance(event, Text):
-                    text_parts.append(event.text)
-                    await stream.emit({"bubble_id": bubble_id, "ephemeral": {"append": event.text}})
-                elif isinstance(event, ToolCall):
-                    calls.append(event)
-                elif isinstance(event, Stop):
-                    stop = event.reason
-            text = "".join(text_parts)
-            assistant = Message("assistant", ([{"type": "text", "text": text}] if text else []) + [
-                {"type": "tool_call", "id": c.id, "name": c.name, "arguments": c.arguments} for c in calls])
-            session.messages.append(assistant)
-            if not calls:
-                if not text.strip():
-                    n = len(steps)
-                    log.warning("turn %s ended on an empty reply after %d tool calls (stop reason %r)", turn.turn_id, n, stop)
-                    text = empty_reply_note(stop, n)
-                elif stop in ("length", "max_tokens"):
-                    text += "\n\n(The reply was cut off at the model's output limit.)"
-                await stream.emit({"bubble_id": bubble_id, "content": {"set": text}})
-                return
-            question = next((c for c in calls if c.name == ASK_USER and Q.batch_error(c.arguments if isinstance(c.arguments, dict) else {}) is None), None)
-            if question is not None:
-                await self._ask(session, turn, stream, bubble_id, text, question)
-                return
-            results = []
-            for call in calls:
-                steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "",
-                              "detail": _detail(call), "status": "running"})
-                await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                content, is_error = await self._run_tool(socket, session, turn, call, stream, bubble_id, steps)
-                steps[-1]["status"] = "failed" if is_error else "done"
-                await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-                results.append({"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
-                                "is_error": is_error})
-            session.messages.append(Message("user", results))
-        log.warning("turn %s hit the %d-round tool cap", turn.turn_id, MAX_ROUNDS)
-        await stream.emit({"bubble_id": bubble_id, "content": {"set": (
-            f"I stopped after {MAX_ROUNDS} rounds of tool calls without finishing. Tell me to continue, or give me a narrower task.")}})
-
-    async def _ask(self, session, turn, stream, bubble_id, text, call: ToolCall):
-        """End the turn on the model's question: a bubble the client renders as a choice (or a text prompt), whose answer
-        comes back as agent.input with the interrupt id and resumes the model with the answer as the tool's result."""
-        args = call.arguments if isinstance(call.arguments, dict) else {}
-        if args.get("questions"):
-            await self._ask_batch(session, turn, stream, bubble_id, text, call, Q.clean_batch(args["questions"]))
-            return
-        question = str(args.get("question") or "").strip() or "Which do you want?"
-        options = [str(o).strip() for o in (args.get("options") or []) if str(o).strip()][:6]
-        interrupt_id = f"q_{uuid.uuid4().hex[:12]}"
-        session.pending_question = {"interrupt_id": interrupt_id, "call_id": call.id, "question": question,
-                                    "plan_mode": turn.plan_mode}
-        turn.asked = True
-        body = f"{text.strip()}\n\n{question}" if text.strip() else question
-        event = {"bubble_id": bubble_id, "content": {"set": body}, "interrupt_id": interrupt_id,
-                 "input_type": "choice" if options else "text"}
-        if options:
-            event["actions"] = [{"label": o, "value": o, "style": "primary" if i == 0 else "default"} for i, o in enumerate(options)]
-        await stream.emit(event)
-
-    async def _ask_batch(self, session, turn, stream, bubble_id, text, call: ToolCall, batch: list):
-        """ONE input_required event for the whole batch (its ``questions`` slot): the client's wizard draws the first card from content +
-        actions and the rest locally, then answers once with the complete map (batched_choice.py)."""
-        interrupt_id = f"q_{uuid.uuid4().hex[:12]}"
-        session.pending_question = {"interrupt_id": interrupt_id, "call_id": call.id, "question": batch[0]["question"], "batch": batch,
-                                    "plan_mode": turn.plan_mode}
-        turn.asked = True
-        first = batch[0]
-        body = f"{text.strip()}\n\n{first['question']}" if text.strip() else first["question"]
-        actions = [{"label": o, "value": o, "style": "default"} for o in first["options"]]
-        actions.append({"label": "Cancel", "value": Q.CANCEL, "style": "danger"})
-        await stream.emit({"bubble_id": bubble_id, "content": {"set": body}, "interrupt_id": interrupt_id, "input_type": "choice",
-                           "questions": batch, "actions": actions})
-
-    async def _retry_failed(self, socket, session, turn, stream, bubble_id, steps):
-        """Retry failed tasks: a new swarm of exactly the failed tasks, collected, written into the conversation as the tool calls they are,
-        so the model then reports on them. Nothing that finished runs again."""
-        tasks = self.swarm.failed_tasks(session.session_id)
-        self.swarm.mark_retried(session.session_id)
-        start = ToolCall(id=f"retry_{uuid.uuid4().hex[:8]}", name="swarm_start", arguments={"tasks": tasks})
-        for call in (start, None):
-            if call is None:
-                started = json.loads(content) if not is_error else {}
-                if not started.get("swarm_id"):
-                    return
-                call = ToolCall(id=f"retry_{uuid.uuid4().hex[:8]}", name="swarm_collect", arguments={"swarm_id": started["swarm_id"]})
-            session.messages.append(Message("assistant", [{"type": "tool_call", "id": call.id, "name": call.name, "arguments": call.arguments}]))
-            steps.append({"id": call.id, "kind": "tool", "label": call.name, "target": "", "detail": "retry failed tasks", "status": "running"})
-            await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-            content, is_error = await self._run_swarm_tool(socket, session, turn, call, stream, bubble_id, steps)
-            steps[-1]["status"] = "failed" if is_error else "done"
-            await stream.emit({"bubble_id": bubble_id, "steps": {"items": list(steps)}})
-            session.messages.append(Message("user", [{"type": "tool_result", "tool_call_id": call.id, "content": clip_result(content),
-                                                      "is_error": is_error}]))
-
     async def _run_tool(self, socket, session, turn, call: ToolCall, stream=None, bubble_id=None,
                         steps=None) -> tuple[str, bool]:
-        if call.name == ASK_USER:                                  # only a refused ask_user reaches here: the valid one ends the turn
-            return Q.batch_error(call.arguments if isinstance(call.arguments, dict) else {}) or "ask_user could not be shown", True
+        refusal = CAP.check_tool(call.name, call.arguments, origin="agent:main")      # spec E2, checked at call time
+        if refusal is not None:
+            return refusal, True
+        if call.name in capabilities_tools.NAMES:
+            return capabilities_tools.call(call.name, call.arguments, origin="agent:main")
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
         if call.name in prompt_tools.NAMES:
@@ -459,8 +512,8 @@ class AgentHub:
         if call.name in workbench_tools.NAMES:
             if self.cockpit is None:
                 return "the cockpit is not available on this server", True
-            last_user = next((m.text() for m in reversed(session.messages) if m.role == "user" and m.text()), "")
-            return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id, last_user, turn.turn_id)
+            return await workbench_tools.call(self.cockpit, call.name, call.arguments, self.ops, call.id,
+                                              getattr(session, "last_user", ""), turn.turn_id)
         if call.name in orphan_server_tools.NAMES:
             return await orphan_server_tools.call(self, call.name, call.arguments)
         if call.name in files_tools.NAMES:
@@ -531,8 +584,14 @@ class AgentHub:
         async def emit_todo(rows):
             await stream.emit_quietly({"bubble_id": bubble_id, "todo": rows})
 
+        # Retain the parent's mode/pane for result delivery and Retry context.
+        # SwarmManager separately resolves the saved worker mode and service.
+        mode = self.byoa.mode_of(session.session_id)
+        pane = self.byoa.pane_for(session.session_id) if mode == "byoa" else None
         ctx = SwarmContext(socket=socket, session_id=session.session_id, turn_id=turn.turn_id, call_id=call.id,
-                           run_id=turn.run_id, progress=progress, emit_todo=emit_todo if stream is not None else None)
+                           run_id=turn.run_id, progress=progress, emit_todo=emit_todo if stream is not None else None,
+                           mode=mode, harness=(pane or {}).get("harness"), cwd=(pane or {}).get("cwd"),
+                           project_root=(pane or {}).get("project_root"))
         try:
             return await self.swarm.call(call.name, call.arguments, ctx)
         finally:
@@ -553,9 +612,14 @@ class TurnStream:
         payload = copy.deepcopy(payload)
         seq = len(self.turn.events)
         self.turn.events.append(payload)
-        await self.socket.notify("agent.turn.event", {
-            "session_id": self.turn.session_id, "turn_id": self.turn.turn_id, "seq": seq, "event": payload,
-        })
+        try:
+            await self.socket.notify("agent.turn.event", {
+                "session_id": self.turn.session_id, "turn_id": self.turn.turn_id, "seq": seq, "event": payload,
+            })
+        except Exception:  # noqa: BLE001
+            if not self.turn.detached:
+                raise
+            log.debug("turn %s is detached: event %d journalled for agent.attach", self.turn.turn_id, seq)
 
     async def emit_quietly(self, payload: dict):
         try:
@@ -569,38 +633,11 @@ class InvalidParams(ValueError):
 
 
 def clip_result(text: str, limit: int = MODEL_RESULT_CLIP) -> str:
-    """A tool result as the model sees it: bounded. The live silent turn was 0.5-1.6 MB candidate files read eight times."""
+    """A tool result as the agent sees it: bounded. The live silent turn was 0.5-1.6 MB candidate files read eight times."""
     if len(text) <= limit:
         return text
     return (text[:limit] + f"\n...[clipped: the first {limit} of {len(text)} characters. Ask for less: a summary, specific ids, "
             "a smaller slice - never the whole file.]")
-
-
-def trim_history(messages: list, budget: int = HISTORY_BUDGET) -> list:
-    """The messages the model is sent: when the tool results in the history outgrow ``budget`` characters, the OLDEST results are
-    replaced by a one-line note (the conversation and the recent results stay). The session's own list is never changed."""
-    total = sum(len(str(p.get("content", ""))) for m in messages for p in m.content if p.get("type") == "tool_result")
-    if total <= budget:
-        return list(messages)
-    out = []
-    for m in messages:
-        parts = []
-        for p in m.content:
-            if p.get("type") == "tool_result" and total > budget:
-                size = len(str(p.get("content", "")))
-                total -= size
-                p = {**p, "content": f"[an older tool result of {size} characters was left out to keep the context small]"}
-            parts.append(p)
-        out.append(Message(m.role, parts))
-    return out
-
-
-def empty_reply_note(stop: str, tool_calls: int) -> str:
-    why = _STOP_HINTS.get(stop or "", "")
-    tail = f" ({why}; stop reason: {stop})" if why else (f" (stop reason: {stop})" if stop else " (the provider reported no abnormal stop)")
-    n = f" after {tool_calls} tool call{'s' if tool_calls != 1 else ''}" if tool_calls else ""
-    return (f"The model returned an empty reply{n}{tail}. Nothing more was done. "
-            "This usually means a limit was reached: ask again with less to read, or in smaller steps.")
 
 
 def _command_parts(params: dict):
@@ -609,10 +646,3 @@ def _command_parts(params: dict):
     if not isinstance(command_id, str) or not command_id or not isinstance(payload, dict):
         raise InvalidParams("command_id and payload are required")
     return command_id, payload
-
-
-def _detail(call: ToolCall) -> str:
-    script = call.arguments.get("script") if isinstance(call.arguments, dict) else None
-    if isinstance(script, str) and script.strip():
-        return script.strip().splitlines()[0][:120]
-    return ""
