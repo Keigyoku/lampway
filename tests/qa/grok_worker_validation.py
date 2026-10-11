@@ -25,7 +25,7 @@ import threading
 import time
 import traceback
 
-GROK_SHA256 = '41626a53292324140b92556b9d42ff5542e3dcd04aff85eafb8689dd4adb44fc'
+GROK_SHA256 = 'c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5'
 PERSONA = 'SYNTHETIC_ORIGINAL_PERSONA_MUST_REMAIN'
 
 
@@ -766,7 +766,7 @@ class Validator:
             repo / 'server/lampway_server/herdr/harnesses/grok.py',
             repo / 'server/lampway_server/native_worker_readiness.py',
             repo / 'server/lampway_server/herdr/host.py', Path(__file__).resolve()]}
-        self.receipt['source_research_qualification'] = 'Native 1.0.46 artifact is hash-pinned; earlier read-only 1.0.45 source research is not native proof.'
+        self.receipt['source_research_qualification'] = 'Native 1.0.50 artifact is hash-pinned; historical 1.0.46 observations and read-only 1.0.45 source research are not proof of this native version.'
         baseline = [str(self.options.grok), 'agent', '--no-leader', 'stdio']
         asyncio.run(self.acp(baseline, env, cwd, 'baseline'))
         for source in ['user', 'compat', 'plugin']:

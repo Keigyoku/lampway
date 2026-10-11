@@ -13,7 +13,7 @@ import tempfile
 from . import hermes_worker as H
 from .herdr import launcher as L
 
-GROK_REFUSAL = ("Grok workers require the qualified Linux Grok 1.0.46 native boundary, an ordinary bubblewrap executable, "
+GROK_REFUSAL = ("Grok workers require qualification of the pinned Linux Grok 1.0.50 native boundary, an ordinary bubblewrap executable, "
                 "unused native policy slots, usable unprivileged namespaces and the exact installed lampway_pane MCP "
                 "connector. Unsupported native startup is refused; account-backed execution remains unverified.")
 

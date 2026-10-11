@@ -21,7 +21,7 @@ import shutil
 import stat
 import sys
 
-NATIVE_SHA256 = '41626a53292324140b92556b9d42ff5542e3dcd04aff85eafb8689dd4adb44fc'
+NATIVE_SHA256 = 'c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5'
 COMPAT_VERSION = 1
 COMPAT_EFFECTS = (
     'Only explicitly enrolled Grok swarm workers use this temporary compatibility view; Grok MAIN is unchanged.',

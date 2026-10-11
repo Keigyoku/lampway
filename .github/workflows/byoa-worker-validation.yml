@@ -56,8 +56,8 @@ jobs:
           set -euo pipefail
           fixture_tools="$RUNNER_TEMP/grok-worker-tools"
           mkdir -m 700 "$fixture_tools"
-          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://x.ai/cli/grok-1.0.46-linux-x86_64 --output "$fixture_tools/grok"
-          printf '%s  %s\n' 41626a53292324140b92556b9d42ff5542e3dcd04aff85eafb8689dd4adb44fc "$fixture_tools/grok" | sha256sum --check
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://x.ai/cli/grok-1.0.50-linux-x86_64 --output "$fixture_tools/grok"
+          printf '%s  %s\n' c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5 "$fixture_tools/grok" | sha256sum --check
           chmod 755 "$fixture_tools/grok"
           apt-cache policy bubblewrap > "$fixture_tools/apt-policy.txt"
           package_version="$(apt-cache policy bubblewrap | awk '/Candidate:/{print $2}')"

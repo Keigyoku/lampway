@@ -5,7 +5,8 @@
 New session uses --session-id; resume uses --resume. Only the user's bypass tick adds --always-approve.
 MAIN uses an explicitly installed native symbolic stdio connector and a pane-owned binding file. The user's own agent,
 HOME, model settings, permissions and other MCP servers remain native. Workers are refused: exclusive discovery preserving
-all native policy/configuration is unproved. Observation is the screen. Checked with installed Grok 1.0.46 (see FACTS).
+all native policy/configuration is unproved. Observation is the screen. Static CLI checks use Grok 1.0.50;
+historical native behavior observations use 1.0.46 (see FACTS).
 """
 import json
 from pathlib import Path
@@ -38,8 +39,11 @@ class Grok(Adapter):
                   "servers remain unchanged. Grok workers are unavailable until exclusive MCP discovery preserving "
                   "native policies is proved. Account-backed native tool execution remains unverified.")
     FACTS = {
-        "version": "1.0.46 installed with xAI's own install script into a throwaway HOME; `grok --version` -> "
-                   "'grok 1.0.46 (2765805b9442)'",
+        "version": "Official Linux x86_64 1.0.50 artifact downloaded into an isolated audit directory; "
+                   "SHA256 c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5, "
+                   "183493408 bytes. Official primary and installer fallback artifacts match. With INET/INET6 denied "
+                   "and synthetic HOME, `grok --version` -> 'grok 1.0.50 (c58f321264ba)'; --help, mcp add --help "
+                   "and agent --help exit zero. These static probes do not qualify native worker behavior.",
         "argv": "`grok --help` (1.0.46): `[PROMPT]`, `-s, --session-id <SESSION_ID>` (a new conversation's UUID), `-r, --resume "
                 "[<SESSION_ID_OR_TITLE>]`, `--always-approve`, `--agent <path>`",
         "status": "no status command (`login`, `logout` only)",

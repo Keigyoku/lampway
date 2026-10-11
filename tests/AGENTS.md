@@ -74,7 +74,9 @@ stdin backpressure and reply notifications consume that same budget; discovery/p
 Portable controls import the actual QA module by repository-relative path and refuse process/socket/signal operations.
 Positive ACP mocks emit the witnessed native completion frame. Their fixed driver-budget clock leaves real wait timers
 intact, and exact deadline assertions cover every drain/reply plus completion read. Retain method, no-model, session-ID,
-policy and cleanup assertions. Historical artifacts and native baselines remain separate receipts.
+policy and cleanup assertions. Historical artifacts and native baselines remain separate receipts. The runtime, offline QA
+and CI download all pin the official Linux x86_64 Grok 1.0.50 artifact by the same SHA256; rerun unchanged native availability
+and exclusion controls for that artifact, keeping 1.0.46 observations historical.
 Native MCP extension catalogues use the pinned nested result payload and explicit resolved session admission. Blocked
 inherited configuration metadata remains in the evidence; it is not an enabled route. Require exactly one enabled
 canonical connector in ready state; refuse missing/malformed admission, unresolved state and duplicate identities.
@@ -185,3 +187,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 
 | 2026-10-11 | consent extraction and translation controls | new consent UI catalog review | positional messages escaped extraction and wrapped fragments would not match catalog messages | production extractor and whole-message translation controls preserve exact server effects/digest | four causal REDs; canonical catalog regeneration remains a separate check |
 | 2026-10-11 | native transport reload and translation fixture isolation | primary native reload audit and whole-client two-failure receipt | URL-keyed HTTP/SSE attribution can evade a STDIO name sentinel; cached translation helpers retain another fixture's globals | independently require all three native transport preservation controls, unchanged timing and owned endpoints; bind the actual translation helper to current fixture globals | cached-helper causal two failures then 174 passes; HTTP/SSE native controls remain NOT RUN and production readiness remains disabled |
+| 2026-10-11 | same-artifact native requalification | captain requests newest official Grok before diagnosis | runtime, QA and download could diverge or reuse older native proof | offline QA paragraph: one 1.0.50 hash and unchanged availability/exclusion controls with historical receipts retained | old-pin refusal retained; updated artifact static probes pass; original native checks still required |

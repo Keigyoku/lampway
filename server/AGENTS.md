@@ -81,7 +81,8 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    with native MCP disabled and other extension registrations excluded. Hermes workers use an owned startup hook guarding
    discovery, reload, reconnect and transport entry, after a native Python/gateway preflight; unsupported console scripts,
    interpreter/source overrides, attached gateways or missing installed helper refuse. Hermes keeps its native home.
-   Grok's worker namespace remains a candidate until exact native policy and herdr/helper proof succeeds. Its independent
+   Grok's worker namespace pins the official Linux x86_64 1.0.50 artifact by SHA256 and remains a candidate until exact
+   native policy and herdr/helper proof succeeds. Historical 1.0.46 behavior never qualifies the updated artifact. Its independent
    `grok.worker_compat` capability defaults off; authenticated human consent must supply the displayed version and exact
    effects digest for the captured global/project scope. Generic proposals or setup ticks cannot record that consent.
    MAIN selection shows the worker disclosure but never enables this setting or changes MAIN configuration. Enrollment
@@ -574,3 +575,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 
 | 2026-10-11 | retained consent and precise temporary-write limits | independent integrated review | malformed stored options raised instead of refusing; temporary read-only parent names also block atomic replacement | require dictionary consent options and warn about immediate-name rename/atomic replacement while preserving in-place and backed-directory writes | malformed-record causal RED/GREEN; native qualification remains independently required |
 | 2026-10-11 | explicit Grok worker URL transport denial | exact 3745 native CI reaches a hostile HTTP endpoint after STDIO retention passes | the native command selector constrains only STDIO; an unmentioned URL dimension and canonical-name grant admit same-name HTTP/SSE | invariant 6: supported wildcard URL deny in owned requirements, separate exact argv/name restrictions and renewed exact-effects consent; canonical availability remains independently qualified | retained native HTTP failure and public policy semantics; causal policy-builder RED/GREEN; repaired native execution remains required |
+| 2026-10-11 | official Grok stable artifact update | captain requests update before diagnosing native worker failure | the prior native pin refused official 1.0.50 and historical checks could be mistaken for current proof | worker paragraph: exact new artifact pin, unchanged candidate readiness and separately qualified historical behavior | old-pin refusal and isolated new version/help receipts; native qualification remains required |
