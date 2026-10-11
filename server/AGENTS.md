@@ -400,6 +400,11 @@ Its PyYAML dependency supports native Hermes policy fixtures; missing prerequisi
 Grok readiness success fixtures return the production `candidate_paths` named mapping (`native`, `bwrap`, `connector`).
 Malformed-shape refusal controls remain separate; a success mock must not conceal the production lookup contract.
 
+Model-free harness argv/wiring positives select an owned compatible Pi version fixture on isolated PATH and verify it
+through actual adapter detection/compatibility. Keep missing, older, unknown and prerelease Pi refusal controls separate;
+neither the ambient CLI installation nor a compatibility bypass determines positive test results. Real native/account
+qualification remains separate.
+
 ```bash
 cd server
 python3 -m venv .venv && .venv/bin/pip install -e ".[test]"   # once
@@ -543,3 +548,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-10 | gateway-owned native history controller lifetime | b1 native compression still hides later USER rows and causal factory-recreation RED | native React renders recreated the handler and discarded its revision baseline | history paragraph: preserve controller state per gateway owner with fresh callbacks, isolate independent gateways and real resets, retain no transcript | actual compressed-history failures and causal recreated-factory RED retained; unchanged rebuilt terminal qualification remains required |
 
 | 2026-10-10 | incremental native transcript reads and stale task isolation | cloud MAIN adapter audit and causal pure controls | rows larger than one poll stalled completion, replaced or unseen old task events closed newer turns, and duplicate activity completion set newer work idle | invariant 6 requires bounded incremental spooling with exact complete offsets and lifecycle cleanup, retired/foreign explicit task isolation, and duplicate checks before activity mutation | reader RED 1 failure then 44 focused passes; observer RED 20 and 8 failures then 57 focused passes; account and matching-app proof remain separate |
+| 2026-10-11 | model-free Pi adapter fixture isolation | issue #11 P4-T01 and controlled ambient 0.84.2 RED | positive argv/wiring fixtures reached the correct ambient compatibility refusal before their assertions | Test: owned verified compatible Pi fixture only on positives; missing, older, unknown, prerelease and original worker refusal controls stay independent | causal seven failures; guarded 40 passes and focused 79 passes; original assertions unchanged; complete server qualification remains required |

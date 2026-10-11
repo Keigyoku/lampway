@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Controlled native-copy patching and real display-controller race controls."""
 import importlib.util
+import json
 from pathlib import Path
 import shutil
 import subprocess
 import os
 import re
+from types import SimpleNamespace
 
 import pytest
 
@@ -15,6 +17,115 @@ SCRIPT = ROOT / "scripts/lampway/engine_tui_compat.py"
 spec = importlib.util.spec_from_file_location("engine_tui_compat_test", SCRIPT)
 compat = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(compat)
+engine_spec = importlib.util.spec_from_file_location(
+    "engine_env_tui_test", ROOT / "scripts/lampway/engine_env.py")
+engine_env = importlib.util.module_from_spec(engine_spec)
+engine_spec.loader.exec_module(engine_env)
+
+
+def installed_tui_source():
+    plan = engine_env.resolve()
+    dest = Path(plan["dest"])
+    manifest = dest / "engine.json"
+    assert manifest.is_file(), f"normal pinned engine manifest must be installed at {manifest}"
+    record = json.loads(manifest.read_text())
+    expected = json.loads(plan["record"])
+    assert isinstance(record, dict), "normal pinned engine manifest must be an object"
+    for key, value in expected.items():
+        assert record.get(key) == value, f"normal pinned engine manifest mismatch: {key}"
+    return dest / expected["source"]
+
+
+@pytest.fixture
+def tagless_engine(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    checkout = root / engine_env.SUBMODULE
+    checkout.mkdir(parents=True)
+    (checkout / "pyproject.toml").write_text("[project]\nname='synthetic-hermes'\n")
+    pin = "a" * 40
+    outputs = {
+        ("ls-files", "-s", engine_env.SUBMODULE): f"160000 {pin} 0\t{engine_env.SUBMODULE}",
+        ("ls-tree", "HEAD", engine_env.SUBMODULE): f"160000 commit {pin}\t{engine_env.SUBMODULE}",
+        ("rev-parse", "HEAD"): pin,
+        ("tag", "--points-at", "HEAD"): "",
+    }
+    monkeypatch.setitem(globals(), "ROOT", root)
+    monkeypatch.setattr(engine_env, "ROOT", root)
+    monkeypatch.setattr(engine_env, "_git", lambda *args, **kwargs:
+                        SimpleNamespace(stdout=outputs[args]))
+    monkeypatch.setenv("LAMPWAY_ENGINES_DIR", str(tmp_path / "engines"))
+    plan = engine_env.resolve()
+    dest = Path(plan["dest"])
+    typescript = dest / "src/node_modules/typescript"
+    typescript.mkdir(parents=True)
+    manifest = dest / "engine.json"
+    manifest.write_text(plan["record"])
+    return SimpleNamespace(plan=plan, manifest=manifest, typescript=typescript,
+                           outputs=outputs)
+
+
+def test_controller_prerequisite_accepts_normal_tagless_sha_destination(tagless_engine, monkeypatch):
+    calls = []
+
+    def controlled_run(argv, **kwargs):
+        calls.append(argv)
+        return SimpleNamespace(returncode=0, stdout="native-history controls passed\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", controlled_run)
+    test_real_controller_rejects_late_snapshots_and_keeps_legacy_path()
+    assert len(calls) == 1
+    assert Path(calls[0][3]) == tagless_engine.typescript
+    assert tagless_engine.plan["tag"] == tagless_engine.plan["commit"][:12]
+
+
+@pytest.mark.parametrize("tagged", [False, True], ids=["sha", "release-tag"])
+def test_prerequisite_uses_normal_default_engine_root(tagless_engine, monkeypatch, tagged):
+    old_dest = Path(tagless_engine.plan["dest"])
+    monkeypatch.delenv("LAMPWAY_ENGINES_DIR")
+    if tagged:
+        tagless_engine.outputs[("tag", "--points-at", "HEAD")] = "v2026.9.24"
+    plan = engine_env.resolve()
+    dest = Path(plan["dest"])
+    dest.parent.mkdir(parents=True)
+    old_dest.rename(dest)
+    # Extra normal-build compatibility metadata does not change the engine pin.
+    record = json.loads(plan["record"])
+    record["lampway_tui_compatibility"] = {"protocol": 1}
+    (dest / "engine.json").write_text(json.dumps(record))
+    assert installed_tui_source() == dest / "src"
+
+
+@pytest.mark.parametrize("field", ["engine", "tag", "commit", "python", "extras",
+                                   "source", "entry", "hermes", "tui"])
+def test_prerequisite_refuses_mismatched_normal_manifest(tagless_engine, monkeypatch, field):
+    record = json.loads(tagless_engine.manifest.read_text())
+    record[field] = "foreign"
+    tagless_engine.manifest.write_text(json.dumps(record))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: pytest.fail("compiler must not start"))
+    with pytest.raises(AssertionError, match=f"manifest mismatch: {field}"):
+        test_real_controller_rejects_late_snapshots_and_keeps_legacy_path()
+
+
+@pytest.mark.parametrize("contents", [None, "not JSON", "[]"])
+def test_prerequisite_refuses_missing_or_malformed_manifest(tagless_engine, contents):
+    if contents is None:
+        tagless_engine.manifest.unlink()
+    else:
+        tagless_engine.manifest.write_text(contents)
+    with pytest.raises((AssertionError, ValueError)):
+        installed_tui_source()
+
+
+def test_prerequisite_preserves_checkout_pin_refusal(tagless_engine):
+    tagless_engine.outputs[("rev-parse", "HEAD")] = "b" * 40
+    with pytest.raises(engine_env.Refusal, match="not the pinned"):
+        installed_tui_source()
+
+
+def test_selected_controller_still_requires_installed_compiler(tagless_engine):
+    tagless_engine.typescript.rmdir()
+    with pytest.raises(AssertionError, match="pure TS compiler prerequisite must be installed"):
+        test_real_controller_rejects_late_snapshots_and_keeps_legacy_path()
 
 
 def source_copy(tmp_path):
@@ -55,7 +166,7 @@ def test_changed_native_source_refuses_before_any_patch(tmp_path):
 @pytest.mark.skipif(os.environ.get("LAMPWAY_TEST_ENGINE_TUI_COMPAT") != "1",
                    reason="requires explicit pinned engine pure TUI compiler/controller qualification")
 def test_real_controller_rejects_late_snapshots_and_keeps_legacy_path():
-    typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
+    typescript = installed_tui_source() / "node_modules/typescript"
     assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
     helper = ROOT / "scripts/lampway/hermes_tui/lampwayHistory.ts"
     result = subprocess.run(["node", "-e", NODE_CONTROL, str(typescript), str(helper),
@@ -68,7 +179,7 @@ def test_real_controller_rejects_late_snapshots_and_keeps_legacy_path():
 @pytest.mark.skipif(os.environ.get("LAMPWAY_TEST_ENGINE_TUI_COMPAT") != "1",
                    reason="requires explicit pinned engine pure TUI compiler/controller qualification")
 def test_patched_native_tui_typechecks_without_build_or_emission(tmp_path):
-    native = ROOT / "build/engines/hermes/v2026.9.24/src"
+    native = installed_tui_source()
     shutil.copytree(ROOT / "third_party/hermes-agent/ui-tui", tmp_path / "ui-tui",
                     ignore=shutil.ignore_patterns("node_modules", "dist", "__tests__"))
     (tmp_path / "node_modules").symlink_to(native / "node_modules", target_is_directory=True)
@@ -190,7 +301,7 @@ const marker = revision => ({lampway_history:{protocol:1,revision,reason:'undo'}
                    reason="requires explicit pinned engine pure TUI compiler/controller qualification")
 @pytest.mark.parametrize("control", ["external-users", "ahead-snapshot"])
 def test_real_controller_tracks_new_native_display_revisions(control):
-    typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
+    typescript = installed_tui_source() / "node_modules/typescript"
     assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
     helper = ROOT / "scripts/lampway/hermes_tui/lampwayHistory.ts"
     result = subprocess.run(["node", "-e", NODE_CONTROL.partition("(async () =>")[0]
@@ -268,7 +379,7 @@ NODE_DISPLAY_REVISION = {
 @pytest.mark.skipif(os.environ.get("LAMPWAY_TEST_ENGINE_TUI_COMPAT") != "1",
                    reason="requires explicit pinned engine pure TUI compiler/controller qualification")
 def test_native_handler_recreation_retains_gateway_owned_history_controller(tmp_path):
-    typescript = ROOT / "build/engines/hermes/v2026.9.24/src/node_modules/typescript"
+    typescript = installed_tui_source() / "node_modules/typescript"
     assert typescript.is_dir(), "pure TS compiler prerequisite must be installed"
     source = source_copy(tmp_path)
     compat.apply(source)

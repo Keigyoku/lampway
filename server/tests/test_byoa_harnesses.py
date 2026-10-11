@@ -53,6 +53,54 @@ def only_path(monkeypatch, tmp_path):
 
 
 @pytest.fixture
+def recorded_pi(only_path):
+    """Positive argv/wiring fixtures use the recorded compatible CLI, never ambient Pi.
+
+    Keep the real detection and compatibility checks: this fake answers only
+    --version, and cannot execute a model turn or status command.
+    """
+    binary = fake_bin(only_path, "pi", 'case "$*" in --version) echo "1.0.4" ;; *) exit 64 ;; esac')
+    installed = HN.get("pi").detect()
+    assert installed.path == str(binary) and installed.version == "1.0.4"
+    assert HN.get("pi").compatibility_note(installed) == ""
+    return binary
+
+
+@pytest.mark.parametrize("ambient_version", (None, "0.84.2", "unknown", "1.0.4-beta.1"))
+def test_recorded_pi_fixture_excludes_absent_or_incompatible_ambient_pi(ambient_version, tmp_path, monkeypatch, request):
+    """Exercise real PATH lookup/refusal before the positive fixture selects its own CLI."""
+    ambient = tmp_path / "ambient-installation"
+    ambient.mkdir()
+    if ambient_version is not None:
+        fake_bin(ambient, "pi", f"echo {shlex.quote(ambient_version)}")
+    monkeypatch.setenv("PATH", str(ambient))
+    probes = []
+
+    def version_probe(argv):
+        binary = Path(argv[0])
+        assert binary.is_relative_to(tmp_path) and binary.is_file()
+        assert argv[1:] == ["--version"], "Only owned version fixtures may be probed"
+        probes.append(argv)
+        return 0, ambient_version if binary.parent == ambient else "1.0.4"
+
+    monkeypatch.setattr(L, "probe", version_probe)
+    adapter = HN.get("pi")
+    installed = adapter.detect()
+    pane = HN.PaneSpec(cwd=str(tmp_path), session_id="s-1")
+    if ambient_version is None:
+        assert installed is None and probes == []
+    else:
+        assert installed.path == str(ambient / "pi") and installed.version == ambient_version
+        with pytest.raises(ValueError, match="registerMcpServer"):
+            adapter.launch(pane)
+    binary = request.getfixturevalue("recorded_pi")
+    assert os.environ["PATH"] == str(binary.parent) and binary.parent != ambient
+    assert adapter.detect().path == str(binary)
+    assert adapter.launch(pane) == ["pi", "--session-id", "s-1"]
+    assert probes and all(argv[1:] == ["--version"] for argv in probes)
+
+
+@pytest.fixture
 def strict(tmp_path):
     m = EG.Egress(tmp_path / "egress-state")
     prev = EG.ACTIVE
@@ -94,14 +142,14 @@ ARGV = [
 
 
 @pytest.mark.parametrize("hid,resume_id,bypass,effort,want", ARGV)
-def test_each_adapter_builds_the_recorded_argv(hid, resume_id, bypass, effort, want, tmp_path):
+def test_each_adapter_builds_the_recorded_argv(hid, resume_id, bypass, effort, want, tmp_path, recorded_pi):
     a = HN.get(hid)
     pane = HN.PaneSpec(cwd=str(tmp_path), effort=effort, bypass=bypass, session_id="s-1" if HN.get(hid).picks_session_id and not resume_id else None)
     assert (a.resume(resume_id, pane) if resume_id else a.launch(pane)) == want
 
 
 @pytest.mark.parametrize("hid", IDS)
-def test_no_adapter_emits_a_bypass_flag_unless_the_user_ticked_it(hid, tmp_path):
+def test_no_adapter_emits_a_bypass_flag_unless_the_user_ticked_it(hid, tmp_path, recorded_pi):
     a = HN.get(hid)
     for argv in (a.launch(HN.PaneSpec(cwd=str(tmp_path))), a.resume("x-1", HN.PaneSpec(cwd=str(tmp_path)))):
         assert not [t for t in argv if t in BYPASS_TOKENS or t in a.bypass_flag()], (hid, argv)
@@ -110,7 +158,7 @@ def test_no_adapter_emits_a_bypass_flag_unless_the_user_ticked_it(hid, tmp_path)
 
 
 @pytest.mark.parametrize("hid", IDS)
-def test_the_tool_wiring_names_the_launcher_and_the_bound_session(hid, tmp_path):
+def test_the_tool_wiring_names_the_launcher_and_the_bound_session(hid, tmp_path, recorded_pi):
     a = HN.get(hid)
     pane = HN.PaneSpec(cwd=str(tmp_path), scene_session_id="scene-7", mcp_config_path=str(tmp_path / "pane" / "mcp.cfg"), launcher=("/opt/lw/lampway-mcp",))
     w = a.lampway_tools(pane)
@@ -140,7 +188,7 @@ def test_codex_reaches_lampway_through_config_overrides_on_its_own_command_line(
     assert "mcp_servers.lampway.env.LAMPWAY_BOUND_SESSION=\"scene-7\"" in argv
 
 
-def test_pi_reaches_lampway_through_lampways_own_extension_and_its_own_mcp_client(tmp_path):
+def test_pi_reaches_lampway_through_lampways_own_extension_and_its_own_mcp_client(tmp_path, recorded_pi):
     """Pi 1.0.4 has MCP built in but reads only the user's and the project's mcp.json: Lampway's extension (-e) hands it this pane's
     own entries (pi.registerMcpServer). Checked live in test_byoa_pi_live.py where Pi is installed."""
     from lampway_server.herdr.harnesses import pi as PI
@@ -178,7 +226,7 @@ def test_symbolic_connector_harnesses_keep_explicit_setup_and_proof_limits_in_li
     assert all(r["tools"] is True and r["tools_note"] == "" for r in HN.listing() if r["id"] in VERIFIED_WIRING)
 
 
-def test_an_unbound_pane_carries_no_wiring_flag(tmp_path):
+def test_an_unbound_pane_carries_no_wiring_flag(tmp_path, recorded_pi):
     for hid in IDS:
         argv = HN.get(hid).launch(HN.PaneSpec(cwd=str(tmp_path), session_id="s-1"))
         assert "--mcp-config" not in argv and not any("mcp_servers" in t for t in argv), hid
@@ -328,7 +376,7 @@ def herdr(monkeypatch):
 
 
 @pytest.mark.parametrize("hid", IDS)
-def test_the_cockpit_offers_every_adapter_and_herdr_starts_each_by_its_own_kind(hid, herdr, tmp_path):
+def test_the_cockpit_offers_every_adapter_and_herdr_starts_each_by_its_own_kind(hid, herdr, tmp_path, recorded_pi):
     """herdr 0.9.3 knows every starting harness's kind (its CLI reference; src/detect/mod.rs), so none is typed into a shell."""
     assert set(IDS) <= set(H.AGENTS) and {"shell", "command"} <= set(H.AGENTS)
     assert HN.get(hid).herdr_kind == HERDR_KINDS[hid]

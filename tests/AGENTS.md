@@ -31,6 +31,10 @@ has its own suite under `server/tests/`.
 7. **Test code never ships.** In-tree `tests/` directories under `src/scripts/mixar` are excluded from the install; keep test
    helpers there or here, never in a shipped module.
 
+Known-red reconciliation removes only exact identities with affirmative current PASS receipts; failed, skipped and
+uncollected identities remain. An empty baseline strengthens the gate and does not forgive other failures. Issue #11's
+FDCA whole-client receipt affirmatively passes all 122 former entries while retaining its 38 other failure/error identities.
+
 Expiring synthetic credentials are minted when a test executes, not at collection: the native suite can outlast a fixture
 credential's lifetime. Expiry/rotation controls keep their explicit clocks and production refusals.
 
@@ -97,6 +101,9 @@ controller checks require the normally installed pinned engine dependencies and 
 `LAMPWAY_TEST_ENGINE_TUI_COMPAT=1`. Missing prerequisites fail when selected. Final matching-build and whole-client proof
 select these checks; a default environment's prerequisite skips remain NOT RUN. Typechecking copies the untouched pin,
 uses installed dependencies without emitting a bundle and refuses child processes, network and signals inside the compiler.
+Compiler/controller prerequisites use the normal engine resolver's exact destination, including verified release-tag or
+pin-SHA builds and `LAMPWAY_ENGINES_DIR`. The installed `engine.json` must match the resolved normal pin/route record;
+never guess another directory or accept a foreign manifest when selected prerequisites are absent.
 History display controls distinguish native full display lineage from model-context history, forbid repainting on initial
 and same-revision info/resume updates, and retain the original late-reply/session/busy/refusal/acknowledgement checks.
 Successive external USER turns refresh only on strictly newer native revisions while idle; intermediate markers behind an
@@ -121,8 +128,9 @@ same commit rather than against zero.
 The real pane-origin and disconnected saved-file/History cases run in
 `tests/lampway_tools/test_agent_modes_integrated_live.py::test_real_blender_roundtrip_through_real_hermes_and_herdr`, using
 `tests/qa/agent_modes_integrated_client.py` inside Blender. Supply `LAMPWAY_BIN` for the matching normal build and a fresh
-outside-repository `LAMPWAY_INTEGRATION_ARTIFACTS` directory; retain XML, logs and actual native receipts. The added cases
-are currently NOT RUN pending the matching new build; static planted checks do not close this acceptance requirement.
+outside-repository `LAMPWAY_INTEGRATION_ARTIFACTS` directory; retain XML, logs and actual native receipts. The FDCA local
+receipt in issue #11 passes these added cases with a matching normal build in synthetic-login scope. Later source changes
+still require their own qualification; static planted checks never close native acceptance.
 
 ## Owner
 
@@ -153,3 +161,4 @@ pin. A test's intent is changed only with the captain's word when it encodes one
 | 2026-10-10 | native extension catalogue admission | exact 9af native CI and native-faithful positive mock RED | a flat consumer discarded the extension payload and treated blocked configuration metadata as active routes | offline QA paragraph: exact nested envelope, resolved boolean session admission, ready canonical route and independent foreign side-effect checks | baseline mock PASS/restricted causal RED; 124 focused checks PASS; repaired native restricted/CI remains NOT RUN |
 | 2026-10-10 | native MCP hot-reload completion versus filtered no-op | exact native 1.0.46 loopback baseline failure and eight controlled ordering REDs | update acknowledgement preceded handshake, while filtered no-op updates cannot emit fresh completion | offline QA paragraph: pre-update current-session fence, fresh restart completion, or one current ready no-op catalogue; shared twenty-second budget, no sleep or retry | original ten readiness controls preserved with seventeen new pure reload controls; repaired actual native/CI remains NOT RUN |
 | 2026-10-10 | gateway-owned native history controller lifetime | b1 native compression still hides later USER rows and causal factory-recreation RED | native React renders recreated the handler and discarded its revision baseline | history paragraph: preserve controller state per gateway owner with fresh callbacks, isolate independent gateways and real resets, retain no transcript | actual compressed-history failures and causal recreated-factory RED retained; unchanged rebuilt terminal qualification remains required |
+| 2026-10-11 | normal engine prerequisites and affirmative baseline reconciliation | issue #11 P4-T02/T03 | tag-only test paths rejected valid SHA builds and 122 passing identities remained in the baseline | compiler prerequisites use the normal resolved manifest; baseline entries need exact PASS receipts, preserving every other failure; qualify completed FDCA integrated native cases by their scope | causal tagless RED; 45 focused passes; verified archive and all 122 original baseline identities pass again in cloud; whole-client remains RED |
