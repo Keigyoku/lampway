@@ -7,7 +7,7 @@
 The official Linux x86_64 artifact is Grok 1.0.50 (`c58f321264ba`),
 SHA256 `c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5`.
 Runtime, original offline validator and CI download pin the same bytes.
-No native source fork, account/model-provider call, trust grant or desktop run was used.
+No native source fork, real account or external model-provider call, trust grant or desktop run was used.
 Native cases execute in an unprivileged loopback-only namespace with synthetic HOME/auth,
 real installed connector, original assertions/deadlines and exact owned cleanup.
 Production worker readiness remains false; human compatibility consent is separate.
@@ -59,21 +59,62 @@ The HTTP 503 rejection was an incorrect way to demand prompt completion within i
 admission: native retrying is now directly witnessed. The HTTP 400 variant isolates that fixture
 problem while retaining the original HTTP 503 failure. After one Ctrl+C, the frontend returns to idle with interactive readiness and restores
 the interrupted prompt to the composer. This supports receipt of the key by the native
-frontend; it does not establish a semantic cancellation acknowledgement or transport closure. UI idle does not prove HTTP request closure. Events lack
-per-request timestamps; do not infer precise late-closure timing. Separate native ACP
-cancellation diagnosis is pending to distinguish request transport from terminal handling.
+frontend; it does not establish a semantic cancellation acknowledgement or transport closure. UI idle does not prove HTTP request closure. These terminal events lack
+per-request timestamps; do not infer precise late-closure timing from them.
 HUP/TERM, hard-close and native policy intersection remain NOT RUN after this failure.
+
+## Independent native cancellation
+
+[Actual f4d310bf native run](https://github.com/Keigyoku/lampway/actions/runs/38167366595)
+compares four fresh sessions, with a real `session/prompt` followed by the documented
+`session/cancel` notification. The same original HTTP handler records actual per-request
+identities, monotonic timestamps and probe/persona presence; request bodies are not retained.
+Cancellation targets the returned session and the currently held persona-bearing probe.
+
+| Case | Native prompt reply | Same request closes within eight seconds | Native retained before cleanup | Owned cleanup, including zombies |
+|---|---|---|---|---|
+| Unrestricted native, HTTP 503 | `cancelled`, `MidTurnAbort` | FAIL | PASS | PASS, 9 identities |
+| Unrestricted native, HTTP 400 | `cancelled`, `MidTurnAbort` | FAIL | PASS | PASS, 9 identities |
+| Worker boundary, HTTP 503 | `cancelled`, `MidTurnAbort` | FAIL | PASS | PASS, 6 identities |
+| Worker boundary, HTTP 400 | `cancelled`, `MidTurnAbort` | FAIL | PASS | PASS, 6 identities |
+
+Every case fails only the original peer-close obligation. Replies have no failure; protected
+inputs and constructed native persona/auth hashes stay unchanged, with no monitor or cleanup
+errors. No matching request-close event exists in any before-cleanup snapshot. Matching close
+events appear in the after-cleanup snapshots at 8.104, 8.068, 8.067 and 8.066 seconds after
+the cancellation was sent. Cleanup had already started; these are not successful cancellation
+latencies. Native frame capture has no timestamps, so do not infer cancelled-reply latency.
+
+This reproduces semantic cancellation without timely HTTP peer closure on native 1.0.50
+without the worker boundary or terminal wrapper. The HTTP request is held before response
+headers; streaming responses, real providers and later tool/permission operations are not
+qualified by this fixture. An HTTP 400 startup fixture or a terminal-key change cannot repair
+the separately reproduced native condition.
+
+The [ACP cancellation specification](https://agentclientprotocol.com/protocol/v1/prompt-turn#cancellation)
+supports this notification shape and asks the agent to abort model requests and tools promptly.
+The eight-second bound is Lampway's unchanged QA requirement; it is not a literal protocol
+guarantee. Public native 1.0.45 source sends cancellation to the running task and aborts it;
+the prompt releases the dispatch lock before awaiting completion. TUI cancellation uses the
+same notification with optional rewind metadata. The running task awaits the sampler's
+submit-and-collect future, whose intended drop guard is mentioned in the public source.
+The sampler implementation is absent from the retained mirror, which is older than binary 1.0.50.
+The unresolved native implementation boundary is propagation from turn abort/drop to the
+already pending HTTP operation. No native transport patch or preserving adapter workaround
+has been proved. Worker readiness remains false.
 
 ## Proof and remaining work
 
-At `cbbf6fb7c28c1c479e891808bdc57cf4508ae29a`, 231 server and 76 QA controls PASS,
-zero skips; all seven publication gates PASS and five general CI workflows PASS. Local
+At `f4d310bfabacb1449161f95167685cb8e6717f3b`, 231 server, 95 QA and 18 documentation
+controls PASS, zero skips; all seven publication gates PASS and five general CI workflows PASS. Local
 owner-specific privacy patterns are unavailable; generic privacy controls passed.
-The native job remains RED. The downloaded archive matches GitHub SHA256
-`ae066ea14fe92299097b0109d950ff932bf935410871ac95dba9ef3fce2981e6`;
-all 1,131 regular files and embedded/external manifests were verified, without extracting
-symlinks. Both recorded inline cleanups PASS (13 and 15 exact PID/start identities, including
-zombies in the absence check). Historical failures remain retained.
+The native job remains RED. Its six-root downloaded archive matches GitHub SHA256
+`0a7e214465646cf94e9af8cbc8872b44ec2cff6282a96db89ece1ad3f3b28035`;
+all 1,608 regular files and embedded/external manifests were verified, without extracting
+symlinks. The earlier cbbf6fb7 archive remains retained with GitHub SHA256
+`ae066ea14fe92299097b0109d950ff932bf935410871ac95dba9ef3fce2981e6`
+and 1,131 verified regular files. Its inline cleanups PASS (13 and 15 exact PID/start identities,
+including zombies in the absence check). Historical failures remain retained.
 
 Runtime server/client Git objects are unchanged from `3ef68298`, whose full-server receipt
 is 3,451 PASS / 31 original opt-in SKIP / no failures/errors; that receipt retains its original head.
