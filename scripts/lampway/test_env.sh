@@ -20,6 +20,7 @@
 #      A version print alone does not admit the browser: its default-flags sandbox must render a blank page in disposable state.
 #   7. ImageMagick magick with a working SVG delegate (rsvg-convert on PATH for librsvg), fontconfig fc-match, and the vendored
 #      fonts must actually render the maintained splash. Install these in the isolated test environment using its package manager.
+#      The maintained Python-sync controls also require rsync on PATH, as in the build environment.
 #   8. test_all.py --verify-env must then pass. No browser, original fixture, or system package is downloaded implicitly here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

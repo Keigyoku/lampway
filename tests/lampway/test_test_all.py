@@ -430,6 +430,12 @@ def test_reference_tools_refuse_full_chrome_and_missing_renderer(tmp_path, monke
     assert any("SVG" in p for p in problems)
 
 
+def test_reference_tools_names_missing_sync_tool(tmp_path, monkeypatch):
+    monkeypatch.setattr(T.shutil, "which", lambda name: None if name == "rsync" else "/test/installed/" + name)
+    problems = T.reference_tools(tmp_path, {})
+    assert any("rsync" in problem for problem in problems)
+
+
 def test_reference_private_fixture_is_explicit_and_not_in_personal_home(tmp_path):
     problems = T.reference_fixtures({})
     assert any("LAMPWAY_V3_PLATES_DIR" in p for p in problems)

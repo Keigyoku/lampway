@@ -173,6 +173,9 @@ properties separately from RNA attributes. Registry cleanup follows its actual
 mapping interface. Forwarded scene/session assertions remain strict. Test-only
 interface repairs do not settle Agent Mode provenance or resume-policy conflicts;
 retain those failures and define the production interface for the owning crew.
+Specialized turn-recovery fixtures also install their native-shaped scene
+collection for the actual transport consumer, retaining live-handler exclusions
+and restoring prior global scene state.
 
 ## Anneal log
 
@@ -191,3 +194,4 @@ retain those failures and define the production interface for the owning crew.
 | 2026-10-08 | initial splash and idle visibility | additional914 audit I11 and provisional overlap | deferred operator registration omitted Continue and timestamp-only idle visibility could release the bubble gate | register the critical operator with its normal owner before menus and use native lifetime without changing startup grace | genuine registration/idle RED controls and isolated current-overlay Save/reopen receipt |
 | 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |
 | 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |
+| 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |
