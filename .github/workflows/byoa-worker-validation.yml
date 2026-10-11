@@ -34,6 +34,8 @@ on:
       - tests/qa/test_grok_worker_transport_diagnostics.py
       - tests/qa/grok_worker_inline_diagnostics.py
       - tests/qa/test_grok_worker_inline_diagnostics.py
+      - tests/qa/grok_worker_artifacts.py
+      - tests/qa/test_grok_worker_artifacts.py
       - third_party/herdr
 permissions:
   contents: read
@@ -91,7 +93,7 @@ jobs:
         working-directory: server
         run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py
       - name: Controlled diagnostic refusal and deadline tests
-        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py
+        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py
       - name: Native policy proof with all INET sockets denied
         run: |
           python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
@@ -113,14 +115,16 @@ jobs:
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
+      - name: Preserve native receipt paths in a portable archive
+        if: always()
+        run: |
+          python tests/qa/grok_worker_artifacts.py --root-parent "$RUNNER_TEMP" --root "$RUNNER_TEMP/grok-worker-stdio" --root "$RUNNER_TEMP/grok-worker-loopback" --root "$RUNNER_TEMP/grok-worker-transport-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-diagnostics" --output "$RUNNER_TEMP/grok-worker-evidence.tar.gz" --manifest "$RUNNER_TEMP/grok-worker-evidence-manifest.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: owned-offline-grok-worker-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             ${{ runner.temp }}/grok-worker-tools/*.txt
-            ${{ runner.temp }}/grok-worker-stdio/**
-            ${{ runner.temp }}/grok-worker-loopback/**
-            ${{ runner.temp }}/grok-worker-transport-diagnostics/**
-            ${{ runner.temp }}/grok-worker-inline-diagnostics/**
+            ${{ runner.temp }}/grok-worker-evidence.tar.gz
+            ${{ runner.temp }}/grok-worker-evidence-manifest.json
             ${{ runner.temp }}/grok-worker-herdr/*/herdr.json
