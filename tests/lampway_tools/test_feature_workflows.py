@@ -166,7 +166,16 @@ mod=body.modifiers.new('Armature','ARMATURE');mod.object=rig
 wt=call('weight_transfer',object=lod.name,source=body.name);assert wt.get('ok'),wt
 # This source-identity acceptance chain records weight quality; acceptance is not a skin-quality gate.
 assert 0<wt['matched_fraction']<=1 and wt['groups_written']==1,wt
-assert sum(wt['influence_histogram'].values())+wt['unweighted_vertices']==len(lod.data.vertices),wt
+weighted=bpy.data.objects[wt['object']]
+from collections import Counter
+rows=[[g.weight for g in v.groups] for v in weighted.data.vertices]
+observed=dict(Counter(str(sum(w>1e-6 for w in row)) for row in rows))
+# The histogram includes zero-influence rows; unweighted_vertices describes that same bin.
+assert wt['influence_histogram']==observed,wt
+assert sum(wt['influence_histogram'].values())==len(lod.data.vertices),wt
+assert wt['influence_histogram'].get('0',0)==wt['unweighted_vertices'],wt
+assert all(all(math.isfinite(w) and w>=0 for w in row) and
+           (not row or abs(sum(row)-1)<1e-6) for row in rows),wt
 outputs=[bpy.data.objects[r['object']],uv,lod,bpy.data.objects[wt['object']]]
 assert len({o.as_pointer() for o in [source,*outputs,body]})==6,'each stage must create an independent object'
 acceptance=[]

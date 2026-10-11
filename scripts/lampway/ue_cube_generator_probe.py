@@ -9,7 +9,7 @@ import json
 
 REQUIRED = {
     "SystemLibrary": ["get_engine_version", "get_console_variable_int_value"],
-    "RenderingLibrary": ["create_render_target2d", "read_render_target_raw_pixel"],
+    "RenderingLibrary": ["create_render_target2d", "read_render_target_raw_pixel", "read_render_target_pixel"],
     "MaterialEditingLibrary": ["create_material_expression", "connect_material_property", "recompile_material"],
     "EditorLevelLibrary": ["spawn_actor_from_class", "get_editor_world", "destroy_actor"],
     "SceneCaptureComponent2D": ["capture_scene", "show_only_actor_components"],
@@ -17,7 +17,7 @@ REQUIRED = {
     "Material": [], "MaterialExpressionVectorParameter": [], "SceneCapture2D": [],
     "StaticMeshActor": [], "PostProcessSettings": [], "LinearColor": [], "Vector": [], "Rotator": [],
     "MaterialProperty": ["MP_EMISSIVE_COLOR"], "MaterialShadingModel": ["MSM_UNLIT"],
-    "TextureRenderTargetFormat": ["RTF_RGBA16F"], "AutoExposureMethod": ["AEM_MANUAL"],
+    "TextureRenderTargetFormat": ["RTF_RGBA16F", "RTF_RGBA8_SRGB"], "AutoExposureMethod": ["AEM_MANUAL"],
     "SceneCapturePrimitiveRenderMode": ["PRM_USE_SHOW_ONLY_LIST"],
     "Paths": ["project_dir"], "load_asset": [],
 }
@@ -61,8 +61,10 @@ def probe(ue):
                 missing.append("console_variable." + name)
     return {"schema": "lampway.ue-cube-capabilities/1", "engine_version": engine,
             "available": not missing, "missing": sorted(set(missing)), "cvars": cvars,
-            "capture": "SCS_FINAL_TONE_CURVE_HDR",
-            "readback": "RenderingLibrary.read_render_target_raw_pixel(normalize=False)",
+            "capture": "SCS_FINAL_COLOR_LDR", "format": "RTF_RGBA8_SRGB",
+            "readback": "RenderingLibrary.read_render_target_pixel",
+            "raw_control_capture": "SCS_SCENE_COLOR_HDR",
+            "raw_control_readback": "RenderingLibrary.read_render_target_raw_pixel(normalize=False)",
             "note": "Capability introspection only; no captured cube or renderer proof. CVar existence/value must be verified against the actual engine before capture."}
 
 

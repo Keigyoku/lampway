@@ -4,6 +4,7 @@
 import importlib.util
 from pathlib import Path
 from types import SimpleNamespace
+import pytest
 
 PATH = Path(__file__).resolve().parents[2] / 'scripts/lampway/ue_cube_generator_probe.py'
 SPEC = importlib.util.spec_from_file_location('cube_probe', PATH)
@@ -56,3 +57,26 @@ def test_missing_postprocess_property_blocks_generation():
     result = P.probe(ue)
     assert not result['available']
     assert 'PostProcessSettings.film_slope' in result['missing']
+
+
+def test_probe_reports_the_display_capture_pipeline():
+    result = P.probe(fake_ue())
+    assert result['capture'] == 'SCS_FINAL_COLOR_LDR'
+    assert result['format'] == 'RTF_RGBA8_SRGB'
+    assert result['readback'] == 'RenderingLibrary.read_render_target_pixel'
+    assert result['raw_control_capture'] == 'SCS_SCENE_COLOR_HDR'
+    assert result['raw_control_readback'] == 'RenderingLibrary.read_render_target_raw_pixel(normalize=False)'
+
+
+@pytest.mark.parametrize('owner,method', [
+    ('RenderingLibrary', 'read_render_target_pixel'),
+    ('TextureRenderTargetFormat', 'RTF_RGBA8_SRGB'),
+])
+def test_missing_display_pipeline_surface_refuses(owner, method):
+    ue = fake_ue()
+    # The baseline fake exposes only the old required surface.
+    if hasattr(getattr(ue, owner), method):
+        delattr(getattr(ue, owner), method)
+    result = P.probe(ue)
+    assert not result['available']
+    assert owner + '.' + method in result['missing']

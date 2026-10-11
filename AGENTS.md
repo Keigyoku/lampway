@@ -167,6 +167,13 @@ consumes the first outside press. Keep single activation for search and numeric
 fields. Input delivery alone is not filename persistence: verify exact Save,
 repeat Save and reopened content on an isolated document.
 
+Standalone chat fixtures bind cached chat-module bpy globals to the current
+double for the fixture lifetime, restore them afterward and model Scene custom
+properties separately from RNA attributes. Registry cleanup follows its actual
+mapping interface. Forwarded scene/session assertions remain strict. Test-only
+interface repairs do not settle Agent Mode provenance or resume-policy conflicts;
+retain those failures and define the production interface for the owning crew.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -183,3 +190,4 @@ repeat Save and reopened content on an isolated document.
 | 2026-10-08 | motion documentation convention | captain: use canon and reports | root motion specs did not follow the repository convention | point the repository map and contracts at canon with separate acceptance reports | canon/docs indexes and complete relocated-link audit |
 | 2026-10-08 | initial splash and idle visibility | additional914 audit I11 and provisional overlap | deferred operator registration omitted Continue and timestamp-only idle visibility could release the bubble gate | register the critical operator with its normal owner before menus and use native lifetime without changing startup grace | genuine registration/idle RED controls and isolated current-overlay Save/reopen receipt |
 | 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |
+| 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |

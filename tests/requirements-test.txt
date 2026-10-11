@@ -13,3 +13,4 @@ mcp==2.3.0              # tests/mcp import mcp.Client (the 2.x SDK); additive in
 onnxruntime>=1.20       # the Asset Vault's bundled local embeddings (server extra local-embeddings)
 
 hypothesis>=6  # TOON generated JSON-model round trips
+websocket-client>=1.8  # real loopback WebSocket/handshake tests (also declared by native Python requirements)

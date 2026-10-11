@@ -326,6 +326,7 @@ def test_disabled_control_refuses_incorrect_restored_readback():
 def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_path, capsys, failure_mode, monkeypatch):
     """Exercise capture itself; the fake is orchestration proof, never GPU proof."""
     from types import SimpleNamespace as NS
+    from enum import Enum
     root = tmp_path / 'Saved/LampwayCubeQA'
     root.mkdir(parents=True)
     profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
@@ -384,6 +385,19 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         destroyed.append(actor)
         if failure_mode in ('actor_cleanup_error', 'checkpoint_and_cleanup_error'):
             raise RuntimeError('synthetic actor cleanup failure')
+    class TargetFormat(Enum):
+        RTF_RGBA8_SRGB = 1
+        RTF_RGBA16F = 2
+    class CaptureSource(Enum):
+        SCS_SCENE_COLOR_HDR = 1
+        SCS_FINAL_COLOR_LDR = 2
+    def render_target(world, width, height, fmt):
+        target = Settings()
+        for key, value in dict(render_target_format=fmt, size_x=width, size_y=height,
+                              srgb=fmt is TargetFormat.RTF_RGBA8_SRGB,
+                              target_gamma=0.0, use_legacy_gamma=False).items():
+            target.set_editor_property(key, value)
+        return target
     expression = NS(set_editor_property=lambda *args: None)
     ue = NS(
         Paths=NS(project_dir=lambda: str(tmp_path)),
@@ -400,9 +414,9 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         LinearColor=lambda *args: list(args), load_asset=lambda path: object(), PostProcessSettings=Settings,
         SceneCapturePrimitiveRenderMode=NS(PRM_USE_SHOW_ONLY_LIST=object()),
         AutoExposureMethod=UEExposureMethod,
-        TextureRenderTargetFormat=NS(RTF_RGBA8=object(), RTF_RGBA16F=object()),
-        SceneCaptureSource=NS(SCS_SCENE_COLOR_HDR=object(), SCS_FINAL_COLOR_LDR=object()),
-        RenderingLibrary=NS(create_render_target2d=lambda *args: object(),
+        TextureRenderTargetFormat=TargetFormat,
+        SceneCaptureSource=CaptureSource,
+        RenderingLibrary=NS(create_render_target2d=render_target,
             read_render_target_raw_pixel=raw_pixel, read_render_target_pixel=display_pixel))
     error = RuntimeError if failure_mode in ('readback_error', 'raw_error') else ValueError
     reason = ('synthetic .*readback error' if error is RuntimeError else

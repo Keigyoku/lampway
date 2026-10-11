@@ -132,7 +132,8 @@ def engine_identity(raw, expected):
     return {'version': match[1], 'changelist': int(match[2]), 'raw': raw}
 
 
-def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None, completion_owner=None):
+def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None,
+                  completion_owner=None, render_targets=None, capture_settings=None):
     if len(rows) != request['profile']['project']['cvars']['r.LUT.Size'] ** 3:
         raise ValueError('incomplete engine capture; no cube published')
     if any(len(row) != 3 or not all(math.isfinite(v) and 0 <= v <= 1 for v in row) for row in rows):
@@ -164,12 +165,16 @@ def write_outputs(root, request, engine, rows, settings, controls, camera_forwar
             'cube': {'file': target.name, 'sha256': hashlib.sha256(data).hexdigest(), 'size': size,
                      'domain_min': [0, 0, 0], 'domain_max': [1, 1, 1], 'order': 'red_fastest'},
             'shaper': request['shaper'], 'capture': {'source': 'SCS_FINAL_COLOR_LDR',
-                     'readback': 'RenderingLibrary.read_render_target_pixel', 'format': 'RTF_RGBA8',
+                     'readback': 'RenderingLibrary.read_render_target_pixel', 'format': 'RTF_RGBA8_SRGB',
                      'precision_bits_per_channel': 8, 'output': 'engine sRGB display pixels',
                      'camera_forward_world': camera_forward_world,
                      'postprocess_readback': settings, 'controls': controls,
                      'shaper_source': request['shaper_source'],
                      'profile_sha256': hashlib.sha256(json.dumps(request['profile'], sort_keys=True).encode()).hexdigest()}}
+    if render_targets is not None:
+        meta['capture']['render_targets'] = render_targets
+    if capture_settings is not None:
+        meta['capture']['component_readback'] = capture_settings
     # Sidecar is the completion marker; incomplete output has no valid sidecar.
     with target.open('xb') as output:
         output.write(data)
@@ -221,6 +226,51 @@ def postprocess_readback(actual, fields):
             raise ValueError('actual postprocess override missing: ' + key)
         settings[key] = _postprocess_value(actual.get_editor_property(key), wanted, key)
     return settings
+
+
+def render_target_readback(target, expected_format, srgb):
+    """Admit the actual encoded-display/linear-input target, not a format label."""
+    expected = dict(render_target_format=expected_format, srgb=srgb,
+                    target_gamma=0.0, use_legacy_gamma=False, size_x=8, size_y=8)
+    result = {}
+    for key, wanted in expected.items():
+        try:
+            got = target.get_editor_property(key)
+            if key in ('size_x', 'size_y') and (type(got) is not int or got != wanted):
+                raise ValueError('dimensions differ')
+            if key == 'target_gamma' and (type(got) not in (int, float) or got != 0):
+                raise ValueError('custom gamma is not disabled')
+            result[key] = _postprocess_value(got, wanted, key)
+        except Exception:
+            raise ValueError('actual render target differs or is unreadable: ' + key) from None
+    return result
+
+
+def capture_settings_readback(component):
+    result = {}
+    for key, wanted in dict(post_process_blend_weight=1.0, capture_every_frame=False,
+                            capture_on_movement=False).items():
+        try:
+            result[key] = _postprocess_value(component.get_editor_property(key), wanted, key)
+        except Exception:
+            raise ValueError('actual capture component differs or is unreadable: ' + key) from None
+    # Optional native history flags are observations, never fabricated defaults.
+    for key in ('always_persist_rendering_state', 'camera_cut_this_frame'):
+        try:
+            value = component.get_editor_property(key)
+        except Exception:
+            continue
+        if type(value) is not bool:
+            raise ValueError('actual capture component has an invalid flag: ' + key)
+        result[key] = value
+    return result
+
+
+def display_pixel(pixel):
+    values = [getattr(pixel, axis) for axis in ('r', 'g', 'b')]
+    if any(type(value) is not int or not 0 <= value <= 255 for value in values):
+        raise ValueError('invalid native display byte pixel; no cube emitted')
+    return [value / 255.0 for value in values]
 
 
 def disabled_tone_controls(ue, component, normal, fields, controls, sample, evidence=None):
@@ -359,20 +409,50 @@ def _capture(ue, root, request, evidence):
         settings = postprocess_readback(actual, fields)
         evidence.update('normal_settings', postprocess_readback=settings,
                         camera_forward_world=camera_forward_world)
-        target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA8)
+        target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA8_SRGB)
         raw_target = ue.RenderingLibrary.create_render_target2d(world, 8, 8, ue.TextureRenderTargetFormat.RTF_RGBA16F)
+        # No implicit/custom gamma override: the target's native sRGB format owns
+        # display encoding. Raw scene-color controls retain a linear HDR target.
+        for render_target in (target, raw_target):
+            render_target.set_editor_property('target_gamma', 0.0)
+            render_target.set_editor_property('use_legacy_gamma', False)
+        target_settings = {
+            'display': render_target_readback(target, ue.TextureRenderTargetFormat.RTF_RGBA8_SRGB, True),
+            'raw': render_target_readback(raw_target, ue.TextureRenderTargetFormat.RTF_RGBA16F, False)}
+        evidence.update(render_targets=target_settings,
+                        capture_settings=capture_settings_readback(component))
 
         def sample(rgb, raw=False):
             dynamic.set_vector_parameter_value('LampwaySample', ue.LinearColor(*rgb, 1))
-            component.set_editor_property('capture_source', ue.SceneCaptureSource.SCS_SCENE_COLOR_HDR if raw
-                                          else ue.SceneCaptureSource.SCS_FINAL_COLOR_LDR)
-            component.set_editor_property('texture_target', raw_target if raw else target)
+            source = ue.SceneCaptureSource.SCS_SCENE_COLOR_HDR if raw else ue.SceneCaptureSource.SCS_FINAL_COLOR_LDR
+            selected_target = raw_target if raw else target
+            component.set_editor_property('capture_source', source)
+            component.set_editor_property('texture_target', selected_target)
+            source_readback = _postprocess_value(component.get_editor_property('capture_source'), source, 'capture_source')
+            actual_target = component.get_editor_property('texture_target')
+            if type(actual_target) is not type(selected_target) or actual_target != selected_target:
+                raise ValueError('actual capture texture target differs; no cube emitted')
             component.capture_scene()
             if raw:
                 pixel = ue.RenderingLibrary.read_render_target_raw_pixel(world, raw_target, 4, 4, False)
                 return [pixel.r, pixel.g, pixel.b]
             pixel = ue.RenderingLibrary.read_render_target_pixel(world, target, 4, 4)
-            return [pixel.r / 255.0, pixel.g / 255.0, pixel.b / 255.0]
+            display = display_pixel(pixel)
+            stage = evidence.record['stage']
+            if stage in ('normal_display', 'disabled_display'):
+                # Two readback APIs observe the SAME completed GPU capture. Raw
+                # values are diagnostics and cannot bypass the display-gray gate.
+                raw_pixel = ue.RenderingLibrary.read_render_target_raw_pixel(world, target, 4, 4, False)
+                control = controls[evidence.record['control_index']]
+                key = 'display_capture' if stage == 'normal_display' else 'disabled_display_capture'
+                control[key] = {'source': source_readback,
+                                'raw_readback': 'RenderingLibrary.read_render_target_raw_pixel(normalize=False)',
+                                'raw_pixel': control_pixel([raw_pixel.r, raw_pixel.g, raw_pixel.b]),
+                                'color_readback': 'RenderingLibrary.read_render_target_pixel',
+                                'display_pixel': display,
+                                'capture_settings': capture_settings_readback(component)}
+                evidence.update()
+            return display
 
         controls = []
         evidence.record['controls'] = controls
@@ -415,7 +495,8 @@ def _capture(ue, root, request, evidence):
                 print('LAMPWAY_UE_CUBE_PROGRESS ' + str(index) + '/' + str(len(points)))
         evidence.update('cube_publication', completed_cube_rows=len(rows))
         paths = write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=camera_forward_world,
-                              completion_owner=evidence)
+                              completion_owner=evidence, render_targets=target_settings,
+                              capture_settings=capture_settings_readback(component))
         evidence.update('cube_complete', completed_cube_rows=len(rows))
         return {'cube': paths[0].name, 'sidecar': paths[1].name, 'rows': len(rows)}
     finally:
