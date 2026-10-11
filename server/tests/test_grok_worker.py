@@ -4,6 +4,7 @@
 import hashlib
 import json
 import os
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -66,6 +67,33 @@ def test_namespace_plan_and_readiness_probe_use_private_devices(tmp_path, monkey
         assert argv[root:root + 5] == ['--bind', '/', '/', '--dev', '/dev']
         assert argv.count('--dev') == 1
         assert '--dev-bind' not in argv
+
+
+def test_owned_requirements_explicitly_deny_url_transports(tmp_path, monkeypatch):
+    """Native command selectors constrain only STDIO; name grants cover every transport."""
+    def forbidden(*args, **kwargs):
+        raise AssertionError('policy planning must not start a process, socket or signal')
+
+    import socket
+    import subprocess
+    monkeypatch.setattr(subprocess, 'Popen', forbidden)
+    monkeypatch.setattr(socket, 'socket', forbidden)
+    monkeypatch.setattr(os, 'kill', forbidden)
+    path, config, etc = fixture(tmp_path)
+    before = {p: p.read_bytes() for p in etc.rglob('*') if p.is_file()}
+    plan = G.build_plan(path, etc=etc)
+    policy = tomllib.loads(plan['policy'])
+    assert policy['denied_mcp_servers'] == [{'server_url': '*'}]
+    assert policy['allowed_mcp_servers'] == [{'server_command': [config['connector']['command']]}]
+    assert policy['allow_managed_mcp_servers_only'] is True
+    assert policy['enable_all_project_mcp_servers'] is False
+    assert tomllib.loads(plan['name_policy']) == {
+        'allowed_mcp_servers': [{'server_name': 'lampway_pane'}]}
+    assert not Path(plan['work']).exists()
+    assert all(p.read_bytes() == data for p, data in before.items())
+    assert '--setenv' not in plan['argv']
+    i = plan['argv'].index(plan['skeleton'])
+    assert plan['argv'][i - 1:i + 2] == ['--ro-bind', plan['skeleton'], '/etc']
 
 
 @pytest.mark.parametrize('kind', ['file', 'symlink', 'directory'])

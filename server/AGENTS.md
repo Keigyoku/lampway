@@ -93,7 +93,10 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    immediate HOME/.cursor name creation, removal, rename and atomic replacement are refused and HOME directory identity changes. An absent .cursor exists
    only in the temporary view. No native config/credential contents are copied or persistent host paths created. Native
    login, persona, model, budgets and built-ins remain; occupied policy slots and host namespace/security permissions
-   remain protected. Turning off prevents new workers and refuses their further tool calls, retaining owned completion
+   remain protected. Owned Grok requirements explicitly deny every HTTP/SSE MCP URL with the supported
+   `server_url = "*"` selector: command allowlists constrain only STDIO, and unmentioned URL transports remain eligible.
+   Retain the separate name and exact-argv policies. Transport refusal does not prove canonical availability after a
+   hostile reload; original native next-call qualification remains required. Turning off prevents new workers and refuses their further tool calls, retaining owned completion
    receipts and never killing unknown panes. Production worker readiness stays independent of consent. Its namespace
    uses a private standard `/dev` after the root bind in both the readiness probe and worker plan; ordinary bind mounts
    remain nodev, and no host device tree is admitted. Offline qualification uses native session-scoped MCP calls without
@@ -570,3 +573,4 @@ Doctrine (the laws above, provider and spend policy) is the captain's.
 | 2026-10-11 | consented Grok worker compatibility and scoped admission | captain requests explicit default-off config layer and Mode2 warning | native same-name hot reload evicted canonical before policy refusal, and no exact-effects consent gate existed | invariant6: version/digest human consent, disclosed temporary view and metadata preflight, persisted runtime/call-time rechecks; MAIN retained and native readiness independent | causal enrollment/TOCTOU/preflight REDs; scratch197 affected and58 boundary passes; actual native qualification separate |
 
 | 2026-10-11 | retained consent and precise temporary-write limits | independent integrated review | malformed stored options raised instead of refusing; temporary read-only parent names also block atomic replacement | require dictionary consent options and warn about immediate-name rename/atomic replacement while preserving in-place and backed-directory writes | malformed-record causal RED/GREEN; native qualification remains independently required |
+| 2026-10-11 | explicit Grok worker URL transport denial | exact 3745 native CI reaches a hostile HTTP endpoint after STDIO retention passes | the native command selector constrains only STDIO; an unmentioned URL dimension and canonical-name grant admit same-name HTTP/SSE | invariant 6: supported wildcard URL deny in owned requirements, separate exact argv/name restrictions and renewed exact-effects consent; canonical availability remains independently qualified | retained native HTTP failure and public policy semantics; causal policy-builder RED/GREEN; repaired native execution remains required |

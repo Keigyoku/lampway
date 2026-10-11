@@ -26,6 +26,7 @@ COMPAT_VERSION = 1
 COMPAT_EFFECTS = (
     'Only explicitly enrolled Grok swarm workers use this temporary compatibility view; Grok MAIN is unchanged.',
     'Inside the worker, Cursor MCP imports are disabled and ~/.cursor/mcp.json is replaced by a read-only canonical-name attribution entry. The native Grok lampway_pane connector remains the actual route.',
+    'Inside Grok swarm workers, remote MCP connectors using HTTP or SSE are denied. The native STDIO lampway_pane connector is retained; this restriction does not disable model access or built-in network tools and does not establish worker readiness.',
     'A temporary read-only HOME directory view preserves existing child paths and backing. In-place file writes and writes inside backed child directories remain available, except for the masked Cursor MCP file. Workers cannot create or remove immediate HOME names, rename them or atomically replace them.',
     'The same split applies to ~/.cursor: existing children other than mcp.json retain backing and in-place file writes. Creating new immediate ~/.cursor names, deleting, renaming or atomically replacing immediate entries, and changes to the masked mcp.json are refused. An absent ~/.cursor exists only in the temporary view.',
     'HOME directory identity changes inside the worker. HOME paths, native login, persona, model settings, budgets and built-in tools are retained; no existing config or credential contents are copied and no persistent host file or directory is created.',
@@ -350,6 +351,9 @@ def build_plan(path, *, task=None, etc=Path('/etc')):
     # Exactly one argv identity; name-only matching would admit a same-name foreign server.
     policy = ('allow_managed_mcp_servers_only = true\n'
               'enable_all_project_mcp_servers = false\n'
+              # Command allow entries constrain STDIO only. A separate name
+              # layer can grant the same name on HTTP/SSE, so deny all URLs.
+              '[[denied_mcp_servers]]\nserver_url = "*"\n'
               '[[allowed_mcp_servers]]\nserver_command = ' + json.dumps([str(command), *args]) + '\n')
     # A selector list is OR, not AND. Separate native layers must enforce the
     # conjunction. This is a candidate until native CI proves their intersection.

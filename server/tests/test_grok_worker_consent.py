@@ -8,6 +8,33 @@ from lampway_server import native_worker_readiness as N
 
 KEY = 'grok.worker_compat'
 
+def test_url_transport_disclosure_invalidates_pre_deny_consent(tmp_path, monkeypatch):
+    from lampway_server import grok_worker as G
+    effect = ('Inside Grok swarm workers, remote MCP connectors using HTTP or SSE are denied. '
+              'The native STDIO lampway_pane connector is retained; this restriction does not '
+              'disable model access or built-in network tools and does not establish worker readiness.')
+    current = G.COMPAT_EFFECTS
+    prior = tuple(row for row in current if row != effect)
+    store = C.Store(tmp_path / 'state')
+    with monkeypatch.context() as old:
+        old.setattr(G, 'COMPAT_EFFECTS', prior)
+        displayed = C.grok_compat_disclosure()
+        store.set(KEY, enabled=True, options={
+            'consent_version': displayed['consent_version'],
+            'effects_sha256': displayed['effects_sha256']}, project='/project')
+        assert store.effective(KEY, '/project') == (True, '')
+    assert not C.Store(store.state_dir).effective(KEY, '/project')[0]
+    updated = C.grok_compat_disclosure()
+    assert effect in updated['effects']
+    assert updated['consent_version'] == displayed['consent_version'] == 1
+    assert updated['effects_sha256'] != displayed['effects_sha256']
+    with pytest.raises(C.Refused):
+        store.set(KEY, enabled=True, options={
+            'consent_version': 1, 'effects_sha256': displayed['effects_sha256']}, project='/project')
+    store.set(KEY, enabled=True, options={
+        'consent_version': 1, 'effects_sha256': updated['effects_sha256']}, project='/project')
+    assert C.Store(store.state_dir).effective(KEY, '/project') == (True, '')
+
 def test_default_off_disclosure(tmp_path):
     store = C.Store(tmp_path)
     row = next((row for row in store.view('/project') if row['id'] == KEY), None)
