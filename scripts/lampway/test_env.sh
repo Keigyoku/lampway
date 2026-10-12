@@ -21,7 +21,7 @@
 #   7. ImageMagick magick with a working SVG delegate (rsvg-convert on PATH for librsvg), fontconfig fc-match, and the vendored
 #      fonts must actually render the maintained splash. Install these in the isolated test environment using its package manager.
 #      The maintained Python-sync controls also require rsync on PATH, as in the build environment, and the motion encode
-#      controls ffmpeg and ffprobe.
+#      controls ffmpeg and ffprobe, and the herdr controls an executable herdr (LAMPWAY_HERDR_BIN or PATH).
 #   8. test_all.py --verify-env must then pass. No browser, original fixture, or system package is downloaded implicitly here.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

@@ -180,6 +180,11 @@ def reference_tools(root, env):
     for tool in ("ffmpeg", "ffprobe"):                 # the motion encoder's own requirement (server/lampway_server/motion/encode.py)
         if not shutil.which(tool):
             problems.append(f"complete-suite motion encode controls require {tool} on PATH")
+    # the server's herdr suites resolve LAMPWAY_HERDR_BIN, then PATH (server/lampway_server/herdr/launcher.py); its ~/.local/bin
+    # fallback is unreachable under the suites' isolated HOME, so it is not admitted here
+    herdr = env.get("LAMPWAY_HERDR_BIN") or shutil.which("herdr")
+    if not herdr or not os.access(herdr, os.X_OK):
+        problems.append("complete-suite herdr controls require an executable herdr: set LAMPWAY_HERDR_BIN or put herdr on PATH")
     browser = env.get("LAMPWAY_CHROMIUM", "")
     if not browser or Path(browser).resolve().name != "chrome-headless-shell" or not os.access(browser, os.X_OK):
         problems.append("LAMPWAY_CHROMIUM must name an executable chrome-headless-shell; full Chrome's bundled service workers are unsupported; scene-worker containment remains enforced")

@@ -445,6 +445,19 @@ def test_reference_tools_names_missing_media_encoder(tmp_path, monkeypatch, tool
     assert any(tool in problem for problem in problems), problems
 
 
+def test_reference_tools_name_a_missing_herdr(tmp_path, monkeypatch):
+    # The server's herdr suites need the binary; the launcher's ~/.local/bin fallback is unreachable under the suites'
+    # isolated HOME, so without LAMPWAY_HERDR_BIN or herdr on PATH eleven server ids failed after admission (PR1 finish run 1).
+    monkeypatch.setattr(T.shutil, "which", lambda name: None if name == "herdr" else "/test/installed/" + name)
+    assert any("herdr" in problem for problem in T.reference_tools(tmp_path, {}))
+    planted = tmp_path / "herdr"
+    planted.write_text("#!/bin/sh\n")
+    planted.chmod(0o700)
+    assert not any("herdr" in problem for problem in T.reference_tools(tmp_path, {"LAMPWAY_HERDR_BIN": str(planted)}))
+    planted.chmod(0o600)
+    assert any("herdr" in problem for problem in T.reference_tools(tmp_path, {"LAMPWAY_HERDR_BIN": str(planted)}))
+
+
 def test_reference_private_fixture_is_explicit_and_not_in_personal_home(tmp_path):
     problems = T.reference_fixtures({})
     assert any("LAMPWAY_V3_PLATES_DIR" in p for p in problems)
