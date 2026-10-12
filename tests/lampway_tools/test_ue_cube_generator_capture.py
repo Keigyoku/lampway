@@ -319,8 +319,8 @@ def test_a_moving_gray_fixed_point_refuses_publication_even_when_white_changes(t
 def test_the_real_engine_controls_pass_the_tone_guard(gray):
     # the live UE 5.8.2 values (g30 finish run 02): gray 113/114 vs 113, white 249 vs 255
     assert C.tone_curve_controls(_controls(gray, (249, 255))) is None
-    assert 'white' in C.tone_curve_controls(_controls(gray, (249, 249)))
-    assert 'fixed point' in C.tone_curve_controls(_controls((100, 140), (249, 255)))
+    assert C.tone_curve_controls(_controls(gray, (249, 249)))[0] == 'white'
+    assert C.tone_curve_controls(_controls((100, 140), (249, 255)))[0] == 'gray'
 
 
 def test_disabled_control_refuses_incorrect_restored_readback():

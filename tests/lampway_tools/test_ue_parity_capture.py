@@ -199,3 +199,35 @@ def test_every_parity_plane_faces_its_camera_in_ue(scene):
     cam = desc['cameras']['front']
     to_cam = np.subtract(U.to_ue_cm(cam['location']), U.to_ue_cm(desc['objects']['plane']['location']))
     assert np.dot(up, to_cam) > 0, (scene, up)
+
+
+def _surfaces(desc):
+    o = desc['objects']
+    return [*o.get('spheres', []), *([o['plane']] if 'plane' in o else []), *([o['sphere']] if 'sphere' in o else [])]
+
+
+@pytest.mark.parametrize('scene', ['furnace', 'normals', 'lights'])
+def test_every_lit_surface_carries_its_material_in_the_one_description(scene):
+    """The first live lights runs gave UE a Specular 0.5 lobe on what the Lampway half builds as Lambert (Specular IOR Level 0,
+    Roughness 1): the material was a hidden constant in parity_scene.build, so the UE half guessed."""
+    desc = PS.describe(scene, 64, ('front',))
+    for s in _surfaces(desc):
+        assert set(s['material']) >= {'Base Color', 'Metallic', 'Roughness', 'Specular IOR Level', 'IOR'}, (scene, s)
+    if scene == 'lights':
+        assert desc['objects']['plane']['material']['Specular IOR Level'] == 0.0
+
+
+@pytest.mark.parametrize('scene', ['furnace', 'normals', 'lights'])
+def test_the_ue_surface_is_material_maps_own_translation(scene):
+    """ue_surface (UE's Python has no numpy, so it cannot import material_map) is pinned equal to material_map.translate for
+    every surface the standard scenes carry: one translation, checked."""
+    from mixar.modules.lampway_tools.ue import material_map as MM
+    from mixar.modules.lampway_tools.ue import profile as PR
+    profile = PR.load(PR.DEFAULT_PROFILE)
+    for s in _surfaces(PS.describe(scene, 64, ('front',))):
+        inputs = {k: (list(v) + [1.0] if k == 'Base Color' else v) for k, v in s['material'].items()}
+        want = MM.translate({'shader': 'principled', 'inputs': inputs}, profile)['ue']
+        got = U.ue_surface(s['material'])
+        assert got['BaseColor'] == pytest.approx(want['vectors']['BaseColor'][:3])
+        for key in ('Metallic', 'Roughness', 'Specular'):
+            assert got[key] == pytest.approx(want['scalars'][key], abs=1e-6), (scene, key)

@@ -250,32 +250,38 @@ is the disabled-tone negative control; 0.18 gray, FilmToneMap's InMatch/OutMatch
 UE 5.8.2-56702186 on Vulkan offscreen: 32,768 rows, sidecar `lampway.ue-cube-meta/1`, cube sha256 `5d752a23f174…`.
 `ue/cube.py` validates it, `ue_look enable` builds the view ("UE 5.8 Filmic fa7a5554") and the parity renders run with it.
 
-**First parity record** (UE 5.8.2 Vulkan offscreen; EEVEE headless; 768 px; parity profile = the QA project's live readback
-with manual exposure, bloom/vignette/SSAO off and `r.ReflectionMethod 0`, profile hash `97a65261cf2e`):
+**Parity record** (UE 5.8.2 Vulkan offscreen; EEVEE headless; 768 px; parity profile = the QA project's live readback with manual
+exposure, bloom/vignette/SSAO off and `r.ReflectionMethod 0`, profile hash `97a65261cf2e`; GEO outside the PST edge band, the
+captain's ruling of 2026-10-11):
 
 | scene | class | front | three_quarter | grazing | tolerance |
 |---|---|---|---|---|---|
 | chart | COL | pass 0.0007 | pass 0.0007 | pass 0.0005 | linear within 1 % |
-| chart | GEO | pass 0.9987 | fail 0.9897 | fail 0.9868 | IoU >= 0.995 |
+| chart | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
 | furnace | SHD | fail 1.0000 | fail 1.0000 | fail 1.0000 | mean radiance within 3 % |
-| furnace | GEO | fail 0.9949 | pass 0.9960 | pass 0.9969 | IoU >= 0.995 |
+| furnace | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
 | normals | NRM | pass 1.0000 | pass 1.0000 | pass 1.0000 | sign 100 % |
-| normals | GEO | pass 1.0000 | pass 0.9997 | pass 1.0000 | IoU >= 0.995 |
-| lights | LGT | fail 0.3970 | fail 0.4206 | fail 0.5651 | within 2 % after k |
-| lights | GEO | pass 0.9989 | pass 0.9982 | pass 0.9995 | IoU >= 0.995 |
+| normals | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
+| lights | LGT | fail 0.0337 | fail 0.0324 | fail 0.0241 | within 2 % after k |
+| lights | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
 
-What the failures are (each measured, none settled by a guess):
-- **GEO** misses only by edge pixels: every disagreeing pixel lies within 1 px of coverage both agree on, UE's silhouette is
-  0.5-1 % larger at the oblique views, and Lampway's raster sits about 0.2 px off centre even on the symmetric front chart.
-  Whether GEO excludes the PST edge band (the contract's PST row says the band is excluded "from all metrics above") is open.
-- **LGT**: six of nine probes agree within 2-5 %. The two probes 20.4° and 21.7° off the spot's axis, inside its blend band
-  (inner 19.1°, outer 22.5°, `ue/lights.py`: inner = outer × (1 − blend)), read about 40 % darker in UE; the probe nearest the
-  point light reads 13 % brighter.
-- **SHD**: dielectric spheres agree within 1-6 % (above 3 % at roughness 0.25-0.75); the smoothest metal agrees (0.999 vs
-  0.9998); metals at roughness 0.25 and above read 0.15 and 0 in UE: the captured sky's specular is missing for rough metal in
-  this capture. Four times the settle ticks and a second recapture changed nothing; the cause is not established.
+What the two failures are:
+- **LGT**: eight of nine probes agree within 0.3 %. Probe 8 sits 21.7° off the spot's axis, inside its blend band, and reads
+  3.6 % low. EEVEE's spot falloff is a smoothstep in cosine space (`eevee_light_lib.bsl.hh:89-96`, `eevee_light.cc:244-248`);
+  UE's is a squared linear ramp (`DynamicLightingCommon.ush:58-66`, `SpotLightSceneProxy.cpp:18-23`). No UE cone pair is a
+  smoothstep: the light map now uses the least-squares pair (worst 0.095 of full intensity, rms 0.024), where the old
+  `inner = outer × (1 − blend)` put UE's ramp at 1.83 times EEVEE's (probes 40 % dark). A probe in a blend band keeps this
+  residual by construction.
+- **SHD**: diffuse agrees (the furnace dielectrics' diffuse and the lights scene at Specular 0 to 0.2 %); the smoothest metal
+  agrees (0.999 vs 0.9998); UE's sky specular is missing at roughness 0.25 and above (metals 0.15, then 0; dielectrics about 5 %
+  low). The same result held with the captured dome at 30 and 120 settle ticks, a second recapture, real-time sky capture, a
+  specified uniform cubemap and `r.ReflectionMethod 2`: the cause is not the scene, the sky source or the reflection method,
+  and is not established in this offscreen capture.
 
 Fixed on the way (each RED first): the UE capture's alpha is inverse opacity (`SCS_SCENE_COLOR_HDR`), so the Lampway half
 reads the UE half's receipt (`capture.json`, `lampway.ue-parity-capture/1`) and compares coverage (GEO was 0.0 before); a
 class a scene does not sample is `unmeasured`, not `fail` (ue_parity.md §3); the UE plane faced away from the camera (roll
-−90; a probe with a quadrant image fixed the sign: roll +90), which read as a flipped green (NRM 0 %, now 100 %).
+−90; a probe with a quadrant image fixed the sign: roll +90), which read as a flipped green (NRM 0 %, now 100 %); the
+description now carries every lit surface's material, which the UE half translates exactly as `material_map` does (the
+Lambert planes had been given a Specular 0.5 lobe in UE); a region whose samples all fall in the edge band is unmeasured, not a
+pass (the ratio of no samples had read 0.0).

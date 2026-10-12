@@ -62,8 +62,11 @@ def ue_capture_alpha(caps):
     path = Path(caps) / "capture.json"
     if not path.is_file():
         raise ParityError(f"{path} is missing: UE captures come with the UE half's receipt ({CAPTURE_SCHEMA}), which names their alpha")
-    rec = json.loads(path.read_text(encoding="utf-8"))
-    if rec.get("schema") != CAPTURE_SCHEMA or rec.get("alpha") not in UE_ALPHA:
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        rec = None
+    if not isinstance(rec, dict) or rec.get("schema") != CAPTURE_SCHEMA or rec.get("alpha") not in UE_ALPHA:
         raise ParityError(f"{path} is not a {CAPTURE_SCHEMA} receipt naming its alpha ({' | '.join(UE_ALPHA)})")
     return rec["alpha"]
 
@@ -98,12 +101,12 @@ def run(scene, profile_path, size, views, out_dir, ue_captures, ue_linear_scale,
     if out.exists():
         raise ParityError(f"{out_dir} exists: a parity run never reuses a directory")
     desc = PS.describe(scene, size, tuple(views))
+    caps = Path(root) / ue_captures if ue_captures and not Path(ue_captures).is_absolute() else (Path(ue_captures) if ue_captures else None)
+    alpha = ue_capture_alpha(caps) if caps is not None else None      # before out_dir exists: a refusal leaves nothing behind
     out.mkdir(parents=True)
     (out / "scene.json").write_text(json.dumps(desc, indent=1), encoding="utf-8")
     k = profile["light_units"]["k"]
     scale = (1.0 / k) if ue_linear_scale is None else float(ue_linear_scale)
-    caps = Path(root) / ue_captures if ue_captures and not Path(ue_captures).is_absolute() else (Path(ue_captures) if ue_captures else None)
-    alpha = ue_capture_alpha(caps) if caps is not None else None
     rep_views = {}
     for view in views:
         sc = PS.build(desc, view)

@@ -82,19 +82,19 @@ print("RESULT", json.dumps({"err": err, "hfov": desc["cameras"]["front"]["ue_hfo
 def test_refusals_and_the_compare_path_with_captures(tmp_path):
     d = go(tmp_path, '''
 import shutil
-bad = call("ue_parity", scene="chart", profile=parity_profile(post__bloom=0.675), size=64, out_dir="parity/x1")
-dflt = call("ue_parity", scene="chart", size=64, out_dir="parity/x2")
-armour = call("ue_parity", scene="armour:export/none", profile=parity_profile(), size=64, out_dir="parity/x3")
+bad = call("ue_parity", scene="chart", profile=parity_profile(post__bloom=0.675), size=128, out_dir="parity/x1")
+dflt = call("ue_parity", scene="chart", size=128, out_dir="parity/x2")
+armour = call("ue_parity", scene="armour:export/none", profile=parity_profile(), size=128, out_dir="parity/x3")
 prof = parity_profile()
-a = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f1")
+a = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f1")
 cap = os.path.join(root, "caps"); os.makedirs(cap)
 shutil.copy(os.path.join(a["out_dir"], "lampway_front.exr"), os.path.join(cap, "ue_front.exr"))
-unreceipted = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f0", ue_captures="caps")
-# a Lampway render standing in for the UE capture: its alpha is coverage, and its receipt says so
+unreceipted = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f0", ue_captures="caps")
+# a Lampway render standing in for the UE capture: its alpha is coverage, its receipt says so, and it is not k-scaled
 open(os.path.join(cap, "capture.json"), "w").write(json.dumps({"schema": "lampway.ue-parity-capture/1", "alpha": "coverage"}))
-b = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f2", ue_captures="caps")
+b = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f2", ue_captures="caps", ue_linear_scale=1.0)
 shutil.copy(os.path.join(a["out_dir"], "lampway_front.exr"), os.path.join(cap, "ue_front.png")); os.remove(os.path.join(cap, "ue_front.exr"))
-c = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f3", ue_captures="caps")
+c = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f3", ue_captures="caps", ue_linear_scale=1.0)
 rep = json.load(open(os.path.join(b["out_dir"], "report.json")))
 print("RESULT", json.dumps({"bad": bad, "dflt": dflt, "armour": armour, "b": b, "c": c, "unreceipted": unreceipted, "classes": rep["views"]["front"]["classes"], "shd": rep["views"]["front"]["metrics"]["SHD"]}))
 ''')
@@ -111,7 +111,7 @@ def test_a_ue_capture_in_inverse_opacity_is_compared_as_coverage(tmp_path):
     silhouette IoU against Lampway's coverage alpha was 0.0. With the UE half's receipt naming inverse_opacity, the same pixels
     compare as coverage; the receipt claiming coverage for them is the plant, and GEO must fail it."""
     d = go(tmp_path, '''
-a = call("ue_parity", scene="furnace", profile=parity_profile(), size=64, views=["front"], out_dir="parity/g1")
+a = call("ue_parity", scene="furnace", profile=parity_profile(), size=128, views=["front"], out_dir="parity/g1")
 img = bpy.data.images.load(os.path.join(a["out_dir"], "lampway_front.exr"))
 px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
 px[:, 3] = 1.0 - px[:, 3]
@@ -121,7 +121,7 @@ img.filepath_raw = os.path.join(cap, "ue_front.exr"); img.file_format = "OPEN_EX
 out = {}
 for tag, alpha in (("declared", "inverse_opacity"), ("planted", "coverage")):
     open(os.path.join(cap, "capture.json"), "w").write(json.dumps({"schema": "lampway.ue-parity-capture/1", "alpha": alpha}))
-    r = call("ue_parity", scene="furnace", profile=parity_profile(), size=64, views=["front"], out_dir="parity/g_" + tag, ue_captures="caps_inv")
+    r = call("ue_parity", scene="furnace", profile=parity_profile(), size=128, views=["front"], out_dir="parity/g_" + tag, ue_captures="caps_inv", ue_linear_scale=1.0)
     rep = json.load(open(os.path.join(r["out_dir"], "report.json")))["views"]["front"]
     out[tag] = {"classes": rep["classes"], "iou": rep["metrics"]["GEO"]["silhouette_iou"], "alpha": rep["ue"].get("alpha")}
 print("RESULT", json.dumps(out))

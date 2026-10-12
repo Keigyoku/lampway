@@ -145,6 +145,18 @@ def settle_points(desc, view, most=12):
     return pts[::step][:most]
 
 
+UE_MAX_F0 = 0.08                    # UE dielectric F0 = 0.08 * Specular (material_map.UE_MAX_F0, SHD-03)
+
+
+def ue_surface(material):
+    """The UE Default Lit values of a description surface (its Principled inputs): material_map.translate's mapping, which UE's
+    Python cannot import (no numpy); tests pin the two equal for every standard surface."""
+    ior, level = float(material['IOR']), float(material['Specular IOR Level'])
+    spec = min(max(round(((ior - 1.0) / (ior + 1.0)) ** 2 * 2.0 * level / UE_MAX_F0, 6), 0.0), 1.0)
+    return {'BaseColor': [min(max(float(c), 0.0), 1.0) for c in material['Base Color'][:3]], 'Metallic': float(material['Metallic']),
+            'Roughness': float(material['Roughness']), 'Specular': spec}
+
+
 def parity_post(profile):
     """The parity profile's post-process overrides for the capture component (exposure manual; every effect off)."""
     ex, post = profile['exposure'], profile['post']
@@ -361,11 +373,12 @@ def _mesh(ue, world, shape, loc_cm, scale, rotation, material, made):
     return actor, comp.create_dynamic_material_instance(0)
 
 
-def _lit(ue, inst, base, metallic=0.0, roughness=0.5):
-    inst.set_vector_parameter_value('BaseColor', ue.LinearColor(*base, 1.0))
-    inst.set_scalar_parameter_value('Metallic', float(metallic))
-    inst.set_scalar_parameter_value('Roughness', float(roughness))
-    inst.set_scalar_parameter_value('Specular', 0.5)
+def _lit(ue, inst, material):
+    surface = ue_surface(material)
+    inst.set_vector_parameter_value('BaseColor', ue.LinearColor(*surface['BaseColor'], 1.0))
+    for key in ('Metallic', 'Roughness', 'Specular'):
+        inst.set_scalar_parameter_value(key, surface[key])
+    return surface
 
 
 def _build(ue, world, desc, k, made, out, receipt):
@@ -383,7 +396,7 @@ def _build(ue, world, desc, k, made, out, receipt):
         mat = _material(ue, 'furnace', False)
         for s in obj['spheres']:
             actor, inst = _mesh(ue, world, 'Sphere', to_ue_cm(s['location']), s['radius_m'] * 2.0, flat, mat, made)
-            _lit(ue, inst, s['base_color'], s['metallic'], s['roughness'])
+            _lit(ue, inst, s['material'])
             shown.append(actor)
     elif scene == 'normals':
         png = out / 'dome_dx.png'
@@ -400,17 +413,17 @@ def _build(ue, world, desc, k, made, out, receipt):
         mat = _material(ue, 'normals', False, normal=tex)
         pl = obj['plane']
         actor, inst = _mesh(ue, world, 'Plane', to_ue_cm(pl['location']), pl['size_m'], plane_rotation(pl['rotation_euler']), mat, made)
-        _lit(ue, inst, (0.8, 0.8, 0.8))
+        _lit(ue, inst, pl['material'])
         inst.set_texture_parameter_value('Normal', tex)
         shown.append(actor)
     else:
         mat = _material(ue, 'lights', False)
         pl, sp = obj['plane'], obj['sphere']
         actor, inst = _mesh(ue, world, 'Plane', to_ue_cm(pl['location']), pl['size_m'], plane_rotation(pl['rotation_euler']), mat, made)
-        _lit(ue, inst, pl['base_color'])
+        _lit(ue, inst, pl['material'])
         shown.append(actor)
         actor, inst = _mesh(ue, world, 'Sphere', to_ue_cm(sp['location']), sp['radius_m'] * 2.0, flat, mat, made)
-        _lit(ue, inst, sp['base_color'])
+        _lit(ue, inst, sp['material'])
         shown.append(actor)
     w = desc['world']
     sky = [k * float(w['strength']) * c for c in w['color']]

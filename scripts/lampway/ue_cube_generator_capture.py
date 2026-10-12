@@ -138,16 +138,16 @@ def _code_difference(control):
 
 
 def tone_curve_controls(controls):
-    """None when the disabled-tone controls hold, else the reason (the captain's G30 ruling, 2026-10-11).
+    """None when the disabled-tone controls hold, else (failed control, reason) (the captain's G30 ruling, 2026-10-11).
 
     UE's FilmToneMap fixes InMatch = OutMatch = 0.18 and solves its toe so 0.18 maps to 0.18 (TonemapCommon.ush:185-200,
     UE 5.8.2-56702186), and ToneCurveAmount only blends toward that curve (PostProcessCombineLUTs.usf:185). So the negative
     control is the neutral 4.0 white, off that fixed point: it must move by MORE than one display code. The 0.18 gray is the
     positive fixed-point check: it must stay within one code, or the engine is not applying this profile's FilmToneMap."""
     if _code_difference(controls[3]) <= 1:
-        return 'the neutral 4.0 white control showed no curve difference (one code or less)'
+        return 'white', 'the neutral 4.0 white control showed no curve difference (one code or less)'
     if _code_difference(controls[1]) > 1:
-        return "the 0.18 gray fixed point moved more than one code: not this profile's FilmToneMap"
+        return 'gray', "the 0.18 gray fixed point moved more than one code: not this profile's FilmToneMap"
     return None
 
 
@@ -164,8 +164,9 @@ def write_outputs(root, request, engine, rows, settings, controls, camera_forwar
             control_pixel(control[key], display=key in ('display', 'tone_curve_disabled'))
         if max(abs(a - b) for a, b in zip(control['input'], control['raw'])) > 0.005:
             raise ValueError('raw-input controls failed')
-    if tone_curve_controls(controls):
-        raise ValueError('tone-curve controls failed: ' + tone_curve_controls(controls))
+    failed = tone_curve_controls(controls)
+    if failed:
+        raise ValueError('tone-curve controls failed: ' + failed[1])
     name = request['name']
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', name):
         raise ValueError('name must be a simple QA output basename')
@@ -515,11 +516,11 @@ def _capture(ue, root, request, evidence):
             'postprocess_readback': settings, 'disabled_postprocess_readback': disabled_settings,
             'controls': controls}, sort_keys=True))
         evidence.update('tone_control_guard')
-        reason = tone_curve_controls(controls)
-        if reason and 'white' in reason:
-            raise ValueError('native disabled-tone negative control showed no curve difference: ' + reason)
-        if reason:
-            raise ValueError('native disabled-tone controls refused: ' + reason)
+        failed = tone_curve_controls(controls)
+        if failed and failed[0] == 'white':
+            raise ValueError('native disabled-tone negative control showed no curve difference: ' + failed[1])
+        if failed:
+            raise ValueError('native disabled-tone controls refused: ' + failed[1])
         if request.get('controls_only', False):
             evidence.update('controls_complete')
             print('LAMPWAY_UE_CUBE_CONTROLS_COMPLETE')
