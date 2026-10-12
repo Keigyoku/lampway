@@ -7,6 +7,10 @@ MAX_PENDING = 32
 MAX_TARGETS = 200
 MAX_IMAGE_BYTES = 4 * 1024 * 1024
 ACTION_TIMEOUT = 10.0
+# A claimed action (its input already being delivered) runs on past the caller's response deadline to this
+# ceiling from submission, so its receipt can record the real outcome (F16). The protocol's existing 30 s
+# bound: the longest mixar_ui_wait a caller may ask for (schema.py).
+LATE_OUTCOME_LIMIT = 30.0
 CONTEXT_TTL = 30.0
 MAX_CONTEXTS = 32
 MAX_SCENES = 32  # scene tabs in one document, counting the user's own

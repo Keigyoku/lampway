@@ -11,7 +11,7 @@ import uuid
 
 import bpy
 
-from ..constants import ACTION_TIMEOUT, MAX_PENDING, UIError
+from ..constants import ACTION_TIMEOUT, LATE_OUTCOME_LIMIT, MAX_PENDING, UIError
 from . import input as native_input, observe, ownership, schema
 from .receipt_startup import ReceiptInitializer
 
@@ -29,6 +29,8 @@ class Request:
     result: dict | None = None
     claimed: bool = False
     document_loaded: bool = False
+    #: Where a claimed action is stopped after the caller's deadline has passed (None: at the deadline).
+    ceiling: float | None = None
 
 
 #: Calls that change the app: claimed once in the durable receipt journal.
@@ -59,7 +61,9 @@ def submit(owner, name, args, call_id, session=""):
         if prior:
             return envelope(prior, call_id, failed=prior["status"] != "succeeded")
     timeout = args.get("timeout", ACTION_TIMEOUT) + 2 if name == "mixar_ui_wait" else ACTION_TIMEOUT
-    req = Request(owner, name, args, call_id, session, time.monotonic()+timeout)
+    now = time.monotonic()
+    req = Request(owner, name, args, call_id, session, now+timeout,
+                  ceiling=now+LATE_OUTCOME_LIMIT if name in MUTATING else None)
     with _request_lock:
         if (owner, call_id) in _requests:
             raise UIError("call_pending", "This UI call is already pending; inspect its receipt")
@@ -71,6 +75,14 @@ def submit(owner, name, args, call_id, session=""):
             _requests.pop((owner, call_id), None)
         raise UIError("ui_busy", "UI request queue is full; no action accepted") from None
     if not req.done.wait(timeout+1):
+        if req.claimed and req.ceiling is not None:
+            # Its input is already being delivered: let it finish under its ceiling; the receipt records the outcome.
+            return envelope({"error_type": "outcome_unknown", "call_id": call_id, "receipt_status": "accepted",
+                             "error": "The UI action is still running past its response deadline",
+                             "next_step": f"Call lampway_ui_call_status(call_id={call_id}) until its status is succeeded "
+                                          f"or failed (it stops within {LATE_OUTCOME_LIMIT:g} s of submission); inspect "
+                                          "the UI before further action"},
+                            call_id, failed=True)
         req.cancelled.set()
         return envelope({"error_type": "outcome_unknown", "call_id": call_id,
                          "error": "UI response timed out; inspect the receipt and current UI before further action"},
@@ -275,7 +287,8 @@ def _pump():
                           "note": "This action loaded a document. Bind its scene with mixar_ui_context(session="
                                   "<session_id>) before further work."})
             return 0.02
-        if req.cancelled.is_set() or time.monotonic() >= req.deadline:
+        stop = req.ceiling if req.claimed and req.ceiling is not None else req.deadline
+        if req.cancelled.is_set() or time.monotonic() >= stop:
             raise UIError("outcome_unknown", "Action interrupted; partial effects may remain")
         if req.name == "mixar_ui_act":
             _eligible()
