@@ -465,9 +465,10 @@ def _build(ue, world, desc, k, made, out, receipt):
 
 def configure_sky_light(ue, sl):
     """The dome's sky light. MOVABLE, because a static or stationary sky light (the spawn default) is mixed with built lightmaps:
-    UE scales its rough specular by the lightmap's indirect irradiance (ReflectionEnvironmentComposite.ush, ComputeMixingWeight,
-    taken when SkyLightParameters.z < 1, i.e. !bSkyLightIsDynamic in IndirectLightRendering.cpp), and a parity level has no built
-    lighting, so every rough reflection read zero (furnace, lampway-finish-pr1)."""
+    with SkyLightParameters.z < 1 (!bSkyLightIsDynamic, IndirectLightRendering.cpp:710) the sky joins the image-based term
+    (bNormalize, ReflectionEnvironmentComposite.ush:237) that ComputeMixingWeight scales (:253; ReflectionEnvironmentShared.ush:235)
+    by lerp(1, IndirectIrradiance / AverageBrightness, MixingAlpha). A parity level has no built lighting, so the weight falls to
+    1 - MixingAlpha: rough sky specular vanished where MixingAlpha saturates (the furnace record, docs/reports/uelook.md)."""
     sl.set_mobility(ue.ComponentMobility.MOVABLE)
     sl.set_editor_property('source_type', ue.SkyLightSourceType.SLS_CAPTURED_SCENE)
     sl.set_editor_property('lower_hemisphere_is_black', False)

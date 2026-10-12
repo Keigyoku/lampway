@@ -254,6 +254,9 @@ UE 5.8.2-56702186 on Vulkan offscreen: 32,768 rows, sidecar `lampway.ue-cube-met
 exposure, bloom/vignette/SSAO off and `r.ReflectionMethod 0`, profile hash `97a65261cf2e`; GEO outside the PST edge band, the
 captain's ruling of 2026-10-11):
 
+Each cell is the class verdict and its metric: COL, LGT and SHD the worst |UE/Lampway - 1| over the class's samples (linear
+luminance, outside the edge band), NRM the sign agreement, GEO the silhouette IoU.
+
 | scene | class | front | three_quarter | grazing | tolerance |
 |---|---|---|---|---|---|
 | chart | COL | pass 0.0007 | pass 0.0007 | pass 0.0005 | linear within 1 % |
@@ -266,8 +269,8 @@ captain's ruling of 2026-10-11):
 | lights | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
 
 What the two failures are:
-- **LGT**: eight of nine probes agree within 0.3 %. Probe 8 sits 21.7° off the spot's axis, inside its blend band, and reads
-  3.6 % low. EEVEE's spot falloff is a smoothstep in cosine space (`eevee_light_lib.bsl.hh:89-96`, `eevee_light.cc:244-248`);
+- **LGT**: in a per-probe read of the front renders eight of nine probes agree within 0.3 %; probe 8, 21.7° off the spot's
+  axis inside its blend band, reads 3.6 % low. The class metric is 3.37 % front, 2.41 % grazing. EEVEE's spot falloff is a smoothstep in cosine space (`eevee_light_lib.bsl.hh:89-96`, `eevee_light.cc:244-248`);
   UE's is a squared linear ramp (`DynamicLightingCommon.ush:58-66`, `SpotLightSceneProxy.cpp:18-23`). No UE cone pair is a
   smoothstep: the light map now uses the least-squares pair (worst 0.095 of full intensity, rms 0.024), where the old
   `inner = outer × (1 − blend)` put UE's ramp at 1.83 times EEVEE's (probes 40 % dark). A probe in a blend band keeps this
@@ -275,10 +278,11 @@ What the two failures are:
 - **SHD**: the first record read UE's rough sky specular as missing (metals at roughness 0.25 and above 0.15, then 0), the
   same on the NVIDIA and the AMD adapter, through 30 and 120 settle ticks, a second recapture, real-time capture, a specified
   cubemap and `r.ReflectionMethod 2`. The cause was the sky light's mobility: a spawned SkyLight is stationary, and UE mixes a
-  non-dynamic sky light's rough reflections with built lightmap irradiance (`ReflectionEnvironmentComposite.ush`
-  `ComputeMixingWeight`, taken when `!bSkyLightIsDynamic`, `IndirectLightRendering.cpp:710`); a parity level has no built
-  lighting, so the weight was zero. The UE half now makes the dome's sky light movable (`configure_sky_light`). After it, front
-  and three-quarter agree within 2.6 % on every sphere but the roughest metal (UE 7.3 % brighter); at grazing the metals differ
+  non-dynamic sky light's rough reflections with built lightmap irradiance (`bNormalize` at `ReflectionEnvironmentComposite.ush:237`, scaled by `ComputeMixingWeight` at `:253`, defined at
+  `ReflectionEnvironmentShared.ush:235`; taken when `!bSkyLightIsDynamic`, `IndirectLightRendering.cpp:710`). A parity level has
+  no built lighting, so the weight falls to 1 - MixingAlpha and rough sky specular vanished where MixingAlpha saturates.
+  The UE half now makes the dome's sky light movable (`configure_sky_light`). After it, the class metric is 7.05 % front and three-quarter, 8.89 % grazing. By sphere (an unmasked RGB-mean probe of the same renders), front
+  and three-quarter agree within 2.6 % on every sphere but the roughest metal (UE about 7 % brighter); at grazing the metals differ
   by 3.9 to 9.1 %, the dielectrics within 2.2 %. That residual is the two engines' environment BRDF at roughness 1 and at
   grazing incidence. The captain's ruling (2026-10-12): recorded as a model limit, like LGT's band probe; the 3 %
   tolerance stays, so SHD reads fail with this residual on record.

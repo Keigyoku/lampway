@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The UE half of ue_parity (scripts/lampway/ue_parity_capture.py): pure frame, light, texture and request controls.
 SYNTHETIC: none of these is UE render proof; the live capture is a separate receipt."""
+import ast
 import importlib.util
 import json
 import math
@@ -253,9 +254,21 @@ class _FakeUE:
 
 
 def test_the_dome_sky_light_is_movable_so_rough_reflections_are_not_lightmap_mixed():
-    """The live furnace (lampway-finish-pr1, NVIDIA and AMD alike) read zero rough sky specular: a stationary sky light takes
+    """The live furnace (docs/reports/uelook.md, NVIDIA and AMD alike) lost its rough sky specular: a stationary sky light takes
     ComputeMixingWeight against lightmap irradiance a parity level never builds. Movable is the dynamic path."""
     sl = _FakeSkyLight()
     U.configure_sky_light(_FakeUE, sl)
     assert sl.mobility == 'MOVABLE'
     assert sl.props['source_type'] == 'SLS_CAPTURED_SCENE' and sl.props['lower_hemisphere_is_black'] is False
+
+
+def test_the_build_configures_its_sky_light_before_the_first_capture():
+    """The helper alone is not the fix: _build must hand the spawned SkyLightComponent to configure_sky_light before it calls
+    recapture_sky, or the stationary default comes back with every rough reflection (source pin, as for operator logic)."""
+    tree = ast.parse((ROOT / 'scripts/lampway/ue_parity_capture.py').read_text())
+    build = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == '_build')
+    calls = [n for n in ast.walk(build) if isinstance(n, ast.Call)]
+    named = lambda c, name: (isinstance(c.func, ast.Name) and c.func.id == name) or (isinstance(c.func, ast.Attribute) and c.func.attr == name)
+    configure = [c.lineno for c in calls if named(c, 'configure_sky_light')]
+    recapture = [c.lineno for c in calls if named(c, 'recapture_sky')]
+    assert configure and recapture and max(configure) < min(recapture), (configure, recapture)
