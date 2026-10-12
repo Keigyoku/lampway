@@ -192,14 +192,24 @@ def _resolve(a: dict, template: dict, declared: dict) -> tuple:
     return values, sources
 
 
-def _overrides(values: dict, sources: dict, declared: dict) -> tuple:
-    """(findings, help): one warning when an explicit or template value overrides a differing window.__scene value."""
+def _overrides(values: dict, sources: dict, declared: dict, template: dict = None, template_id: str = None) -> tuple:
+    """(findings, help): one warning when an explicit or template value overrides a differing window.__scene value. The help names steps
+    that work: passing the scene's values explicitly always does (explicit ranks first); omitting an explicit value only when no template
+    default would take its place; a template default goes only with the template."""
     over = [k for k in RESOLVED if sources.get(k) in ("explicit", "template") and k in declared and declared[k] != values[k]]
     if not over:
         return [], []
     detail = ", ".join(f"{k} {values[k]:g} ({sources[k]}) over the scene's {declared[k]:g}" for k in over)
+    why = "the scene's values; an explicit value outranks a template default" if any(sources[k] == "template" for k in over) else "the scene's values"
+    steps = [f"pass {' and '.join(f'{k} {declared[k]:g}' for k in over)} ({why})"]
+    omit = [k for k in over if sources[k] == "explicit" and (template or {}).get(k) is None]
+    if omit:
+        steps.append(f"omit {' and '.join(omit)}")
+    if any(sources[k] == "template" for k in over):
+        steps.append(f"render without template {template_id}" if template_id else "render without the template")
+    steps.append("change window.__scene")
     return ([{"check": "scene_override", "severity": "warn", "detail": f"window.__scene is overridden: {detail}"}],
-            [f"to render the scene's own {', '.join(over)}: omit {' and '.join(over)} (and any template default for {'it' if len(over) == 1 else 'them'}), or change window.__scene"])
+            [f"to render the scene's own {', '.join(over)}: {', or '.join(steps)}"])
 
 
 def _json_value(value):
@@ -457,7 +467,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
             checkpoint(cancel)
         resolved["duration_s"] = duration
         opening = _opening(scene_meta, duration)
-        size_notes, override_help = _overrides(resolved, sources, declared)
+        size_notes, override_help = _overrides(resolved, sources, declared, template, a["template"])
         n = int(round(duration * fps))
         if n < 1:
             raise Refused(f"duration {duration:g} s at {fps} fps is no frame: lengthen the scene")

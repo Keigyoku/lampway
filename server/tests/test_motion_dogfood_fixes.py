@@ -180,6 +180,29 @@ def test_an_explicit_or_template_override_of_a_differing_scene_value_is_a_warnin
     assert len(over) == 1 and over[0]["severity"] == "warn" and res["self_check"]["warn"] >= 1
     assert "width 320 (explicit) over the scene's 1080" in over[0]["detail"] and "height 180 (explicit) over the scene's 1920" in over[0]["detail"]
     assert any("omit width and height" in h for h in res["help"])
+    assert any("pass width 1080 and height 1920 (the scene's values)" in h for h in res["help"])
+
+
+def test_a_template_override_help_names_steps_that_work(tmp_path):
+    # a template default cannot be omitted through the inputs: the help says to pass the scene's value or drop the template, never "omit"
+    res = _render(tmp_path, {"fps": 10, "width": 320, "height": 180}, {"duration_s": 0.5}, defaults={"duration_s": 0.3})
+    over = [f for f in res["self_check"]["findings"] if f["check"] == "scene_override"]
+    assert len(over) == 1 and "duration_s 0.3 (template) over the scene's 0.5" in over[0]["detail"]
+    line = next(h for h in res["help"] if h.startswith("to render the scene's own"))
+    assert line.startswith("to render the scene's own duration_s: pass duration_s 0.5 (") and "render without the template" in line
+    assert "omit" not in line
+    # an explicit value with a template default under it: omitting it would give the template's value, so only passing the scene's is offered
+    res = _render(tmp_path / "b", {"fps": 10, "width": 320, "height": 180, "duration_s": 0.3}, {"duration_s": 0.5}, defaults={"duration_s": 0.4})
+    line = next(h for h in res["help"] if h.startswith("to render the scene's own"))
+    assert "pass duration_s 0.5" in line and "omit" not in line and "without the template" not in line
+
+
+def test_the_cli_words_the_override_help_with_its_flags():
+    from lampway_server.motion import cli as CLI
+    h = "to render the scene's own duration_s, fps: pass duration_s 8 and fps 24 (the scene's values), or omit fps, or render without template mg-site-clip@1.0.1, or change window.__scene"
+    assert CLI._flags(h) == ("to render the scene's own duration_s, fps: pass --duration 8 and --fps 24 (the scene's values), or omit --fps, "
+                             "or render without --template mg-site-clip@1.0.1, or change window.__scene")
+    assert CLI._flags("look at the width of the frame") == "look at the width of the frame"
 
 
 @pytest.mark.parametrize("declared", [{"width": 320, "height": 180}, {}, {"width": "wide"}])

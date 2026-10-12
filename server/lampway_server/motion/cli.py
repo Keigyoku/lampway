@@ -132,6 +132,18 @@ def _variables(pairs) -> dict:
     return out
 
 
+FLAGS = {"width": "--width", "height": "--height", "fps": "--fps", "duration_s": "--duration"}
+
+
+def _flags(h: str) -> str:
+    """The scene-override help line's input names as this CLI's flags (duration_s is --duration); its heading keeps the names."""
+    head, sep, steps = h.partition(": ")
+    if not head.startswith("to render the scene's own") or not sep:
+        return h
+    steps = re.sub(r"\b(width|height|fps|duration_s)\b", lambda m: FLAGS[m.group(1)], steps)
+    return head + sep + re.sub(r"render without template (\S+)", r"render without --template \1", steps)
+
+
 def _render_view(out: dict, full: bool) -> tuple:
     view = {"ok": out["ok"], "run_id": out["run_id"], "out_dir": out["out_dir"], "frames": out["frames"]}
     if out.get("error"):
@@ -156,7 +168,7 @@ def _render_view(out: dict, full: bool) -> tuple:
                      "network_requests": out["network"]["requests"], "network_non_file": out["network"]["non_file"], "timing_s": out["timing_s"],
                      "progress": out.get("progress") or []})
     generic = set(M.next_steps(out))
-    helps = [re.sub(r'^pass variables \{"(\w+)": "<project-relative path>"\}', r"--var \1=<project-relative path>", h)    # the agent's wording, as this CLI's flag
+    helps = [_flags(re.sub(r'^pass variables \{"(\w+)": "<project-relative path>"\}', r"--var \1=<project-relative path>", h))    # the agent's wording, as this CLI's flags
              for h in out.get("help") or [] if h not in generic]
     helps += [f"open {out['files']['contact']}: look at it yourself, some defects only an eye sees",
               f"{PROG} verify --receipt {out['out_dir']}/receipt.json: prove it reproduces"]
