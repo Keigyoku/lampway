@@ -17,6 +17,8 @@ import urllib.request
 import uuid
 from enum import Enum
 
+from mixar.modules.common.agent_execution_context import stamp_agent_context
+
 from . import matgen_persistence
 from .material_registry import ProceduralMaterial, register_material
 
@@ -86,13 +88,7 @@ class MatgenJob:
         self.applied = []
         self.apply_missing = []
         self.apply_routes = {}
-        # Capture on the main thread, before the originating agent script
-        # ends. The asynchronous HTTP worker must never read a later marker.
-        try:
-            from mixar.modules.common.agent_execution_context import get_agent_execution_context
-            self.agent_context = get_agent_execution_context()
-        except Exception:  # noqa: BLE001 - provenance is best effort, as for queued jobs
-            self.agent_context = None
+        self.agent_context = None
 
 
 _in_flight: dict = {}
@@ -153,14 +149,14 @@ def enqueue_matgen_job(prompt: str = "", pipeline: str = "fast", apply_to_object
     if prompt in _in_flight:
         return None
     job = MatgenJob(prompt, pipeline or "fast")
+    # Provenance is captured here, on the main thread while the agent's script runs; the worker sends it after the script ended.
+    body = {"prompt": prompt, "pipeline": job.pipeline}
+    job.agent_context = stamp_agent_context(body)
     targets = [str(n) for n in (apply_to_object_names or [])]
     _in_flight[prompt] = job
 
     def work():
         try:
-            body = {"prompt": prompt, "pipeline": job.pipeline}
-            if job.agent_context is not None:
-                body["agent_context"] = dict(job.agent_context)
             reply, error = _post("/api/v1/matgen", body), ""
         except MatgenUnavailable as exc:
             reply, error = None, str(exc)

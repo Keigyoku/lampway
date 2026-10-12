@@ -26,6 +26,7 @@ def _is_rebuild_image(node) -> bool:
     return node.type == "TEX_IMAGE" and node.image is not None and any(m in node.image.name for m in _IMAGE_MARKERS)
 
 
+@canon_io.rollback_imports
 def load_rebuild(fbx, masks_dir, name, template_mat, hide=(), lift=0.0, turn=-90.0) -> dict:
     template = bpy.data.materials.get(template_mat)
     if template is None:

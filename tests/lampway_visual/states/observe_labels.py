@@ -30,7 +30,9 @@ def facts(bpy, dump):
         "total": every["total_targets"], "shown": len(targets),
         "empty_text": sum(1 for t in targets if not t.get("text")),
         "empty_label": sum(1 for t in targets if not t.get("label")),
-        "tip_fallbacks_right": all(t.get("label") == (t.get("text") or t.get("tip") or "") for t in targets),
+        "tip_fallbacks_right": all(t.get("label") == (t.get("text") or t.get("tip"))
+                                   for t in targets if t.get("text") or t.get("tip")),
+        "identity_fallbacks": sum(1 for t in targets if not (t.get("text") or t.get("tip")) and t.get("label")),
         "pages": [[key(t) for t in first["targets"]], [key(t) for t in second["targets"]]],
         "page_handles": [[t["target"] for t in first["targets"]], [t["target"] for t in second["targets"]]],
         "same_as_every": [key(t) for t in targets[:10]],

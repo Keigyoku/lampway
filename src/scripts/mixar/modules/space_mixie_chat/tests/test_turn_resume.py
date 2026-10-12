@@ -19,6 +19,7 @@ Pins the client-side contract of the orphaned-turn flow:
 
 import os
 import sys
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -60,19 +61,35 @@ class _FakeBpy:
         return m
 
 
+
+def _install_scenes(monkeypatch, scenes):
+    """Share the collection with consumers importing bpy at call time."""
+    fake = _FakeBpy(scenes)
+    monkeypatch.setattr(turn_resume, "bpy", fake)
+    monkeypatch.setattr(sys.modules["bpy"].data, "scenes", fake.data.scenes)
+    assert turn_resume.bpy.data.scenes is sys.modules["bpy"].data.scenes
+    return fake
+
+
+def test_scene_injection_shares_identity_and_restores_both_consumers(monkeypatch):
+    original_bpy = turn_resume.bpy
+    current = sys.modules["bpy"]
+    original_scenes = current.data.scenes
+    scene = _scene("Scene", "sid-restoration")
+    with monkeypatch.context() as local:
+        fake = _install_scenes(local, [scene])
+        assert fake.data.scenes.get("Scene") is scene
+        assert current.data.scenes.get("Scene") is scene
+        assert current.data.scenes.get("missing") is None
+    assert turn_resume.bpy is original_bpy
+    assert current.data.scenes is original_scenes
+
+
 def _scene(name, session_id):
     scene = MagicMock()
     scene.name = name
     scene.mixie_session_id = session_id
     return scene
-
-
-def _install_bpy(monkeypatch, scenes):
-    fake = _FakeBpy(scenes)
-    monkeypatch.setattr(turn_resume, "bpy", fake)
-    # get_turn_handler imports bpy at call time; give it the same collection
-    # as recovery, including Blender's name lookup rather than a Python list.
-    monkeypatch.setattr(sys.modules["bpy"].data, "scenes", fake._scenes)
 
 
 @pytest.fixture(autouse=True)
@@ -92,7 +109,7 @@ def test_status_asked_for_idle_sessions_only(monkeypatch):
         def send_request(self, method, params, on_result=None):
             requests.append((method, params, on_result))
 
-    _install_bpy(monkeypatch, [idle, busy, no_session])
+    _install_scenes(monkeypatch, [idle, busy, no_session])
     monkeypatch.setattr(
         "mixar.modules.space_mixie_chat.core.session.SessionManager.get_state",
         lambda scene: MagicMock(),  # any state object
@@ -136,7 +153,7 @@ def test_no_candidates_no_request(monkeypatch):
             sent.append(args)
 
     empty_scene = _scene("Scene", "")
-    _install_bpy(monkeypatch, [empty_scene])
+    _install_scenes(monkeypatch, [empty_scene])
     monkeypatch.setattr(
         "mixar.modules.space_mixie_chat.core.jsonrpc_client.get_jsonrpc_client",
         lambda: _Client(),
@@ -153,7 +170,7 @@ def test_status_hit_prompts_on_main_thread(monkeypatch):
             on_result({"turns": {"sid-9": {"status": "running", "active": True,
                                            "last_seq": 40}}})
 
-    _install_bpy(monkeypatch, [scene])
+    _install_scenes(monkeypatch, [scene])
     from mixar.modules.space_mixie_chat.constants import SessionState
 
     import mixar.modules.space_mixie_chat.core.session as session_mod
@@ -376,7 +393,7 @@ def _hits_for(monkeypatch, info):
         def send_request(self, method, params, on_result=None):
             on_result({"turns": {"sid-s": info}})
 
-    _install_bpy(monkeypatch, [scene])
+    _install_scenes(monkeypatch, [scene])
     from mixar.modules.space_mixie_chat.constants import SessionState
     import mixar.modules.space_mixie_chat.core.session as session_mod
 
@@ -463,3 +480,14 @@ def test_abandoned_bubble_does_not_claim_the_task_is_running(monkeypatch):
     assert "interrupted" in content.lower()
     values = [a.value for a in scene.mixie_chat_messages.items[0].action_items]
     assert values == ["resume_task:sid-a", turn_resume.DISMISS_ACTION]
+
+
+def test_actual_live_transport_skips_orphan_prompt_until_stream_stops(monkeypatch):
+    from mixar.modules.space_mixie_chat.core import turn_transport
+
+    handler = SimpleNamespace(is_running=True, _session_id="sid-s")
+    monkeypatch.setattr(turn_transport, "_handlers", {"Scene": handler})
+    assert not _hits_for(monkeypatch, {"status": "running", "active": True})
+    assert turn_transport.get_turn_handler("Scene") is handler
+    handler.is_running = False
+    assert _hits_for(monkeypatch, {"status": "running", "active": True})

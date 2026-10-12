@@ -14,6 +14,7 @@ import threading
 import bpy
 from bpy.app.handlers import persistent
 from bpy.types import Operator
+from bpy.props import StringProperty
 
 from mixar.config.brand import AGENT_NAME, PRODUCT_NAME
 from mixar.config.logging_config import get_logger
@@ -33,7 +34,7 @@ from ....auth.core.auth_hooks import (
     refresh_agent_settings,
     refresh_generation_caches,
 )
-from ....auth.core.sso import sso_login
+from ....auth.core.sso import sso_login, is_local_signin
 from ....auth.utils.constants import SSO_LOGIN_TIMEOUT_S
 
 logger = get_logger(__name__)
@@ -496,10 +497,20 @@ class MIXIE_CHAT_OT_report_bug(Operator):
 
 
 class MIXIE_CHAT_OT_login(Operator):
-    """Login to the agent via browser SSO"""
+    """Sign in to the local agent in-app; remote backends use browser SSO"""
     bl_idname = "mixie_chat.login"
     bl_label = "Login"
-    bl_description = f"Login to {AGENT_NAME} via browser SSO"
+    bl_description = f"Sign in to {AGENT_NAME}"
+    password: StringProperty(name="Local password", subtype='PASSWORD', options={'SKIP_SAVE'})
+
+    def invoke(self, context, event):
+        if is_local_signin():
+            return context.window_manager.invoke_props_dialog(self, title="Sign in to Lampway", confirm_text="Sign in")
+        return self.execute(context)
+
+    def draw(self, context):
+        self.layout.label(text="Leave empty if your local account has no password")
+        self.layout.prop(self, "password")
 
     def execute(self, context):
         global _login_attempt_id
@@ -515,10 +526,12 @@ class MIXIE_CHAT_OT_login(Operator):
             if area.type == 'AGENT_BUBBLE':
                 area.tag_redraw()
 
-        # Run SSO on a background thread (blocks waiting for browser callback)
+        password = self.password
+        self.password = ""
+        # Network and safe storage run off the UI thread.
         def _sso_thread():
             try:
-                result = sso_login()
+                result = sso_login(password=password)
                 logger.info("SSO login returned: success=%s", result.get("success"))
             except Exception as e:
                 logger.error("SSO login failed with exception: %s", e)

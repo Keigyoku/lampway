@@ -108,6 +108,64 @@ def test_a_failed_script_is_reported_to_the_agent_not_swallowed(stack):
     assert events[-1]["status"] == "completed"
 
 
+def test_mock_agent_failure_runs_client_response_logging_with_real_rpc_id(stack, monkeypatch, caplog, request):
+    """F20: drive an agent turn through the actual client response pump. The pane's tool call reaches Blender's script frame;
+    the client's own pump answers it once, logs once with the real rpc id, and a second reply is refused."""
+    import importlib
+    import logging
+    from pathlib import Path
+    import sys
+    from types import ModuleType, SimpleNamespace
+
+    scripts = Path(__file__).resolve().parents[2] / "src/scripts"
+    # Load pure client transport modules without registering Blender UI.
+    for name in ("mixar", "mixar.config", "mixar.modules", "mixar.modules.common",
+                 "mixar.modules.common.agent_execution"):
+        package = ModuleType(name)
+        package.__path__ = [str(scripts / name.replace(".", "/"))]
+        monkeypatch.setitem(sys.modules, name, package)
+    logging_adapter = ModuleType("mixar.config.logging_config")
+    logging_adapter.get_logger = logging.getLogger
+    monkeypatch.setitem(sys.modules, logging_adapter.__name__, logging_adapter)
+    dossier = ModuleType("mixar.modules.common.scenes_log")
+    dossier.slog = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, dossier.__name__, dossier)
+    names = ("mixar.modules.common.agent_execution.pump",
+             "mixar.modules.common.agent_execution.request",
+             "mixar.modules.common.agent_execution.diagnostics")
+    for name in names:
+        monkeypatch.delitem(sys.modules, name, raising=False)
+    request.addfinalizer(lambda: [sys.modules.pop(name, None) for name in names])
+    pump = importlib.import_module(names[0])
+    Request = importlib.import_module(names[1]).ExecutionRequest
+    caplog.set_level(logging.WARNING, logger=pump.logger.name)
+
+    async def scenario(serve, units, island, front):
+        island.hold_scripts = True                    # the client's pump answers Blender's script call, not the played island
+        serve.scripts.append([("mcp", "run_blender_python", {"script": "boom("}), ("say", "The executor refused the script.")])
+        command_id, _ = await chat(island, "run the invalid fixture", str(uuid.uuid4()))
+        frame = await island.wait(lambda f: f.get("method") == "blender.execute_script" and f.get("id"))
+        queued = []
+        client = SimpleNamespace(is_connected=True, queue_response=lambda request_id, result: queued.append((request_id, result)) or True)
+        p = frame["params"]
+        req = Request(frame["id"], p["script"], tool_name=p["tool_name"], session_id=p["session_id"], agent_ctx=p["agent_ctx"])
+        result = {"success": False, "error": "SyntaxError: unexpected EOF"}
+        assert pump.respond(client, req, result)
+        assert not pump.respond(client, req, result), "replies/logs must not duplicate"
+        for request_id, answer in queued:
+            await island.ws.send(json.dumps({"jsonrpc": "2.0", "id": request_id, "result": answer}))
+        await island.ended(command_id)
+        return frame["id"], len(queued), island.events(command_id), serve.mcp_results
+
+    rpc_id, replies, events, results = run(stack, scenario)
+    assert replies == 1
+    logs = [r.getMessage() for r in caplog.records if r.name == pump.logger.name]
+    assert len(logs) == 1 and rpc_id in logs[0]
+    assert "run_blender_python" in logs[0] and "SyntaxError: unexpected EOF" in logs[0]
+    assert results[-1]["isError"] is True and "SyntaxError" in results[-1]["content"][0]["text"]
+    assert events[-1]["status"] == "completed"
+
+
 def test_scene_summary_tool_runs_the_fixed_listing_script(stack):
     async def scenario(serve, units, island, front):
         serve.scripts.append([("mcp", "scene_summary", {}), ("say", "The scene has one object.")])
@@ -119,7 +177,7 @@ def test_scene_summary_tool_runs_the_fixed_listing_script(stack):
         "success": True, "output": '{"objects": [{"name": "Cube", "type": "MESH"}], "materials": []}'})
     script = scripts[-1]
     assert script["tool_name"] == "scene_summary"
-    assert "bpy.data.objects" in script["script"] and "bpy.data.materials" in script["script"]
+    assert "bpy.context.scene.objects" in script["script"] and "_o.material_slots" in script["script"]
     assert "__RESULT__" in script["script"]  # executor.py:429-431 flattens the __RESULT__ variable
     assert "Cube" in results[-1]["content"][0]["text"]
 

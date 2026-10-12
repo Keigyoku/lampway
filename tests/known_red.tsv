@@ -1,6 +1,7 @@
+# 2026-10-07: removed68 PR1-owned rows after563 passed/0failed/0errors/0skips at be21066a2a21b4ef10cc093e52cc4c336b41b1a4;54 PR4-owned rows remain attributed.
 # The integration's known-red tests: the failures present at a recorded point, each with a class and a one-line reason.
-# scripts/lampway/test_all.py fails a run on ANY failure not listed here, and on any listed test that now passes (the list only shrinks:
-# remove the line, or run test_all.py --shrink-baseline). Classes: env (the test environment lacks something: a package, a display, a box),
+# scripts/lampway/test_all.py fails a run on EVERY known/new failure or error. This list attributes inherited failures and only shrinks:
+# remove a line only with affirmative exact PASS proof, or run test_all.py --shrink-baseline. Classes: env (the test environment lacks something: a package, a display, a box),
 # inherited (already failing in the pre-session baseline of the fork, scratch/full_base.out), stale (names a file or behaviour this tree
 # does not have), broken (a real defect: a fix request), unknown (not triaged yet). Recorded 2026-10-06 at lp/wave5 80ca6de3.
 # Regenerated 2026-10-06 inside the defined environment (scripts/lampway/test_env.sh, run b11 at eab5e92): the 16 tests/mcp env lines left

@@ -144,7 +144,8 @@ def _env(s: S.Settings) -> dict:
 def run(name: str, args, s: Optional[S.Settings] = None, timeout: Optional[float] = None, max_chars: int = 6000,
         log_dir=None, env_extra=None, cwd=None) -> Result:
     """Run a tool; the result's ``stdout`` is its output with Blender's start-up noise dropped and cut to the LAST
-    ``max_chars`` (a tool's summary comes last), the whole of it kept in ``log`` when ``log_dir`` is given."""
+    ``max_chars`` (a tool's summary comes last), the whole of it kept in ``log`` when ``log_dir`` is given.
+    The truncation hint is separate from that body limit and retains the complete log path, whose length is unbounded."""
     s = s or S.load()
     cmd = command(name, args, s)
     env = _env(s)

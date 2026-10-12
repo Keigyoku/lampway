@@ -137,3 +137,43 @@ src, flat = grid("src", True), grid("flat", False)
 print("RESULT", json.dumps({"dev": L._deviation(flat, src), "diag": src.dimensions.length}))
 '''))
     assert d["dev"] > 0.4 / d["diag"]                      # the spike's tip is ~0.5 m from the flat LOD, though every flat vertex lies on the source
+
+
+def test_many_uv_islands_report_achieved_ratios_and_protection_warnings(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+from mixar.modules.lampway_tools.features import lod_chain as L
+if os.environ.get('LAMPWAY_REVERT_LOD_WARNING'):
+    import inspect
+    source=inspect.getsource(L.lod_chain)
+    guard=os.environ['LAMPWAY_REVERT_LOD_WARNING']
+    old={'ratio':'if abs(achieved_ratio - r) / r > 0.25:', 'previous':'if lods and faces == lods[-1]["faces"]:'}[guard]
+    assert old in source,'falsifier no longer matches the implementation'
+    exec(source.replace(old,'if False:'),L.__dict__)
+ob=sphere(subdiv=3);uv=ob.data.uv_layers.new(name='DisjointTriangles')
+for p in ob.data.polygons:
+    for j,li in enumerate(p.loop_indices):
+        du,dv=((0,0),(.001,0),(0,.001))[j]
+        uv.data[li].uv=(p.index*.01+du,p.index*.007+dv)
+from mixar.modules.lampway_tools.features import uv_islands as U
+measured=U.measure_object(ob,res=64)
+assert measured['islands']==len(ob.data.polygons)>100,measured
+for p in ob.data.polygons:
+    a,b,c=[uv.data[li].uv.copy() for li in p.loop_indices]
+    assert abs((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x))>0,'UV islands must have area'
+r=call('normalize_mesh',input=ob.name,turn_deg=0)
+assert r.get('ok'),r
+r=call('lod_chain',object=ob.name,ratios=[.5,.25,.1],preserve_uv_seams=True)
+assert r.get('ok'),r
+n=len(ob.data.polygons)
+for i,row in enumerate(r['lods']):
+    assert row['achieved_ratio']==round(row['faces']/n,6),row
+    assert row['warnings'] and any('preserve_uv_seams' in w for w in row['warnings']),row
+    if i:assert any('previous' in w for w in row['warnings']),row
+boundary=call('lod_chain',object=ob.name,ratios=[.8,.7999999],preserve_uv_seams=True,naming='{name}_boundaryLOD{n}')
+assert boundary.get('ok'),boundary
+assert boundary['lods'][0]['achieved_ratio']==1 and boundary['lods'][0]['warnings']==[],boundary
+assert any('over 25%' in w for w in boundary['lods'][1]['warnings']),boundary
+assert any('previous' in w for w in boundary['lods'][1]['warnings']),boundary
+''')

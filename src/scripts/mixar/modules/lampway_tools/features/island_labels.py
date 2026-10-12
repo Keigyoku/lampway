@@ -65,11 +65,14 @@ def _island_faces(ob, islands_verts):
     return out
 
 
-def label(object, labels, recipe_path="", owner_path=""):
+def label(object, labels, recipe_path="", owner_path="", max_parts=200):
     from mixar.modules.mesh_segment.core.mesh_labeler import apply_labels_to_mesh, get_uv_islands
     ob = C.need_object(object)
     spec = dict(labels or {})
     mode = spec.get("mode", "map")
+    if mode == "separate_parts":
+        from .authored_parts import separate
+        return separate(object, spec, recipe_path, max_parts)
     if mode not in MODES:
         raise C.FeatureError("labels.mode is map | recipe: the labels are the recipe's part names (free-text description is not built: name the parts)")
     if not ob.data.uv_layers or ob.data.uv_layers.active is None:

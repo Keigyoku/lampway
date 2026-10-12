@@ -144,6 +144,7 @@ class TestMirrorRunsAgainstTheRealSlot:
         )
 
         assert seen.get("items"), "the slot never reached the panel mirror"
+        assert seen["scene"] is scene
         assert [i[0] for i in seen["items"]] == ["0", "1"]
         assert seen["items"][0][2] == 'IN_PROGRESS'
         assert seen["scene"] is scene, "the panel mirrors the tab whose todo slot changed"

@@ -31,17 +31,26 @@ ANY_SCALE = SCALE_STATES
 TOL_M = 1e-6
 
 # The normalization decisions (specs/canon/normalization REPORT.md D1-D10), ruled by the captain 2026-10-06 "as recommended" except
-# D4. A value nobody gave is None, never invented; `needs_decision` rides on every receipt that uses it.
+# D4/D6 and AC65 starting defaults were authorized by judgment on 2026-10-07; physical_status records their untested state.
 SETTINGS = {
     "frame_layers": {"value": "working lampway.body/1; canon 22 interchange by adapters only", "decision": "D1", "ruled": "2026-10-06"},
     "container": {"value": ".blend + .canon.json", "decision": "D2", "ruled": "2026-10-06"},
     "real_scale_at": {"value": "intake", "decision": "D3", "ruled": "2026-10-06"},
-    "pair_scale_group": {"value": None, "decision": "D4", "needs_decision": True, "why": "one scale per left/right pair or per side: pending a measurement"},
+    "pair_scale_group": {"value": "per_side", "decision": "D4", "ruled": "2026-10-07", "physical_status": "untested",
+                         "source": "canon09 B.6/H.2; AC65 judgment authorization",
+                         "why": "preserve asymmetric rigid sides with one reversible similarity each; common remains explicit"},
     "weld_m": {"value": 1e-5, "decision": "D5", "ruled": "2026-10-06", "why": "generated meshes only; never an authored rig (canon 01 D.2)"},
     "weld_guard_fraction": {"value": 0.05, "decision": "D5", "ruled": "2026-10-06", "why": "a weld merging more than this share of the vertices is refused"},
     "facing": {"value": "per-piece declared turn, checked against the plates, refused below a margin", "decision": "D6", "ruled": "2026-10-06"},
-    "facing_margin": {"value": None, "decision": "D6", "needs_decision": True,
-                      "why": "the ruling names a refusal margin but no number; plate registration refuses until it is set"},
+    "facing_margin": {"value": 0.05, "decision": "D6", "ruled": "2026-10-07", "physical_status": "untested",
+                      "source": "canon normalization normalize_mesh section6; AC65 judgment authorization",
+                      "why": "require a five-point best-minus-second IoU gap; ties still refuse; calibrate on approved plates"},
+    "collar_depth_mm": {"value": 20.0, "decision": "AC65 collar", "ruled": "2026-10-07", "physical_status": "untested",
+                        "source": "canon06 H.1 proposed 10/20/35mm variants; AC65 judgment authorization",
+                        "why": "middle proposed depth limits intrusion while retaining a formed collar; actual posed openings need review"},
+    "boots_scale_anchor": {"value": "width", "decision": "AC65 boots", "ruled": "2026-10-07", "physical_status": "untested",
+                           "source": "canon09 B.3 Boots1 height/foot failure tradeoffs; AC65 judgment authorization",
+                           "why": "shaft enclosure with wear clearance follows the other rigid-piece span anchors; avoids choosing foot or knee length over enclosure"},
     "rollout": {"value": "LEGACY ratchet", "decision": "D7", "ruled": "2026-10-06"},
     "thresholds": {"value": "re-measure at real scale", "decision": "D8", "ruled": "2026-10-06"},
     "stamp_integrity": {"value": "hash-bound", "decision": "D9", "ruled": "2026-10-06"},

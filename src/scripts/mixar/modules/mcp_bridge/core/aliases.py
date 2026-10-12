@@ -5,11 +5,12 @@
 """Public names of the ten local tools.
 
 AI apps see ``lampway_*``. Inside the connector the original ``mixar_*`` names stay the keys (schema, lease, rebinding, the app's own dispatcher), so the
-rename is one table at the MCP boundary: ``expose`` lists each tool under both names (the old one marked deprecated) and ``internal_name`` maps a call
-back. The old names are kept for one release.
+rename is one table at the MCP boundary: ``expose`` publishes only canonical names and ``internal_name`` maps a call
+back. Internal names remain implementation keys, never deprecated catalogue entries.
 """
 
 import copy
+import re
 
 OLD_TO_NEW = {
     "mixar_scenes": "lampway_scenes",
@@ -32,16 +33,12 @@ def internal_name(name):
 
 
 def expose(tools):
-    """The tool list an AI app is shown: every local tool under its Lampway name, and under its old name as a deprecated alias."""
+    """Publish canonical tool names and rewrite references in descriptions."""
     out = []
     for tool in tools:
-        new = OLD_TO_NEW.get(tool["name"])
-        if new is None:
-            out.append(tool)
-            continue
         renamed = copy.deepcopy(tool)
-        renamed["name"] = new
-        alias = copy.deepcopy(tool)
-        alias["description"] = f"Deprecated alias of {new}. {tool['description']}"
-        out += [renamed, alias]
+        renamed['name'] = OLD_TO_NEW.get(tool['name'], tool['name'])
+        renamed['description'] = re.sub(r'\bmixar_[a-z0-9_]+\b',
+            lambda match: OLD_TO_NEW.get(match.group(), match.group()), tool['description'])
+        out.append(renamed)
     return out

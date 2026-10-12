@@ -207,8 +207,8 @@ def test_the_island_sends_the_users_text_into_the_bound_pane(stack):
         fake.handshake(ws)
         out = _send(fake, ws, "Add a torus")
     assert out == {"state": "complete", "result": {"ok": True, "pane": rec["id"]}}
-    sent = [c["args"] for c in herdr.calls if c["args"][:2] in (["pane", "send-text"], ["pane", "send-keys"])]
-    assert sent == [["pane", "send-text", rec["pane_id"], "Add a torus"], ["pane", "send-keys", rec["pane_id"], "enter"]]
+    sent = [c["args"] for c in herdr.calls if c["args"][:2] in (["pane", "send-text"], ["pane", "send-keys"], ["agent", "prompt"])]
+    assert sent == [["agent", "prompt", rec["pane_id"], "Add a torus"]]       # herdr's one ordered submission (main I09)
 
 
 def test_a_send_with_no_bound_pane_is_refused_with_help(stack):

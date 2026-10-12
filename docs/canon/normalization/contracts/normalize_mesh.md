@@ -18,13 +18,14 @@ or a refusal that names what could not be decided.
 
 ## 3. User story
 Runs at every ingress without being asked: the Studios panel Import, Vault placement, the rebuild landing, the batch scripts'
-file reads. The agent calls it on a mesh the captain dragged in. The captain sees one receipt per piece.
+file reads. The agent calls it on a mesh the captain dragged in. The captain sees one receipt per piece. A multipart file is one imported assembly: its meshes retain their relative world geometry under one shared turn and origin.
 
 ## 4. Inputs
 ```json
 {"input": "object name | project path (glb, gltf, fbx, obj, usd, blend)",
  "turn_deg": "number | null (the piece's facing: -90 for a +X-facing import; null = decide by plate or recipe)",
  "plate": "project path of the approved Front plate | null (enables measured facing)",
+ "facing_margin": "number 0..1 | null (explicit minimum best-minus-second silhouette IoU; null uses judgment default0.05, physically untested)",
  "recipe": "project path | null (a recipe's per-piece turn_deg wins over a guess, never over an explicit turn_deg)",
  "generator": "tripo_studio | tripo_api | meshy | hi3d | hyper3d | hunyuan | trellis | captain_authored | lampway_tool | unknown (default: from the Vault record)",
  "want_scale": "real | any (default any)", "scale_evidence": "{method, value, reference} | null",
@@ -44,8 +45,7 @@ Blender importers through `canon_io.import_raw` (DOOR.md §1); transform apply w
 (`LT/features/scene_cleanup.py:189-197`); topology and UV measurement from `common.mesh_report` (`LT/features/common.py:77-117`)
 and `uv_islands.measure_object` (`LT/features/uv_islands.py:85-121`); geometry hash as `workflows.mesh_hash`
 (`LT/features/workflows.py:37-46`) over canonical positions. **Plate registration** (measured facing): `render.render_view`
-silhouettes at four yaws against the plate mask fitted by bounding box, the IoU rule of `silhouette.py:62-87` (bbox fit is
-correct here: the plate has no camera). Licence: Blender GPL; nothing new.
+silhouettes at four cardinal yaws (0, -90, 90, 180) against the approved Front plate, using the shared `silhouette._render_mask` engine and `canon_geom.fit_masks_true_aspect`/`mask_iou`. The plate loader retains native dimensions, keys alpha or the canon-10 border ring, and never stretches a rectangular plate square before fitting. A unique winner must beat the second by the explicitly supplied or ruled margin; a tie always refuses. Measurement uses a disposable object, scene and image files; the input stays untouched until the frame is accepted. For multipart files, capture every source world matrix before changing any mesh and normalize parents before children. Compute one bottom-centre offset from the union of all source vertices after the shared turn. Bake that same turn and offset into every member, including shape keys, without resizing pieces. Each member records `pivot.rule=source_origin` relative to the rebased assembly origin; every receipt records the assembly member count, turned union bounds, shared offset and turn. A single-object input retains its own bottom-centre pivot. Multipart plate-only facing refuses until the caller provides a shared turn or recipe turn; per-member silhouette choices cannot establish one assembly frame. Animated or constrained assembly transforms require an explicit static copy. Licence: Blender GPL; nothing new.
 
 ## 7. Model slot
 None. A vision judge never decides a frame.
@@ -57,6 +57,8 @@ None. A vision judge never decides a frame.
 | plate registration's best yaw beats the second by less than the margin (decision D6) | "facing ambiguous: yaw A IoU x, yaw B IoU y; pass turn_deg" |
 | `want_scale=real` with no evidence | "scale unknown: real scale comes from fit_place (armour) or scale_to_measure; normalize with want_scale=any to keep generator scale" |
 | a weld would merge more than 5 % of the vertices | "the weld distance is wrong for this mesh: pass weld_distance_m" |
+| multipart facing has no shared declared/recipe turn | "assembly facing needs one shared turn_deg or a recipe turn" |
+| multipart transforms are animated or constrained | "animated or constrained assembly transforms need an explicit static copy" |
 | the input is skinned (an Armature modifier, a parent armature) | "a skinned mesh is normalized with lampway_normalize_rigged" |
 | the input already carries `lw_canon` whose hash matches | not a refusal: `{ok, unchanged: true}` (idempotent) |
 
@@ -72,9 +74,11 @@ rotation), a seam-split UV sphere (each island its own shell), the Boots1 Smart 
 3. `test_weld_unsplits_islands`: the seam-split sphere's `shells` goes from the island count to 1; UV islands unchanged; the receipt counts the merged vertices.
 4. `test_turn_is_recorded_and_reversible`: `axis_map` applied inverse returns the raw positions within 1e-6.
 5. `test_unknown_scale_refused_when_real_wanted` and `test_generator_scale_recorded` (Tripo source -> `generator_normalised`, `longest_side_m` measured).
-6. `test_plate_registration_picks_the_front` on a synthetic L-shaped piece with an asymmetric front; falsifier: a symmetric cube yields "facing ambiguous".
+6. `tests/lampway_tools/test_canon_normalize_facing.py` pins the native plate-registration golden: a synthetic L profile rendered as the approved Front on a rectangular alpha canvas, raw geometry baked +90°, winning turn -90° with best/second IoU and explicit margin in the document and receipt. Falsifier: a symmetric cube ties and yields "facing ambiguous", preserving geometry and all IDs. Unset/out-of-range margins refuse; the nonliteral background uses the shared border-ring key.
 7. `test_idempotent`: normalizing a canonical object changes nothing and returns `unchanged`.
 8. `test_reproducible`: the same raw bytes and decisions give byte-identical `.canon.json` and canonical `.blend` content hash [UNVERIFIED whether .blend writes are byte-stable; if not, the canonical hash covers the payload, SCHEMA.md §3].
+
+9. Multipart hierarchical GLB regression checks every vertex against one shared turn/union-origin transform under the existing 1e-6 m bar, canonical checks and assembly receipt scope. Plate-only multipart refusal restores all scene IDs.
 
 ## 11. Acceptance evidence
 The four Tripo pieces of the "proportioned" set and one Hi3D and one Meshy file normalized: receipts with each frame decision,
@@ -84,4 +88,4 @@ the chest's `turn_deg` differing from the greaves' (canon 01 B), Workbench front
 `canon_asset`, `canon_door` (the decorator). Before every landing rewire (`canon_migration.md`).
 
 ## 13. Open questions
-D5 (weld default), D6 (facing margin and whether recipes carry a declared turn per piece), D10 (pivot rule).
+D6 judgment margin0.05 is adopted, physically untested; approved original-plate calibration remains open. D5/D10 retain their recorded rulings.

@@ -244,7 +244,18 @@ def test_a_v1_library_migrates_to_the_latest_with_a_backup(tmp_path):
     root.mkdir()
     db = sqlite3.connect(root / "library.sqlite")
     db.executescript("BEGIN;\n" + S.migration_files()[0].read_text() + "\nPRAGMA user_version=1;\nCOMMIT;")
+    # A populated pre-upgrade database needs a recoverable backup.
+    db.execute("INSERT INTO event(ts,actor,verb) VALUES(1,'test','existing')")
+    db.commit()
     db.close()
     lib = AssetLibrary(root)
     assert lib.status()["schema_version"] == S.latest_version() >= 2
     assert (root / "library.sqlite.pre-0002.bak").exists()
+
+
+def test_new_empty_library_has_no_migration_backups(tmp_path):
+    lib = make(tmp_path)
+    try:
+        assert not list(lib.root.glob('library.sqlite.pre-*.bak'))
+    finally:
+        lib.close()

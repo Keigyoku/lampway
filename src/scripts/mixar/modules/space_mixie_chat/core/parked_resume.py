@@ -11,9 +11,10 @@ re-run only the unfinished lanes (DONE tasks never repeat).
 - P1-5: the "Retry failed tasks" chip (backend ``turn_actions``) clicks here.
 - P1-6: on transport (re)connect, every idle scene with a saved session asks
   ``POST /agent/parked-turn``; the BACKEND decides whether the last turn is a
-  park (dead Blender session, small open tail, no paused question). This
-  module only detects, asks, and sends — it never invents a park, never
-  answers a question, and never sends twice per app run.
+  park (dead Blender session, small open tail, no paused question). Only the
+  first eligible scene resumes per reconnect event, so no two agent streams
+  start together. This module only detects, asks, and sends — it never
+  invents a park, never answers a question, and never sends twice per app run.
 """
 
 from __future__ import annotations
@@ -209,4 +210,7 @@ def _ask(base_url: str, token: str,
         )
         run_on_main_thread(lambda n=scene_name, c=open_count:
                            _fire_resume(n, c))
-        # Every parked tab resumes (claim_resume keeps it one per session).
+        # One resume per reconnect event (captain, 2026-10-11): resuming every parked tab at once would start
+        # concurrent agent streams against the one server. The other parked tabs were already asked once this run
+        # (claim_check), so they are left to the user for this app run: their retry chip sends the same continue.
+        return

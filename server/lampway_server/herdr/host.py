@@ -310,7 +310,9 @@ class Cockpit:
                 ad.launch(spec, task=None if lampway else prompt) if ad is not None else None)
             tokens = [ad.process_match or ad.binary] if ad is not None else (
                 [os.path.basename(shlex.split(command)[-1])] if agent == "command" else [])
-            rec = {"id": rid, "name": name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
+            # herdr's own agent identifier, kept beside the friendly name, for a harness herdr starts itself
+            herdr_name = agent_name(rid) if ad is not None and ad.herdr_kind else None
+            rec = {"id": rid, "name": name, "herdr_agent_name": herdr_name, "agent": agent, "cwd": real, "task": task, "effort": effort, "bypass": bool(bypass), "pane_id": pane_id,
                    "terminal_id": pane.get("terminal_id"), "workspace_id": pane.get("workspace_id"), "tab_id": pane.get("tab_id"), "native_id": native_id, "command": command, "match": tokens,
                    "state": "starting", "adopted": False, "agent_sends": False, "created_at": opened, "updated_at": time.time(), "ended_at": None, "end_reason": "", "created_by": by,
                    "api_key": bool(api_key), "harness": ad.id if ad is not None else None, "scene_session_id": scene, "project_root": pr, "mcp_config_path": cfg,
@@ -324,7 +326,7 @@ class Cockpit:
                 L.run(self.root, ["pane", "run", pane_id, *shlex.split(command)])
             elif ad is not None:
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
-                    L.run(self.root, ["agent", "start", agent_name(rid), "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
+                    L.run(self.root, ["agent", "start", herdr_name, "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
@@ -604,9 +606,15 @@ class Cockpit:
                 raise CockpitError("You are typing in this session: the agent's send is held back")
         if len(text) > 64000:
             raise CockpitError("input is limited to 64000 characters")
-        L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
         if submit:
-            L.run(self.root, ["pane", "send-keys", rec["pane_id"], "enter"])
+            # Herdr's native submission orders paste and Enter and acknowledges
+            # both writes. Split calls can lose Enter during paste acceptance.
+            # A failed/uncertain submission is never retried or given a fallback Enter.
+            native = rec.get("herdr_agent_name") or rec["agent"] in ("claude", "codex", "opencode")
+            command = ["agent", "prompt"] if native else ["pane", "run"]
+            L.run(self.root, [*command, rec["pane_id"], text])
+        else:
+            L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
 
     def note_native_id(self, sid: str, native_id: str) -> None:
         """Record the harness's own session id once it is known (Codex names it in its rollout, spec B2): only an empty one is

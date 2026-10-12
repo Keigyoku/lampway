@@ -34,6 +34,15 @@ ROUGH = (0.1, 0.25, 0.5, 0.75, 1.0)
 _MADE = {}
 
 
+def _material(base, metallic=0.0, roughness=0.5, level=0.5):
+    """A surface's Principled inputs, carried in the description so both halves build the same material (no hidden constant)."""
+    return {"Base Color": [float(c) for c in base], "Metallic": float(metallic), "Roughness": float(roughness),
+            "Specular IOR Level": float(level), "IOR": 1.5}
+
+
+LAMBERT = dict(roughness=1.0, level=0.0)          # the normals and lights scenes' surfaces: Lambert, no specular lobe
+
+
 def _camera(view):
     yaw = math.radians(VIEWS[view])
     loc = (DIST_M * math.sin(yaw), -DIST_M * math.cos(yaw), 0.0)
@@ -71,16 +80,19 @@ def describe(scene, size=768, views=("front",)):
     elif scene == "furnace":
         world = {"color": [1.0, 1.0, 1.0], "strength": 1.0}
         objects["spheres"] = [{"location": [round((i - 2) * 0.6, 6), 0.0, z], "radius_m": 0.25, "metallic": m, "roughness": r,
-                               "base_color": [1.0, 1.0, 1.0] if m else [0.5, 0.5, 0.5]}
+                               "base_color": [1.0, 1.0, 1.0] if m else [0.5, 0.5, 0.5],
+                               "material": _material([1.0, 1.0, 1.0] if m else [0.5, 0.5, 0.5], m, r)}
                               for m, z in ((1.0, 0.35), (0.0, -0.35)) for i, r in enumerate(ROUGH)]
         anchors["SHD"] = [(s["location"], 0.1) for s in objects["spheres"]]
     elif scene == "normals":
-        objects["plane"] = {"location": [0.0, 0.0, 0.0], "size_m": 2.4, "rotation_euler": [math.pi / 2, 0.0, 0.0], "bumps": 3, "texture": "dome_dx"}
+        objects["plane"] = {"location": [0.0, 0.0, 0.0], "size_m": 2.4, "rotation_euler": [math.pi / 2, 0.0, 0.0], "bumps": 3, "texture": "dome_dx",
+                            "material": _material([0.8, 0.8, 0.8], **LAMBERT)}
         lights.append({"type": "SUN", "energy": 3.0, "direction": [0.0, 0.35, -1.0], "angle_rad": 0.0})
         anchors["NRM"] = [([(i - 1) * 0.8, -0.001, 0.0], 0.3) for i in range(3)]
     else:
-        objects["plane"] = {"location": [0.0, 0.3, 0.0], "size_m": 2.6, "rotation_euler": [math.pi / 2, 0.0, 0.0], "base_color": [1.0, 1.0, 1.0]}
-        objects["sphere"] = {"location": [0.0, -0.3, -0.6], "radius_m": 0.25, "base_color": [0.5, 0.5, 0.5]}
+        objects["plane"] = {"location": [0.0, 0.3, 0.0], "size_m": 2.6, "rotation_euler": [math.pi / 2, 0.0, 0.0], "base_color": [1.0, 1.0, 1.0],
+                            "material": _material([1.0, 1.0, 1.0], **LAMBERT)}
+        objects["sphere"] = {"location": [0.0, -0.3, -0.6], "radius_m": 0.25, "base_color": [0.5, 0.5, 0.5], "material": _material([0.5, 0.5, 0.5], **LAMBERT)}
         lights += [{"type": "SUN", "energy": 1.0, "direction": [0.2, 1.0, -0.4], "angle_rad": 0.0},
                    {"type": "POINT", "energy": 100.0, "location": [-0.8, -0.6, 0.6], "radius_m": 0.0},
                    {"type": "SPOT", "energy": 200.0, "location": [0.8, -1.5, 0.8], "radius_m": 0.0, "spot_size_rad": math.radians(45.0), "spot_blend": 0.15,
@@ -113,6 +125,10 @@ def _mat(name, **inputs):
     for k, v in inputs.items():
         b.inputs[k].default_value = v
     return m
+
+
+def _inputs(material):
+    return {k: ((*v, 1.0) if k == "Base Color" else v) for k, v in material.items()}
 
 
 def _emissive(name, rgb):
@@ -192,11 +208,10 @@ def build(desc, view):
     for i, p in enumerate(o.get("patches", [])):
         plane(f"patch_{i:02d}", p["size_m"], p["location"], (math.pi / 2, 0, 0), _emissive(f"patch_{i:02d}", p["emission"]))
     for i, s in enumerate(o.get("spheres", [])):
-        sphere(f"sphere_{i:02d}", s["location"], s["radius_m"], _mat(f"sphere_{i:02d}", **{"Base Color": (*s["base_color"], 1.0), "Metallic": s["metallic"],
-                                                                                            "Roughness": s["roughness"]}))
+        sphere(f"sphere_{i:02d}", s["location"], s["radius_m"], _mat(f"sphere_{i:02d}", **_inputs(s["material"])))
     if "plane" in o:
         pl = o["plane"]
-        m = _mat("parity_plane", **{"Base Color": (*pl.get("base_color", [0.8, 0.8, 0.8]), 1.0), "Roughness": 1.0, "Specular IOR Level": 0.0})
+        m = _mat("parity_plane", **_inputs(pl["material"]))
         if pl.get("texture") == "dome_dx":
             nt = m.node_tree
             tex = nt.nodes.new("ShaderNodeTexImage")
@@ -208,7 +223,7 @@ def build(desc, view):
         plane("parity_plane", pl["size_m"], pl["location"], pl["rotation_euler"], m)
     if "sphere" in o:
         s = o["sphere"]
-        sphere("parity_sphere", s["location"], s["radius_m"], _mat("parity_sphere", **{"Base Color": (*s["base_color"], 1.0), "Roughness": 1.0, "Specular IOR Level": 0.0}))
+        sphere("parity_sphere", s["location"], s["radius_m"], _mat("parity_sphere", **_inputs(s["material"])))
     from mathutils import Vector
     for i, li in enumerate(desc["lights"]):
         ld = bpy.data.lights.new(f"parity_{li['type'].lower()}_{i}", li["type"])

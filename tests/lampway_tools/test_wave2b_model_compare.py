@@ -127,3 +127,17 @@ print("RESULT", json.dumps({"res": res, "disk": sealed_on_disk, "early": early, 
     assert d["after"]["ok"] and {m["label"] for m in d["after"]["models"]} == {"TripoSecret", "MeshySecret"}
     row = d["rows"][-1]
     assert row["kind"] == "decision" and row["question"] == "model_pick" and row["by"] == "user" and row["how"] == "blind" and len(row["options"]) == 2 and row["answer"] in row["options"]
+
+
+def test_temporary_geometry_import_cleans_materials_and_failure(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+from mixar.modules.lampway_tools.features import model_compare as M
+bpy.ops.wm.read_factory_settings(use_empty=True);ob=sphere('Source');mat=bpy.data.materials.new('Authored');mat.use_nodes=True;ob.data.materials.append(mat)
+p=os.path.join(root,'model.glb');bpy.ops.export_scene.gltf(filepath=p,export_format='GLB')
+before=ids();M._import_merged(p,0);assert ids()==before,(ids(),before)
+try:M._import_merged(p,'planted invalid yaw')
+except ValueError:pass
+else:raise AssertionError('invalid yaw accepted')
+assert ids()==before,(ids(),before)
+''')

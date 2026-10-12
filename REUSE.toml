@@ -261,7 +261,7 @@ SPDX-License-Identifier = "MIT"
 
 # Official TOON conformance fixtures, unmodified from toon-format/spec.
 [[annotations]]
-path = ["tests/toon/fixtures/**/*.json"]
+path = ["tests/toon/fixtures/**/*.json", "tests/toon/fixtures/LICENSE"]
 precedence = "override"
 SPDX-FileCopyrightText = "2025-2026 Johann Schopplich"
 SPDX-License-Identifier = "MIT"
@@ -905,6 +905,17 @@ path = ["scripts/dev/brand_art/lampway_icons.py", "tests/lampway/test_lampway_pl
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Lampway contributors"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "server/tests/tool_schema_debt.json"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Lampway contributors"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = "src/release/datafiles/fonts/ClashGrotesk-Regular.otf"
+SPDX-FileCopyrightText = "Indian Type Foundry"
+SPDX-License-Identifier = "LicenseRef-ITF-FFL"
 
 # Generated onboarding subtitles retain their checked-in source attribution.
 [[annotations]]

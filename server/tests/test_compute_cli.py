@@ -85,3 +85,9 @@ def test_a_recipe_parameter_travels_with_the_job_and_selects_the_ops_outputs(tmp
     rc, out, err, fake = run(["submit", "blender_offload", "--backend", "fake", "--input", "in.png:synthetic", "--param", "op=silhouette", "--param", "size=64", "--max-seconds", "300"], tmp_path)
     assert any(c[0] == "upload" and c[2] == "params.json" for c in fake.calls)
     assert "silhouette.png" in out and "state: provider_error" in out                      # the op named the extra output; the fake does not produce it, and the job says so
+
+
+def test_cli_emits_no_document_final_newline(tmp_path):
+    rc, out, _, _ = run([], tmp_path)
+    assert rc == 0
+    assert not out.endswith('\n')

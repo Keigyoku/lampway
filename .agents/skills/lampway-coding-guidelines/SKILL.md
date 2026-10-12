@@ -76,6 +76,8 @@ scripts/lampway/lampway --env Prod --copy --provider mock scene.blend   # server
   `$XDG_STATE_HOME/lampway/keyring.json` (an older `$LAMPWAY_HOME/keyring.json` is moved there once, verified) and points the server
   at Connections' file store, `LAMPWAY_SECRETS_DIR` (default `$XDG_STATE_HOME/lampway-secrets`). A test never uses the real ones.
 
+The launcher's `--help` and `-h` print the supported flags and exit successfully before build checks, profile writes or process launch. They never print secret values; unknown flags retain exit2.
+
 ## 3. Test suites
 
 | suite | command | needs |
@@ -184,5 +186,5 @@ module docstrings cited above, and the build order's rulings of 2026-10-05.
 | 2026-10-06 | BUILT_FROM written by the build | coordinator: "Write BUILT_FROM INTO wt-build/build/Prod/ every time you build ... Make it automatic" | the stamp was a hand step after the build, and it was missed: build/Prod held no BUILT_FROM while the integrator's copy was stamped | build_linux.sh stamps through built_from.sh; test_all reads its UNCLEAN and UNPUSHED marks; the bullet in section 2 | none |
 | 2026-10-07 | the agent pins beside Blender's | captain: "Pin the current herdr and Hermes releases the same way the Blender pin is done" | only Blender's pin was named in the build model, so a lane could treat Hermes or herdr as whatever was installed | the bullet in section 1: both pins, their tags, their build scripts, and what a bump is | none |
 | 2026-10-08 | governing AgentModes and execution/network contracts in the operating guide | captain's worker selection clarification, confirmed by the parent; PR4 governing-link closeout | the guide named the agent pins but not the governing mode and worker selection, render execution or enterprise network contracts | section 0 points at the contracts, separates worker mode from its Mode 1 service and preserves Mode 2's own login without credential transfer | captain clarification, confirmed 2026-10-08 |
-
 | 2026-10-08 | implicit initial worker service and explicit overrides | captain: "It's tied to the parent choice, until moved off it. Implicit until changed" | the preceding worker-service wording inferred an independent initial default | the governing paragraph names implicit parent service, explicit pinned worker overrides and separate mode selection | direct captain ruling |
+| 2026-10-08 | conventional launcher help | inherited setup audit I12 | --help refused before users could discover supported flags | static help exits0 without build/profile/server/app or secret access, unknown flags retain2 | two genuine RED help flags;32 launcher/Linux controls GREEN |

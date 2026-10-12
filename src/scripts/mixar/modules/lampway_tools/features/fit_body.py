@@ -93,12 +93,14 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
     if not armature:
         raise C.FeatureError("name the armature object whose bones are the body's joints")
     arm = C.need_object(armature, "ARMATURE")
+    from .normalize_rigged import require_complete_native
+    require_complete_native(arm)
     joints = _joints(arm)
     side = None
     if sidecar:
-        src = Path(root) / sidecar if not Path(sidecar).is_absolute() else Path(sidecar)
+        sidecar_src = Path(root) / sidecar if not Path(sidecar).is_absolute() else Path(sidecar)
         try:
-            side = NS.read(str(src))
+            side = NS.read(str(sidecar_src))
         except NS.SidecarError as e:
             raise C.FeatureError(f"the sidecar is refused: {e}")
         have = {j["name"] for j in joints}
@@ -134,7 +136,7 @@ def build(armature, mesh, glb, native_asset, uproject, sidecar, out, root):
         sidecar_vertices = int(len(side.ids))
         side_summary = {"schema": NS.SCHEMA, "vertices": sidecar_vertices, "triangles": int(len(side.T)), "bones": len(side.names),
                         "root_bone": side.root_bone, "dropped_triangles": side.dropped_triangles, "reoriented": side.reoriented}
-        shutil.copy(src, tmp / "sidecar.json")
+        shutil.copy(sidecar_src, tmp / "sidecar.json")
     for f in sorted(tmp.iterdir()):
         files[f.name] = _sha(f)
     pkg_sha = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()

@@ -22036,6 +22036,15 @@ msgstr ""
 msgid "Open Lampway's local bug report instructions"
 msgstr ""
 
+msgid "Local password"
+msgstr ""
+
+msgid "Sign in to Lampway"
+msgstr ""
+
+msgid "Leave empty if your local account has no password"
+msgstr ""
+
 msgid "Login failed"
 msgstr "ログインに失敗しました"
 

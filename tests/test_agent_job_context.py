@@ -7,6 +7,7 @@
 from dataclasses import dataclass, field
 import sys
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from mixar.modules.common.agent_execution_context import (
     clear_agent_execution_context,
@@ -107,6 +108,14 @@ def test_absent_agent_ctx_falls_back_for_job_stamp(monkeypatch):
 
 
 def test_matgen_forwards_context_captured_at_construction(monkeypatch):
+    # matgen_queue's package imports bpy_extras.image_utils: run alone, the root conftest's bpy_extras stub is not a
+    # package, so give it the same package shape mixar.modules.testing.mock_bpy installs (collection order must not decide).
+    if not hasattr(sys.modules.get("bpy_extras"), "__path__"):
+        extras = MagicMock()
+        extras.__path__ = []
+        monkeypatch.setitem(sys.modules, "bpy_extras", extras)
+        for sub in ("image_utils", "io_utils", "mesh_utils"):
+            monkeypatch.setitem(sys.modules, f"bpy_extras.{sub}", MagicMock())
     from mixar.modules.paint.procedural_materials import matgen_queue
 
     bpy = sys.modules["bpy"]
@@ -129,6 +138,7 @@ def test_matgen_forwards_context_captured_at_construction(monkeypatch):
         job = matgen_queue.enqueue_matgen_job(prompt="weathered copper", pipeline="fast")
     finally:
         clear_agent_execution_context()
+        matgen_queue._in_flight.pop("weathered copper", None)
 
     # The thread runs after the originating script's context has ended. A
     # different script's context must not be attributed to this queued job.
@@ -142,6 +152,7 @@ def test_matgen_forwards_context_captured_at_construction(monkeypatch):
     assert path == "/api/v1/matgen"
     assert body["prompt"] == "weathered copper"
     assert body["pipeline"] == "fast"
+    assert job.agent_context == body["agent_context"]
     assert body["agent_context"] == {
         "source": "agent",
         "session_id": "session-matgen",

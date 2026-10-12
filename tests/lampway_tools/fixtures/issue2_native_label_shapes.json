@@ -1,0 +1,261 @@
+{
+  "provenance": "Isolated current-overlay software GUI at 6331e542727e52d9a67a42a4bb3c12e0cac63e3e; 59 total targets, 14 without text/tooltip. These current-layout rows are separate from the original inventory below. The original rows retain only non-sensitive native label sources and ordinal handles; private UI text, geometry, scene identity and usage are excluded.",
+  "targets": [
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "VIEW_3D HEADER Other"
+    },
+    {
+      "type": "Row",
+      "text": "",
+      "prop": "type",
+      "prop_owner": "Zen Mode",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "Zen Mode.type"
+    },
+    {
+      "type": "Row",
+      "text": "",
+      "prop": "type",
+      "prop_owner": "Zen Mode",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "Zen Mode.type"
+    },
+    {
+      "type": "Row",
+      "text": "",
+      "prop": "type",
+      "prop_owner": "Zen Mode",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "Zen Mode.type"
+    },
+    {
+      "type": "Row",
+      "text": "",
+      "prop": "type",
+      "prop_owner": "Zen Mode",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "Zen Mode.type"
+    },
+    {
+      "type": "Popover",
+      "text": "",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "VIEW_3D HEADER Popover"
+    },
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "VIEW_3D HEADER Other"
+    },
+    {
+      "type": "Label",
+      "text": "",
+      "area_type": "VIEW_3D",
+      "region_type": "HEADER",
+      "label": "VIEW_3D HEADER Label"
+    },
+    {
+      "type": "Pulldown",
+      "text": "",
+      "area_type": "TOPBAR",
+      "region_type": "HEADER",
+      "label": "TOPBAR HEADER Pulldown"
+    },
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "TOPBAR",
+      "region_type": "HEADER",
+      "label": "TOPBAR HEADER Other"
+    },
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "TOPBAR",
+      "region_type": "HEADER",
+      "label": "TOPBAR HEADER Other"
+    },
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "STATUSBAR",
+      "region_type": "HEADER",
+      "label": "STATUSBAR HEADER Other"
+    },
+    {
+      "type": "Other",
+      "text": "",
+      "area_type": "STATUSBAR",
+      "region_type": "HEADER",
+      "label": "STATUSBAR HEADER Other"
+    },
+    {
+      "type": "Text",
+      "text": "",
+      "prop": "mixie_chat_input",
+      "prop_owner": "Scene",
+      "area_type": "AGENT_BUBBLE",
+      "region_type": "WINDOW",
+      "label": "Scene.mixie_chat_input"
+    }
+  ],
+  "original_inventory": {
+    "total_targets": 71,
+    "unlabeled_targets": 16,
+    "source_sha256": "8f33c17046a5efa2b83fb2e489eeab2b8f1d2b89239755016ce73f3865424919",
+    "archive_sha256": "0c916c9ff3c115dd41100ff4fc88829e78ec373775fa1062acb09124c886e1cc",
+    "redacted_receipt_sha256": "03cad0ae8d986358c373ee3bc548e4f4cda574c43b30e84539a5ff01a71d1f63",
+    "targets": [
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t6",
+        "label": "VIEW_3D HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "Row",
+        "prop": "type",
+        "prop_owner": "Zen Mode",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t9",
+        "label": "Zen Mode.type"
+      },
+      {
+        "text": "",
+        "type": "Row",
+        "prop": "type",
+        "prop_owner": "Zen Mode",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t10",
+        "label": "Zen Mode.type"
+      },
+      {
+        "text": "",
+        "type": "Row",
+        "prop": "type",
+        "prop_owner": "Zen Mode",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t11",
+        "label": "Zen Mode.type"
+      },
+      {
+        "text": "",
+        "type": "Row",
+        "prop": "type",
+        "prop_owner": "Zen Mode",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t12",
+        "label": "Zen Mode.type"
+      },
+      {
+        "text": "",
+        "type": "Popover",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t13",
+        "label": "VIEW_3D HEADER Popover"
+      },
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "VIEW_3D",
+        "region_type": "HEADER",
+        "original_target": "t14",
+        "label": "VIEW_3D HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "Pulldown",
+        "area_type": "TOPBAR",
+        "region_type": "HEADER",
+        "original_target": "t27",
+        "label": "TOPBAR HEADER Pulldown"
+      },
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "TOPBAR",
+        "region_type": "HEADER",
+        "original_target": "t33",
+        "label": "TOPBAR HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "TOPBAR",
+        "region_type": "HEADER",
+        "original_target": "t36",
+        "label": "TOPBAR HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "But",
+        "op": "MIXIE_CHAT_OT_toggle_completion_sound",
+        "area_type": "TOPBAR",
+        "region_type": "HEADER",
+        "original_target": "t37",
+        "label": "MIXIE_CHAT_OT_toggle_completion_sound"
+      },
+      {
+        "text": "",
+        "type": "Label",
+        "area_type": "STATUSBAR",
+        "region_type": "HEADER",
+        "original_target": "t39",
+        "label": "STATUSBAR HEADER Label"
+      },
+      {
+        "text": "",
+        "type": "Label",
+        "area_type": "STATUSBAR",
+        "region_type": "HEADER",
+        "original_target": "t41",
+        "label": "STATUSBAR HEADER Label"
+      },
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "STATUSBAR",
+        "region_type": "HEADER",
+        "original_target": "t43",
+        "label": "STATUSBAR HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "Other",
+        "area_type": "STATUSBAR",
+        "region_type": "HEADER",
+        "original_target": "t44",
+        "label": "STATUSBAR HEADER Other"
+      },
+      {
+        "text": "",
+        "type": "Text",
+        "prop": "mixie_chat_input",
+        "prop_owner": "Scene",
+        "area_type": "AGENT_BUBBLE",
+        "region_type": "WINDOW",
+        "original_target": "t70",
+        "label": "Scene.mixie_chat_input"
+      }
+    ]
+  }
+}

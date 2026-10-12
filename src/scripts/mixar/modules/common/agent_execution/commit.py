@@ -116,6 +116,15 @@ def _target_collection(bpy, name: str, scene):
     return coll
 
 
+def _checkpoint_before_write(scene):
+    """The admitted foreground write shares the chat's lazy checkpoint."""
+    try:
+        from mixar.modules.space_mixie_chat.core import turn_checkpoints
+        turn_checkpoints.before_mutation(scene)
+    except Exception:  # checkpoint availability must not strand a commit
+        logger.warning("Turn checkpoint before foreground commit unavailable", exc_info=True)
+
+
 def append_collection(params: dict, *, bpy_module=None, journal=None) -> dict:
     if bpy_module is None:
         import bpy as bpy_module
@@ -204,6 +213,7 @@ def append_collection(params: dict, *, bpy_module=None, journal=None) -> dict:
     journal.op_set_state(operation_id, RUNNING)
 
     # 5. the short publish — no yielding between the final check and the link
+    _checkpoint_before_write(scene)
     view = _ViewState(bpy, scene)
     created: list[str] = []
     try:

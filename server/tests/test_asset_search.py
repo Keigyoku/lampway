@@ -48,6 +48,7 @@ def test_an_untrained_server_says_so_and_search_is_a_404_the_client_understands(
     assert s == {"has_embeddings": False, "stored_asset_count": 0}
     r = signed.post("/api/v1/asset-search/search", data={"prompt": "helmet"})
     assert r.status_code == 404 and "trained" in r.json()["detail"]
+    assert "Libraries to Train" in r.json()["detail"] and "Train Model" in r.json()["detail"]
     p = signed.post("/api/v1/asset-search/train/prepare", data={"metadata": json.dumps(ASSETS)}).json()["data"]
     assert p["action"] == "full_train" and p["asset_count"] == 3 and p["unchanged_count"] == 0 and p["metadata_checksum"]
 

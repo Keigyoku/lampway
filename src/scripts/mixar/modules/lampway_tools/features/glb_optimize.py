@@ -21,30 +21,34 @@ from mathutils.bvhtree import BVHTree
 
 from .. import canon_io
 from . import common as C
-from .. import canon_io
 
 KINDS = ("objects", "meshes", "materials", "images", "actions", "cameras", "lights", "armatures", "textures", "node_groups", "collections")
 
 
 def _import(path):
-    before = {k: set(x.name for x in getattr(bpy.data, k)) for k in KINDS}
+    before = canon_io.snapshot_ids()
     sc = bpy.data.scenes.new("lw_glbopt")
-    with bpy.context.temp_override(scene=sc, view_layer=sc.view_layers[0]):
-        canon_io.import_raw(path)                  # the one importer (stamped raw): a round-trip check of the tool's own output, raw to raw
-    new = {k: [x for x in getattr(bpy.data, k) if x.name not in before[k]] for k in KINDS}
-    return sc, new
+    try:
+        with bpy.context.temp_override(scene=sc, view_layer=sc.view_layers[0], active_object=None,
+                                       object=None, selected_objects=[], selected_editable_objects=[]):
+            canon_io.import_raw(path)
+        new = {k: [x for x in getattr(bpy.data, k) if x not in before[k]] for k in KINDS}
+        return sc, new
+    except BaseException:
+        canon_io.remove_new_ids(before)
+        raise
 
 
 def _cleanup(sc, new):
-    if sc is not None and sc.name in bpy.data.scenes:
+    # batch_remove unlinks users together; comparing pointer identity tolerates prior removals.
+    if sc is not None and sc in set(bpy.data.scenes):
         bpy.data.scenes.remove(sc)
-    for k in KINDS:
-        coll = getattr(bpy.data, k)
-        for x in new.get(k, []):
-            try:
-                coll.remove(x)
-            except (ReferenceError, RuntimeError):
-                pass
+    # Remove the scene before its linked objects; keeping stale view layers in one
+    # batch with their object/data IDs invalidates the native importer's context.
+    current = {x for k in KINDS for x in getattr(bpy.data, k)}
+    made = [x for rows in new.values() for x in rows if x in current]
+    if made:
+        bpy.data.batch_remove(ids=made)
 
 
 def _points(objs):
@@ -117,6 +121,7 @@ def glb_optimize(glb, out, mesh_compression="draco", texture_px=1024, webp_quali
     if not os.path.isfile(glb) or not glb.lower().endswith(".glb"):
         raise C.FeatureError(f"{glb} is not a .glb file")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    before_ids = canon_io.snapshot_ids()
     sc_in = sc_out = None
     new_in, new_out = {}, {}
     try:
@@ -140,7 +145,8 @@ def glb_optimize(glb, out, mesh_compression="draco", texture_px=1024, webp_quali
                 img.scale(w, h)
                 img.pack()
             sizes.append(max(w, h))
-        with bpy.context.temp_override(scene=sc_in, view_layer=sc_in.view_layers[0]):
+        with bpy.context.temp_override(scene=sc_in, view_layer=sc_in.view_layers[0], active_object=None,
+                                       object=None, selected_objects=[], selected_editable_objects=[]):
             bpy.ops.export_scene.gltf(filepath=out, export_format="GLB", use_active_scene=True, export_animations=bool(keep_animation),
                                       export_draco_mesh_compression_enable=mesh_compression == "draco", export_image_format="WEBP",
                                       export_image_quality=int(webp_quality))
@@ -160,6 +166,7 @@ def glb_optimize(glb, out, mesh_compression="draco", texture_px=1024, webp_quali
     finally:
         _cleanup(sc_in, new_in)
         _cleanup(sc_out, new_out)
+        canon_io.remove_new_ids(before_ids)
     return {"out": out, "bytes_before": os.path.getsize(glb), "bytes_after": os.path.getsize(out),
             "checks": {"vertex_deviation_rel": round(float(dev), 6), "texture_ssim": ssim, "texture_px_after": max(sizes) if sizes else None,
                        "animation_frames_equal": frames_equal, "animations": {"before": anim_before["count"], "after": anim_after["count"]}},

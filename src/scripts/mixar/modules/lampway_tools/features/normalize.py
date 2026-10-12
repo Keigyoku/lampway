@@ -6,7 +6,7 @@
 could not be decided (specs/canon/normalization contracts/normalize_mesh.md, DOOR.md 3).
 
 Steps, each recorded in the receipt: import (canon_io.import_raw, settings pinned per container) -> frame (a DECLARED turn about Z
-from the caller or the recipe; a plate registration needs the facing margin the captain has not numbered yet; never a guess) ->
+from the caller or the recipe; otherwise four cardinal silhouettes against the approved plate with an explicit facing margin; never a guess) ->
 transform applied into the data (winding reversed under a mirror) -> scale STATE (real only with evidence; Tripo/Hi3D
 generator_normalised; else unknown) -> weld by position for a generated mesh (1e-5 m, refused above 5 % merged; never an authored
 mesh) -> lw_source_face (the raw face ids) -> measure -> pivot (the bounding box's bottom centre for an unplaced asset) -> stamp
@@ -16,6 +16,7 @@ import hashlib
 import json
 import math
 import re
+import tempfile
 from pathlib import Path
 
 import bmesh
@@ -55,7 +56,7 @@ def _r9(x):
     return [[round(float(c), 9) + 0.0 for c in row] for row in x] if np.ndim(x) == 2 else [round(float(c), 9) + 0.0 for c in x]
 
 
-def _decide_frame(turn_deg, recipe, plate, generator, root):
+def _decide_frame(turn_deg, recipe, plate, generator, root, ob=None, facing_margin=None):
     if turn_deg is not None:
         if not -180 <= float(turn_deg) <= 360:
             raise C.FeatureError("turn_deg is -180..360 (the piece's facing: -90 for a +X-facing import)")
@@ -65,12 +66,60 @@ def _decide_frame(turn_deg, recipe, plate, generator, root):
         if isinstance(r.get("turn_deg"), (int, float)):
             return float(r["turn_deg"]), {"kind": "declared", "evidence": {"method": "recipe_turn", "value": float(r["turn_deg"]), "reference": str(recipe)}}
     if plate:
-        if CA.SETTINGS["facing_margin"]["value"] is None:
+        margin = facing_margin if facing_margin is not None else CA.SETTINGS["facing_margin"]["value"]
+        if margin is None:
             raise C.FeatureError("plate registration needs the facing margin (setting facing_margin, decision D6: no number has been ruled): "
                                  "pass turn_deg (the piece's facing) instead")
+        return _register_frame(ob, plate, margin, root)
     if generator == "lampway_tool":
         return 0.0, {"kind": "source_convention", "evidence": {"method": "source_spec", "reference": "a Lampway tool writes the body frame"}}
     raise C.FeatureError("frame undecided: pass turn_deg (the piece's facing: -90 for a +X-facing import) or plate=<approved Front plate>")
+
+
+def _register_frame(ob, plate, margin, root):
+    """Canon normalize_mesh §6: four cardinal yaws, shared silhouette masks, true-aspect IoU."""
+    if isinstance(margin, bool) or not isinstance(margin, (int, float)) or not math.isfinite(margin) or not 0 <= margin <= 1:
+        raise C.FeatureError("facing_margin is an explicit IoU difference in 0..1; pass turn_deg instead if it is unruled")
+    report = measure_frame(ob, plate, root)
+    rows, path = report["ranking"], Path(root) / report["plate"]
+    best, second = rows[:2]
+    gap = report["gap"]
+    if gap <= 0 or gap < margin:
+        raise C.FeatureError(f"facing ambiguous: yaw {best['yaw']:g} IoU {best['iou']:.6f}, yaw {second['yaw']:g} IoU {second['iou']:.6f}; "
+                             f"difference {gap:.6f} needs margin {margin:g}; pass turn_deg")
+    evidence = {"method": "plate_silhouette_registration", "value": best["iou"], "second_best": second["iou"],
+                "margin": float(margin), "reference": report["plate"],
+                "receipt_sha256": hashlib.sha256(json.dumps({"plate_sha256": canon_io.file_sha256(path), "ranking": rows}, sort_keys=True).encode()).hexdigest()}
+    return best["yaw"], {"kind": "measured", "evidence": evidence}
+
+
+def measure_frame(ob, plate, root):
+    """Measure all cardinal candidates without accepting a facing margin or mutating input."""
+    from . import silhouette
+    from ..canon_geom import mask_iou, fit_masks_true_aspect
+    if ob is None:
+        raise C.FeatureError("plate registration needs the input mesh to render; pass turn_deg")
+    path = (Path(root) / plate).resolve()
+    if not path.is_relative_to(Path(root).resolve()) or not path.is_file():
+        raise C.FeatureError("plate must be an approved Front image under the project root")
+    target = silhouette._image_mask(path)
+    if not target.any():
+        raise C.FeatureError("the approved Front plate has no silhouette: provide alpha or its flat border background")
+    before = canon_io.snapshot_ids()
+    rows = []
+    try:
+        probe = ob.copy()
+        with tempfile.TemporaryDirectory(prefix="lw_facing_") as temp:
+            for yaw in (0.0, -90.0, 90.0, 180.0):
+                probe.matrix_world = Matrix.Rotation(math.radians(yaw), 4, "Z") @ ob.matrix_world
+                rendered = silhouette._render_mask(probe, probe, "Front", 512, Path(temp) / "mask.png")
+                a, b = fit_masks_true_aspect(rendered, target, 512)
+                rows.append({"yaw": yaw, "iou": mask_iou(a, b)})
+    finally:
+        canon_io.remove_new_ids(before)
+    rows.sort(key=lambda row: (-row["iou"], row["yaw"]))
+    return {"ranking": rows, "gap": rows[0]["iou"]-rows[1]["iou"],
+            "plate": str(path.relative_to(Path(root).resolve())), "plate_sha256": canon_io.file_sha256(path)}
 
 
 def _skinned(ob):
@@ -150,7 +199,7 @@ def _uv_sets(me, V):
 
 
 def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_hint=None, want_scale="any", scale_evidence=None, weld="auto",
-                     weld_distance_m=None, pivot="bbox_bottom_centre", pivot_offset=None, recipe="", plate="", root="."):
+                     weld_distance_m=None, pivot="bbox_bottom_centre", pivot_offset=None, recipe="", plate="", root=".", facing_margin=None, assembly=None):
     """Normalize one scene mesh object in place; returns (document, receipt)."""
     if ob.type != "MESH":
         raise C.FeatureError(f"{ob.name} is a {ob.type}, not a mesh: normalize it with its own kind's tool")
@@ -172,14 +221,14 @@ def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_h
         doc = json.loads(ob["lw_canon"])
         if not CA.validate(doc) and not CA.check(doc, canon_io.facts(ob)):
             return doc, None
-    turn, decision = _decide_frame(turn_deg, recipe, plate, generator, root)
+    turn, decision = _decide_frame(turn_deg, recipe, plate, generator, root, ob, facing_margin)
     unit = float(bpy.context.scene.unit_settings.scale_length)
     if abs(unit - 1.0) > 1e-9:
         raise C.FeatureError(f"the scene's unit scale_length is {unit}, not 1: a canonical asset is in metres (set it to 1 first)")
     backup, W0 = ob.data, ob.matrix_world.copy()
     ob.data = ob.data.copy()                                       # work on a copy: a refusal below leaves the object as it was
     try:
-        doc, rbytes = _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit)
+        doc, rbytes = _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit, assembly)
     except Exception:
         work = ob.data
         ob.data, ob.matrix_world = backup, W0
@@ -193,7 +242,7 @@ def normalize_object(ob, *, turn_deg=None, generator="unknown", raw=None, path_h
     return doc, rbytes
 
 
-def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit):
+def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_evidence, weld, dist, pivot, pivot_offset, unit, assembly=None):
     me = ob.data
     raw = dict(raw or (json.loads(ob["lw_raw"]) if "lw_raw" in ob.keys() else {}))
     raw_sha = raw.get("sha256") or canon_io.geometry_sha256(ob)
@@ -210,7 +259,7 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
     if mirror:
         me.flip_normals()
     ob.matrix_world = Matrix.Identity(4)
-    steps += [{"op": "axis_map", "matrix": _r9(A), "turn_deg": turn, "decision": decision["kind"]},
+    steps += [{"op": "axis_map", "matrix": _r9(A), "turn_deg": turn, "decision": decision["kind"], "evidence": decision["evidence"]},
               {"op": "apply_transform", "matrix": _r9(W), "winding_reversed": mirror}]
     steps.append({"op": "unit", "scene_scale_length": unit, "factor": 1.0})
     generated = generator in GENERATED
@@ -268,6 +317,8 @@ def _normalize(ob, turn, decision, generator, raw, path_hint, want_scale, scale_
                "output": {"canonical_sha256": canonical, "asset_id": f"raw-{raw_sha[:12]}"}, "steps": steps,
                "conventions": conventions_block(turn_deg=turn, weld_m=dist if welded else "n/a", source_frame=conv["source_frame"]["name"]),
                "settings": {k: CA.SETTINGS[k] for k in ("weld_m", "weld_guard_fraction", "pivot_rule", "facing_margin", "pair_scale_group")}, "refused": []}
+    if assembly is not None:
+        receipt["assembly"] = assembly
     rbytes = json.dumps(receipt, sort_keys=True, indent=1).encode()
     doc = {"schema": "lampway.canonical-asset", "schema_version": 1, "kind": "mesh", "asset_id": f"raw-{raw_sha[:12]}", "raw": raw_doc,
            "conventions": conv, "transform": {"applied": True, "object_matrix": _r9(np.eye(4))}, "scale": scale,
@@ -298,13 +349,13 @@ def _remove_new(before):
         bpy.data.batch_remove(new)
 
 
-def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None, root="."):
+def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any", scale_evidence=None, weld="auto", weld_distance_m=None, root=".", facing_margin=None):
     """The tool: a path (imported raw through canon_io, settings pinned per container) or a scene object, normalized in place. A
     refused FILE leaves nothing behind: every datablock its import brought in (objects, meshes, materials, images, ...) is removed,
     so a retry lands under the file's own names (audit F5)."""
     ob = bpy.data.objects.get(input) if isinstance(input, str) else None
     if ob is not None:
-        return _normalize_all([ob], None, None, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root)
+        return _normalize_all([ob], None, None, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root, facing_margin)
     p = Path(root) / input
     if not p.exists():
         raise C.FeatureError(f"{input} is neither an object nor a file under the project root")
@@ -321,18 +372,56 @@ def run(input, turn_deg=None, plate="", recipe="", generator="", want_scale="any
             hint = str(p.resolve().relative_to(Path(root).resolve()))
         except ValueError:
             hint = p.name
-        return _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root)
+        return _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root, facing_margin)
     except Exception:
         _remove_new(before)
         raise
 
 
-def _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root):
+def _normalize_all(objs, raw, hint, turn_deg, plate, recipe, generator, want_scale, scale_evidence, weld, weld_distance_m, root, facing_margin=None):
     out, receipts, unchanged = [], [], True
+    assembly, worlds, pivot_args = None, {}, {}
+    if len(objs) > 1:
+        # A file's meshes share one source frame. Capture it before baking any
+        # ancestor, and choose one origin for the whole imported assembly.
+        if plate and turn_deg is None and not recipe and generator != "lampway_tool":
+            raise C.FeatureError("assembly facing needs one shared turn_deg or a recipe turn; per-piece plate registration would change assembly placement")
+        turn, _ = _decide_frame(turn_deg, recipe, "", generator, root)
+        worlds = {o.as_pointer(): o.matrix_world.copy() for o in objs}
+        lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+        A = _rz(turn)
+        for o in objs:
+            node = o
+            while node is not None:
+                if node.constraints or node.animation_data:
+                    raise C.FeatureError("animated or constrained assembly transforms need an explicit static copy before mesh normalization")
+                node = node.parent
+            co = np.empty(len(o.data.vertices) * 3)
+            o.data.vertices.foreach_get("co", co)
+            if not len(co):
+                raise C.FeatureError(f"assembly member {o.name} has no vertices")
+            W = np.asarray(worlds[o.as_pointer()])
+            V = (co.reshape(-1, 3) @ W[:3, :3].T + W[:3, 3]) @ A.T
+            lo, hi = np.minimum(lo, V.min(0)), np.maximum(hi, V.max(0))
+        off = np.array([-(lo[0]+hi[0])/2, -(lo[1]+hi[1])/2, -lo[2]])
+        assembly = {"members": len(objs), "pivot_rule": "bbox_bottom_centre", "offset_m": _r9(off),
+                    "turned_bbox_min_m": _r9(lo), "turned_bbox_max_m": _r9(hi), "turn_deg": turn}
+        pivot_args = {"pivot": "source_origin", "pivot_offset": off, "assembly": assembly}
+        def depth(o):
+            n = 0
+            while o.parent is not None:
+                n += 1
+                o = o.parent
+            return n
+        objs = sorted(objs, key=depth)  # parents finish before child world matrices are restored
+        plate = ""
     for o in objs:
+        if assembly is not None:
+            o.matrix_world = worlds[o.as_pointer()]
+            bpy.context.view_layer.update()
         before = o.get("lw_canon")
         doc, rbytes = normalize_object(o, turn_deg=turn_deg, generator=generator or "unknown", raw=raw, path_hint=hint, want_scale=want_scale,
-                                       scale_evidence=scale_evidence, weld=weld, weld_distance_m=weld_distance_m, recipe=recipe, plate=plate, root=root)
+                                       scale_evidence=scale_evidence, weld=weld, weld_distance_m=weld_distance_m, recipe=recipe, plate=plate, root=root, facing_margin=facing_margin, **pivot_args)
         out.append(o.name)
         if rbytes is not None:
             unchanged = False

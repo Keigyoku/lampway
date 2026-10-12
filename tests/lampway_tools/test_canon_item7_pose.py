@@ -127,6 +127,8 @@ body.parent = ob; m = body.modifiers.new("Armature", "ARMATURE"); m.object = ob
 sleeve = load_obj(GOLD + "/C07_pose_solve/sleeve.obj", "sleeve")
 dof = {"bone": "upperarm_l", "axis": rig["dof"]["axis_world"], "range": rig["dof"]["range"], "step": rig["dof"]["step"],
        "expect": {"joint": "lowerarm_l", "along": "-up", "min_cm": 2.0}}
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects['sleeve'], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 r = api.fit_pose(kind="chest", piece="sleeve", body="body", armature="rig", dofs=[dof], regions={"arm_l": {"bones": ["upperarm_l"], "threshold_m": 0.01}},
                  out="fit/pose.json")
 res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "a_pose": r.get("a_pose"), "posed": r.get("posed"),
@@ -217,11 +219,124 @@ for i, b in enumerate(REF):
     body.vertex_groups.new(name=b).add([i], 1.0, "REPLACE")
 me2 = bpy.data.meshes.new("piece"); me2.from_pydata([(5, 5, 5), (5.1, 5, 5), (5, 5.1, 5)], [], [(0, 1, 2)]); me2.update()
 bpy.context.scene.collection.objects.link(bpy.data.objects.new("piece", me2))
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects["piece"], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 r = api.fit_pose(kind="chest", piece="piece", body="body", armature="rig", dofs="chest")
-res({"ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})
+h = api.fit_pose(kind="helmet", piece="piece", body="body", armature="rig", apply=True)
+res({"helmet_schema": h.get("schema"), "helmet_sweeps": len(h.get("sweeps") or []), "helmet_applied": h.get("applied"), "ok": r.get("ok"), "error": r.get("error"), "entries": r.get("entries"), "sweeps": len(r.get("sweeps") or []), "sign": r.get("sign_check")})
 '''
     r = run_script(PRE + body, timeout=300)
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["ok"], d["error"]
     assert d["entries"] == [] and d["sweeps"] == 60 and d["sign"]["moved_cm"] > 2.0, d
+    assert d["helmet_schema"] == "lampway.fit-pose/1" and d["helmet_sweeps"] == 30 and d["helmet_applied"] == [], d
+
+
+def test_captain_accepted_helmet_table_keeps_all_six_dofs_and_sign_falsifier():
+    from mixar.modules.lampway_tools import posing as PO
+    t = PO.TABLES["helmet"]
+    rows = t["dofs"] + t["chain"]
+    assert [(r["bone"],r["axis"]) for r in rows] == [(b,a) for b in ("neck_01","neck_02","head") for a in ("lateral","forward")]
+    assert all(r["range"] == [-8,8] and r["step"] == 4 for r in rows)
+    ref = _a_pose_skeleton()
+    samples = [(tuple(np.add(ref["head"]["pos"],(0.01,0,0))), "head")]
+    far = (np.array([[5.,5,5],[5.1,5,5],[5,5.1,5]]),np.array([[0,1,2]]))
+    out = PS.solve(ref,FRAME,samples,far,t["dofs"],t["chain"],regions=t["regions"])
+    assert out["entries"] == [] and out["sign_check"]["moved_cm"] > 0
+    with pytest.raises(PS.PoseError,match="sign check"):
+        PS.solve(ref,FRAME,samples,far,[dict(t["dofs"][0],axis="-lateral")],t["chain"],regions=t["regions"])
+
+
+def _descendant_chest_inputs():
+    """Synthetic positions, with descendant edges read from the native public profile."""
+    from mixar.modules.lampway_tools import posing as PO
+    parents = J(Path(__file__).resolve().parents[2] / 'src/scripts/mixar/modules/lampway_tools/canon', 'metahuman342-topology.json')['parents']
+    ref = _a_pose_skeleton()
+    selected = []
+    for side in ('l', 'r'):
+        for bone in (f'lowerarm_twist_01_{side}', f'hand_{side}', f'index_01_{side}'):
+            chain = []
+            current = bone
+            while current not in ref:
+                chain.append(current)
+                current = parents[current]
+            for child in reversed(chain):
+                parent = parents[child]
+                ref[child] = {'parent': parent, 'rot': (0., 0., 0., 1.),
+                              'pos': tuple(np.add(ref[parent]['pos'], (0, 0, -0.02)))}
+            selected.append(bone)
+    selected += ['spine_02', 'neck_01']
+    samples = [(tuple(np.add(ref[b]['pos'], (0, 0.03, 0))), b) for b in selected]
+    far = (np.array([[5., 5, 5], [5.1, 5, 5], [5, 5.1, 5]]), np.array([[0, 1, 2]]))
+    return ref, samples, far, PO.CHEST
+
+
+def test_native_weighted_descendants_are_measured_without_swallowing_other_regions():
+    ref, samples, far, table = _descendant_chest_inputs()
+    captured = []
+    def hits(origins, dirs, max_t, *piece):
+        captured.append(origins.copy())
+        return max_t / 2  # a known crossing, so descendants must contribute penetration
+    out = PS.solve(ref, FRAME, samples, far, table['dofs'], table['chain'], regions=table['regions'], hits=hits)
+    assert {k: row['samples'] for k, row in out['a_pose'].items()} == {'arm_l': 3, 'arm_r': 3, 'torso': 1, 'neck': 1}
+    assert out['a_pose']['arm_l']['over'] == out['a_pose']['arm_r']['over'] == 3
+    # This leaf's ray retains its actual weighted bone's origin, not the region root.
+    assert np.allclose(captured[0][2], ref['index_01_l']['pos'])
+    assert samples[2][1] == 'index_01_l'
+
+
+@pytest.mark.parametrize('corruption', ['empty', 'unknown_parent', 'cycle', 'ambiguous'])
+def test_invalid_or_empty_anatomical_region_refuses_before_any_ray(corruption):
+    ref, samples, far, table = _descendant_chest_inputs()
+    regions = {name: dict(row, bones=list(row['bones'])) for name, row in table['regions'].items()}
+    if corruption == 'empty':
+        samples = [(p, b) for p, b in samples if not b.endswith('_r')]
+    elif corruption == 'unknown_parent':
+        ref['hand_l'] = dict(ref['hand_l'], parent='missing_joint')
+    elif corruption == 'cycle':
+        ref['hand_l'] = dict(ref['hand_l'], parent='index_01_l')
+    else:
+        regions['torso']['bones'].append('upperarm_l')
+    rays = []
+    with pytest.raises(PS.PoseError, match='samples|parent|cycle|ambiguous'):
+        PS.solve(ref, FRAME, samples, far, table['dofs'], table['chain'], regions=regions,
+                 hits=lambda *args: rays.append(args) or np.full(len(args[0]), np.inf))
+    assert rays == []
+
+
+def test_the_native_tool_measures_descendant_weights_and_refuses_an_empty_region(goldens):
+    from canon_support import LOAD_OBJ
+    from test_wave3_weights import PRE
+    from blender_run import run_script
+    # Keep the golden surface and solver unchanged, but bind the skin to a real
+    # native-profile descendant instead of weighting its anatomical region seed.
+    setup = '''
+bpy.context.view_layer.objects.active = ob; ob.select_set(True)
+bpy.ops.object.mode_set(mode="EDIT")
+twist = arm.edit_bones.new("upperarm_twist_01_l")
+twist.parent = arm.edit_bones["upperarm_l"]
+twist.head = sh; twist.tail = sh + 0.3 * d
+bpy.ops.object.mode_set(mode="OBJECT")
+body.vertex_groups.clear()
+body.vertex_groups.new(name="upperarm_twist_01_l").add(list(range(len(body.data.vertices))), 1.0, "REPLACE")
+before_weights = [[(g.group, g.weight) for g in v.groups] for v in body.data.vertices]
+before_coordinates = [tuple(v.co) for v in body.data.vertices]
+'''
+    script = TOOL.replace('r = api.fit_pose(', setup + '\nr = api.fit_pose(', 1)
+    script += '''
+bad = api.fit_pose(kind="chest", piece="sleeve", body="body", armature="rig", dofs=[dof],
+                   regions={"unmeasured": {"bones": ["lowerarm_l"], "threshold_m": 0.01}}, out="fit/empty.json")
+res({"bad": bad, "empty_file": os.path.exists(os.path.join(root, "fit/empty.json")),
+     "weights_unchanged": before_weights == [[(g.group, g.weight) for g in v.groups] for v in body.data.vertices],
+     "geometry_unchanged": before_coordinates == [tuple(v.co) for v in body.data.vertices]})
+'''
+    r = run_script(PRE + LOAD_OBJ + f'GOLD = {str(goldens)!r}\n' + script, timeout=300)
+    assert r.rc == 0, r.out[-2000:]
+    measured, state = r.results[-2:]
+    assert measured['ok'], measured
+    assert measured['a_pose']['arm_l']['samples'] == measured['samples'] == 192
+    assert measured['a_pose']['arm_l']['over'] > 0
+    assert measured['entries'] == [{'bone': 'upperarm_l', 'axis': [0., 1., 0.], 'deg': 30.}]
+    assert not state['bad']['ok'] and 'no weighted skin samples' in state['bad']['error'], state
+    assert not state['empty_file'] and state['weights_unchanged'] and state['geometry_unchanged'], state

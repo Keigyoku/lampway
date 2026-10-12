@@ -24,9 +24,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OWNER = [s for s in os.environ.get("PII_OWNER_TERMS", "").split(",") if s]  # extra terms: names, handles, hostnames
 
 # (id, severity, regex). Edit the OWNER terms through PII_OWNER_TERMS or the list below.
+# Retain the original first dotted alphabetic-label admission, then consume the
+# complete host so allow-list matching cannot accept a truncated domain prefix.
+# Numeric version labels in prompt filenames are not admitted as email hosts.
 PATTERNS = [
     ("owner-email", "HIGH", os.environ.get("PII_OWNER_EMAIL_RE") or r"(?!)"),
-    ("any-email", "HIGH", r"(?<![\w.+-])[A-Za-z0-9._%+-]+@(?!users\.noreply\.github\.com|example\.(?:com|invalid|org)|lampway\.(?:local|dev)|anthropic\.com)[A-Za-z0-9-]+\.[A-Za-z]{2,}"),
+    ("any-email", "HIGH", r"(?<![\w.+-])[A-Za-z0-9._%+-]+@(?!(?:users\.noreply\.github\.com|example\.(?:com|invalid|org)|lampway\.(?:local|dev)|anthropic\.com)(?![\w.-]))[A-Za-z0-9-]+\.[A-Za-z]{2}[A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*"),
     ("home-path", "MEDIUM", r"/(?:var/)?home/(?!user\b|you\b|runner\b|ubuntu\b|<)[a-z][a-z0-9_.-]*"),
     ("owner-username", "MEDIUM", os.environ.get("PII_OWNER_USER_RE") or r"(?!)"),
     ("owner-paths", "MEDIUM", os.environ.get("PII_OWNER_PATH_RE") or r"(?!)"),
@@ -107,6 +110,22 @@ def _python_matrix_at_columns(line):
         return set()
 
 
+def _allowed_email(value):
+    """An email exemption covers its entire address or host, never a prefix."""
+    host = value.rsplit("@", 1)[1]
+    for allowed in ALLOW:
+        if allowed == "@example":
+            # Narrow the legacy RFC-example prefix to reserved exact hosts.
+            if host in {"example.com", "example.org", "example.net", "example.test", "example.invalid"}:
+                return True
+        elif allowed.startswith("@"):
+            if host == allowed[1:]:
+                return True
+        elif "@" in allowed and value == allowed:
+            return True
+    return False
+
+
 def scan_line(line, source_path=None):
     # The default remains strict for commit messages and callers without a path.
     matrix_columns = (_python_matrix_at_columns(line)
@@ -117,7 +136,8 @@ def scan_line(line, source_path=None):
             v = m.group(0)
             if pid == "any-email" and m.start() + v.index("@") in matrix_columns:
                 continue
-            if any(a and (a in v or a in line) for a in ALLOW):
+            if (_allowed_email(v) if pid == "any-email"
+                    else any(a and (a in v or a in line) for a in ALLOW)):
                 continue
             out.append((pid, sev, mask(v) if sev == "CRITICAL" else "[redacted]"))
     return out
@@ -264,6 +284,11 @@ def self_test():
         ids = {x[1] for x in f}
         need = {"home-path", "any-email", "account-id", "signed-url", "openrouter-key", "host-or-net"}
         miss = need - ids
+        for host in ("users.noreply.github.com", "example.com"):
+            # Both independent exemption paths must reject a suffix lookalike.
+            if not any(pid == "any-email" for pid, _, _ in
+                       scan_line("noreply" + "@" + host + ".evil.org")):
+                miss.add("email-domain-boundary")
         # media: a PNG with a text chunk
         try:
             from PIL import Image, PngImagePlugin

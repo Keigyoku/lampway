@@ -37,19 +37,33 @@ res({"unweighted": int((W.sum(1) < 1e-6).sum()), "dups": len(dup), "identical": 
     assert d == {"unweighted": 0, "dups": 5, "identical": True}
 
 
-# A torso (spine_03) and a left upper arm (upperarm_l, its twist child under it) as two skinned tubes; the arm runs along +x.
+# A torso (spine_03) and a left upper arm (upperarm_l, its lower-arm child under it) as two skinned tubes; the arm runs along +x.
 BODY = '''
 arm = armature(bones=(("spine_03", (0, 0, 1.0), (0, 0, 1.6), None), ("upperarm_l", (0.15, 0, 1.4), (0.55, 0, 1.4), "spine_03"),
-                      ("upperarm_twist_01_l", (0.25, 0, 1.4), (0.45, 0, 1.4), "upperarm_l")))
+                      ("lowerarm_l", (0.25, 0, 1.4), (0.45, 0, 1.4), "upperarm_l")))
 torso = tube("torso", r=0.15, z0=1.0, z1=1.6, seg=32, rings=24)
 arm_t = tube("arm_t", r=0.04, z0=0.15, z1=0.55, seg=16, rings=16)
 arm_t.rotation_euler = (0, math.radians(90), 0); arm_t.location = (0, 0, 1.4)
 bpy.context.view_layer.objects.active = arm_t; arm_t.select_set(True); bpy.ops.object.transform_apply(location=True, rotation=True); arm_t.select_set(False)
-for ob_, g in ((torso, "spine_03"), (arm_t, "upperarm_twist_01_l")):
+for ob_, g in ((torso, "spine_03"), (arm_t, "lowerarm_l")):
     vg = ob_.vertex_groups.new(name=g); vg.add([v.index for v in ob_.data.vertices], 1.0, "REPLACE")
 bpy.context.view_layer.objects.active = torso; torso.select_set(True); arm_t.select_set(True); bpy.ops.object.join(); torso.select_set(False)
 body = torso; body.name = "body"; m = body.modifiers.new("Armature", "ARMATURE"); m.object = arm
 '''
+
+
+def test_plan_refuses_an_unstamped_partial_native_helper_rig_before_weights():
+    d = run(BODY.replace("lowerarm_l", "upperarm_twist_01_l") + '''
+piece = tube("piece", r=0.05, z0=0.30, z1=0.40)
+vg = piece.vertex_groups.new(name="piece"); vg.add([v.index for v in piece.data.vertices], 1.0, "REPLACE")
+before = sorted(bpy.data.objects.keys())
+p = api.fit_bind("plan", piece="piece", armature="rig", roles={"piece": "cloth"},
+                 bind_overrides={"piece": {"bones": ["upperarm_l"]}}, out_dir="fb")
+res({"plan": p, "unchanged": before == sorted(bpy.data.objects.keys()),
+     "state_written": os.path.exists(os.path.join(root, "fb", "bind_state.json"))})
+''')
+    assert not d["plan"]["ok"] and "complete verified native topology" in d["plan"]["error"], d
+    assert d["unchanged"] and not d["state_written"], d
 
 
 def test_g07_5_a_sleeve_vertex_nearer_the_torso_takes_its_arm_bone_by_the_region_constraint():
@@ -67,7 +81,8 @@ sleeve.rotation_euler = (0, math.radians(90), 0); sleeve.location = (0, 0, 1.4)
 bpy.context.view_layer.objects.active = sleeve; sleeve.select_set(True); bpy.ops.object.transform_apply(location=True, rotation=True); sleeve.select_set(False)
 vg = sleeve.vertex_groups.new(name="sleeve"); vg.add([v.index for v in sleeve.data.vertices], 1.0, "REPLACE")
 out = os.path.join(root, "fb")
-api.fit_bind("plan", piece="sleeve", armature="rig", roles={"sleeve": "leather"}, bind_overrides={"sleeve": {"bones": ["upperarm_l"]}}, out_dir="fb")
+p = api.fit_bind("plan", piece="sleeve", armature="rig", roles={"sleeve": "leather"}, bind_overrides={"sleeve": {"bones": ["upperarm_l"]}}, out_dir="fb")
+assert p.get("ok"), p
 w = api.fit_bind("weights", piece="sleeve", armature="rig", out_dir="fb", body_object="body")
 rows = []
 if w.get("ok"):
@@ -86,7 +101,8 @@ cuff = tube("cuff", r=0.05, z0=0.30, z1=0.40, seg=16, rings=4)
 cuff.rotation_euler = (0, math.radians(90), 0); cuff.location = (0, 0, 1.4)
 bpy.context.view_layer.objects.active = cuff; cuff.select_set(True); bpy.ops.object.transform_apply(location=True, rotation=True); cuff.select_set(False)
 vg = cuff.vertex_groups.new(name="cuff"); vg.add([v.index for v in cuff.data.vertices], 1.0, "REPLACE")
-api.fit_bind("plan", piece="cuff", armature="rig", roles={"cuff": "cloth"}, bind_overrides={"cuff": {"bones": ["upperarm_l"]}}, out_dir="fb")
+p = api.fit_bind("plan", piece="cuff", armature="rig", roles={"cuff": "cloth"}, bind_overrides={"cuff": {"bones": ["upperarm_l"]}}, out_dir="fb")
+assert p.get("ok"), p
 w = api.fit_bind("weights", piece="cuff", armature="rig", out_dir="fb", body_object="body")
 rows = []
 if w.get("ok"):
@@ -103,7 +119,8 @@ def test_a_restrict_part_no_allowed_surface_reaches_is_refused_naming_its_zero_r
     d = run(BODY + '''
 far = tube("far", r=0.05, z0=0.0, z1=0.1, seg=8, rings=2, loc=(0, 0.0, 0.2))
 vg = far.vertex_groups.new(name="far"); vg.add([v.index for v in far.data.vertices], 1.0, "REPLACE")
-api.fit_bind("plan", piece="far", armature="rig", roles={"far": "cloth"}, bind_overrides={"far": {"bones": ["upperarm_l"]}}, out_dir="fb")
+p = api.fit_bind("plan", piece="far", armature="rig", roles={"far": "cloth"}, bind_overrides={"far": {"bones": ["upperarm_l"]}}, out_dir="fb")
+assert p.get("ok"), p
 w = api.fit_bind("weights", piece="far", armature="rig", out_dir="fb", body_object="body")
 res({"ok": w.get("ok"), "error": w.get("error")})
 ''')

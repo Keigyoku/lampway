@@ -212,6 +212,9 @@ evals/results/
 output//project.yml
 .serena/
 output/
+# Pinned manual source pages are shipping inputs, including output/install directories.
+!server/lampway_server/blender_docs/data/manual/**/
+!server/lampway_server/blender_docs/data/manual/**/*.rst
 evals/
 matgen_scripts/
 

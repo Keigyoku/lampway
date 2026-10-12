@@ -12,6 +12,7 @@ import bmesh
 import bpy
 import numpy as np
 
+from .source_identity import stamp_source
 from . import common as C
 from .. import canon_geom as G
 
@@ -263,4 +264,5 @@ def uv_unwrap(object, method="smart", angle_limit=66.0, margin=None, texel_densi
         out["requested_texel_density"] = float(texel_density)
     if checker:
         out["checker_material"] = _checker(new)
+    stamp_source(new, src)
     return out

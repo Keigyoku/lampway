@@ -42,6 +42,8 @@ python3 rail/rail.py check
 python -m pytest -q tests/rail
 ```
 
+The generated inspection schema directory is held by its own deterministic `schema.py --check` catalog row; changes to the schemas are made in the shared client/server schema source.
+
 CI runs all three on every push and pull request (`.github/workflows/rail.yml`), with the full history so the baseline is
 reachable and the server's dependencies installed for the generated documents. `.githooks/pre-push` runs `check --quick`.
 
@@ -56,3 +58,4 @@ baseline policy is doctrine: the captain's word.
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | no rail: procedures could drift from the code they describe, and nothing tied an AGENTS.md edit to a receipt | the check, sync, self-test and closeout; seventeen codes each with its plant; merge inheritance by three-way combination | captain ruling, 2026-10-05 |
 | 2026-10-06 | quick form and generated-doc leg | captain: "Those recs are fine" | a full history walk is the wrong cost for every push, and nothing held the generated tool docs | `--quick` for the hook (unpushed commits only), RAIL-018 for the catalog's generated documents, each with its plant and tests | captain ruling, 2026-10-06 |
+| 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |

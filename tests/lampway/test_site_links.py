@@ -66,7 +66,24 @@ STATIC_REFERENCES = {
         "https://projects.blender.org/blender/blender-manual",
         "https://projects.blender.org/lab/blender_mcp",
     },
+    # The packaged corpus records its versioned documentation links (templates filled from the build pin, never fetched).
+    "server/lampway_server/blender_docs/provenance.py": {
+        "https://docs.blender.org/api/{series}/",
+        "https://docs.blender.org/manual/en/{series}/",
+    },
+    # The vendored Lab inspect summaries' attribution (a docstring, never a request).
+    "src/scripts/mixar/modules/lampway_tools/inspect/_vendor/__init__.py": {
+        "https://projects.blender.org/lab/blender_mcp.git.",
+    },
 }
+# Only these references in this handoff are documentation, not an outbound API.
+# Do not admit the Epic host generally or carry this exception into executable code.
+UE_HANDOFF = "scripts/lampway/ue_cube_generator_handoff.md"
+UE_REFERENCES = {
+    f"https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/{name}?application_version=5.6"
+    for name in ("RenderingLibrary", "SceneCaptureComponent2D", "PostProcessSettings")
+}
+STATIC_REFERENCES[UE_HANDOFF] = UE_REFERENCES
 
 
 def _site_pages():
@@ -142,10 +159,10 @@ def test_packaged_attribution_is_exact_and_keeps_the_global_host_gate():
     files = [ROOT / p for p in STATIC_REFERENCES]
     references = [(p, url) for p, _n, url in _links_in(files)
                   if URL.match(url).group(1) not in HOSTS]
-    assert len(references) == 10
+    assert len(references) == 16      # manifest 7 + NOTICE 2 + provenance 2 + vendored 1 + UE handoff 3, and manifest's one repeat
     assert set(references) == {(p, url) for p, urls in STATIC_REFERENCES.items() for url in urls}
     assert _host_offenders(files) == []
-    assert "projects.blender.org" not in HOSTS and "docs.blender.org" not in HOSTS
+    assert "projects.blender.org" not in HOSTS and "docs.blender.org" not in HOSTS and "dev.epicgames.com" not in HOSTS
 
 
 @pytest.mark.parametrize("path", tuple(STATIC_REFERENCES))
@@ -179,6 +196,20 @@ def test_an_allowed_reference_does_not_hide_an_extra_url_on_its_line(tmp_path, m
     notice.parent.mkdir(parents=True)
     notice.write_text("https://projects.blender.org/lab/blender_mcp https://projects.blender.org/api/upload")
     assert _host_offenders([notice]) == [f"{CORPUS}NOTICE.md:1: projects.blender.org"]
+def test_native_and_python_profile_links_use_registered_local_operators():
+    native = (ROOT / "src/source/blender/editors/interface/interface_mixar_profile_card.cc").read_text()
+    python = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/topbar.py").read_text()
+    operators = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/operators/auth_ops.py").read_text()
+    guard = re.search(r"#ifdef LAMPWAY(.*?)#else(.*?)#endif", native, flags=re.S)
+    assert guard and "LAMPWAY:" in guard.group(1)
+    assert '"MIXIE_CHAT_OT_open_docs"' in guard.group(1)
+    assert '"MIXIE_CHAT_OT_report_bug"' in guard.group(1)
+    assert '"WM_OT_url_open"' in guard.group(2)
+    assert "MIXAR_URL_DOCS" in guard.group(2) and "MIXAR_URL_BUG" in guard.group(2)
+    for suffix in ("open_docs", "report_bug"):
+        assert f'"MIXIE_CHAT_OT_{suffix}"' in native
+        assert f'"mixie_chat.{suffix}"' in python
+        assert f'"mixie_chat.{suffix}"' in operators
 
 
 def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_path):
@@ -193,3 +224,21 @@ def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_pat
     finally:
         sys.modules[__name__].ROOT = saved
     assert bad == [f"{CORPUS}manifest.json:3: docs.blender.org.example.invalid"]
+
+
+def test_ue_references_are_exact_and_confined_to_the_documentation_handoff(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", tmp_path)
+    handoff = tmp_path / UE_HANDOFF
+    handoff.parent.mkdir(parents=True)
+    reference = sorted(UE_REFERENCES)[0]
+    handoff.write_text("\n".join(sorted(UE_REFERENCES)))
+    assert _host_offenders([handoff]) == []
+    plants = (reference.replace("dev.epicgames.com", "dev.epicgames.com.example.invalid"),
+              reference.replace("application_version=5.6", "application_version=5.8"),
+              "https://dev.epicgames.com/api/upload",
+              reference + "&redirect=https://example.invalid")
+    handoff.write_text("\n".join(plants))
+    assert len(_host_offenders([handoff])) == len(plants)
+    executable = handoff.with_suffix(".py")
+    executable.write_text(reference)
+    assert len(_host_offenders([executable])) == 1

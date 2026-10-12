@@ -21,6 +21,7 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 from .. import canon_io
+from .source_identity import stamp_source
 from . import common as C
 from .. import canon_io
 from . import silhouette as _sil
@@ -155,6 +156,7 @@ def lod_chain(root, object, ratios=None, protect=None, texture_scale=None, textu
         os.makedirs(out_dir, exist_ok=True)
     bpy.context.view_layer.update()
     lods = []
+    source_faces = len(src.data.polygons)
     with tempfile.TemporaryDirectory() as tmp:
         for i, (r, s) in enumerate(zip(ratios, ts), start=1):
             lod = _decimate(src, naming.format(name=src.name, n=i), r, keep)
@@ -165,7 +167,17 @@ def lod_chain(root, object, ratios=None, protect=None, texture_scale=None, textu
                     audit = bool(_w.audit(lod.name, arm.name)["pass"])
                 except C.FeatureError:
                     audit = False
-            lods.append({"object": lod.name, "ratio": r, "faces": len(lod.data.polygons), "max_deviation_rel": _deviation(lod, src),
+            stamp_source(lod, src)
+            faces = len(lod.data.polygons)
+            achieved_ratio = faces / max(source_faces, 1)
+            warnings = []
+            protection = f"preserve_uv_seams={bool(preserve_uv_seams)}, protect={protect!r}"
+            # Issue #2 G8 explicitly specifies relative target misses over 25%.
+            if abs(achieved_ratio - r) / r > 0.25:
+                warnings.append(f"achieved ratio {achieved_ratio:.6f} misses requested {r:g} by over 25%; protection settings: {protection}")
+            if lods and faces == lods[-1]["faces"]:
+                warnings.append(f"face count {faces} equals the previous LOD; protection settings: {protection}")
+            lods.append({"achieved_ratio": round(achieved_ratio, 6), "warnings": warnings, "object": lod.name, "ratio": r, "faces": len(lod.data.polygons), "max_deviation_rel": _deviation(lod, src),
                          "silhouette_iou": _iou(lod, src, tmp), "weight_audit_pass": audit, "texture_scale": s,
                          "textures": [_texture(t, s, out_dir, i, root) for t in tex]})
     return {"source": src.name, "source_faces": len(src.data.polygons), "protected_vertices": len(keep), "lods": lods,

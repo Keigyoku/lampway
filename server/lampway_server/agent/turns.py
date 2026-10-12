@@ -21,6 +21,7 @@ The client's contract (turn_events.py, queue_processor.py, slot_processor.py):
 
 import asyncio
 import copy
+import json
 import logging
 import uuid
 from dataclasses import dataclass, field
@@ -30,7 +31,7 @@ from .providers.base import ToolCall
 from . import server_tools, studio_tools, video_tools, prompt_tools, image_tools, ledger_tools, seed_tools, engine_tools, workbench_tools, compute_tools, vault_tools, cards_tools, files_tools, connections_tools, choices_tools, capabilities_tools, orphan_server_tools, marks_context, questions as Q
 from .. import capabilities as CAP
 from . import plan_tools
-from . import motion_tools
+from . import blender_docs_tools, motion_tools
 from .swarm import SwarmContext, SwarmManager, is_swarm_tool
 from .tools import UnknownTool, format_tool_result, script_for
 
@@ -501,6 +502,9 @@ class AgentHub:
             return capabilities_tools.call(call.name, call.arguments, origin="agent:main")
         if server_tools.is_local(call.name):                       # the studio drivers: on this machine, never in Blender
             return await asyncio.to_thread(server_tools.run, call.name, call.arguments)
+        if call.name in blender_docs_tools.NAMES:
+            result, failed = await blender_docs_tools.call(call.name, call.arguments)
+            return json.dumps(result), failed
         if call.name in prompt_tools.NAMES:
             return await prompt_tools.call(self.prompts, call.name, call.arguments)
         if call.name in ledger_tools.JOB_NAMES:

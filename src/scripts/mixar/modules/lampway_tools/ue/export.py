@@ -7,7 +7,7 @@
 The input is CANONICAL only (specs/canon/normalization/SCHEMA.md, lampway.body/1: metres, right-handed, +Z up, front -Y,
 transforms applied): an object whose transform is not applied, a negative scale or a scene that is not in metres is refused,
 never fixed here. The UE interchange frame (centimetres, left-handed) is reached only through the adapter, which is the FBX
-exporter with the fixed settings below plus UE Interchange's scene conversion; the receipt states that map as expected until a
+exporter with the settings below and measured skeletal convention recipes plus UE Interchange's scene conversion; the receipt states that map as expected until a
 live UE run proves it (M-GEO-01). Texture colour spaces and the normal convention come from the declared roles (pbr_pack's
 merge.json), never guessed.
 
@@ -37,7 +37,7 @@ QUAD_METHOD, NGON_METHOD = "FIXED", "EAR_CLIP"
 UV_EPS = 1e-6
 MORPH_MIN_M = 0.00015                          # UE drops morph deltas under 0.015 cm
 _MESH = dict(use_selection=True, apply_unit_scale=True, global_scale=1.0, apply_scale_options="FBX_SCALE_NONE", primary_bone_axis="Z",
-             secondary_bone_axis="X", add_leaf_bones=False, mesh_smooth_type="FACE", use_tspace=True, use_triangles=True, bake_anim=False,
+             secondary_bone_axis="X", axis_forward="-Z", axis_up="Y", add_leaf_bones=False, mesh_smooth_type="FACE", use_tspace=True, use_triangles=True, bake_anim=False,
              path_mode="COPY", embed_textures=False)
 SETTINGS = {
     "skinned_piece": dict(_MESH, object_types={"ARMATURE", "MESH"}),
@@ -158,16 +158,18 @@ def _ue_import(type_, hero, frame_rate, textures):
 
 
 def _write_fbx(path, settings, select, active):
+    from ..features import rig_export as RE
     vl = bpy.context.view_layer
     sel = [o for o in vl.objects if o.select_get()]
     act = vl.objects.active
     try:
-        for o in vl.objects:
-            o.select_set(False)
-        for o in select:
-            o.select_set(True)
-        vl.objects.active = active
-        bpy.ops.export_scene.fbx(filepath=str(path), **settings)
+        with RE._export_visibility(select):
+            for o in vl.objects:
+                o.select_set(False)
+            for o in select:
+                o.select_set(True)
+            vl.objects.active = active
+            bpy.ops.export_scene.fbx(filepath=str(path), **settings)
     finally:
         for o in vl.objects:
             o.select_set(o in sel)
@@ -205,8 +207,70 @@ def _material(ob, profile, merge, files):
         return {"material": mat.name, "error": str(exc)}
 
 
+def _animation_skeleton_readback(path, arm, container_name):
+    """Raw units and topology only: skeleton-only clips cannot prove skin binds."""
+    from ..features import rig_export as RE, export_checks as EC
+    from ..rig_tools import core as RC
+    unit = RE.unit_scale_factor(path)
+    carriers = EC.fbx_container_scale_failures(path)
+    scales = EC.fbx_bone_scale(path)
+    scale_failures = {name: scale for name, scale in scales.items()
+                      if any(abs(value - 1.0) > RC.BARS["scale"] for value in scale)}
+    _version, nodes = FX.parse(path.read_bytes())
+    objects = FX._top(nodes, "Objects") or {"children": []}
+    from io_scene_fbx.fbx_utils import FBX_KTIME
+    import numpy as np
+    scene = bpy.context.scene
+    # Pinned writer fbx_animations_do: scene-frame keys, start_zero=False,
+    # integral ktime conversion. Counts alone cannot prove keys at each frame.
+    expected_times = (np.arange(scene.frame_start, scene.frame_end + 1, dtype=float)
+                      / (scene.render.fps / scene.render.fps_base) * FBX_KTIME).astype(np.int64).tolist()
+    curves = [FX._child(node, "KeyTime") for node in objects["children"] if node["name"] == "AnimationCurve"]
+    times_match = bool(curves) and all(curve and curve["props"][0]["value"] == expected_times for curve in curves)
+    models, parents = {}, {}
+    for model in objects["children"]:
+        if model["name"] != "Model":
+            continue
+        ident, name, kind = [p["value"] for p in model["props"][:3]]
+        if ident in models:
+            raise ExportError("duplicate animation skeleton model identity")
+        models[ident] = {"name": name.split(b"\x00")[0].decode(), "kind": kind}
+    connections = FX._top(nodes, "Connections") or {"children": []}
+    for edge in connections["children"]:
+        if edge["name"] != "C" or len(edge["props"]) < 3:
+            continue
+        kind, child, parent = [p["value"] for p in edge["props"][:3]]
+        if kind == b"OO" and child in models and (parent in models or parent == 0):
+            if child in parents:
+                raise ExportError("ambiguous animation skeleton parent")
+            parents[child] = parent
+    bones = {ident: model for ident, model in models.items() if model["kind"] == b"LimbNode"}
+    hierarchy, invalid_containers = {}, []
+    for ident, bone in bones.items():
+        parent = parents.get(ident)
+        if parent in bones:
+            hierarchy[bone["name"]] = bones[parent]["name"]
+        else:
+            hierarchy[bone["name"]] = None
+            model = models.get(parent)
+            if not (model and model["kind"] == b"Null" and model["name"] == container_name
+                    and parents.get(parent) == 0):
+                invalid_containers.append(bone["name"])
+    expected = {bone.name: bone.parent.name if bone.parent else None for bone in arm.data.bones}
+    same = (bool(expected) and hierarchy == expected and len(hierarchy) == len(bones)
+            and set(scales) == set(expected) and not invalid_containers)
+    return {"ok": unit == 1.0 and not carriers and not scale_failures and same and times_match,
+            "scope": "raw_skeleton_units_topology_and_key_times", "unit_scale_factor": unit,
+            "container_scale_failures": carriers, "bone_scale_failures": scale_failures,
+            "hierarchy_matches": same, "bones_compared": len(bones),
+            "key_times_match": times_match, "frame_range": [scene.frame_start, scene.frame_end],
+            "invalid_containers": invalid_containers,
+            "bind_acceptance": "unverified; skeleton-only animation has no independent skin cluster binds",
+            "engine_acceptance": "unverified; requires actual native Unreal animation capture"}
+
+
 def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, hero, fmt, validation, bind_check, bake_receipt, profile_path,
-        root, bone_axis="Z", allow_unverified=False):
+        root, bone_axis=None, allow_unverified=False):
     if type_ not in TYPES:
         raise ExportError(f"type {type_!r}: one canonical path per type: {', '.join(TYPES)}")
     if fmt != "fbx":
@@ -221,6 +285,7 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
     scene = bpy.context.scene
     settings = dict(SETTINGS[type_])
     merge, files, losses, gate, ob, arm, tri = None, {}, [], None, None, None, None
+    convention, recipe, export_space = None, None, None
     if textures:
         merge, files = _declared_textures(Path(root) / textures if not Path(textures).is_absolute() else textures)
     if type_ in ("skinned_piece", "static_prop"):
@@ -230,7 +295,7 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
             arm = C.need_object(armature, "ARMATURE")
             _canonical(arm, scene)
             gate = FE.gates(ob, body, None, validation, bind_check, allow_unverified, root)
-            settings["primary_bone_axis"] = bone_axis
+            settings, convention, recipe = FE.export_settings(arm, settings, bone_axis)
         losses = _uv_and_morphs(ob, hero)
         if bake_receipt:
             want = json.loads((Path(root) / bake_receipt).read_text(encoding="utf-8")).get("triangles_sha256")
@@ -246,21 +311,30 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
             raise ExportError(f"frame_rate {frame_rate} differs from the scene's {fps:g} fps: set the scene rate (no resampling here)")
         if action and bpy.data.actions.get(action) is None:
             raise ExportError(f"no action named {action!r}")
+        clip = bpy.data.actions.get(action) if action else (arm.animation_data.action if arm.animation_data else None)
+        if clip is None:
+            raise ExportError("animation export needs one baked action: run lampway_rig_bake first")
+        settings, convention, recipe = FE.export_settings(arm, settings, bone_axis)
 
     out.mkdir(parents=True)
     rb, fbx = {}, None
     if type_ != "texture_set":
         fbx = out / f"{(ob or arm).name}.fbx"
         if ob is not None:
-            tri = _mesh_export(ob, [arm] if arm else [], settings, fbx)
+            if arm is not None:
+                from ..features import rig_export_space as ES
+                with ES.centimetre_copies(arm, [ob], None, settings, container_name=recipe["ue_armature_container"]) as prepared:
+                    export_space = prepared["receipt"]
+                    settings = prepared["exporter"]
+                    tri = _mesh_export(prepared["meshes"][0], [prepared["armature"]], settings, fbx)
+            else:
+                tri = _mesh_export(ob, [], settings, fbx)
         else:
-            ad = arm.animation_data or arm.animation_data_create()
-            old = ad.action
-            ad.action = bpy.data.actions[action] if action else old
-            try:
-                _write_fbx(fbx, settings, [arm], arm)
-            finally:
-                ad.action = old
+            from ..features import rig_export_space as ES
+            with ES.centimetre_copies(arm, [], clip, settings, container_name=recipe["ue_armature_container"]) as prepared:
+                export_space = prepared["receipt"]
+                settings = prepared["exporter"]
+                _write_fbx(fbx, settings, [prepared["armature"]], prepared["armature"])
         data = fbx.read_bytes()
         f = FX.facts(data)
         if ob is not None:
@@ -269,10 +343,11 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
                   "smoothing_present": "LayerElementSmoothing" in g["layers"], "all_triangles": bool(g.get("all_triangles")),
                   "triangles_match": g.get("triangles_sha256") == tri}
             if gate:
-                rb["joints"] = FE._readback(fbx, gate["joints"])
+                rb["joints"] = FE._readback(fbx, gate["joints"], convention, settings)
         else:
             rb = {"frames": scene.frame_end - scene.frame_start + 1, "animated_curves": len(f["curve_key_counts"]),
-                  "keys_per_curve": sorted(set(f["curve_key_counts"]))}
+                  "keys_per_curve": sorted(set(f["curve_key_counts"])),
+                  "skeleton": _animation_skeleton_readback(fbx, arm, recipe["ue_armature_container"])}
     if files:
         (out / "Textures").mkdir()
         for name, (p, _row) in files.items():
@@ -282,7 +357,7 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
     mat = _material(ob, profile, merge, files)
     import io_scene_fbx
     rec = {"schema": SCHEMA, "type": type_, "blender": {"version": bpy.app.version_string, "fbx_io": ".".join(map(str, io_scene_fbx.bl_info["version"]))},
-           "settings": _json_settings(settings), "axes": AXES, "hero": hero, "readback": rb, "textures": tex_rows, "material": mat,
+           "settings": _json_settings(settings), "recipe_selection": recipe, "export_space": export_space, "axes": AXES, "hero": hero, "readback": rb, "textures": tex_rows, "material": mat,
            "profile_sha256": PR.sha256(profile), "ue_look_cube": CB.receipt(CB.validate(profile)), "losses": losses + ([{"kind": "material", **{k: v for k, v in mat.items() if k in ("dropped", "clamped")}}] if mat and mat.get("dropped") else []),
            "gates": {"validation_counts": gate["counts"], "unverified_roles": gate["roles"], "mesh_sha256": gate["mesh_sha256"]} if gate else None}
     if fbx:
@@ -302,6 +377,8 @@ def run(type_, object_, armature, action, out_dir, textures, body, frame_rate, h
         failed.append("joints")
     if type_ == "animation" and rb.get("keys_per_curve") != [rb.get("frames")]:
         failed.append("keys_per_curve")
+    if type_ == "animation" and not rb["skeleton"]["ok"]:
+        failed.append("animation_skeleton")
     if failed:
         return dict(result, ok=False, error=f"read-back failed ({', '.join(failed)}): the written file is not what this path promises; see readback")
     return dict(result, ok=True)

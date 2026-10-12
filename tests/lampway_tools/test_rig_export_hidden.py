@@ -4,7 +4,7 @@
 import ast
 import copy
 import os
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from types import SimpleNamespace as NS
 
@@ -119,8 +119,11 @@ def writer(env, raises=False):
         seen.extend(o.name for o in env.layer if o.selected and o.visible_get() and not o.hide_select)
         if raises: raise RuntimeError('synthetic writer exception')
     env.bpy.ops.export_scene = NS(fbx=fbx)
+    ex = {'object_types': set()}
+    # The metre path's carrier: the requested objects themselves (main's centimetre copies are their own native controls).
     ns.update(ob=env.arm, mesh_obs=[env.skin], layer=list(env.layer), keep_sel=[o for o in env.layer if o.selected],
-              keep_active=env.layer.active, act=None, writing='synthetic-not-written.fbx', ex={})
+              keep_active=env.layer.active, act=None, writing='synthetic-not-written.fbx', ex=ex,
+              carrier=nullcontext({'armature': env.arm, 'meshes': [env.skin], 'action': None, 'exporter': ex, 'receipt': None}))
     exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])), 'production-writer-portion', 'exec'), ns)
     return seen
 
@@ -152,8 +155,13 @@ def test_conform_copy_can_enter_edit_without_mutating_source_or_collections(hidd
     gate = next((n for n in tr.body if isinstance(n, ast.With) and '_conform_visibility' in ast.unparse(n.items[0].context_expr)), None)
     if gate:
         gate = copy.deepcopy(gate)
-        index = next(i for i,n in enumerate(gate.body) if isinstance(n, ast.Expr) and isinstance(n.value, ast.Call) and ast.unparse(n.value.func) == 'C.activate')
-        gate.body = gate.body[index:index+2]
+        def activates(n):
+            return isinstance(n, ast.Expr) and isinstance(n.value, ast.Call) and ast.unparse(n.value.func) == 'C.activate'
+        # The rewrite may sit under the source_copy branch (`if not preserving:`); take the statements around the activation.
+        stmts = gate.body if any(activates(n) for n in gate.body) else next(
+            n.body for n in gate.body if isinstance(n, ast.If) and any(activates(x) for x in n.body))
+        index = next(i for i,n in enumerate(stmts) if activates(n))
+        gate.body = stmts[index:index+2]
         gate.items[0].context_expr.args = [ast.List(elts=[ast.Name(id='new',ctx=ast.Load()),ast.Starred(value=ast.Name(id='copies',ctx=ast.Load()),ctx=ast.Load())],ctx=ast.Load())]
         # Leave Edit Mode through the production admission helper's finally.
         body = [gate]

@@ -37,8 +37,36 @@ BUILD_ENV=""; COPY=0; PROVIDER="${LAMPWAY_PROVIDER:-mock}"; PORT="${LAMPWAY_SERV
 NO_SERVER=0; SYSTEM_KEYRING=0; PLAN=0; ACTION=run; BLEND=""
 KEY_FILE="${LAMPWAY_OPENROUTER_KEY_FILE:-}"; BUDGET="${LAMPWAY_OPENROUTER_BUDGET_USD:-3}"; IMAGE_BACKEND="${LAMPWAY_IMAGE_BACKEND:-}"
 refuse() { echo "error: $1"; shift; if [ $# -gt 0 ]; then echo "help[$#]:"; for h in "$@"; do echo "  - $h"; done; fi; exit 1; }
+usage() {
+  cat <<'HELP'
+Usage: lampway [options] [file.blend]
+
+Start the local Lampway server and application. Use --copy to open a disposable
+copy of a file. --help and --plan do not launch either process.
+
+  -h, --help                  Show this help and exit successfully
+  --env Dev|Prod              Select the installed build
+  --copy                      Open a copy of the supplied file
+  --provider NAME             mock, anthropic, openai, openrouter, chatgpt_plan,
+                              codex_cli or claude_cli
+  --port NUMBER               Local server port (default 8787)
+  --bridge-port NUMBER        Local bridge port (default 9876; 0 disables it)
+  --openrouter-key-file FILE  Read the key from a dotenv file; never a key argument
+  --budget USD               OpenRouter session spend ceiling (default 3)
+  --image-backend NAME        tripo, codex_cli or openrouter
+  --no-server                Launch the app without starting a server
+  --system-keyring           Use the system keyring
+  --plan                     Print resolved settings without launching
+  --install-desktop          Install the app-menu entry for the selected build
+  --uninstall-desktop        Remove the app-menu entry
+
+LAMPWAY_HOME selects the isolated profile. Provider access and paid operations
+retain their existing opt-in and user approval gates.
+HELP
+}
 while [ $# -gt 0 ]; do
   case "$1" in
+    -h|--help) usage; exit 0 ;;
     --env) BUILD_ENV="${2:?--env needs Dev or Prod}"; shift 2 ;;
     --copy) COPY=1; shift ;;
     --provider) PROVIDER="${2:?--provider needs a name}"; shift 2 ;;

@@ -99,3 +99,19 @@ res({"split": st, "open": cs, "source_vertices": n_before, "split_package_vertic
     assert d["open"]["head_included"] and d["open"]["native_openings_accepted"]
     assert d["open"]["head_winding"] > 0.5
     assert d["source_vertices"] == d["split_package_vertices"] and d["unchanged"]
+
+
+def test_preview_glb_and_native_sidecar_keep_their_distinct_bytes(tmp_path):
+    d = run(tmp_path, '''
+import hashlib
+body, arm = human()
+write_sidecar(body,arm,os.path.join(root,"sidecar.json"))
+bpy.ops.export_scene.gltf(filepath=os.path.join(root,"preview.glb"),export_format="GLB")
+b = api.fit_body("build",armature="rig",mesh="body",sidecar="sidecar.json",glb="preview.glb",out="fit/body")
+assert b.get("ok"), b
+package = b["package"]
+res({"sidecar_equal":open(os.path.join(package,"sidecar.json"),"rb").read() == open(os.path.join(root,"sidecar.json"),"rb").read(),
+     "preview_equal":open(os.path.join(package,"body.glb"),"rb").read() == open(os.path.join(root,"preview.glb"),"rb").read(),
+     "weights":api.fit_body("weights",out=package)})
+''')
+    assert d["sidecar_equal"] and d["preview_equal"] and d["weights"]["ok"], d

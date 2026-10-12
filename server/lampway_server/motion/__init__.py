@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Motion graphics: video drawn by code, frame by frame, deterministic (specs/motion_graphics/motion_graphics.md).
+"""Motion graphics: video drawn by code, frame by frame, deterministic (docs/canon/motion_graphics/motion_graphics.md).
 
 Two calls, each given ``new_capture``: a factory of FRESH capture adapters (``frames.Chromium``, or a fake). ``render(project_root, args,
 new_capture)`` drives one adapter one frame at a time (t = i / fps, never real time, in order from frame 0 in one browser), hashes every frame,
