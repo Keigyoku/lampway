@@ -82,21 +82,50 @@ print("RESULT", json.dumps({"err": err, "hfov": desc["cameras"]["front"]["ue_hfo
 def test_refusals_and_the_compare_path_with_captures(tmp_path):
     d = go(tmp_path, '''
 import shutil
-bad = call("ue_parity", scene="chart", profile=parity_profile(post__bloom=0.675), size=64, out_dir="parity/x1")
-dflt = call("ue_parity", scene="chart", size=64, out_dir="parity/x2")
-armour = call("ue_parity", scene="armour:export/none", profile=parity_profile(), size=64, out_dir="parity/x3")
+bad = call("ue_parity", scene="chart", profile=parity_profile(post__bloom=0.675), size=128, out_dir="parity/x1")
+dflt = call("ue_parity", scene="chart", size=128, out_dir="parity/x2")
+armour = call("ue_parity", scene="armour:export/none", profile=parity_profile(), size=128, out_dir="parity/x3")
 prof = parity_profile()
-a = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f1")
+a = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f1")
 cap = os.path.join(root, "caps"); os.makedirs(cap)
 shutil.copy(os.path.join(a["out_dir"], "lampway_front.exr"), os.path.join(cap, "ue_front.exr"))
-b = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f2", ue_captures="caps")
+unreceipted = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f0", ue_captures="caps")
+# a Lampway render standing in for the UE capture: its alpha is coverage, its receipt says so, and it is not k-scaled
+open(os.path.join(cap, "capture.json"), "w").write(json.dumps({"schema": "lampway.ue-parity-capture/1", "alpha": "coverage"}))
+b = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f2", ue_captures="caps", ue_linear_scale=1.0)
 shutil.copy(os.path.join(a["out_dir"], "lampway_front.exr"), os.path.join(cap, "ue_front.png")); os.remove(os.path.join(cap, "ue_front.exr"))
-c = call("ue_parity", scene="furnace", profile=prof, size=64, views=["front"], out_dir="parity/f3", ue_captures="caps")
+c = call("ue_parity", scene="furnace", profile=prof, size=128, views=["front"], out_dir="parity/f3", ue_captures="caps", ue_linear_scale=1.0)
 rep = json.load(open(os.path.join(b["out_dir"], "report.json")))
-print("RESULT", json.dumps({"bad": bad, "dflt": dflt, "armour": armour, "b": b, "c": c, "classes": rep["views"]["front"]["classes"], "shd": rep["views"]["front"]["metrics"]["SHD"]}))
+print("RESULT", json.dumps({"bad": bad, "dflt": dflt, "armour": armour, "b": b, "c": c, "unreceipted": unreceipted, "classes": rep["views"]["front"]["classes"], "shd": rep["views"]["front"]["metrics"]["SHD"]}))
 ''')
+    assert not d["unreceipted"]["ok"] and "capture.json" in d["unreceipted"]["error"], d["unreceipted"]
     assert "parity scenes compare with these off" in d["bad"]["error"] and "bloom" in d["bad"]["error"]
     assert not d["dflt"]["ok"] and "engine defaults are not the Titan project" in d["dflt"]["error"]
     assert not d["armour"]["ok"] and "ue_export receipt" in d["armour"]["error"]
     assert d["b"]["ok"] and d["classes"]["SHD"] == "pass" and d["classes"]["GEO"] == "pass" and d["shd"]["spheres"] == 10, d
     assert not d["c"]["ok"] and "mislabelled" in d["c"]["error"]
+
+
+def test_a_ue_capture_in_inverse_opacity_is_compared_as_coverage(tmp_path):
+    """The real UE shape (live chart run, lampway-finish-pr1): SCS_SCENE_COLOR_HDR writes inverse opacity in A, so the raw
+    silhouette IoU against Lampway's coverage alpha was 0.0. With the UE half's receipt naming inverse_opacity, the same pixels
+    compare as coverage; the receipt claiming coverage for them is the plant, and GEO must fail it."""
+    d = go(tmp_path, '''
+a = call("ue_parity", scene="furnace", profile=parity_profile(), size=128, views=["front"], out_dir="parity/g1")
+img = bpy.data.images.load(os.path.join(a["out_dir"], "lampway_front.exr"))
+px = np.array(img.pixels[:], dtype=np.float32).reshape(-1, 4)
+px[:, 3] = 1.0 - px[:, 3]
+img.pixels.foreach_set(px.ravel())
+cap = os.path.join(root, "caps_inv"); os.makedirs(cap)
+img.filepath_raw = os.path.join(cap, "ue_front.exr"); img.file_format = "OPEN_EXR"; img.save()
+out = {}
+for tag, alpha in (("declared", "inverse_opacity"), ("planted", "coverage")):
+    open(os.path.join(cap, "capture.json"), "w").write(json.dumps({"schema": "lampway.ue-parity-capture/1", "alpha": alpha}))
+    r = call("ue_parity", scene="furnace", profile=parity_profile(), size=128, views=["front"], out_dir="parity/g_" + tag, ue_captures="caps_inv", ue_linear_scale=1.0)
+    rep = json.load(open(os.path.join(r["out_dir"], "report.json")))["views"]["front"]
+    out[tag] = {"classes": rep["classes"], "iou": rep["metrics"]["GEO"]["silhouette_iou"], "alpha": rep["ue"].get("alpha")}
+print("RESULT", json.dumps(out))
+''')
+    assert d["declared"]["alpha"] == "inverse_opacity" and d["declared"]["classes"]["GEO"] == "pass", d
+    assert d["declared"]["classes"]["SHD"] == "pass", d
+    assert d["planted"]["classes"]["GEO"] == "fail" and d["planted"]["iou"] < 0.5, d

@@ -29,7 +29,7 @@ from the template's body).
 ## Contract
 
 ```json
-{"example": "object | .glb", "joints": "joints.json | 'views' | 'rig:<armature>'", "template": "fit_body package",
+{"example": "object | .glb", "joints": "joints.json | 'views' | 'rig:<armature>' | 'centre:rig:<armature>'", "template": "fit_body package",
  "hands": "views|none", "hidden": ["pelvis", "thigh_l", "thigh_r"], "convention": "blender", "weights": "procedural|none",
  "allow_outside": [], "out": "rig/<example>.rig.blend", "dry_run": false}
 ```
@@ -42,6 +42,19 @@ template's) unless the example IS the template body; a required joint missing; j
 canon 11).
 Receipt: `{residual: {rms_m, max_m}, ratios: {bone: r}, synthesized, hidden, outside, inside_rays, weights: {source, unweighted},
 sha256: {example, joints, template, out}}`.
+
+`centre:rig:<armature>` uses only the example's own deforming rig REST heads
+(canon20 B1(c)), then the exact canon11 B8 cross-section correction: 16 rays,
+three projected hit-mean passes, reach 5 cm for fingers, 8 cm for hand/foot,
+15 cm otherwise. A joint whose ring has fewer than 12 hits (10 for fingers)
+retains its base measurement, including if a later pass opens. Hidden joints
+retain their base. The receipt binds the measured document to the example's
+geometry SHA and records each pass, displacement, skip reason and document SHA.
+The source action, slot, pose, frame and geometry remain unchanged. Closed rings
+are geometry diagnostics, not anatomical or physical acceptance; the unchanged
+six-axis inside and copied-not-fitted refusals still apply. No outside waiver is
+created by measurement. The detector and harmonic-centering alternatives remain
+separate from this existing-rig correction.
 
 ## Goldens
 

@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Živjo, sem Naman iz Mixarja.
+
+2
+00:00:02,750 --> 00:00:06,200
+V nekaj minutah vam bom pokazal aplikacijo.
+
+3
+00:00:06,760 --> 00:00:08,250
+To je vaš 3D-pogled.
+
+4
+00:00:08,250 --> 00:00:10,300
+Prostor 3D, po katerem se lahko premikate.
+
+5
+00:00:11,000 --> 00:00:13,200
+Vlecite s srednjim gumbom za vrtenje, s koleščkom povečujte.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift in srednji gumb premikata pogled.
+
+7
+00:00:15,850 --> 00:00:17,160
+Poskusite sami.
+
+8
+00:00:18,180 --> 00:00:20,700
+Kliknite za izbor, G za premik,
+
+9
+00:00:20,700 --> 00:00:22,600
+R za vrtenje, S za spreminjanje merila.
+
+10
+00:00:22,600 --> 00:00:25,410
+Tu je nekaj uporabnih bližnjic.
+
+11
+00:00:26,040 --> 00:00:29,500
+Vidite otoček spodaj? To je Mixie, vaš agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Kliknite, da ga odprete.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie ima zavihke.
+
+14
+00:00:33,920 --> 00:00:38,800
+V Agent z običajnimi besedami povejte, kaj želite. Agent bo delal na prizoru.
+
+15
+00:00:39,400 --> 00:00:43,300
+Agent uporablja modele, kot so Tripo, Meshy in Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Za več nadzora odprite druge zavihke:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video ali World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Izberite model in prilagodite nastavitve.
+
+19
+00:00:53,560 --> 00:00:55,730
+Vse, kar ustvarite, pristane v knjižnici.
+
+20
+00:00:56,670 --> 00:00:58,700
+Vaše stvaritve so tukaj.
+
+21
+00:00:59,140 --> 00:01:03,000
+Povežite svojo knjižnico, da agent uporablja vaše vire,
+
+22
+00:01:03,000 --> 00:01:06,320
+in prihranite kredite.
+
+23
+00:01:06,830 --> 00:01:09,550
+Zgoraj levo je predal s prizori.
+
+24
+00:01:09,550 --> 00:01:12,980
+Vsak prizor ima svoj zavihek in agenta Mixie.
+
+25
+00:01:12,980 --> 00:01:17,010
+Izvajajte naloge vzporedno in kadar koli preklapljajte med njimi.
+
+26
+00:01:17,640 --> 00:01:21,100
+Ko je prizor pripravljen, preklopite v Cinema Mode,
+
+27
+00:01:21,100 --> 00:01:24,510
+da upravljate kamero in ustvarjate video poteke.
+
+28
+00:01:25,000 --> 00:01:26,700
+Ideje se začnejo v 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Povlecite moodboard z desne ali pritisnite tildo.
+
+30
+00:01:30,860 --> 00:01:33,500
+To je platno za reference in koncepte.
+
+31
+00:01:33,500 --> 00:01:36,270
+Sem spustite slike, videe ali skice.
+
+32
+00:01:36,940 --> 00:01:40,930
+Gradite grafe vozlišč za generativne modele, kot v ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Ste v Zen Mode, najpreprostejšem pogledu.
+
+34
+00:01:44,400 --> 00:01:46,840
+Poznate Blender? Preklopite v Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Na voljo je celoten delovni prostor Blenderja z vsemi ploščami in bližnjicami.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie deluje v obeh. Izberite, kar vam ustreza.
+
+37
+00:01:56,560 --> 00:01:57,570
+Vrnimo se v Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Naš program ustvarjalnih partnerjev vam ponuja kredite
+
+39
+00:02:02,200 --> 00:02:05,900
+in skupnost, ki oblikuje prihodnost umetne inteligence in 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+To je vse. Zdaj veste, kje je kaj.
+
+41
+00:02:08,550 --> 00:02:10,240
+Ustvarjajmo 3D skupaj.

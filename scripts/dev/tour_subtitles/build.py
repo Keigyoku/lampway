@@ -26,6 +26,16 @@ sys.path.insert(0, str(ROOT / "scripts/i18n"))
 from derive_catalogs import serbian_latin
 from rtl import log2vis
 
+_SPDX_HEADER = re.compile(
+    r"\A(?:# SPDX-(?:FileCopyrightText|License-Identifier):[^\n]*\n|#\n)+\n"
+)
+
+
+def translation_lines(path):
+    """Read logical cue lines, excluding only the leading SPDX metadata block."""
+    text = path.read_text(encoding="utf-8")
+    return _SPDX_HEADER.sub("", text, count=1).splitlines()
+
 
 def stamp(ms):
     seconds, millis = divmod(ms, 1000)
@@ -37,7 +47,7 @@ def stamp(ms):
 def tracks():
     schedule = json.loads((HERE / "en.json").read_text(encoding="utf-8"))
     texts = {"en": [row[2] for row in schedule]}
-    texts.update({p.stem: p.read_text(encoding="utf-8").splitlines()
+    texts.update({p.stem: translation_lines(p)
                   for p in sorted(HERE.glob("*.txt"))})
     texts["sr_RS@latin"] = [serbian_latin(s) for s in texts["sr_RS"]]
     for code, lines in texts.items():
@@ -61,6 +71,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
+    if not args.check:
+        OUT.mkdir(parents=True, exist_ok=True)
     stale = []
     count = 0
     for code, text in tracks():

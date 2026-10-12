@@ -34,7 +34,13 @@ drop was 49.541 deg against the target's 29.739 deg and the target root carried 
    expressed in canonical space), `t_c = units * rotate(b, t_native)` (`normalize`, `:287-313`). Inverse (`adapt`, `:328-342`):
    `q_native = b^-1 * q_c * b * q_ref`, `t_native = rotate(b^-1, t_c) / units`, onto the ORIGINAL native profile only.
 5. **Numbers**: quaternions normalized with a fixed sign (the last non-zero component positive, `qnorm`, `:43-51`); every number
-   rounded to 9 decimals; scale UNIFORM only (non-uniform refuses: tolerance 1e-5, canonical value the mean at 6 decimals,
+   rounded to 9 decimals. Rotation publication follows the bounded normalize/round orbit to its exact fixed point
+   or the lexicographically first cycle state; profile transforms and adapter basis use the same publication rule.
+   Canonical sample publication also selects the deterministic representative of the bounded adapter inverse/forward
+   quantized orbit, using only the declared reference, basis and units. This makes normalize → adapt → normalize
+   byte-stable without retaining native inputs. Both orbits refuse if they do not repeat within64steps.
+   Rebuilding retains exact equality and digest checks; neither rule supplies a tolerance for hashes or pure round trips.
+   Scale UNIFORM only (non-uniform refuses: tolerance 1e-5, canonical value the mean at 6 decimals,
    `:77-86`) — the same refusal canon 18 reaches for animated armatures.
 6. **Time**: 30 fps rational sample times plus the exact terminal time, never overshooting (`sample_times`, `:264-270`);
    duration bounded 0..3600 s; samples must carry EXACTLY the profile's bones (`_samples`, `:273-284`).
@@ -70,6 +76,7 @@ drop was 49.541 deg against the target's 29.739 deg and the target root carried 
 | 2026-09-16 | Native emission cannot return nine-decimal quaternions byte-identical (UE stores floats) | exact where achievable, physical bars for native emission | ADR 0012 A1 |
 | 2026-09-16 | Retarget dropped scale: root 2 became 1, hand 1.5 became 1 | carry the animated/reference-local scale ratio | `<codex-shelf>/issue33-task131-scale-comment.md` |
 | 2026-09-15 | A canonical hash changed on round trip (0.295336889 -> 0.29533689) | full intermediate precision, stable 9-decimal quaternions | `<codex-shelf>/issue33-task131-roundtrip-comment.md` |
+| 2026-10-09 | An actual generated 25-bone profile refused its own normalize operation: two rotations rebuilt from 0.903256622 to 0.903256621 | publish rotation fixed points before hashing and settle the coupled adapter orbit for canonical samples; retain exact rebuild validation and corrupted-profile refusals | I04 supplied profile replay and actual Walking 400-row tool chain |
 | 2026-09-16 | Identity retarget numerically close, NOT byte-identical (5.8e-8 cm, 1.6e-7 deg) | never turn closeness into identity | `<codex-shelf>/review-task130-canonical-converter-package.md` |
 
 ## E. Golden tests

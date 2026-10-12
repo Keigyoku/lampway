@@ -1,0 +1,166 @@
+1
+00:00:00,637 --> 00:00:02,154
+Hola, soy Namit de Mixart.
+
+2
+00:00:02,552 --> 00:00:06,186
+En los próximos minutos, te mostraré
+todo aquí mismo en tu aplicación.
+
+3
+00:00:06,733 --> 00:00:07,534
+Este es tu visor.
+
+4
+00:00:07,770 --> 00:00:10,314
+Es un espacio en tres de por el que puedes moverte.
+
+5
+00:00:10,314 --> 00:00:15,850
+Arrastra con el botón central para orbitar, haz scroll
+para el zoom, shift y botón central para desplazar.
+
+6
+00:00:15,850 --> 00:00:17,097
+Adelante, dale una vuelta.
+
+7
+00:00:18,145 --> 00:00:22,746
+Haz clic en algo para seleccionarlo, luego ge
+para mover, erre para rotar, ese para escalar.
+
+8
+00:00:22,746 --> 00:00:25,413
+Aquí tienes algunos atajos
+que te resultarán muy útiles.
+
+9
+00:00:26,059 --> 00:00:28,156
+¿Ves el pequeño icono de abajo?
+
+10
+00:00:28,156 --> 00:00:29,763
+Ese es Mixy, tu agente.
+
+11
+00:00:30,375 --> 00:00:31,270
+Haz clic para abrirlo.
+
+12
+00:00:32,203 --> 00:00:33,491
+Mixy tiene pestañas.
+
+13
+00:00:34,141 --> 00:00:38,300
+Agente, dile lo que quieres con palabras
+sencillas y hará el trabajo en tu escena.
+
+14
+00:00:38,861 --> 00:00:45,286
+Aunque el Agente puede usar modelos generativos como
+Tripo, Meshy o NanoBanana, si quieres más control sobre
+
+15
+00:00:45,286 --> 00:00:51,484
+las generaciones, puedes ir a la pestaña de modelos de
+tres de, imagen, vídeo y mundo para elegir de una
+
+16
+00:00:51,484 --> 00:00:53,115
+biblioteca y ajustar parámetros.
+
+17
+00:00:53,568 --> 00:00:55,809
+Todo lo que generes acabará en la biblioteca.
+
+18
+00:00:56,649 --> 00:00:58,383
+Tus creaciones están justo aquí.
+
+19
+00:00:59,277 --> 00:01:04,703
+Incluso puedes vincular tu propia biblioteca para que
+el agente busque tus recursos y los reutilice,
+
+20
+00:01:04,703 --> 00:01:06,080
+ahorrándote así créditos.
+
+21
+00:01:06,824 --> 00:01:09,403
+Arriba a la izquierda está el cajón de escenas.
+
+22
+00:01:09,943 --> 00:01:15,699
+Cada escena es una pestaña con su propio agente Mixy,
+así que puedes realizar tareas en paralelo y cambiar
+
+23
+00:01:15,699 --> 00:01:17,007
+entre ellas cuando quieras.
+
+24
+00:01:17,628 --> 00:01:23,535
+Cuando termines el trabajo de escena, puedes ir al modo
+cine, que te permite dirigir la cámara y crear flujos
+
+25
+00:01:23,535 --> 00:01:24,497
+de trabajo de vídeo.
+
+26
+00:01:24,988 --> 00:01:26,460
+Las ideas empiezan en dos de.
+
+27
+00:01:26,460 --> 00:01:29,843
+Saca el moodboard por la derecha o
+simplemente pulsa la tecla tilde.
+
+28
+00:01:30,865 --> 00:01:33,245
+Es un lienzo para referencias y conceptos.
+
+29
+00:01:33,630 --> 00:01:36,334
+Suelta imágenes, vídeos o bocetos justo aquí.
+
+30
+00:01:36,937 --> 00:01:40,958
+Incluso puedes crear grafos de nodos para usar
+modelos generativos similares a Comfy U I.
+
+31
+00:01:41,662 --> 00:01:44,176
+Ahora estás en el modo Zen, la vista más sencilla.
+
+32
+00:01:44,784 --> 00:01:46,906
+Si conoces Blender, cambia al modo motor.
+
+33
+00:01:47,748 --> 00:01:52,066
+El espacio de trabajo completo de Blender está ahí,
+cada panel y cada atajo que hayas usado.
+
+34
+00:01:52,990 --> 00:01:56,511
+Mixy funciona en ambos, así que
+elige el que te resulte más cómodo.
+
+35
+00:01:56,511 --> 00:01:57,573
+Volvamos al modo Zen.
+
+36
+00:01:58,210 --> 00:02:03,262
+También tenemos un programa de socios creativos donde
+obtienes créditos de inferencia y te unes a una
+
+37
+00:02:03,262 --> 00:02:05,914
+comunidad que define el futuro de la I A y el tres de.
+
+38
+00:02:06,569 --> 00:02:16,277
+Eso es todo.

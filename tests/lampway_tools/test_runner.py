@@ -95,10 +95,16 @@ def test_a_failing_tool_reports_rc_and_stays_a_result_not_an_exception(cfg, tmp_
     assert res.rc == 3 and "boom" in res.stdout
 
 
-def test_long_output_is_cut_with_a_size_hint_and_the_full_log_is_kept(cfg, tmp_path):
+@pytest.mark.parametrize("long_path", [False, True])
+def test_long_output_is_cut_with_a_size_hint_and_the_full_log_is_kept(cfg, tmp_path, long_path):
     cfg.blender = fake_exe(tmp_path / "noisy", 'yes line | head -n 5000')
-    res = R.run("patch_holes", [], cfg, max_chars=300, log_dir=tmp_path / "logs")
-    assert len(res.stdout) < 500 and "truncated" in res.stdout
+    log_dir = tmp_path / ("long-temp-path-" * 15) / "logs" if long_path else tmp_path / "logs"
+    if long_path:
+        assert len(str(log_dir)) > 200
+    res = R.run("patch_holes", [], cfg, max_chars=300, log_dir=log_dir)
+    hint, body = res.stdout.split("\n", 1)
+    assert len(body) == 300 and body == ("\n".join(["line"] * 5000))[-300:]
+    assert hint == f"(truncated, 24999 chars total - full log: {res.log})"
     log = Path(res.log)
     assert log.exists() and log.read_text().count("line") == 5000
 

@@ -49,7 +49,9 @@ def scene_tools(listed, readiness, health):
     if readiness == "ready" and not health.get("connected"):
         status = "connecting"
     elif readiness == "ready":
-        status = "available" if listed else "reconnect"
+        # A tools/list snapshot predates relay startup. Tool calls already route
+        # through the live relay; reconnecting does not make them more usable.
+        status = "available"
     else:
         status = readiness
     return {"scene_tools": status, "next_step": NEXT_STEPS.get(status, "")}

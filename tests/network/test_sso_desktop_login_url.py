@@ -31,3 +31,16 @@ def test_desktop_login_url_carries_pkce_state_and_source(monkeypatch):
 
 def test_login_window_covers_a_browser_signup():
     assert sso.SSO_LOGIN_TIMEOUT_S >= 600
+
+
+def test_loopback_signin_stores_pair_without_browser_or_callback_server(monkeypatch):
+    from types import SimpleNamespace
+    opened = []; stored = []
+    monkeypatch.setattr(sso, "get_server_url", lambda: "http://127.0.0.1:8787")
+    monkeypatch.setattr(sso.webbrowser, "open", lambda url: opened.append(url))
+    monkeypatch.setattr(sso, "start_callback_server", lambda _: (_ for _ in ()).throw(AssertionError("browser callback launched")))
+    monkeypatch.setattr(sso.requests, "post", lambda url, **kw: SimpleNamespace(status_code=200, json=lambda: {
+        "access_token": "synthetic-access", "refresh_token": "synthetic-refresh"}))
+    monkeypatch.setattr(sso, "store_login_token_pair", lambda a, r: (stored.append((a, r)) or True, ""))
+    result = sso.sso_login()
+    assert result["success"] and stored == [("synthetic-access", "synthetic-refresh")] and opened == []

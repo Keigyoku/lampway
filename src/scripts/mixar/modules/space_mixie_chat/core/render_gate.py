@@ -28,6 +28,8 @@ ERROR_TYPE = "render_in_progress"
 
 # Tools whose client scripts only read, so they cannot tag the render's graph.
 READ_ONLY_TOOLS = frozenset({
+    # Read-only scene inspection; its evaluated mode refuses inside the tool.
+    "lampway_inspect",
     "list_moodboard_images",
     # Encodes through attachment_compression.encode_blend_image_jpeg, which
     # creates no datablock.

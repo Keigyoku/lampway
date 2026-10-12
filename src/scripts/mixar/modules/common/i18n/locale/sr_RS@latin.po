@@ -3408,6 +3408,12 @@ msgstr ""
 msgid "Scroll Notification"
 msgstr "Pomeranje obaveštenja"
 
+msgid "Matrix"
+msgstr ""
+
+msgid "Euler"
+msgstr ""
+
 msgid "Wavefront (.obj)"
 msgstr ""
 
@@ -6900,6 +6906,9 @@ msgid "Lampway setup"
 msgstr ""
 
 msgid "Set up where the agent thinks, what may leave this machine and what may be spent"
+msgstr ""
+
+msgid "Continue to the next setup step"
 msgstr ""
 
 msgid "The step before"
@@ -27671,6 +27680,21 @@ msgstr "Sesija je istekla. {reason}"
 # derived
 msgid "Browser login did not complete. Please try again."
 msgstr "Prijava pregledačem nije dovršena. Pokušajte ponovo."
+
+msgid "Open the documentation served by this Lampway installation"
+msgstr ""
+
+msgid "Open Lampway's local bug report instructions"
+msgstr ""
+
+msgid "Local password"
+msgstr ""
+
+msgid "Sign in to Lampway"
+msgstr ""
+
+msgid "Leave empty if your local account has no password"
+msgstr ""
 
 # derived
 msgid "Login failed"

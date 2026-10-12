@@ -118,3 +118,28 @@ print("RESULT", json.dumps(out))
     assert res["uv"]["uv_changed"] is True and res["uv"]["pass"] is False, res["uv"]
     assert res["hole"]["open_edges"]["before"] > res["hole"]["open_edges"]["after"] and res["hole"]["outside"]["moved_vertices"] == 0, res["hole"]
     assert res["noreg"]["ok"] is False and "give the region" in res["noreg"]["error"], res
+
+
+def test_locality_accepts_the_box_object_shape_in_its_schema(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+r=call('edit_locality_check',before='Cube',after='Cube',region={'bbox':[-1,-1,-1,1,1,1]})
+print('RESULT '+json.dumps(r))
+''')[0]
+    assert out['ok'] and out['pass'], out
+
+
+def test_locality_argument_shapes_refuse_before_resolving_objects(tmp_path):
+    from issue2_isolated import run
+    out = run(tmp_path, '''
+from mixar.modules.lampway_tools.features import local_edit
+entered=[]
+local_edit.C.need_object=lambda *args: entered.append(args) or None
+base={'before':'a','after':'b','region':{'bbox':[0,0,0,1,1,1]}}
+bad=[{'before':[]},{'after':{}},{'margin_m':[]},{'tolerance_m':True},{'region':{'bbox':['0',0,0,1,1,1]}}]
+rows=[call('edit_locality_check',**dict(base,**change)) for change in bad]
+print('RESULT '+json.dumps({'rows':rows,'entered':entered}))
+''')[0]
+    assert not out['entered'], out
+    assert all(not r['ok'] for r in out['rows'])
+    assert all(any('lampway_edit_locality_check' in h for h in r['help']) for r in out['rows'])

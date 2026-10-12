@@ -43,6 +43,13 @@ def find_sentence(file: str, phrase: str):
     lines = (REPO / file).read_text().splitlines()
     for i, l in enumerate(lines, 1):
         if phrase in l or phrase.replace("`", "") in l.replace("`", ""):
+            if file == 'server/lampway_server/agent/prompt.py' and l.lstrip().startswith('- '):
+                parts = [l.lstrip()[2:].rstrip('\\').rstrip()]
+                cursor = i
+                while lines[cursor - 1].endswith('\\') and cursor < len(lines):
+                    parts.append(lines[cursor].strip().rstrip('\\').rstrip())
+                    cursor += 1
+                return ' '.join(parts), f"{file}:{i}"
             return phrase, f"{file}:{i}"
     raise LawError(f"the sentence {phrase!r} is not in {file}")
 
@@ -63,6 +70,12 @@ def registry() -> list:
                   for k, v in (sch.get("properties") or {}).items()]
         rows.append({"name": t.name, "description": t.description, "params": params, "offered": t.name in offered})
     return rows
+
+
+def registry_counts():
+    """Shared source for documentation and coordination-ledger headers."""
+    from ..mcp import offered_tools
+    return {'agent_tools': len(registry()), 'mcp_tools': len(offered_tools())}
 
 
 def registry_hash(rows) -> str:
@@ -207,12 +220,83 @@ def check(root, rows=None) -> dict:
     return {"ok": ok, "stale": stale, "user_owned": problems, "mirror": mir, "registry_hash": ra["hash"], "message": "" if ok else "run action=generate (then sync) to refresh the skills from the registry"}
 
 
-def mcp_instructions() -> str:
+MCP_WORKFLOW = [
+    "Each connection works in one scene tab; start separate work with lampway_scene_new, never bpy.data.scenes.new.",
+    "Use lampway_scenes and lampway_scene_switch to navigate tabs; lampway_projects and lampway_project_open continue saved work.",
+    "Call lampway_status for setup; build in small steps with run_blender_python, in metres, with exact names and printed checks.",
+    "Verify visible changes with lampway_ui_observe; never report what you have not seen.",
+    "Read each tool's description; follow the refusal's next step. Use Lampway's tools for measured normalize, retopo, UV, rig, paint, bake and export.",
+    "Find assets with lampway_vault_search, then lampway_vault_place.",
+    "After an uncertain outcome, inspect and use lampway_call_status or lampway_ui_call_status with the same call id; never blindly repeat an edit.",
+]
+
+def _mcp_command_names(line):
+    return set(re.findall(r"(?<![.\w])[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", line))
+
+
+def _mcp_workflow_lines(offered):
+    return [line for line in MCP_WORKFLOW if _mcp_command_names(line) <= offered]
+
+
+def mcp_local_tool_names():
+    """Packaging-only: read literal registry keys without importing Blender.
+
+    Server initialize calls mcp_instructions() and never accesses these client
+    files. Only generating the launcher copy needs the source checkout.
+    """
+    client = REPO / "src/scripts/mixar/modules"
+    def assignment(path, name):
+        tree = ast.parse(path.read_text())
+        return next(node.value for node in tree.body if isinstance(node, ast.Assign)
+                    and any(isinstance(target, ast.Name) and target.id == name for target in node.targets))
+    schemas = assignment(client / "common/ui_control/core/schema.py", "SCHEMAS")
+    if not isinstance(schemas, ast.Dict):
+        raise ValueError("Local schemas must declare literal tool keys")
+    internal = {ast.literal_eval(key) for key in schemas.keys}
+    aliases = ast.literal_eval(assignment(client / "mcp_bridge/core/aliases.py", "OLD_TO_NEW"))
+    return {aliases.get(name, name) for name in internal}
+
+
+def mcp_local_instructions(local_tool_names):
+    """Local workflow additions; the launcher filters against its visible tools."""
+    names = set(local_tool_names)
+    return "\n".join(line for line in MCP_WORKFLOW if _mcp_command_names(line) & names)
+
+
+def mcp_instructions(local_tool_names=()) -> str:
+    from ..mcp import offered_tools
+    offered = {tool.name for tool in offered_tools()} | set(local_tool_names)
     lines = ["Lampway's tools for the open Blender scene."]
-    lines += [f"- {s}" for s, _ in laws()[:6]]
-    lines += ["- Agents can plan, never confirm a spend: only the user confirms, from the Client.", "Project instructions: AGENTS.md in the project root"]
-    text = "\n".join(lines)
-    while len(text.encode()) > 2048 and len(lines) > 3:
-        lines.pop(-3)
-        text = "\n".join(lines)
-    return text
+    first = next((name for name in ("lampway_inspect", "scene_summary") if name in offered), None)
+    if first:
+        lines.append(f"First call {first} with no arguments to inspect the scene.")
+    workflow = _mcp_workflow_lines(offered)
+    safety = ["Nothing offered here spends credits: generation and studios are the user's, in the Client.",
+              "Agents can plan, never confirm a spend: only the user confirms, from the Client.",
+              "Ask the user when an open choice matters (method, style, scale, detail); settle small details yourself.",
+              "Native UI tools require the user's opt-in; never use OS-level computer use on Lampway.",
+              "Never delete or overwrite the user's source files; the tools write new files.",
+              "A proposal is never a ruling; only the user's tags or typed answers are.",
+              "Project instructions: AGENTS.md in the project root"]
+    # Reserve the safety guidance, then fit whole workflow bullets. UTF-8 bytes
+    # determine the cap; no phrase or multibyte character is cut in half.
+    chosen = []
+    for line in workflow:
+        if len('\n'.join(lines + chosen + [line] + safety).encode()) <= 2048:
+            chosen.append(line)
+    return '\n'.join(lines + chosen + safety)
+
+
+def mcp_fallback_source() -> str:
+    """Generated launcher copy; run this module to refresh it after registry changes."""
+    local_names = mcp_local_tool_names()
+    return ("# SPDX-FileCopyrightText: 2026 Lampway contributors\n"
+            "# SPDX-" "License-Identifier: GPL-3.0-or-later\n"
+            "# Generated by lampway_server.agent_files.generate; do not edit.\n"
+            "GUIDE = " + repr(mcp_instructions(local_names)) + "\n"
+            "LOCAL_GUIDE = " + repr(mcp_local_instructions(local_names)) + "\n")
+
+
+if __name__ == "__main__":
+    target = REPO / "src/scripts/mixar/modules/mcp_bridge/core/generated_guide.py"
+    target.write_text(mcp_fallback_source())

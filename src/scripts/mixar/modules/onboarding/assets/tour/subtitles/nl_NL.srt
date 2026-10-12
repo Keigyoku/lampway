@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Hoi, ik ben Naman van Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+In een paar minuten laat ik je de app zien.
+
+3
+00:00:06,760 --> 00:00:08,250
+Dit is je viewport.
+
+4
+00:00:08,250 --> 00:00:10,300
+Een 3D-ruimte waarin je kunt bewegen.
+
+5
+00:00:11,000 --> 00:00:13,200
+Sleep met de middelste knop om te draaien, scroll om te zoomen.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift en de middelste knop verschuiven het beeld.
+
+7
+00:00:15,850 --> 00:00:17,160
+Probeer het maar.
+
+8
+00:00:18,180 --> 00:00:20,700
+Klik om te selecteren, G om te verplaatsen,
+
+9
+00:00:20,700 --> 00:00:22,600
+R om te draaien, S om te schalen.
+
+10
+00:00:22,600 --> 00:00:25,410
+Hier zijn wat handige sneltoetsen.
+
+11
+00:00:26,040 --> 00:00:29,500
+Zie je het eilandje onderaan? Dat is Mixie, je agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Klik om het te openen.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie heeft tabbladen.
+
+14
+00:00:33,920 --> 00:00:38,800
+Vertel in Agent wat je wilt. De agent werkt aan je scène.
+
+15
+00:00:39,400 --> 00:00:43,300
+De agent gebruikt modellen zoals Tripo, Meshy en Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Open voor meer controle de andere tabbladen:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video of World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Kies een model en pas de instellingen aan.
+
+19
+00:00:53,560 --> 00:00:55,730
+Alles wat je genereert komt in de bibliotheek.
+
+20
+00:00:56,670 --> 00:00:58,700
+Hier staan je creaties.
+
+21
+00:00:59,140 --> 00:01:03,000
+Koppel je eigen bibliotheek zodat de agent je materiaal gebruikt,
+
+22
+00:01:03,000 --> 00:01:06,320
+en je credits bespaart.
+
+23
+00:01:06,830 --> 00:01:09,550
+Linksboven vind je de scènelade.
+
+24
+00:01:09,550 --> 00:01:12,980
+Elke scène heeft een eigen tabblad en Mixie-agent.
+
+25
+00:01:12,980 --> 00:01:17,010
+Voer taken naast elkaar uit en wissel op elk moment.
+
+26
+00:01:17,640 --> 00:01:21,100
+Als je scène klaar is, ga je naar Cinema Mode
+
+27
+00:01:21,100 --> 00:01:24,510
+om de camera te regisseren en videoworkflows te maken.
+
+28
+00:01:25,000 --> 00:01:26,700
+Ideeën beginnen in 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Trek het moodboard van rechts open of druk op tilde.
+
+30
+00:01:30,860 --> 00:01:33,500
+Het is een canvas voor referenties en concepten.
+
+31
+00:01:33,500 --> 00:01:36,270
+Sleep hier afbeeldingen, video's of schetsen naartoe.
+
+32
+00:01:36,940 --> 00:01:40,930
+Bouw knooppuntgrafen voor generatieve modellen, zoals in ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Je bent in Zen Mode, de eenvoudigste weergave.
+
+34
+00:01:44,400 --> 00:01:46,840
+Ken je Blender? Schakel dan naar Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+De volledige Blender-werkruimte is er, met elk paneel en elke sneltoets.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie werkt in beide. Kies wat prettig voelt.
+
+37
+00:01:56,560 --> 00:01:57,570
+Laten we teruggaan naar Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Ons programma voor creatieve partners geeft je credits
+
+39
+00:02:02,200 --> 00:02:05,900
+en een gemeenschap die de toekomst van AI en 3D vormgeeft.
+
+40
+00:02:06,580 --> 00:02:08,550
+Dat was het. Nu weet je waar alles zit.
+
+41
+00:02:08,550 --> 00:02:10,240
+Laten we samen 3D maken.

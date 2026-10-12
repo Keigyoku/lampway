@@ -1,0 +1,150 @@
+{
+  "$comment": "Generated from inspect/schema.py. SPDX-FileCopyrightText: 2026 Lampway contributors; SPDX-License-Identifier: GPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "if": {
+    "properties": {
+      "skipped": {
+        "maxItems": 0
+      }
+    }
+  },
+  "properties": {
+    "count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "data": {
+      "properties": {
+        "pairs": {
+          "items": {
+            "properties": {
+              "a": {
+                "type": "string"
+              },
+              "aligned_axes": {
+                "items": {
+                  "maximum": 2,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "b": {
+                "type": "string"
+              },
+              "gap_m": {
+                "type": "number"
+              },
+              "height_ratio": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "overlap_fraction": {
+                "type": "number"
+              },
+              "relation": {
+                "enum": [
+                  "inside",
+                  "overlaps",
+                  "on_top_of",
+                  "under",
+                  "touching",
+                  "near",
+                  "apart"
+                ]
+              },
+              "size_ratio": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "help": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "section",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tool": {
+      "const": "lampway_inspect"
+    },
+    "total": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "view": {
+      "const": "relations"
+    }
+  },
+  "required": [
+    "view",
+    "scene",
+    "count",
+    "total",
+    "data",
+    "skipped",
+    "help"
+  ],
+  "then": {
+    "properties": {
+      "data": {
+        "required": [
+          "pairs"
+        ]
+      }
+    }
+  },
+  "title": "lampway_inspect relations",
+  "type": "object"
+}

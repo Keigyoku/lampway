@@ -46,7 +46,9 @@ def _on_load_pre(*_args) -> None:
     from .export_destination import clear_all_destinations
     from .import_source import clear_all_sources
     from .session import get_session_manager
-    from .turn_checkpoints import is_restoring
+    from .turn_checkpoints import discard_all_pending, is_restoring
+
+    discard_all_pending()
 
     if is_restoring():
         # A turn-checkpoint restore reads a snapshot of THIS session while it

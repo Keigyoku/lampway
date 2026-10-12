@@ -369,6 +369,8 @@ def _execute_dequeued_request(req, status, lane) -> Optional[float]:
             if executor._execution_lock.locked():
                 result_dict = {"success": False, "error": "Previous script still executing"}
             else:
+                from . import turn_checkpoints
+                turn_checkpoints.before_script(chat_scene, req)
                 execution_started = True
                 result_dict = pump.execute_request(req, executor, on_success=_note_output_landed)
     except Exception:

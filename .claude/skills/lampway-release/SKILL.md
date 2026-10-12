@@ -28,15 +28,19 @@ python3 rail/rail.py check                                 # the rail (also in C
 - The same hook then runs `python3 rail/rail.py check --quick` (the rail's shape and the commits this push brings); CI runs the
   full rail check.
 - The gate blocks personal emails, home paths, owner usernames and paths, account ids, API keys, JWTs, bearer tokens, private
-  keys, signed URLs and media metadata. A match prints only the first four characters of a secret.
+  keys, signed URLs and media metadata. Personal identifiers and commit email domains are fully redacted; secrets show only
+  their first four characters. A finding must not republish the identifier it blocks.
+- Pull-request CI scans the event's explicit `base.sha..head.sha`: GitHub's synthetic merge identity is outside the authored branch range. Refuse unavailable event heads and use that same explicit head for fallback ancestry. Authored bad-email commits remain blocking; provider security/account settings and published-history remediation remain separately authorized. Published sensitive objects require coordinated removal, never an unapproved history rewrite.
 - **The maintainer's own patterns are never in the repository.** The hook reads `PII_OWNER_EMAIL_RE`, `PII_OWNER_USER_RE` and
   `PII_OWNER_PATH_RE` from a `pii_owner.env` file (mode 0600) in the shared git directory; CI reads repository secrets of the same
   names. Never print, copy or commit that file. Putting an owner value into a tracked file to make a test pass is the defect the
   gate exists for.
+- Adjacent Python matrix operators and structured bone attributes may resemble email syntax. A code-only classification requires proof of the operator and operands; quoted addresses, comments, bare email-shaped expressions, unknown syntax and owner-specific patterns remain strict. Do not resolve this false positive with a value/domain allowlist or by bypassing the gate.
 - Personal identifiers and commit email domains are fully redacted in gate output. The exact public GitHub provider noreply identity is safe commit metadata; lookalikes and authored personal identities remain blocked, and all commit content is scanned.
 - Proven Python matrix operators with matching structured bone operands are code; quoted values, comments, incomplete syntax and owner-specific patterns remain strict. Do not add value/domain exemptions for code.
 - PR CI scans the event base and authored head SHA, while push CI scans explicit push endpoints. Refuse a missing head rather than substituting checkout HEAD; use the event head for any merge-base fallback.
 - A known-fake value goes in `scripts/lampway/pii_allow.txt`, exactly, with the reason on the same line.
+- The exact public GitHub provider noreply identity is safe commit metadata; provider-domain lookalikes and other addresses remain blocked, and its content is still fully scanned.
 - Commit as your GitHub noreply address; the gate refuses any other author or committer email on a new commit.
 - `--git` also refuses any commit that ADDS a person's home: an unexpanded test placeholder directory (`@RUN_TMP@/...`), an app
   home's `chat_history/`, `checkpoints/`, `operation_history/` (and their siblings), a root-level `*.mixar`, or a
@@ -50,7 +54,7 @@ python3 rail/rail.py check                                 # the rail (also in C
 Every new file carries SPDX copyright and licence lines: an HTML comment in Markdown, a `#` comment in YAML frontmatter, code
 comments elsewhere; a file that cannot carry a comment gets a `REUSE.toml` entry. CI runs `reuse lint`
 (`.github/workflows/reuse-lint.yml`); locally `reuse --no-multiprocessing lint`. Upstream-original files keep their upstream
-copyright; Lampway's own are `Lampway contributors`.
+copyright; Lampway's own are `Lampway contributors`. Keep THIRD_PARTY.md and NOTICE.md licence links aligned with tracked licence texts and distinguish upstream/absent assets from shipped fonts. Anneal logs remain one contiguous Markdown table, including appended rows.
 
 ## 3. Never contact the upstream service, in release artefacts too
 
@@ -66,6 +70,8 @@ release build.
   increment changed) and the evidence, then `python3 rail/rail.py closeout --tag <tag>`; run the full suites and the gate on
   the exact commit you will tag; read the reports, not the exit codes alone.
 
+The full reference verdict is RED for every failure or error, including inherited baseline rows. Baselines retain attribution and shrink only from affirmative exact PASS identities; they never exempt failures. A component pass or missing native prerequisite cannot be reported as full-reference GREEN.
+
 ## 5. Evidence
 
 A release report states, for each gate, the command and its result, and names every suite that did not run (and why). A
@@ -74,6 +80,10 @@ skipped suite is not a pass. Dollar figures and live runs are quoted from their 
 Provenance: `scripts/lampway/prepublish_gate.py`, `.githooks/pre-push`, `.github/workflows/pii-gate.yml`, `CONTRIBUTING.md`,
 the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` directive.
 
+Release-contract merges retain both parents' privacy requirements and historical rows, keep the anneal table contiguous, and regenerate both harness copies from the canonical skill.
+
+Email content exemptions apply to an entire matched address or host. Reject suffix lookalikes in both regex exceptions and known-fake entries; a known-fake address on a line must not suppress a second address. Retain exact-host controls and scanner CLI redaction. Preserve versioned prompt filenames as non-contact text; responsive fixtures use reserved fake domains without changing address lengths.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -81,5 +91,11 @@ the build order's lanes and main rulings (2026-10-05), Titan's `dox-closeout` di
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | the pre-publish and release steps were spread across the hook, CI, CONTRIBUTING and the build order | one procedure for every push and every tag, with the DOX closeout row read by `rail.py closeout` | captain ruling, 2026-10-05 |
 | 2026-10-06 | the rail in the pre-push hook | captain: "Those recs are fine" (recommendation 2) | an unreceipted rail change was caught only after it was published, by CI | `.githooks/pre-push` runs `rail.py check --quick` after the pre-publish gate; a branch without the rail skips it | captain ruling, 2026-10-06 |
 | 2026-10-06 | private paths in --git | the coordinator found 436 files under `@RUN_TMP@/home/…/app/` in the integrator's unpushed commit d4272d6e | a test ran the binary with an unexpanded placeholder home; it migrated the person's real ~/.mixar into the repository and `git add -A` committed it | PRIVATE_PATHS in `--git` with a self-test case, the same shapes in .gitignore, the history rewrite rule above | none |
-
+| 2026-10-07 | PII finding output redacted | captain: fix the PR privacy failure | the gate retained personal values and commit email domains in public diagnostics; GitHub also generated a personal-email PR merge | redact identifiers, distinguish the exact public provider identity with lookalike and secret controls, preserve merge checks, and resolve provider privacy at its source | planted text and commit identity regressions |
+| 2026-10-07 | native matrix operator classification | complete topology regression publication | executable matrix attributes matched the generic email pattern | prove structured matrix code and retain real-address/owner-pattern controls without allowlist changes or history rewrite | matrix and email planted regressions |
+| 2026-10-07 | explicit PR authored range | captain: issue2 G24 | GitHub synthetic merge committer caused false-positive branch privacy failures | scan event base/head endpoints, refuse unavailable head and retain real bad-email controls without account-setting changes | executed workflow good/bad branch, push and fallback controls |
+| 2026-10-07 | strict no-red completion | captain: inherited reds must be fixed | baseline-attributed failures could return GREEN | every known/new failure forces RED while exact PASS shrinking and attribution remain intact | known FAILED/ERROR controls for both suites with and without shrink |
 | 2026-10-07 | scoped PR1 publication dependencies | parent: integrate tested G24 gate/workflow fixes into PR3 | diagnostics exposed identifiers, matrix expressions resembled addresses, and checkout merge HEAD was a different endpoint | redact identifiers, prove matrix syntax, retain exact-provider/lookalike controls and scan explicit event endpoints | 33 gate/workflow/host/R04 regression cases; source 75a00df9, a4f2cee3, dc732196 |
+| 2026-10-08 | publication inventory and continuous anneal table | captain assigned PR3 review5450133925 two LOW findings | moved font licence left a stale inventory link/status and a blank line split the log table | verify tracked licence targets and upstream/absent status; keep anneal rows contiguous before regenerating skill copies | actual licence path and generated-copy/rail checks |
+| 2026-10-08 | merged publication contracts | captain: merge main after PR3 | duplicate publication changes conflicted with the MCP branch and could lose either history | retain both privacy contracts and parent rows before regenerating skill copies | merged rail check and publication regression selection |
+| 2026-10-08 | email content domain boundaries | PR3 finding4213654799 assigned to MCP owner | unbounded regex and known-fake prefixes accepted malicious suffix hosts | match full hosts and scope email exemptions to the matched address | 21 initial RED cases, allowlist RED, full privacy regression GREEN |

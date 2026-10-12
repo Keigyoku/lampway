@@ -1,0 +1,197 @@
+{
+  "$comment": "Generated from inspect/schema.py. SPDX-FileCopyrightText: 2026 Lampway contributors; SPDX-License-Identifier: GPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "if": {
+    "properties": {
+      "skipped": {
+        "maxItems": 0
+      }
+    }
+  },
+  "properties": {
+    "count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "data": {
+      "properties": {
+        "backups": {
+          "items": {
+            "properties": {
+              "age_seconds": {
+                "type": "number"
+              },
+              "path": {
+                "type": "string"
+              },
+              "size_bytes": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "datablocks": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "libraries": {
+          "items": {
+            "properties": {
+              "indirect": {
+                "type": "boolean"
+              },
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "missing_files": {
+          "items": {
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "saved_age_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unsaved": {
+          "type": "boolean"
+        },
+        "usage_guess": {
+          "items": {
+            "properties": {
+              "score": {
+                "type": "number"
+              },
+              "use": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    },
+    "help": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "scene": {
+      "type": "string"
+    },
+    "skipped": {
+      "items": {
+        "properties": {
+          "object": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "object",
+          "section",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tool": {
+      "const": "lampway_inspect"
+    },
+    "total": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "view": {
+      "const": "file"
+    }
+  },
+  "required": [
+    "view",
+    "scene",
+    "count",
+    "total",
+    "data",
+    "skipped",
+    "help"
+  ],
+  "then": {
+    "properties": {
+      "data": {
+        "required": [
+          "path",
+          "unsaved",
+          "saved_age_s",
+          "backups",
+          "datablocks",
+          "missing_files",
+          "libraries",
+          "usage_guess"
+        ]
+      }
+    }
+  },
+  "title": "lampway_inspect file",
+  "type": "object"
+}

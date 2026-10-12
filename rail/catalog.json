@@ -52,5 +52,14 @@
       "owner": "rail/skills/lampway-canon/SKILL.md"
     }
   },
-  "exemptions": []
+  "exemptions": [],
+  "generated": [
+    {
+      "doc": "docs/schemas/inspect",
+      "script": "src/scripts/mixar/modules/lampway_tools/inspect/schema.py",
+      "args": [
+        "--check"
+      ]
+    }
+  ]
 }

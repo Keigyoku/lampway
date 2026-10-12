@@ -59,11 +59,27 @@ def test_g09_4_the_applied_linear_map_has_equal_singular_values(goldens, tmp_pat
     assert sv.max() - sv.min() < 1e-6
 
 
-def test_g09_5_boots_without_an_anchor_are_refused_naming_the_three(goldens, tmp_path):
-    body, piece = _npz(tmp_path, goldens)
+def test_g09_5_boots_default_width_matches_explicit_anchor_and_unknown_names_the_three(tmp_path):
+    # Actual boot/body shape: the old torso fixture cannot measure a shaft anchor.
+    vertices=np.array([(.1+.04*np.cos(a),.04*np.sin(a),z)
+                       for z in np.linspace(0,.5,11) for a in np.arange(16)*2*np.pi/16])
+    triangles=[]
+    for i in range(10):
+        for j in range(16):
+            a=i*16+j;b=i*16+(j+1)%16;c=b+16;d=a+16
+            triangles.extend(((a,b,c),(a,c,d)))
+    body,piece=tmp_path/'body.npz',tmp_path/'boot.npz'
+    np.savez(body,V=vertices,T=triangles,J=[[.1,0,.7],[.1,0,.5],[.1,0,.08],[.1,-.06,.02]],
+             names=['thigh_l','calf_l','foot_l','ball_l'])
+    np.savez(piece,V=vertices,T=triangles)
+    default=FP.place('boots',body,piece,sides='l')
+    explicit=FP.place('boots',body,piece,sides='l',scale_anchor='width')
+    assert np.array_equal(default[0],explicit[0]) and np.array_equal(default[1],explicit[1])
+    assert default[2]['scale']==explicit[2]['scale'] and default[2]['scale_anchor']=='width'
+    assert default[2]['defaults']['boots_scale_anchor']['physical_status']=='untested'
     with pytest.raises(FP.PlaceError) as e:
-        FP.place("boots", body, piece)
-    assert all(a in str(e.value) for a in ("width", "height", "foot"))
+        FP.place('boots',body,piece,sides='l',scale_anchor='unknown')
+    assert all(a in str(e.value) for a in ('width','height','foot'))
 
 
 def _arm_body_and_gauntlet(tmp, tilt_deg):

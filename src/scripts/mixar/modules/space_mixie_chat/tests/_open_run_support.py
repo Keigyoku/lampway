@@ -11,7 +11,7 @@ name into a test module are collected like local ones.
 
 import os
 import sys
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -54,8 +54,31 @@ class _Scenes(list):
         return next((s for s in self if s.name == name), None)
 
 
+class _Scene(SimpleNamespace):
+    """RNA-style attributes plus Blender's separate custom-property mapping."""
+
+    def __init__(self, **attributes):
+        super().__init__(**attributes)
+        self._props = {}
+
+    def get(self, key, default=None):
+        return self._props.get(key, default)
+
+    def __getitem__(self, key):
+        return self._props[key]
+
+    def __setitem__(self, key, value):
+        self._props[key] = value
+
+    def __contains__(self, key):
+        return key in self._props
+
+    def __delitem__(self, key):
+        del self._props[key]
+
+
 def _scene(name="Scene", session_id="sid-1", state="IDLE"):
-    return SimpleNamespace(
+    return _Scene(
         name=name, mixie_session_id=session_id, mixie_chat_state=state,
         mixie_chat_is_busy=False, mixie_run_open=False, mixie_run_id="",
         mixie_chat_active_turn_mode="", mixie_chat_mode="AGENT",
@@ -75,8 +98,17 @@ def clean_state():
 
 @pytest.fixture
 def live_bpy(monkeypatch):
-    """The bpy the modules resolve at call time (they ``import bpy`` inside
-    functions), so patching this mock is what they see."""
+    """Use one current bpy double for call-time and cached module imports.
+
+    Other suites install a fresh bpy double during collection. Chat modules
+    already imported may still hold the previous double; restore those globals
+    automatically with this fixture's monkeypatch lifetime.
+    """
     bpy = sys.modules["bpy"]
+    for name, module in list(sys.modules.items()):
+        if (name.startswith("mixar.modules.space_mixie_chat.")
+                and isinstance(module, ModuleType) and "bpy" in module.__dict__):
+            monkeypatch.setattr(module, "bpy", bpy)
+            assert module.bpy is bpy
     monkeypatch.setattr(bpy.data, "scenes", _Scenes(), raising=False)
     return bpy

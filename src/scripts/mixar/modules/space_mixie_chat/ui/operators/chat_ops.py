@@ -289,14 +289,13 @@ class MIXIE_CHAT_OT_send_message(Operator):
             except Exception:
                 pass
 
-        # Turn checkpoint: the document exactly as it is before this fresh
-        # turn (core/turn_checkpoints.py). Taken before the user bubble is
-        # added so a restore shows the chat up to the previous reply. Never
-        # blocks the send.
+        # Arm only the pre-turn boundary. The first uncertified client
+        # script saves the document before it executes; read-only turns
+        # write no full-document checkpoint.
         checkpoint = None
         if fresh_turn:
             from ...core import turn_checkpoints
-            checkpoint = turn_checkpoints.capture(scene, message_text)
+            checkpoint = turn_checkpoints.arm(scene, message_text)
 
         # OPTIMISTIC UPDATE: Add user message immediately for instant feedback
         user_msg = scene.mixie_chat_messages.add()
@@ -412,6 +411,8 @@ class MIXIE_CHAT_OT_send_message(Operator):
             user_message=user_msg,
         ))
         if not success:
+            if checkpoint is not None:
+                turn_checkpoints.discard_pending(scene)
             self.report({'ERROR'}, error)
             metrics.stop_timer('send_message_total')
             return {'CANCELLED'}

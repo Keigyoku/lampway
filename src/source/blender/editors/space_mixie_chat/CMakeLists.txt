@@ -47,11 +47,13 @@ set(SRC
   mixie_chat_mention.cc
   mixie_chat_table.cc
   mixie_chat_empty_state.cc
+  mixie_chat_empty_prompt_click.cc
   mixie_chat_feedback.cc
   mixie_chat_messages.cc
   mixie_chat_messages_content.cc
   mixie_chat_messages_layout.cc
   mixie_chat_messages_render.cc
+  mixie_chat_messages_state.cc
   mixie_chat_props.cc
   mixie_chat_rules_events.cc
   mixie_chat_rules_overlay.cc

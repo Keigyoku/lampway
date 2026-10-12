@@ -150,3 +150,40 @@ def test_the_caps_step_saves_ruling_5s_day_cap_and_its_defaults():
     from pathlib import Path
     popup = (Path(ob.__file__).parent / "ui" / "onboarding.py").read_text(encoding="utf-8")
     assert "session_cap" not in popup and "Per session" not in popup and '"Per day"' in popup
+
+
+def test_back_and_continue_share_the_footer_not_the_step_rail(ui):
+    w = walk(); w.step = 3
+    rail = Recorder(); ui.draw_rail(rail, w)
+    assert not any(e[0] == "op" and e[1] == "lampway.onboarding_back" for e in rail.log)
+
+
+def test_advancing_redraws_one_popup_without_opening_another(ui, monkeypatch):
+    w = walk(); w.step = 2; ui.WALK["walk"] = w
+    redraws = []
+    context = SimpleNamespace(region=SimpleNamespace(tag_redraw=lambda: redraws.append(True)))
+    result = ui.LAMPWAY_OT_onboarding.execute(SimpleNamespace(report=lambda *a: None), context)
+    assert result == {"FINISHED"} and redraws == [True] and w.step == 3
+
+
+def test_advancing_refreshes_the_temporary_popup_content(ui):
+    """Operator context.region is the editor; popup layout needs its own refresh flag."""
+    w = walk(); w.step = 2; ui.WALK['walk'] = w
+    refreshes = []
+    context = SimpleNamespace(
+        region=SimpleNamespace(tag_redraw=lambda: refreshes.append('editor redraw')),
+        region_popup=SimpleNamespace(type='TEMPORARY',
+            tag_refresh_ui=lambda: refreshes.append('popup layout'),
+            tag_redraw=lambda: refreshes.append('popup redraw')))
+    result = ui.LAMPWAY_OT_onboarding.execute(SimpleNamespace(report=lambda *a: None), context)
+    assert result == {'FINISHED'} and w.step == 3
+    assert refreshes == ['popup layout', 'popup redraw', 'editor redraw']
+
+
+def test_back_refreshes_the_temporary_popup_content(ui):
+    w = walk(); w.step = 4; ui.WALK['walk'] = w
+    refreshes = []
+    context = SimpleNamespace(region=None, region_popup=SimpleNamespace(type='TEMPORARY',
+        tag_refresh_ui=lambda: refreshes.append('layout'), tag_redraw=lambda: refreshes.append('draw')))
+    assert ui.LAMPWAY_OT_onboarding_back.execute(None, context) == {'FINISHED'}
+    assert w.step == 3 and refreshes == ['layout', 'draw']

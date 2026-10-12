@@ -127,6 +127,73 @@ def test_a_failed_script_is_reported_to_the_model_not_swallowed(fake, provider):
     assert events_of(frames, command_id)[-1]["event"]["status"] == "completed"
 
 
+def test_mock_agent_failure_runs_client_response_logging_with_real_rpc_id(fake, provider, monkeypatch, caplog, request):
+    """F20: drive an agent turn through the actual client response pump."""
+    import importlib
+    import logging
+    from pathlib import Path
+    import sys
+    from types import ModuleType, SimpleNamespace
+
+    scripts = Path(__file__).resolve().parents[2] / "src/scripts"
+    # Load pure client transport modules without registering Blender UI.
+    for name in ("mixar", "mixar.config", "mixar.modules", "mixar.modules.common",
+                 "mixar.modules.common.agent_execution"):
+        package = ModuleType(name)
+        package.__path__ = [str(scripts / name.replace(".", "/"))]
+        monkeypatch.setitem(sys.modules, name, package)
+    logging_adapter = ModuleType("mixar.config.logging_config")
+    logging_adapter.get_logger = logging.getLogger
+    monkeypatch.setitem(sys.modules, logging_adapter.__name__, logging_adapter)
+    dossier = ModuleType("mixar.modules.common.scenes_log")
+    dossier.slog = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, dossier.__name__, dossier)
+    names = ("mixar.modules.common.agent_execution.pump",
+             "mixar.modules.common.agent_execution.request",
+             "mixar.modules.common.agent_execution.diagnostics")
+    for name in names:
+        monkeypatch.delitem(sys.modules, name, raising=False)
+    request.addfinalizer(lambda: [sys.modules.pop(name, None) for name in names])
+    pump = importlib.import_module(names[0])
+    Request = importlib.import_module(names[1]).ExecutionRequest
+    caplog.set_level(logging.WARNING, logger=pump.logger.name)
+    provider.script.extend([[ToolCall(id="f20_failure", name="run_blender_python",
+                                     arguments={"script": "boom("})],
+                            [Text("The executor refused the script.")]])
+    fake.login()
+    frames = []
+    rpc_id = None
+    with fake.connect_ws() as ws:
+        fake.handshake(ws)
+        _, command_id = start_chat(fake, ws, "run the invalid fixture")
+        def reply(request_id, result):
+            ws.send_json({"jsonrpc": "2.0", "id": request_id, "result": result})
+            return True
+        client = SimpleNamespace(is_connected=True, queue_response=reply)
+        for _ in range(500):
+            frame = ws.receive_json()
+            frames.append(frame)
+            if frame.get("method") == "blender.execute_script":
+                rpc_id = frame["id"]
+                p = frame["params"]
+                req = Request(rpc_id, p["script"], tool_name=p["tool_name"],
+                              session_id=p["session_id"], agent_ctx=p["agent_ctx"])
+                result = fake.execute_script_result(p["script"], success=False,
+                                                    error="SyntaxError: unexpected EOF")
+                assert pump.respond(client, req, result)
+                assert not pump.respond(client, req, result), "replies/logs must not duplicate"
+            if frame.get("method") == "agent.turn.ended":
+                break
+        else:
+            pytest.fail("agent turn did not end")
+    logs = [r.getMessage() for r in caplog.records if r.name == pump.logger.name]
+    assert len(logs) == 1 and rpc_id in logs[0]
+    assert "run_blender_python" in logs[0] and "SyntaxError: unexpected EOF" in logs[0]
+    result = provider.requests[1].messages[-1].content[0]
+    assert result["is_error"] is True and "SyntaxError" in result["content"]
+    assert events_of(frames, command_id)[-1]["event"]["status"] == "completed"
+
+
 def test_scene_summary_tool_runs_the_fixed_listing_script(fake, provider):
     provider.script.append([ToolCall(id="s1", name="scene_summary", arguments={})])
     provider.script.append([Text("The scene has one object.")])
@@ -138,7 +205,7 @@ def test_scene_summary_tool_runs_the_fixed_listing_script(fake, provider):
             p["script"], output='{"objects": [{"name": "Cube", "type": "MESH"}], "materials": []}'))
     script = next(f for f in frames if f.get("method") == "blender.execute_script")["params"]
     assert script["tool_name"] == "scene_summary"
-    assert "bpy.data.objects" in script["script"] and "bpy.data.materials" in script["script"]
+    assert "bpy.context.scene.objects" in script["script"] and "_o.material_slots" in script["script"]
     assert "__RESULT__" in script["script"]  # executor.py:429-431 flattens the __RESULT__ variable
     tool_results = [part for part in provider.requests[1].messages[-1].content if part.get("type") == "tool_result"]
     assert "Cube" in tool_results[0]["content"]

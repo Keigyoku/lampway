@@ -126,6 +126,10 @@ _TEX = {"copies": {}, "originals": {}}      # model index -> [objects]; object n
 FLAT_NORMAL = (0.5, 0.5, 1.0)              # a missing normal map shown flat: the absence is the finding (mrmak/05 6.5)
 
 
+from mixar.modules.lampway_tools import canon_io
+
+
+@canon_io.rollback_imports
 def ensure_textured() -> dict:
     """Each model with a file imported once more WITH its materials into the scratch scene, normalised exactly as its plain
     copy (yaw, scale the longest axis to 2, measure again, centre). Returns {index: [objects]}; a second call reuses them."""

@@ -32,7 +32,9 @@ because it is the same question put to a different window.
 Source-level, because none of it is reachable from Python.
 """
 
+import json
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 import pytest
 
@@ -484,9 +486,43 @@ class TestIslandWindowTranslucency:
     def test_chat_and_pill_share_the_neutral_native_wash(self) -> None:
         theme = _read(PILL_DRAW.parent / "agent_ui_theme.hh")
         assert theme.count("#define AGENT_COL_GLASS_WASH") == 1
-        assert "AGENT_COL_GLASS_WASH {0.075f, 0.078f, 0.075f, 0.20f}" in theme
+        _assert_live_glass_wash(theme)
         assert theme.count("#define AGENT_COL_GLASS_FIELD_UCHAR") == 1
         assert "AGENT_COL_GLASS_FIELD_UCHAR {18, 22, 20, 48}" in theme
         assert "#ifdef _WIN32" not in theme
         assert _read(SPACE).count("const float wash[4] = AGENT_COL_GLASS_WASH;") == 3
         assert _read(PILL_DRAW).count("const float wash[4] = AGENT_COL_GLASS_WASH;") == 2
+
+
+def _assert_live_glass_wash(theme: str) -> None:
+    assert "#define AGENT_COL_GLASS_WASH MIXAR_THEME_BRACE(GlassWash)" in theme
+    binding = _read(ROOT / "src/source/blender/editors/include/UI_mixar_theme.hh")
+    for channel in range(4):
+        assert f"mixar_theme_chan(blender::ui::MixarThemeSlot::slot, {channel})" in binding
+    native = _read(ROOT / "src/source/blender/editors/interface/interface_mixar_theme.cc")
+    assert "offsetof(ThemeUI, mixar_glass_wash)" in native
+    theme_root = ROOT / "scripts/lampway/facelift/theme"
+    tokens = json.loads(_read(theme_root / "tokens.json"))["colour"]["canvas"]
+    for variant in ("dark", "light"):
+        generated = ET.fromstring(_read(theme_root / f"lampway_{variant}.xml"))
+        wash = next(node.attrib["mixar_glass_wash"] for node in generated.iter()
+                    if "mixar_glass_wash" in node.attrib)
+        _assert_canvas_wash(wash, tokens[variant])
+
+
+def _assert_canvas_wash(wash: str, canvas: str) -> None:
+    assert wash.lower() == canvas.lower() + "33"
+
+
+def test_native_wash_refuses_fixed_or_wrong_theme_role():
+    theme = _read(PILL_DRAW.parent / "agent_ui_theme.hh")
+    for replacement in ("{0.075f, 0.078f, 0.075f, 0.20f}",
+                        "MIXAR_THEME_BRACE(SketchInk)"):
+        with pytest.raises(AssertionError):
+            _assert_live_glass_wash(theme.replace("MIXAR_THEME_BRACE(GlassWash)", replacement))
+
+
+@pytest.mark.parametrize("wash", ["#0e1016ff", "#ffffff33", "#e4dccb33"])
+def test_night_native_wash_rejects_opaque_or_wrong_canvas(wash):
+    with pytest.raises(AssertionError):
+        _assert_canvas_wash(wash, "#0E1016")

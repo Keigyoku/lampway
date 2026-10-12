@@ -44,6 +44,11 @@ _SPLASH_GONE_FALLBACK_S = 2.5
 
 def is_splash_visible() -> bool:
     """True iff the splash is likely on screen."""
+    native_open = _native_splash_open()
+    if native_open is not None and (native_open or _splash_last_drawn_ts != 0.0):
+        # An idle splash stops drawing. Bubble autoshow must wait for its
+        # actual lifetime, just as onboarding does, rather than cover it.
+        return native_open
     if _splash_last_drawn_ts != 0.0:
         return (time.monotonic() - _splash_last_drawn_ts) < SPLASH_VISIBLE_WINDOW_S
     try:

@@ -34,6 +34,8 @@ dof = {"bone": "upperarm_l", "axis": rig["dof"]["axis_world"], "range": rig["dof
        "expect": {"joint": "lowerarm_l", "along": "-up", "min_cm": 2.0}}
 regions = {"arm_l": {"bones": ["upperarm_l"], "threshold_m": 0.01}}
 before = tuple(arm.matrix_world @ arm.pose.bones["lowerarm_l"].head)
+from mixar.modules.lampway_tools import posing as PO
+PO.stamp_placement(bpy.data.objects['sleeve'], {"scale":1.,"translation":[0.,0.,0.],"turn_deg":0.})
 dry = api.fit_pose("gauntlets", piece="sleeve", body="armbody", armature="rig", dofs=[dof], regions=regions)
 same = tuple(arm.matrix_world @ arm.pose.bones["lowerarm_l"].head)
 out = api.fit_pose("gauntlets", piece="sleeve", body="armbody", armature="rig", dofs=[dof], regions=regions, apply=True)

@@ -192,5 +192,10 @@ endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+# LAMPWAY: palette guards belong to this target; creator's definitions are local.
+if(LAMPWAY)
+  target_compile_definitions(bf_editor_space_view3d PRIVATE LAMPWAY)
+endif()
+
 # RNA_prototypes.hh
 add_dependencies(bf_editor_space_view3d bf_rna)

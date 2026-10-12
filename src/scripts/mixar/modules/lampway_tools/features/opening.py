@@ -5,7 +5,7 @@
 """fit_openings / opening_gasket: every cap a seed put across a limb, neck or waist opening gets a typed decision, keep | gasket | delete, logged append-only
 (``<piece>/fit/decisions.jsonl``, question ``opening_decision``). A GASKET cuts the posed limb's cross-section plus the wear clearance into the cap plane, deletes the inside and forms a
 COLLAR: a tubular flange running into the piece whose free edge ROLLS outward into a lip - the user's "manifold it" read as an engine exhaust / intake MANIFOLD PORT (a formed
-collar with a rolled edge, not a raw cut hole). The collar depth (the flange length) is his number and unruled, so applying a gasket without one answers ``needs_decision``, and ``variants``
+collar with a rolled edge, not a raw cut hole). The collar depth defaults to the captain-authorized, physically untested 20mm starting depth, and ``variants``
 builds and renders three depths for him to pick. Metal is cut, never blended (no weights, no blend). Runs on the POSED body only: no pose, no gasket. The source object is never edited;
 the result is ``<object>_openings``. A geometry step: it discards a studio texture on the changed faces (``texture_discard_ack``)."""
 
@@ -98,7 +98,8 @@ def detect(ob, axis, min_area_frac=0.01):
 
 def site_axis(armature, site):
     """(head, unit axis) of the POSED bone ``site``: its head and the line to the head of its next joint (canon 01 C.1 / 06 B.1)."""
-    from ..canon_geom.bones import chain_ends
+    from ..canon_geom.bones import chain_ends, CONTINUATION
+    from .normalize_rigged import canonical_helper_ends
     rig = C.need_object(armature, "ARMATURE")
     if site not in rig.pose.bones:
         raise C.FeatureError(f"no bone {site!r} in {armature!r}: the site is a bone of the posed body (upperarm_l, neck_01, calf_l, ...)")
@@ -106,7 +107,14 @@ def site_axis(armature, site):
     W = rig.matrix_world
     heads = {pb.name: tuple(W @ pb.head) for pb in rig.pose.bones}
     parents = {pb.name: pb.parent.name if pb.parent else None for pb in rig.pose.bones}
-    end = chain_ends(heads, parents)[site]
+    # Validate the rest stamp before transporting authored driver endpoints into
+    # the pose. Drivers do not become anatomical directions at any pose.
+    rest_helpers = canonical_helper_ends(rig)
+    helpers = {}
+    for name, end in rest_helpers.items():
+        local = W.inverted() @ Vector(end)
+        helpers[name] = tuple(W @ rig.pose.bones[name].matrix @ rig.data.bones[name].matrix_local.inverted() @ local)
+    end = chain_ends(heads, parents, main_child=CONTINUATION, helper_ends=helpers)[site]
     h = Vector(heads[site])
     d = Vector(end) - h
     if d.length < 1e-9:
@@ -491,11 +499,11 @@ def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, a
     if (gaskets or deletes) and ((ob.get("lw_studio_textured") or tex) and not texture_discard_ack):
         raise C.FeatureError("this is a geometry step: it discards the studio texture for the changed faces" + (f" (the material samples {', '.join(tex)})" if tex else "")
                              + "; run before the studio texture or pass texture_discard_ack=true and re-run it")
+    default_collar = bool(gaskets) and flange_mm is None
     if gaskets:
         if flange_mm is None:
-            return {"needs_decision": {"what": "collar depth (flange length)", "question": "how deep is the gasket collar, in millimetres? (a formed tubular collar with a rolled lip, 'manifold it')",
-                                       "suggested_mm": SUGGESTED_MM, "how": "stage variants builds and renders three depths for him to pick; then pass flange_mm"},
-                    "object": ob.name}
+            from ..canon_asset import SETTINGS
+            flange_mm = SETTINGS["collar_depth_mm"]["value"]
         if not 2 <= float(flange_mm) <= 60:
             raise C.FeatureError("flange_mm is 2 to 60")
         if not limb:
@@ -528,6 +536,10 @@ def run(stage, object, root, axis=None, plane_origin=None, limb="", pose=None, a
             work = _commit(ob, bm, work)
             results.append({"id": op["id"], "verdict": "delete", "manifold": True, "area_removed_m2": round(area, 6)})
     out = {"object": (work.name if work else ob.name), "source": ob.name, "openings": results, "decisions_written": written, "texture_stale": bool(gaskets or deletes)}
+    if default_collar:
+        from ..canon_asset import SETTINGS
+        from copy import deepcopy
+        out["defaults"] = {"collar_depth_mm": deepcopy(SETTINGS["collar_depth_mm"])}
     if work is not None:
         chk = _bm(work)
         st = manifold_stats(chk)

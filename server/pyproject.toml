@@ -17,6 +17,9 @@ dependencies = [
     "PyJWT[crypto]>=2.8",
     "python-multipart>=0.0.9",     # the asset-search and handwriting endpoints take multipart/form-data
     "pillow>=10",                  # the asset-search image features (colour histograms of the previews)
+    "zstandard>=0.23",             # bounded compressed Blender header recognition in Vault scans
+    "docutils>=0.21",               # offline Blender RST documentation parser
+    "jsonschema>=4.20",            # MCP wrapper input/output contracts
     "numpy>=1.26",                 # the Asset Vault's vectors and shape descriptors, the video gates, the fal pre-flight
     "keyring>=25",                 # Connections keeps the keys Lampway holds in the OS keyring (decision C6)
     "secretstorage>=3.3; sys_platform == 'linux'",   # keyring's Secret Service backend on Linux (decision C6)
@@ -42,6 +45,7 @@ include = ["lampway_server*"]
 
 [tool.setuptools.package-data]
 # data files the code reads from its own package directory (the built-in prompt templates, the library migrations, the decisions goldens)
+"lampway_server.blender_docs" = ["data/**/*.rst", "data/*.json", "data/*.md", "data/licenses/*.txt"]
 "*" = ["*.json", "*.sql", "*.md", "*.html", "*.css", "*.js", "*.toml", "*.lua", "*.ttf", "*.txt", "*.woff2", "*.svg"]   # the cockpit page; the terminal add-on's pins and config; the brand pages' faces and mark
 
 [tool.pytest.ini_options]

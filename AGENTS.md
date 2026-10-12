@@ -86,7 +86,7 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `scripts/unix/`, `scripts/windows/`, `cmake/` | upstream's build machinery, with Lampway's options (`LAMPWAY`, `MIXAR_CUDA`) |
 | `tests/` | the standalone client suites, the brand and fork gates, the binary-driven tool tests, the rail's tests |
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
-| `specs/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
+| `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
 
 ## Facts carried from the upstream guide (verified against this tree)
@@ -99,8 +99,10 @@ The root `CLAUDE.md` used to be upstream's own guide, naming its closed backend.
 - **Bootstrap.** `src/scripts/startup/bootstrap/__init__.py` configures the network (trust store, proxy) before any bootstrap
   module, then registers the bootstrap modules, then loads every `modules/**/ui/` file in time-budgeted batches (4 ms per frame by
   default): properties first, then operators, then panels and menus.
+- **Shared TOON.** The pure client `common/toon/codec.py` and server `compute/toon_out.py` are byte-identical TOON 4.3 codecs. Official pinned encode/decode fixtures and property tests live in `tests/toon/`; AXI compatibility helpers use this codec.
 - **Tests outside Blender.** `bpy` is a MagicMock (the root `conftest.py`), which also preloads the real numpy, PIL and requests so
   collection order cannot decide whether a test sees a mock. Operator logic is pinned by source-level or `ast` tests.
+- **Turn checkpoints:** fresh sends remember the pre-turn transcript boundary without copying the document. The first uncertified script or admitted typed foreground commit captures once before scene writes. Only complete maintained read-script templates are certified; tool names and advisory flags never exempt arbitrary code. Restore retains the original turn index, new-session flag and bookmark, trims the saved transcript to its pre-turn count, clears pending document metadata before every file load, and keeps tip/safety/undo behavior (`tests/checkpoints/`, `tests/test_agent_execution_commit.py`).
 - **Pinned contracts with their tests:** the network contract (`tests/network/`), atexit cleanups never touch `bpy` data
   (`tests/test_shutdown_hooks_atexit.py`), the per-user config overlay over the read-only bundled `mixar.json`
   (`tests/test_config_persistence.py`), operators dispatched only through a re-verified region
@@ -137,7 +139,7 @@ a law, this file. Each child states its invariants, its test commands and its ow
 
 ## Maintaining this file
 
-Motion contracts live in [`specs/motion_graphics/motion_graphics.md`](specs/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
+Motion contracts live in [`docs/canon/motion_graphics/motion_graphics.md`](docs/canon/motion_graphics/motion_graphics.md). Updating a specification does not certify its implementation; retain the distinction between observed behavior, open requirements and captain decisions, and carry exact-head evidence.
 
 Keep it for what almost every session needs; point at the file or command that owns a detail. Prefer rewriting an entry to
 appending a sibling. A change here owes an anneal row in the same commit, like every rail.
@@ -150,6 +152,31 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | tag | what annealed | evidence |
 |---|---|---|
 
+PR privacy workflow scans event `base.sha..head.sha`, never GitHub's synthetic merge identity. An unavailable event head refuses; fallback ancestry uses that same explicit head. Preserve bad-email negative controls and complete tracked REUSE coverage.
+
+The render/device/job contract is documented in [docs/render-job-contract.md](docs/render-job-contract.md); the current enterprise trust, proxy and loopback contract is in [docs/enterprise-network.md](docs/enterprise-network.md). Historical failures remain attributed, but the captain's current completion target is zero failures/errors, including inherited known reds. Coordinate cross-lane fixes and retain exact passing evidence before shrinking a baseline.
+
+Main merges retain both the offline MCP wrappers and motion tool dispatch; generated tool documentation comes from the combined registry. Existing privacy, lease and no-spend boundaries remain enforced.
+
+Motion normative specifications are indexed in docs/canon/INDEX.md, with measured acceptance and review evidence in docs/reports/motion-graphics-acceptance.md. The repository has no parallel root specs tree for those contracts.
+
+Startup Quick Setup registers its Continue operator through the normal UI module owner before menus can draw it. Idle splash visibility follows the native popup lifetime; preserve early startup grace and report historical overlap/crash findings separately from proved regressions.
+
+Native set_text establishes its Text-field edit focus even when a prior field
+consumes the first outside press. Keep single activation for search and numeric
+fields. Input delivery alone is not filename persistence: verify exact Save,
+repeat Save and reopened content on an isolated document.
+
+Standalone chat fixtures bind cached chat-module bpy globals to the current
+double for the fixture lifetime, restore them afterward and model Scene custom
+properties separately from RNA attributes. Registry cleanup follows its actual
+mapping interface. Forwarded scene/session assertions remain strict. Test-only
+interface repairs do not settle Agent Mode provenance or resume-policy conflicts;
+retain those failures and define the production interface for the owning crew.
+Specialized turn-recovery fixtures also install their native-shaped scene
+collection for the actual transport consumer, retaining live-handler exclusions
+and restoring prior global scene state.
+
 ## Anneal log
 
 | date | change-shape | trigger | failure-mode | fix-into-directive | promote-candidate |
@@ -157,4 +184,14 @@ closeout --tag <tag>` reads it. No tag has been cut under the rail yet.
 | 2026-10-05 | rail adoption: this file replaces the upstream guide | captain: "make the DOE x DOX AGENTS rail for Lampway, examples of it are in Vellum and Titan" | the root guide was upstream's, named its closed backend and a private doc map, and no file carried Lampway's laws | the laws with their gates, the DOX chain, the skill and child indexes (both checked against the tree), the verified facts kept from the upstream guide | captain ruling, 2026-10-05 |
 | 2026-10-06 | the 500-line rule settled; the rail in the hook | captain: "Those recs are fine" | the file limit was recorded as an open decision; the rail's place in the push was CI only | the limit is a guideline (the coding skill §4b); the laws' rail line names the pre-push quick check | captain ruling, 2026-10-06 |
 | 2026-10-06 | the canon indexed | coordinator: "GO for rail row 1" | the canon lived off-tree, outside every index | docs/canon in the repository map, the Child DOX Index and the canon skill's row | captain ruling, 2026-10-06 |
+| 2026-10-07 | MCP wrapper contract receipt | captain: scoped MCP wrapper and migration | new transport, observation, schemas and offline data needed reproducible ownership and evidence | document the scoped implementation, generated checks and explicit limits above | scoped contract evidence in docs/reports/mcp-wrapper-migration.md |
+| 2026-10-07 | deferred turn document copies | captain: complete issue 2 F25 | every read-only chat turn wrote a full document snapshot; deferral could lose restore boundaries or typed commits | certify complete read templates, capture before first admitted write, retain pre-turn metadata and mutation restore paths | checkpoint and commit regression receipts |
+| 2026-10-07 | PR event privacy and tracked licence coverage | captain: issue2 G24–G26 | synthetic merge identities were mistaken for branch commits and baseline icon coverage was obscured | scan explicit event endpoints, retain planted email refusals and verify tracked REUSE independently of private untracked files | event-range and whole tracked-tree licence controls |
+| 2026-10-07 | complete no-red ownership | captain: inherited reds must be fixed | baseline-relative greens and missing public network/render docs obscured unfinished integration | assign every failing identity, document current contracts and require combined zeroFAIL/ERROR evidence without weakened guards | exact122-ID inventory and source-backed network/render gates |
 | 2026-10-07 | formal motion contracts indexed | captain authorizes writing the previously unwritten specs | implementation citations had no repository specification and could overstate acceptance | index the new contracts and require explicit behavior, gap and decision status with exact-head evidence | captain ruling, 2026-10-07 |
+| 2026-10-08 | merge current main into MCP branch | captain: merge main after PR3 | shared registry and rail conflicts could discard either lane or historical receipts | preserve both dispatch paths and parent rows, regenerate shared documentation, and verify the merged registry | current main dfe0d1a4 and combined server/MCP checks |
+| 2026-10-08 | motion documentation convention | captain: use canon and reports | root motion specs did not follow the repository convention | point the repository map and contracts at canon with separate acceptance reports | canon/docs indexes and complete relocated-link audit |
+| 2026-10-08 | initial splash and idle visibility | additional914 audit I11 and provisional overlap | deferred operator registration omitted Continue and timestamp-only idle visibility could release the bubble gate | register the critical operator with its normal owner before menus and use native lifetime without changing startup grace | genuine registration/idle RED controls and isolated current-overlay Save/reopen receipt |
+| 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |
+| 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |
+| 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |

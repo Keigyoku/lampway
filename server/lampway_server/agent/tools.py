@@ -23,6 +23,7 @@ from . import plan_tools as plt
 from . import orphan_server_tools as ost
 from . import connections_tools as cnt
 from . import choices_tools as cht
+from . import blender_docs_tools as bdt
 from . import motion_tools as mgt
 
 RUN_BLENDER_PYTHON = "run_blender_python"
@@ -31,7 +32,7 @@ ASK_USER = "ask_user"
 
 SCENE_SUMMARY_LIMIT = 100                     # audit F8: 1,016 objects answered 203 KB; a page is bounded, full=true is the caller's choice
 SCENE_SUMMARY_SCRIPT = '''import bpy
-_all = list(bpy.data.objects)
+_all = list(bpy.context.scene.objects)
 _page = _all if _FULL else _all[_OFFSET:_OFFSET + _LIMIT]
 _objects = []
 for _o in _page:
@@ -44,7 +45,7 @@ for _o in _page:
         "materials": [s.material.name for s in _o.material_slots if s.material],
         "hidden": bool(_o.hide_get()) if hasattr(_o, "hide_get") else False,
     })
-_mats = list(bpy.data.materials)
+_mats = sorted({_s.material.name: _s.material for _o in _all for _s in _o.material_slots if _s.material}.values(), key=lambda _m: _m.name)
 _materials = [{"name": _m.name, "users": _m.users} for _m in (_mats if _FULL else _mats[:_LIMIT])]
 _scene = bpy.context.scene
 __RESULT__ = {
@@ -117,7 +118,7 @@ TOOLS.append(ToolSpec(
     },
 ))
 
-TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs() + mgt.specs()
+TOOLS = TOOLS + lt.SPECS + st.SPECS + stu.specs() + vt.specs() + pt.specs() + it.specs() + lgt.specs() + sdt.specs() + eng.specs() + wbt.specs() + cpt.specs() + lib_.specs() + crd.specs() + flt.specs() + plt.specs() + ost.specs() + cnt.specs() + cht.specs() + bdt.specs() + mgt.specs()
 TOOL_NAMES = {t.name for t in TOOLS}
 
 
@@ -144,6 +145,8 @@ def script_for(name: str, arguments: dict) -> str:
         raise UnknownTool("ask_user is answered by the user, not by Blender")
     if name in vt.NAMES or name in stu.NAMES or name in pt.NAMES or name in it.NAMES or name in lgt.NAMES or name in lgt.JOB_NAMES or name in sdt.NAMES or name in eng.NAMES or name in wbt.NAMES or name in cpt.NAMES or name in lib_.NAMES or name in crd.NAMES or name in flt.NAMES or name in plt.NAMES or name in cnt.NAMES or name in cht.NAMES or name in mgt.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
+    if name in bdt.NAMES:
+        raise UnknownTool(f"{name} runs on the server, not in Blender")
     if name in ost.NAMES:
         raise UnknownTool(f"{name} runs on the server, not in Blender")
     if st.is_local(name):
@@ -160,5 +163,5 @@ def format_tool_result(result) -> tuple[str, bool]:
     """(text for the model, is_error) from the client's execution envelope."""
     if not isinstance(result, dict):
         return json.dumps({"success": False, "error": "no result from Blender"}), True
-    is_error = not result.get("success", False)
+    is_error = not result.get("success", False) or result.get("ok") is False
     return json.dumps(result, default=str), is_error

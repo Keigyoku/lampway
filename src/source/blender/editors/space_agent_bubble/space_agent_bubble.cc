@@ -254,6 +254,17 @@ extern "C" int Mixar_WindowGetMaxHeightToScreenTop(
 
 #endif
 
+/* LAMPWAY: Linux modal suppression enumerates explicitly marked docks.
+ * Cocoa also uses the mark to exempt these windows from its modal/key gate. */
+static void agent_bubble_mark_floating_dock(void *window_handle)
+{
+#if defined(__APPLE__) || (defined(__linux__) && defined(LAMPWAY))
+  Mixar_WindowMarkAsFloatingDock(window_handle);
+#else
+  (void)window_handle;
+#endif
+}
+
 void agent_bubble_replace_frost_wash(const rctf *rect, const float rgba[4])
 {
   const GPUBlend blend_prev = GPU_blend_get();
@@ -2388,9 +2399,7 @@ static bool agent_bubble_repair_existing_windows(bContext *C)
     }
 
     if (has_body_or_footer) {
-#ifdef __APPLE__
-      Mixar_WindowMarkAsFloatingDock(win->runtime->ghostwin);
-#endif
+      agent_bubble_mark_floating_dock(win->runtime->ghostwin);
       Mixar_WindowSetChromeless(win->runtime->ghostwin, true);
       Mixar_WindowSetFloatingLevel(win->runtime->ghostwin);
       Mixar_WindowSetHidesOnDeactivate(win->runtime->ghostwin, true);
@@ -2427,9 +2436,7 @@ static bool agent_bubble_repair_existing_windows(bContext *C)
       found_bubble = true;
     }
     else {
-#ifdef __APPLE__
-      Mixar_WindowMarkAsFloatingDock(win->runtime->ghostwin);
-#endif
+      agent_bubble_mark_floating_dock(win->runtime->ghostwin);
       Mixar_WindowSetBorderless(win->runtime->ghostwin);
       agent_bubble_glass_reset(win->runtime->ghostwin);
       agent_bubble_glass_request(C, win->runtime->ghostwin, true);
@@ -3072,16 +3079,8 @@ static wmOperatorStatus agent_bubble_show_window_exec(bContext *C, wmOperator *o
 
 #if defined(__APPLE__) || defined(_WIN32) || defined(__linux__)
   if (win->runtime->ghostwin != nullptr) {
+    agent_bubble_mark_floating_dock(win->runtime->ghostwin);
 #ifdef __APPLE__
-    /* Tag this NSWindow as a non-blocking floating dock so
-     * hasDialogWindow() exempts it from the modal-dialog gate.
-     * Without this tag, BlenderWindow.canBecomeKeyWindow blocks the
-     * main Mixar window from becoming the macOS key window while the
-     * bubble is open — meaning viewport shortcuts and mixie chat
-     * typing receive no keystrokes. Must be set BEFORE any user
-     * interaction (clicking back on the main window). */
-    Mixar_WindowMarkAsFloatingDock(win->runtime->ghostwin);
-
     /* Pin the bubble to its parent's Space so it doesn't leak onto
      * another Space when the user swipes away from a full-screen
      * Mixar (the three-finger gesture / Mission Control). Without
@@ -3286,12 +3285,8 @@ static wmOperatorStatus agent_bubble_show_window_exec(bContext *C, wmOperator *o
         }
 
         if (pill_win->runtime->ghostwin != nullptr) {
+          agent_bubble_mark_floating_dock(pill_win->runtime->ghostwin);
 #ifdef __APPLE__
-          /* Tag the pill as a non-blocking floating dock too — same
-           * reason as the bubble: keeps hasDialogWindow() from
-           * blocking the main window's key-window eligibility. */
-          Mixar_WindowMarkAsFloatingDock(pill_win->runtime->ghostwin);
-
           /* Pin the pill to its parent's Space too — when the bubble
            * is minimised the pill is detached and re-parented onto the
            * host window, so it must carry the same Space-binding to
