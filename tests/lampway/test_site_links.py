@@ -196,6 +196,8 @@ def test_an_allowed_reference_does_not_hide_an_extra_url_on_its_line(tmp_path, m
     notice.parent.mkdir(parents=True)
     notice.write_text("https://projects.blender.org/lab/blender_mcp https://projects.blender.org/api/upload")
     assert _host_offenders([notice]) == [f"{CORPUS}NOTICE.md:1: projects.blender.org"]
+
+
 def test_native_and_python_profile_links_use_registered_local_operators():
     native = (ROOT / "src/source/blender/editors/interface/interface_mixar_profile_card.cc").read_text()
     python = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/topbar.py").read_text()

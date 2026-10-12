@@ -36,6 +36,22 @@ def test_submit_uses_one_native_ordered_submission_after_paste_acceptance(tmp_pa
                      else ['pane', 'run', 'w1:p1', text]]
 
 
+@pytest.mark.parametrize('agent,herdr_name,verb', [
+    ('grok', 'lw-owned', ['agent', 'prompt']), ('pi', 'lw-owned', ['agent', 'prompt']),
+    ('hermes', 'lw-owned', ['agent', 'prompt']), ('cursor', 'lw-owned', ['agent', 'prompt']),
+    ('grok', None, ['pane', 'run'])])
+def test_every_harness_herdr_started_submits_through_herdr_and_nothing_else_does(tmp_path, monkeypatch, agent, herdr_name, verb):
+    # Merge of main into PR #4: herdr started the harness (its record names the herdr agent) -> herdr's ordered submission;
+    # a record without one (a shell, a command, a typed launch) keeps pane run.
+    c = Cockpit(tmp_path / 'cockpit')
+    c._save(dict(version=1, sessions=[dict(id='owned', pane_id='w1:p1', agent=agent, state='live', agent_sends=True,
+                                           herdr_agent_name=herdr_name)]))
+    calls = []
+    monkeypatch.setattr(L, 'run', lambda root, args, **kwargs: calls.append(args) or json.dumps({'result': {'ok': True}}))
+    c.send_input('owned', 'one request', by='user')
+    assert calls == [[*verb, 'w1:p1', 'one request']]
+
+
 @pytest.mark.parametrize('reason', ['agent_blocked', 'agent_not_ready', 'agent_prompt_failed'])
 def test_native_prompt_failure_never_falls_back_or_sends_a_second_enter(tmp_path, monkeypatch, reason):
     c, calls = session(tmp_path), []
