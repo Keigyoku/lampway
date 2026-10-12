@@ -393,6 +393,13 @@ def build_plan(path, *, task=None, etc=Path('/etc')):
     return plan
 
 
+def acp_boundary_argv(command, args, agent_argv):
+    """``agent_argv`` (a native ``grok agent ... stdio`` behind the worker boundary) behind Lampway's ACP boundary, which refuses
+    any MCP update that would replace the canonical lampway_pane (grok_acp_boundary, issue #11 P4-17)."""
+    return [sys.executable, '-I', '-m', 'lampway_server.grok_acp_boundary', '--canonical-command', str(command),
+            *[f'--canonical-arg={arg}' for arg in args], '--', *agent_argv]
+
+
 def prepare(plan):
     """Only the pane-owned boundary is written; bind sources are never copied."""
     _validate_compat(plan)
