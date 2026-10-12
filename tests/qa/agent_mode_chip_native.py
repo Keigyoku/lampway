@@ -52,6 +52,17 @@ def tick():
             sc.mixie_chat_state = 'IDLE'
             sc.mixie_chat_messages.clear()
             bpy.context.window_manager.mixar_agent_model_label = 'Fixture model'
+            # The first-run splash stays open for its native popup's lifetime and the island does not draw behind it:
+            # dismiss it the way a user does, and prove it closed, before opening the island.
+            win = bpy.context.window_manager.windows[0]
+            with bpy.context.temp_override(window=win):
+                win.event_simulate(type='ESC', value='PRESS')
+                win.event_simulate(type='ESC', value='RELEASE')
+            STATE['stage'] = 'island'
+            return 1.0
+        if STATE['stage'] == 'island':
+            from mixar.bootstrap import splash_menu
+            assert not splash_menu.is_splash_visible(), 'the first-run splash is still open'
             bpy.ops.mixar.agent_bubble_show_window()
             STATE['stage'] = 1
             return 2.0
