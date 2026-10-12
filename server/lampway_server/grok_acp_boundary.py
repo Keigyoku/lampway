@@ -70,7 +70,7 @@ def screen(message, command: str, args=()) -> str:
 
 def refusal(message, reason: str) -> dict:
     return {"jsonrpc": "2.0", "id": message.get("id"), "error": {"code": REFUSED, "message": reason,
-                                                                  "data": {"refused_by": "lampway_acp_boundary"}}}
+                                                                  "data": {"refused_by": "lampway-acp-boundary"}}}
 
 
 def _no_duplicates(pairs):

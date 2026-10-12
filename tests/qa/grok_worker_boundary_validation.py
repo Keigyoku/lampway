@@ -41,7 +41,7 @@ REFUSED_REPLIES = ("native hot reload replied", "http same-name native hot reloa
 
 def refused_by_boundary(reply) -> bool:
     error = reply.get("error") if isinstance(reply, dict) else None
-    return isinstance(error, dict) and (error.get("data") or {}).get("refused_by") == "lampway_acp_boundary"
+    return isinstance(error, dict) and (error.get("data") or {}).get("refused_by") == "lampway-acp-boundary"
 
 
 class BoundaryScopeEnd(Exception):

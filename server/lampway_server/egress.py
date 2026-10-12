@@ -102,6 +102,10 @@ LAUNCHES: dict = {
     "herdr/launcher.py:_spawn": ("local", "Lampway's own herdr server and client on local unix sockets; a herdr call that starts the user's own "
                                           "agent in a pane (BYOA) runs inside guard(byoa:<harness>) in herdr/host.py Cockpit.create_session, "
                                           "and one that starts Lampway's own Mode 1 pane starts the local wrapper above (route None, A1)"),
+    "grok_acp_boundary.py:relay": ("local", "relays a stdio ACP stream to the Grok worker argv it is handed "
+                                            "(grok_worker.acp_boundary_argv) and refuses canonical-shadowing MCP updates; it adds no "
+                                            "route, sends nothing of its own and never changes that argv. Today only the P4-17 QA "
+                                            "validation starts it; a production caller keeps the worker launch's own guard(byoa:grok)"),
     "grok_worker.py:main": ("local", "executes the local bubblewrap namespace manager for an already gated Grok pane; "
                                     "the native BYOA launch is authorized and logged by guard(byoa:grok) in "
                                     "herdr/host.py Cockpit.create_session before native wrap starts this child; "

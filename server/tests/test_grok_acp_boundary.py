@@ -87,7 +87,7 @@ def test_the_relay_answers_a_refusal_itself_and_never_forwards_it(tmp_path):
     refused = [r for r in replies if "error" in r]
     assert [r["id"] for r in refused] == [2]                                # the notification is dropped, unanswered
     assert refused[0]["error"]["code"] == B.REFUSED and "lampway_pane" in refused[0]["error"]["message"]
-    assert refused[0]["error"]["data"] == {"refused_by": "lampway_acp_boundary"}
+    assert refused[0]["error"]["data"] == {"refused_by": "lampway-acp-boundary"}
 
 
 def test_the_relay_ends_when_its_agent_exits_even_while_the_client_stays_open(tmp_path):
