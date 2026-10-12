@@ -7,7 +7,9 @@ Grok artifact) and reads the receipt it writes under ``--output``. Against Grok 
 the canonical lampway_pane after a hostile same-name HTTP update; Lampway's ACP boundary (server/lampway_server/
 grok_acp_boundary.py) covers that until native Grok retains the server itself.
 
-* the expected failure, and only it -> a warning annotation, exit 0 (tracked, expected-failing);
+* the expected failure, and only it, with no hostile endpoint contacted -> a warning annotation, exit 0 (tracked,
+  expected-failing). While that check fails it is the only one the watch can see: the original's later stages (project-source
+  controls, native herdr panes) are not reached until native Grok changes, and the watch then reports whatever comes first;
 * the original passes, or its first failure is anything else -> an error annotation, exit 1, loudly: native behaviour changed.
   If the expected check now passes, that is the signal to remove the boundary (its module docstring's REMOVAL note) and to make
   the original the gate again.
@@ -29,7 +31,7 @@ REMOVE = ("the ORIGINAL native check now behaves differently from the pinned Gro
 def first_failure(receipt: dict):
     failed = [c.get("name") for c in receipt.get("cases", []) if not c.get("passed")]
     summary = receipt.get("diagnostic_summary")
-    if isinstance(summary, dict) and not failed:                       # transport diagnostics: its obligations, per case
+    if isinstance(summary, dict) and not failed and not receipt.get("failure"):    # transport diagnostics: obligations per case
         return ("diagnostic", {c["label"]: c.get("failed_obligations") for c in summary.get("cases", []) if c.get("status") != "MET"}
                 or None)
     if receipt.get("failure") and not failed:
@@ -42,6 +44,9 @@ def verdict(rc: int, receipt) -> tuple:
     if receipt is None:
         return 1, f"::error::P4-17 watch: the original wrote no receipt (exit {rc}); nothing can be compared"
     kind, failure = first_failure(receipt)
+    contacted = sorted({e.get("path") for e in receipt.get("http_events") or [] if str(e.get("path", "")).startswith("/foreign-")})
+    if contacted:
+        return 1, f"::error::P4-17 watch: native Grok contacted the hostile endpoint(s) {contacted}; " + REMOVE
     if rc == 0 and not failure:
         return 1, "::error::P4-17 watch: the ORIGINAL native Grok validation now PASSES: " + REMOVE
     if kind == "check" and failure == EXPECTED_CHECK:

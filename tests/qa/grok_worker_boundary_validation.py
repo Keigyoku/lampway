@@ -6,15 +6,20 @@ canonical lampway_pane enabled, ready, and serving its next owned call; the host
 
 This runs the ORIGINAL validator (tests/qa/grok_worker_validation.py, unchanged) with two differences, both stated here:
 * the restricted native agent is started behind the boundary (``grok_worker.acp_boundary_argv``);
-* an update reply that the ORIGINAL expects from native Grok ("... native hot reload replied") must instead be the boundary's
-  own refusal, because an update naming the canonical server with another transport or argv no longer reaches native Grok.
-Every other check, its evidence and its twenty-second budget are the original's. ``--without-boundary`` is the control: the same
+* the three update replies that the ORIGINAL expects from native Grok ("native hot reload replied" for the STDIO injection of a
+  foreign argv under the canonical name, and the HTTP and SSE "same-name native hot reload replied") must instead be the
+  boundary's own refusal, because an update naming the canonical server with another transport or argv no longer reaches native
+  Grok.
+Every other check, its evidence and its twenty-second budget are the original's. The boundary refuses a mixed update whole, so
+through it the STDIO injection's "excludes new foreign identity" and "foreign subprocess blocked" checks hold without native
+Grok seeing the foreign entry: here they show the boundary, and native policy filtering of foreign identities is proven by the
+ORIGINAL, which runs those checks natively before its line 700 under the CI watch. ``--without-boundary`` is the control: the same
 run without the boundary must fail where the original does (line 700).
 
 Scope: the original runs through its restricted ACP stage and the foreign-source and preservation checks after it, then stops
 before the stages the boundary does not sit in: the project-source native controls (an untrusted folder's .mcp.json does not
 load in Grok 1.0.50 and the validator never grants trust) and, in the loopback phase, the native herdr panes (the production
-TUI over its own leader socket). Those stay the original's, run by the CI watch.
+TUI over its own leader socket). Those stay the original's; while its line 700 fails the CI watch cannot reach them either.
 
 The ORIGINAL validator keeps running unchanged in CI as a watch (tests/qa/grok_native_retention_watch.py); see the boundary
 module's REMOVAL note for when this script and the boundary are deleted.
@@ -30,7 +35,7 @@ _spec.loader.exec_module(V)
 
 from lampway_server import grok_worker as G  # noqa: E402
 
-#: The original's update-reply checks whose update names the canonical server with another argv or transport.
+#: The original's three update-reply checks whose update names the canonical server with another argv or transport.
 REFUSED_REPLIES = ("native hot reload replied", "http same-name native hot reload replied", "sse same-name native hot reload replied")
 
 

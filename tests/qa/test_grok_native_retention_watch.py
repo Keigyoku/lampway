@@ -44,6 +44,19 @@ def test_any_other_outcome_fails_loudly(receipt):
     assert status == 1 and annotation.startswith("::error::")
 
 
+def test_hostile_endpoint_contact_is_loud_even_with_the_expected_failure():
+    receipt = {**checks(W.EXPECTED_CHECK), "http_events": [{"path": "/v1/chat/completions"}, {"path": "/foreign-http"}]}
+    status, annotation = W.verdict(1, receipt)
+    assert status == 1 and "/foreign-http" in annotation
+
+
+def test_a_diagnosis_that_also_raised_is_not_the_expected_one():
+    receipt = {**diagnosis(**{"http-lampway_pane": ["canonical_survives", "owned_next_call"],
+                              "sse-lampway_pane": ["canonical_survives", "owned_next_call"]}),
+               "failure": "Traceback\nValueError: clean checkout changed"}
+    assert W.verdict(1, receipt)[0] == 1
+
+
 def test_the_expected_transport_diagnosis_is_tracked():
     receipt = diagnosis(**{"http-foreign_transport": None, "http-lampway_pane": ["canonical_survives", "owned_next_call"],
                            "sse-foreign_transport": None, "sse-lampway_pane": ["canonical_survives", "owned_next_call"]})
