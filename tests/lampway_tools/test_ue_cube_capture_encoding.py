@@ -37,7 +37,7 @@ class Settings:
         self.values[key] = value
 
 
-def native_surface(tmp_path, target_patch=None):
+def native_surface(tmp_path, target_patch=None, raw_patch=None):
     profile = json.loads((ROOT / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
     request = dict(disposable_qa_project=True, profile=profile, name='synthetic_encoding',
                    shaper=dict(base=2, lin_side_slope=1, lin_side_offset=1, log_side_slope=1, log_side_offset=0),
@@ -65,11 +65,15 @@ def native_surface(tmp_path, target_patch=None):
         return actor
 
     def create_target(world, width, height, fmt):
-        target = Settings(render_target_format=fmt, srgb=fmt is Format.RTF_RGBA8_SRGB,
+        # The real engine's shape (UE 5.8.2-56702186, measured): the inherited UTexture SRGB property reads True for
+        # BOTH targets, RTF_RGBA16F included (UTextureRenderTarget's constructor default); the encoding is the format's.
+        target = Settings(render_target_format=fmt, srgb=True,
                           target_gamma=0.0, use_legacy_gamma=False, size_x=width, size_y=height)
         targets.append(target)
         if target_patch and fmt is Format.RTF_RGBA8_SRGB:
             target_patch(target)
+        if raw_patch and fmt is Format.RTF_RGBA16F:
+            raw_patch(target)
         return target
 
     def read_raw(world, target, x, y, normalize):
@@ -119,6 +123,9 @@ def test_display_contract_uses_explicit_srgb_target_and_same_capture_raw_readbac
     assert result['status'] == 'completed' and result['normal_settings_restored']
     assert result['render_targets']['display']['srgb'] is True
     assert result['render_targets']['raw']['srgb'] is False
+    # the stale property is kept as an observation, never as the encoding
+    assert result['render_targets']['raw']['srgb_property'] is True
+    assert 'IsSRGB' in result['render_targets']['raw']['srgb_rule']
     assert result['controls'][1]['display_capture']['raw_pixel'] == [0.123, 0.234, 0.345]
     assert result['controls'][1]['disabled_display_capture']['raw_pixel'] == [0.123, 0.234, 0.345]
     assert not list(root.glob('*.cube*'))
@@ -133,6 +140,20 @@ def test_unverified_or_mismatched_encoding_refuses_before_captures(tmp_path,key,
         target.values[key] = value
         target.set_editor_property = lambda *args: None
     ue, root, _, captures, _, destroyed = native_surface(tmp_path,corrupt)
+    with pytest.raises(ValueError,match='render target'):
+        C.capture(ue)
+    assert not captures and len(destroyed)==2
+    assert not list(root.glob('*.cube*'))
+
+
+@pytest.mark.parametrize('key,value', [('srgb',1),('srgb','True'),('srgb',None),
+    ('target_gamma',2.2),('use_legacy_gamma',True),('size_x',4),
+    ('render_target_format',Format.RTF_RGBA8_SRGB),('render_target_format',Format.RTF_RGBA8)])
+def test_raw_linear_target_is_admitted_by_its_encoding_and_still_refuses_corruption(tmp_path,key,value):
+    def corrupt(target):
+        target.values[key] = value
+        target.set_editor_property = lambda *args: None
+    ue, root, _, captures, _, destroyed = native_surface(tmp_path, raw_patch=corrupt)
     with pytest.raises(ValueError,match='render target'):
         C.capture(ue)
     assert not captures and len(destroyed)==2

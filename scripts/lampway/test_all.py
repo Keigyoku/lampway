@@ -180,7 +180,7 @@ def reference_tools(root, env):
     for tool in ("ffmpeg", "ffprobe"):                 # the motion encoder's own requirement (server/lampway_server/motion/encode.py)
         if not shutil.which(tool):
             problems.append(f"complete-suite motion encode controls require {tool} on PATH")
-    browser =env.get("LAMPWAY_CHROMIUM", "")
+    browser = env.get("LAMPWAY_CHROMIUM", "")
     if not browser or Path(browser).resolve().name != "chrome-headless-shell" or not os.access(browser, os.X_OK):
         problems.append("LAMPWAY_CHROMIUM must name an executable chrome-headless-shell; full Chrome's bundled service workers are unsupported; scene-worker containment remains enforced")
     else:

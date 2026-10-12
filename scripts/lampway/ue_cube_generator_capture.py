@@ -132,6 +132,12 @@ def engine_identity(raw, expected):
     return {'version': match[1], 'changelist': int(match[2]), 'raw': raw}
 
 
+def tone_curve_changed(controls):
+    """The 0.18 gray control differs by MORE than one 8-bit display code value with the tone curve disabled. Display
+    pixels are code/255, so the count is compared in whole codes: as floats, 114/255 - 113/255 exceeds 1/255."""
+    return max(round(abs(a - b) * 255) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) > 1
+
+
 def write_outputs(root, request, engine, rows, settings, controls, camera_forward_world=None,
                   completion_owner=None, render_targets=None, capture_settings=None):
     if len(rows) != request['profile']['project']['cvars']['r.LUT.Size'] ** 3:
@@ -145,7 +151,7 @@ def write_outputs(root, request, engine, rows, settings, controls, camera_forwar
             control_pixel(control[key], display=key in ('display', 'tone_curve_disabled'))
         if max(abs(a - b) for a, b in zip(control['input'], control['raw'])) > 0.005:
             raise ValueError('raw-input controls failed')
-    if max(abs(a - b) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) <= 1 / 255:
+    if not tone_curve_changed(controls):
         raise ValueError('tone-curve controls failed')
     name = request['name']
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', name):
@@ -228,11 +234,20 @@ def postprocess_readback(actual, fields):
     return settings
 
 
-def render_target_readback(target, expected_format, srgb):
-    """Admit the actual encoded-display/linear-input target, not a format label."""
-    expected = dict(render_target_format=expected_format, srgb=srgb,
+SRGB_RULE = ('UTextureRenderTarget2D::IsSRGB (UE 5.8.2-56702186, TextureRenderTarget2D.cpp:72-86): create_render_target2d '
+             'leaves OverrideFormat PF_Unknown, so the RHI target is sRGB-encoded exactly when its format is RTF_RGBA8_SRGB; '
+             'the inherited UTexture SRGB property defaults to True and is not the encoding of a float target')
+
+
+def render_target_readback(target, expected_format, srgb, srgb_format):
+    """Admit the actual encoded-display/linear-input target, not a format label or the stale SRGB property.
+
+    The engine (pinned by engine_identity before any target exists) encodes by format; Python cannot read
+    OverrideFormat or bForceLinearGamma, so the encoding is the engine's own rule over the read-back format. The
+    SRGB property is read back typed and recorded; on the display target it must agree with the encoding."""
+    expected = dict(render_target_format=expected_format,
                     target_gamma=0.0, use_legacy_gamma=False, size_x=8, size_y=8)
-    result = {}
+    result, actual_format = {}, None
     for key, wanted in expected.items():
         try:
             got = target.get_editor_property(key)
@@ -241,8 +256,18 @@ def render_target_readback(target, expected_format, srgb):
             if key == 'target_gamma' and (type(got) not in (int, float) or got != 0):
                 raise ValueError('custom gamma is not disabled')
             result[key] = _postprocess_value(got, wanted, key)
+            if key == 'render_target_format':
+                actual_format = got
         except Exception:
             raise ValueError('actual render target differs or is unreadable: ' + key) from None
+    try:
+        prop = target.get_editor_property('srgb')
+        encoded = type(actual_format) is type(srgb_format) and actual_format == srgb_format
+        if type(prop) is not bool or encoded is not srgb or (srgb and prop is not True):
+            raise ValueError('encoding differs')
+    except Exception:
+        raise ValueError('actual render target differs or is unreadable: srgb') from None
+    result.update(srgb=encoded, srgb_property=prop, srgb_rule=SRGB_RULE)
     return result
 
 
@@ -416,9 +441,10 @@ def _capture(ue, root, request, evidence):
         for render_target in (target, raw_target):
             render_target.set_editor_property('target_gamma', 0.0)
             render_target.set_editor_property('use_legacy_gamma', False)
+        srgb_format = ue.TextureRenderTargetFormat.RTF_RGBA8_SRGB
         target_settings = {
-            'display': render_target_readback(target, ue.TextureRenderTargetFormat.RTF_RGBA8_SRGB, True),
-            'raw': render_target_readback(raw_target, ue.TextureRenderTargetFormat.RTF_RGBA16F, False)}
+            'display': render_target_readback(target, srgb_format, True, srgb_format),
+            'raw': render_target_readback(raw_target, ue.TextureRenderTargetFormat.RTF_RGBA16F, False, srgb_format)}
         evidence.update(render_targets=target_settings,
                         capture_settings=capture_settings_readback(component))
 
@@ -475,7 +501,7 @@ def _capture(ue, root, request, evidence):
             'postprocess_readback': settings, 'disabled_postprocess_readback': disabled_settings,
             'controls': controls}, sort_keys=True))
         evidence.update('tone_control_guard')
-        if max(abs(a - b) for a, b in zip(controls[1]['display'], controls[1]['tone_curve_disabled'])) <= 1 / 255:
+        if not tone_curve_changed(controls):
             raise ValueError('native disabled-tone negative control showed no curve difference')
         if request.get('controls_only', False):
             evidence.update('controls_complete')

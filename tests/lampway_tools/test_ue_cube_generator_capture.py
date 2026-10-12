@@ -288,11 +288,14 @@ def test_disabled_control_reads_back_every_field_and_restores_normal_state():
     assert current[0] is normal and normal.values['tone_curve_amount'] == 1.0
 
 
-@pytest.mark.parametrize('difference', [0.0, 1 / 255])
-def test_unchanged_or_one_code_value_tone_control_refuses_publication(tmp_path, difference):
+@pytest.mark.parametrize('display,disabled', [(0.0, 0.0), (0.0, 1 / 255),
+                                              # the real UE 5.8.2 gray control (g30 finish run): codes 114 vs 113, whose
+                                              # float difference exceeds 1/255 by rounding alone
+                                              (114 / 255, 113 / 255), (113 / 255, 114 / 255)])
+def test_unchanged_or_one_code_value_tone_control_refuses_publication(tmp_path, display, disabled):
     request = {'profile': {'project': {'cvars': {'r.LUT.Size': 2}}}}
-    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.0] * 3,
-                     tone_curve_disabled=[difference] * 3) for _ in range(4)]
+    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[display] * 3,
+                     tone_curve_disabled=[disabled] * 3) for _ in range(4)]
     with pytest.raises(ValueError, match='tone-curve controls failed'):
         C.write_outputs(tmp_path, request, {}, [[0, 0, 0]] * 8, {}, controls)
     assert not list(tmp_path.iterdir())
@@ -393,8 +396,9 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         SCS_FINAL_COLOR_LDR = 2
     def render_target(world, width, height, fmt):
         target = Settings()
+        # the real engine's shape (UE 5.8.2-56702186, measured): SRGB reads True for both formats
         for key, value in dict(render_target_format=fmt, size_x=width, size_y=height,
-                              srgb=fmt is TargetFormat.RTF_RGBA8_SRGB,
+                              srgb=True,
                               target_gamma=0.0, use_legacy_gamma=False).items():
             target.set_editor_property(key, value)
         return target

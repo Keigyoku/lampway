@@ -91,7 +91,6 @@ class MatgenJob:
         self.agent_context = None
 
 
-
 _in_flight: dict = {}
 
 

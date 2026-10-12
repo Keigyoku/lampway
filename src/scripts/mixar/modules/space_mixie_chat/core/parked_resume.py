@@ -211,5 +211,6 @@ def _ask(base_url: str, token: str,
         run_on_main_thread(lambda n=scene_name, c=open_count:
                            _fire_resume(n, c))
         # One resume per reconnect event (captain, 2026-10-11): resuming every parked tab at once would start
-        # concurrent agent streams against the one server. The other parked tabs keep their retry chip.
+        # concurrent agent streams against the one server. The other parked tabs were already asked once this run
+        # (claim_check), so they are left to the user for this app run: their retry chip sends the same continue.
         return
