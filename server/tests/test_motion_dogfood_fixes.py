@@ -525,6 +525,29 @@ def test_a_line_held_shorter_than_its_words_need_warns_reading():
     assert not [f for f in C.stream_findings(long, 0.5, 3.0, 1080, 1920) if f["check"] == "reading"]
 
 
+class _HeldOneSecond(FakeCapture):
+    """One word fully visible for exactly the first second (frames 0-59 at 60 fps), then nothing."""
+    def frame(self, t):
+        self._t = t
+        return super().frame(t)
+
+    def audit(self):
+        if getattr(self, "_t", 0.0) < 1.0:
+            return {"text": [{"sel": "#t", "text": "hi", "box": [40, 40, 120, 70], "font_px": 28, "opacity": 1}], "marks": []}
+        return {"text": [], "marks": []}
+
+
+def test_a_one_second_hold_at_60_fps_does_not_warn_reading(tmp_path):
+    # the stream keeps full-precision times: rounded to 4 places, frame 59 is 0.9833 s and the hold 0.99997 s, a false reading warning
+    project = _project(tmp_path)
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "fps": 60, "duration_s": 2, "samples": [0], "audit_every_s": 1 / 60}, _HeldOneSecond)
+    receipt = json.loads((project / res["out_dir"] / "receipt.json").read_text())
+    assert receipt["audit_stream"] == {"every_frames": 1, "audits": 120}
+    assert not [f for f in res["self_check"]["findings"] if f["check"] == "reading"], res["self_check"]["findings"]
+    rows = [json.loads(line) for line in (project / res["out_dir"] / "audit.jsonl").read_text().splitlines()]
+    assert rows[59]["t"] == 59 / 60                                                  # full precision in the file too
+
+
 def test_a_second_without_readable_text_warns_low_content_but_the_opening_does_not():
     from lampway_server.motion import check as C
     faint = ("#h", "fading", [100, 300, 900, 360], 0.2)

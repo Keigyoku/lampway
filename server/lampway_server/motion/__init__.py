@@ -490,7 +490,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
                 audit = capture.audit()
                 C.validate_audit(audit)
             if i in streamed:                                              # audit-only: authored geometry, no PNG, no pixel checks
-                stream.append({"frame": i, "t": round(t, 4), "audit": audit})
+                stream.append({"frame": i, "t": t, "audit": audit})                  # full precision: the timeline checks compare holds to thresholds
             if i in samples:
                 im, stats = C.frame_stats(png)
                 found = C.opening_grace(C.findings(im, stats, audit, W, H, a["safe_zone"]), t, opening)
