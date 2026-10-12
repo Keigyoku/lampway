@@ -30,6 +30,8 @@ Decision measurements render the actual evaluated body and placed candidate toge
 
 Pose region membership follows actual skeleton ancestry to the nearest configured seed, retaining each sample's weighted bone for transformations and ray origins. Refuse empty requested regions and invalid/ambiguous ancestry before pose evaluation or file writes. Component/native synthetic proofs remain distinct from the original body rerun.
 
+ue_parity compares a UE capture only with the UE half's receipt (capture.json, lampway.ue-parity-capture/1), converting its declared inverse-opacity alpha to coverage before silhouettes and edge bands; a capture without that receipt refuses. A class the scene does not sample reports unmeasured, never pass or fail.
+
 ## Invariants
 
 Onboarding Continue and Back rebuild the existing temporary popup with
@@ -271,3 +273,4 @@ Articulated contacts in fit_bind require the source-bound typed declaration and 
 | 2026-10-09 | canonical positional bands and uncapped native transfer | canon07 B.6/B.9 and implementation item3 | pure band primitive was disconnected and the public transfer silently dropped native influences | source-bound planar recipes, endpoint/identity refusals, native positional C03 and twelve-influence controls | real C03 tear and stale/authority/default-cap REDs; isolated native regression receipts |
 | 2026-10-10 | bounded articulated contact domains | captain authorizes independent shoulder motion on copies | off-axis fused contacts conflict with independent rigid pauldrons | pinned pair closure and strict undeclared domains through bind plan, weights, return and apply | native authorized/three-way/stale/incomplete controls; physical fit pending |
 | 2026-10-10 | geometry-bound own-rig remeasurement | original I05 source has twenty-six outside joints | existing base measurements were passed unchanged and procedural weighting fixes alone could not fit the original pair | share canon11 B8 through the public template selector, record geometry-bound corrections and retain strict inside/source-state gates | pure centering/open-ring controls and isolated public/state regressions; candidate physical review remains separate |
+| 2026-10-11 | UE capture alpha and unmeasured classes | first live UE parity run (lampway-finish-pr1) | SCS_SCENE_COLOR_HDR's inverse opacity made GEO 0.0 and absent classes read fail | receipt-declared alpha converted to coverage; empty classes unmeasured | inverse-alpha and receipt-less RED then GREEN; four empty-class RED then GREEN |

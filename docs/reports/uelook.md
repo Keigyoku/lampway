@@ -236,3 +236,46 @@ Suites before the push (scratch TMPDIR and basetemp, deleted after each run):
 - Four pre-existing failures on `lp/wave5`, none from this lane: `test_brand_words` and `test_no_mixar_in_ui_strings`
   (`material_bake_export.py:54` "Mixar Paint", `mcp_inventory/api.py:154`), `test_prepublish_gate` (`/home/x` in the allow
   list without a reason), `test_site_links` (eight hosts in `fal.py` and `studios/rest/shapes.py`).
+
+## The UE half, measured (PR #1 finish, 2026-10-11)
+
+The captain approved the UE editor leg in PR #1 ("Build it in PR #1"). It is `scripts/lampway/ue_parity_capture.py`, a
+ticking UE editor job run in a disposable QA project (`UnrealEditor-Cmd -RenderOffscreen -ExecCmds "py <file>"`, a
+post-tick callback, quit at the end). Deviation from the off-tree contract (`ue_editor_leg.md` §6): it is a Lampway QA script
+in a disposable project, not a Titan recipe through `editor_runner` on the Titan project, and its profile is the QA
+project's live readback, not the Titan profile.
+
+**The cube is real.** The maintained `ue_cube_generator_capture.py`, under the captain's G30 ruling (the neutral 4.0 white
+is the disabled-tone negative control; 0.18 gray, FilmToneMap's InMatch/OutMatch point, is the fixed-point check), sampled
+UE 5.8.2-56702186 on Vulkan offscreen: 32,768 rows, sidecar `lampway.ue-cube-meta/1`, cube sha256 `5d752a23f174…`.
+`ue/cube.py` validates it, `ue_look enable` builds the view ("UE 5.8 Filmic fa7a5554") and the parity renders run with it.
+
+**First parity record** (UE 5.8.2 Vulkan offscreen; EEVEE headless; 768 px; parity profile = the QA project's live readback
+with manual exposure, bloom/vignette/SSAO off and `r.ReflectionMethod 0`, profile hash `97a65261cf2e`):
+
+| scene | class | front | three_quarter | grazing | tolerance |
+|---|---|---|---|---|---|
+| chart | COL | pass 0.0007 | pass 0.0007 | pass 0.0005 | linear within 1 % |
+| chart | GEO | pass 0.9987 | fail 0.9897 | fail 0.9868 | IoU >= 0.995 |
+| furnace | SHD | fail 1.0000 | fail 1.0000 | fail 1.0000 | mean radiance within 3 % |
+| furnace | GEO | fail 0.9949 | pass 0.9960 | pass 0.9969 | IoU >= 0.995 |
+| normals | NRM | pass 1.0000 | pass 1.0000 | pass 1.0000 | sign 100 % |
+| normals | GEO | pass 1.0000 | pass 0.9997 | pass 1.0000 | IoU >= 0.995 |
+| lights | LGT | fail 0.3970 | fail 0.4206 | fail 0.5651 | within 2 % after k |
+| lights | GEO | pass 0.9989 | pass 0.9982 | pass 0.9995 | IoU >= 0.995 |
+
+What the failures are (each measured, none settled by a guess):
+- **GEO** misses only by edge pixels: every disagreeing pixel lies within 1 px of coverage both agree on, UE's silhouette is
+  0.5-1 % larger at the oblique views, and Lampway's raster sits about 0.2 px off centre even on the symmetric front chart.
+  Whether GEO excludes the PST edge band (the contract's PST row says the band is excluded "from all metrics above") is open.
+- **LGT**: six of nine probes agree within 2-5 %. The two probes 20.4° and 21.7° off the spot's axis, inside its blend band
+  (inner 19.1°, outer 22.5°, `ue/lights.py`: inner = outer × (1 − blend)), read about 40 % darker in UE; the probe nearest the
+  point light reads 13 % brighter.
+- **SHD**: dielectric spheres agree within 1-6 % (above 3 % at roughness 0.25-0.75); the smoothest metal agrees (0.999 vs
+  0.9998); metals at roughness 0.25 and above read 0.15 and 0 in UE: the captured sky's specular is missing for rough metal in
+  this capture. Four times the settle ticks and a second recapture changed nothing; the cause is not established.
+
+Fixed on the way (each RED first): the UE capture's alpha is inverse opacity (`SCS_SCENE_COLOR_HDR`), so the Lampway half
+reads the UE half's receipt (`capture.json`, `lampway.ue-parity-capture/1`) and compares coverage (GEO was 0.0 before); a
+class a scene does not sample is `unmeasured`, not `fail` (ue_parity.md §3); the UE plane faced away from the camera (roll
+−90; a probe with a quadrant image fixed the sign: roll +90), which read as a flipped green (NRM 0 %, now 100 %).

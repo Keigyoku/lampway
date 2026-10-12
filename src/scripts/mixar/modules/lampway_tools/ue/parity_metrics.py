@@ -116,6 +116,9 @@ def de2000(lab1, lab2):
     return np.sqrt((dLp / Sl) ** 2 + (dCp / Sc) ** 2 + (dHp / Sh) ** 2 + Rt * (dCp / Sc) * (dHp / Sh))
 
 
+UNMEASURED = "unmeasured"
+
+
 def compare(lampway, ue, regions, display=None) -> dict:
     """lampway, ue: linear RGBA float images of one view. regions: {COL: [rect], SHD: [rect], NRM: [{rect, axis}], LGT: [[x, y]],
     TEX?: ...}; rect = [x0, y0, x1, y1] in pixels, row 0 at the top. display: linear -> display code 0..1 (the cube), or None."""
@@ -129,18 +132,20 @@ def compare(lampway, ue, regions, display=None) -> dict:
     lb = np.array([_mean(b, r, keep) for r in regions.get("COL", [])])
     col = {"patches": len(la), "linear_ratio": _ratio(la, lb) if len(la) else None}
     ok = _within(col["linear_ratio"], T["COL"]["linear_ratio"])
-    if display is None:
+    if not len(la):                      # ue_parity.md 3: a class this scene does not sample is unmeasured, never failed or passed
+        col["display"] = None
+    elif display is None:
         col["display"] = "needs_decision"
     else:
         d = np.abs(np.asarray(display(lb)) - np.asarray(display(la))) * 255.0
         col.update(display="cube", display_max_codes=float(d.max()), display_mean_codes=float(d.mean()))
         ok = ok and col["display_max_codes"] <= T["COL"]["display_max_codes"] and col["display_mean_codes"] <= T["COL"]["display_mean_codes"]
-    out["COL"] = dict(col, verdict="pass" if ok else "fail")
+    out["COL"] = dict(col, verdict=("pass" if ok else "fail") if len(la) else UNMEASURED)
     # SHD
     sa = np.array([_mean(a, r, keep) @ _Y for r in regions.get("SHD", [])])
     sb = np.array([_mean(b, r, keep) @ _Y for r in regions.get("SHD", [])])
     r = _ratio(sa, sb) if len(sa) else None
-    out["SHD"] = {"spheres": len(sa), "radiance_ratio": r, "verdict": "pass" if _within(r, T["SHD"]["radiance_ratio"]) else "fail"}
+    out["SHD"] = {"spheres": len(sa), "radiance_ratio": r, "verdict": ("pass" if _within(r, T["SHD"]["radiance_ratio"]) else "fail") if len(sa) else UNMEASURED}
     # NRM
     agree, des = [], []
     for bump in regions.get("NRM", []):
@@ -155,14 +160,14 @@ def compare(lampway, ue, regions, display=None) -> dict:
     sign = float(np.mean(agree)) if agree else None
     nrm = {"bumps": len(agree), "sign_agreement": sign, "mean_de2000": float(np.mean(des)) if des else None}
     ok = sign is not None and sign >= T["NRM"]["sign_agreement"] and (nrm["mean_de2000"] is None or nrm["mean_de2000"] <= T["NRM"]["mean_de2000"])
-    out["NRM"] = dict(nrm, verdict="pass" if ok else "fail")
+    out["NRM"] = dict(nrm, verdict=("pass" if ok else "fail") if agree else UNMEASURED)
     # LGT
     def probe(img, x, y):
         return float(img[y - 1:y + 2, x - 1:x + 2, :3].mean(axis=(0, 1)) @ _Y)
     pa = np.array([probe(a, x, y) for x, y in regions.get("LGT", [])])
     pb = np.array([probe(b, x, y) for x, y in regions.get("LGT", [])])
     r = _ratio(pa, pb) if len(pa) else None
-    out["LGT"] = {"probes": len(pa), "radiance_ratio": r, "verdict": "pass" if _within(r, T["LGT"]["radiance_ratio"]) else "fail"}
+    out["LGT"] = {"probes": len(pa), "radiance_ratio": r, "verdict": ("pass" if _within(r, T["LGT"]["radiance_ratio"]) else "fail") if len(pa) else UNMEASURED}
     # GEO
     ma, mb = a[..., 3] > 0.5, b[..., 3] > 0.5
     iou = float((ma & mb).sum() / max(1, (ma | mb).sum()))

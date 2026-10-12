@@ -46,6 +46,7 @@ UE side and read as data; Lampway holds none of the tonemapper's maths ([UE Look
   FBX timestamp zeroed, and `ue_import.json`, the only import settings the editor leg may use.
 - **Parity harness** (`ue_parity`): standard scenes (chart, furnace, normals, lights) from one JSON description, rendered
   headless in EEVEE under the parity rules to float EXR, compared per class against fixed tolerances when the UE captures
-  exist. The UE half needs box time (`needs_box`).
+  exist. The UE half is `scripts/lampway/ue_parity_capture.py`, a ticking UE editor job in a disposable QA project; its
+  receipt names the capture's alpha. First measured record: [UE Look report](../reports/uelook.md).
 
 Status and measured numbers: `docs/reports/uelook.md`. Specification: `specs/ue_parity/` (outside this repository).

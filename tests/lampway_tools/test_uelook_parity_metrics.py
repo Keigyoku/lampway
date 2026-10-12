@@ -80,6 +80,22 @@ def test_har04_each_synthetic_error_fails_exactly_its_class():
     assert PM.compare(a, one, regions, display=srgb)["classes"]["COL"]["display_max_codes"] <= 1.01
 
 
+@pytest.mark.parametrize("absent", ["COL", "SHD", "NRM", "LGT"])
+def test_a_class_the_scene_does_not_measure_is_unmeasured_not_failed(absent):
+    """ue_parity.md §3: per class "within tolerance / not / unmeasured". The live chart run (lampway-finish-pr1) reported SHD,
+    NRM and LGT as fail with zero samples; a scene isolates its own class and leaves the others unmeasured."""
+    a, regions = synthetic()
+    regions = {**regions, absent: []}
+    rep = PM.compare(a, a.copy(), regions, display=srgb)
+    assert rep["classes"][absent]["verdict"] == "unmeasured", rep["classes"][absent]
+    assert {c: r["verdict"] for c, r in rep["classes"].items() if c not in (absent, "PST", "TEX")} == {
+        c: "pass" for c in ("COL", "SHD", "NRM", "LGT", "GEO") if c != absent}
+    worse = a.copy()
+    worse[..., :3] *= 1.5                                         # a measured class still fails with samples present
+    assert all(r["verdict"] == "fail" for c, r in PM.compare(a, worse, regions, display=srgb)["classes"].items()
+               if c in ("COL", "SHD", "LGT") and c != absent)
+
+
 def test_geo_silhouette_and_the_edge_band():
     a, regions = synthetic()
     b = a.copy()
