@@ -53,16 +53,27 @@ def tick():
             sc.mixie_chat_messages.clear()
             bpy.context.window_manager.mixar_agent_model_label = 'Fixture model'
             # The first-run splash stays open for its native popup's lifetime and the island does not draw behind it:
-            # dismiss it the way a user does, and prove it closed, before opening the island.
-            win = bpy.context.window_manager.windows[0]
-            with bpy.context.temp_override(window=win):
-                win.event_simulate(type='ESC', value='PRESS')
-                win.event_simulate(type='ESC', value='RELEASE')
-            STATE['stage'] = 'island'
-            return 1.0
+            # dismiss it the way a user does, and prove it closed (the native flag every close path clears), before
+            # opening the island.
+            wm = bpy.context.window_manager
+            STATE['splash_was_open'] = bool(wm.mixar_splash_open)
+            if STATE['splash_was_open']:
+                win = wm.windows[0]
+                with bpy.context.temp_override(window=win):
+                    win.event_simulate(type='ESC', value='PRESS')
+                    win.event_simulate(type='ESC', value='RELEASE')
+            STATE.update(stage='island', splash_polls=0)
+            return 0.25
         if STATE['stage'] == 'island':
-            from mixar.bootstrap import splash_menu
-            assert not splash_menu.is_splash_visible(), 'the first-run splash is still open'
+            # Closing the splash arms the bubble's own startup show, which resets any island already open: let it settle.
+            from mixar.modules.agent_bubble.core import bubble_autoshow, bubble_lifecycle, bubble_splash_watch
+            settling = [fn for fn in (bubble_splash_watch.splash_watch_tick, bubble_autoshow.autoshow_bubble,
+                                      bubble_lifecycle.load_autoshow_tick) if bpy.app.timers.is_registered(fn)]
+            if bpy.context.window_manager.mixar_splash_open or settling:
+                STATE['splash_polls'] += 1
+                assert STATE['splash_polls'] < 40, ('the first-run splash or the bubble startup did not settle in 10 s',
+                                                    bool(bpy.context.window_manager.mixar_splash_open), [f.__name__ for f in settling])
+                return 0.25
             bpy.ops.mixar.agent_bubble_show_window()
             STATE['stage'] = 1
             return 2.0
@@ -115,7 +126,7 @@ def tick():
         assert not any(w.get('op') == 'MIXAR_OT_agent_model_set' for w in popup), popup
         bpy.context.window_manager.mixar_ui_enable(enabled=True)
         assert STATE['window'].mixar_ui_capture(filepath=str(OUT / 'mode-menu.png'))
-        finish({'ok': True, 'geometry': STATE['geometry'], 'popup_rows': [w.get('text') for w in popup],
+        finish({'ok': True, 'geometry': STATE['geometry'], 'splash_was_open': STATE['splash_was_open'], 'popup_rows': [w.get('text') for w in popup],
                 'scope': 'native uiBut geometry and mouse-opened registered menu; no provider or TUI'})
     except Exception:
         finish({'ok': False, 'stage': STATE['stage'], 'error': traceback.format_exc()})
