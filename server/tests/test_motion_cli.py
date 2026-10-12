@@ -142,3 +142,32 @@ def test_progress_goes_to_stderr_as_toon_lines_and_stdout_stays_the_answer(tmp_p
     assert quiet.getvalue() == ""
     rc, text = run(["render", "--scene", "motion/scenes/teaser", *SMALL, "--no-vault", "--progress-every", "-1"], tmp_path)
     assert rc == 2 and text.startswith('error: "--progress-every -1: pass seconds >= 0')
+
+
+class _OutsideZone(FakeCapture):
+    def audit(self):
+        return {"text": [{"sel": "#t", "text": "edge", "box": [0, 0, 160, 30], "font_px": 28, "opacity": 1}], "marks": []}
+
+
+class _Drifting(FakeCapture):
+    """The same frames with one pixel changed: a re-render that does not reproduce."""
+    def frame(self, t):
+        from PIL import Image
+        im = Image.open(io.BytesIO(super().frame(t))).convert("RGB")
+        im.putpixel((0, 0), (255, 0, 255))
+        buf = io.BytesIO()
+        im.save(buf, format="PNG")
+        return buf.getvalue()
+
+
+def test_a_failing_self_check_is_exit_1_with_an_error_and_its_findings(tmp_path):
+    rc, out = run(["render", "--scene", "motion/scenes/teaser", *SMALL, "--safe-zone", "0.2,0.2,0.8,0.8", "--no-vault"], tmp_path, capture=_OutsideZone)
+    assert rc == 1 and "ok: false" in out and "\nerror: " in out and "the self-check failed: " in out, out
+    assert "safe_zone" in out and "fail: 0" not in out and "help[" in out
+
+
+def test_a_verify_that_does_not_reproduce_is_exit_1_with_an_error(tmp_path):
+    run(["render", "--scene", "motion/scenes/teaser", *SMALL, "--no-vault"], tmp_path)
+    out_dir = next((tmp_path / "proj" / "motion" / "out").iterdir())
+    rc, out = run(["verify", "--receipt", f"motion/out/{out_dir.name}/receipt.json"], tmp_path, capture=_Drifting)
+    assert rc == 1 and "reproduced: false" in out and 'error: "not reproduced: 2 frames differ"' in out, out

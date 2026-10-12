@@ -148,6 +148,9 @@ def _render_view(out: dict, full: bool) -> tuple:
     view = {"ok": out["ok"], "run_id": out["run_id"], "out_dir": out["out_dir"], "frames": out["frames"]}
     if out.get("error"):
         view["error"] = out["error"]
+    elif not out["ok"]:                                              # exit 1 always carries error: (a failing self-check sets no error of its own)
+        n = out["self_check"]["fail"]
+        view["error"] = f"the self-check failed: {n} failing finding{'s' if n != 1 else ''} (see findings)"
     view["files"] = [{"kind": k, "path": p} for k, p in out["files"].items()] + [{"kind": "receipt", "path": f"{out['out_dir']}/receipt.json"}]
     view["inputs"] = out.get("inputs") or []
     if out.get("opening_s"):
@@ -181,6 +184,10 @@ def _verify_view(res: dict, full: bool) -> tuple:
     keys = ("reproduced", "frames", "mp4_equal", "webm_equal", "engine_matches", "integrity_matches", "provenance_matches", "error")
     view = {k: res[k] for k in keys if k in res}
     differ = res.get("frames_differing") or []
+    if not res["reproduced"] and not res.get("error"):              # exit 1 always carries error:
+        unequal = [fmt for fmt in E.FORMATS if res.get(f"{fmt}_equal") is False]
+        view["error"] = ("not reproduced: " + (f"{len(differ)} frame{'s' if len(differ) != 1 else ''} differ" if differ else
+                                               f"{' and '.join(unequal)} differ{'s' if len(unequal) == 1 else ''}" if unequal else "the frame rows differ"))
     view["frames_differing"] = len(differ)
     if differ:
         view.update(_rows("differing", [{"frame": i} for i in differ], full, "frames"))
