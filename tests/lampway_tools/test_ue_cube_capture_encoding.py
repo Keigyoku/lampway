@@ -86,7 +86,8 @@ def native_surface(tmp_path, target_patch=None, raw_patch=None):
     def read_color(world, target, x, y):
         reads.append(('color', len(captures), target))
         off = component.values['post_process_settings'].values['tone_curve_amount'] == 0
-        value = 150 if off else 100
+        # the real engine's shape: the 0.18 gray fixed point (FilmToneMap InMatch/OutMatch) does not move; others do
+        value = 150 if off and rgb[0] != [0.18] * 3 else 100
         return NS(r=value, g=value, b=value)
 
     ue = NS(Paths=NS(project_dir=lambda: str(tmp_path)),
@@ -107,6 +108,7 @@ def native_surface(tmp_path, target_patch=None, raw_patch=None):
         RenderingLibrary=NS(create_render_target2d=create_target, read_render_target_raw_pixel=read_raw,
                             read_render_target_pixel=read_color))
     ue.synthetic_sample_rgb = rgb
+    ue.tone_off = lambda: component.values['post_process_settings'].values['tone_curve_amount'] == 0
     return ue, root, targets, captures, reads, destroyed
 
 
@@ -160,18 +162,32 @@ def test_corrupted_raw_linear_target_refuses_before_captures(tmp_path,key,value)
     assert not list(root.glob('*.cube*'))
 
 
-def test_identical_gray_still_refuses_even_if_other_controls_change(tmp_path):
+def test_identical_gray_with_a_moving_white_control_completes(tmp_path):
+    # The captain's G30 ruling (2026-10-11): an unchanged 0.18 gray is FilmToneMap's fixed point, not a failed control.
+    ue, root, _, _, _, destroyed = native_surface(tmp_path)
+    C.capture(ue)
+    result=json.loads((root/'synthetic_encoding.controls.json').read_text())
+    assert result['status']=='completed' and result['normal_settings_restored']
+    assert result['controls'][1]['display'] == result['controls'][1]['tone_curve_disabled']
+    assert result['controls'][3]['display'] != result['controls'][3]['tone_curve_disabled']
+    assert len(destroyed)==2 and not list(root.glob('*.cube*'))
+
+
+@pytest.mark.parametrize('broken', ['unchanged_white', 'moving_gray'])
+def test_unchanged_white_or_moving_gray_refuses(tmp_path, broken):
     ue, root, _, _, _, destroyed = native_surface(tmp_path)
     old = ue.RenderingLibrary.read_render_target_pixel
-    def unchanged_gray(*args):
+    def plant(*args):
         pixel = old(*args)
-        return NS(r=42,g=42,b=42) if ue.synthetic_sample_rgb[0] == [0.18]*3 else pixel
-    ue.RenderingLibrary.read_render_target_pixel = unchanged_gray
-    with pytest.raises(ValueError,match='no curve difference'):
+        sample = ue.synthetic_sample_rgb[0]
+        if broken == 'unchanged_white' and sample == [4]*3:
+            return NS(r=100,g=100,b=100)
+        if broken == 'moving_gray' and sample == [0.18]*3 and pixel.r == 100 and ue.tone_off():
+            return NS(r=150,g=150,b=150)
+        return pixel
+    ue.RenderingLibrary.read_render_target_pixel = plant
+    with pytest.raises(ValueError,match='no curve difference' if broken == 'unchanged_white' else 'fixed point'):
         C.capture(ue)
     result=json.loads((root/'synthetic_encoding.controls.json').read_text())
     assert result['status']=='refused' and result['normal_settings_restored']
-    assert result['controls'][1]['display'] == result['controls'][1]['tone_curve_disabled']
-    assert result['controls'][2]['display'] != result['controls'][2]['tone_curve_disabled']
-    assert result['controls'][3]['display'] != result['controls'][3]['tone_curve_disabled']
     assert len(destroyed)==2 and not list(root.glob('*.cube*'))

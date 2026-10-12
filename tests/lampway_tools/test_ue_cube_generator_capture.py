@@ -52,8 +52,7 @@ def test_synthetic_capture_packing_matches_existing_cube_validator(tmp_path):
     profile = json.loads((repo / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
     profile['project']['cvars']['r.LUT.Size'] = 2
     request = dict(profile=profile, name='synthetic', shaper=SHAPER, shaper_source='synthetic test only')
-    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.4] * 3,
-                     tone_curve_disabled=[0.5] * 3) for _ in range(4)]
+    controls = _controls((113, 113), (249, 255))   # the live UE 5.8.2 control shape
     cube, sidecar = C.write_outputs(tmp_path, request, profile['engine'], list(C.grid(2, SHAPER)), {}, controls)
     spec = importlib.util.spec_from_file_location('existing_cube_validator',
             repo / 'src/scripts/mixar/modules/lampway_tools/ue/cube.py')
@@ -288,17 +287,40 @@ def test_disabled_control_reads_back_every_field_and_restores_normal_state():
     assert current[0] is normal and normal.values['tone_curve_amount'] == 1.0
 
 
-@pytest.mark.parametrize('display,disabled', [(0.0, 0.0), (0.0, 1 / 255),
-                                              # the real UE 5.8.2 gray control (g30 finish run): codes 114 vs 113, whose
-                                              # float difference exceeds 1/255 by rounding alone
-                                              (114 / 255, 113 / 255), (113 / 255, 114 / 255)])
-def test_unchanged_or_one_code_value_tone_control_refuses_publication(tmp_path, display, disabled):
+INPUTS = ([0, 0, 0], [0.18] * 3, [1, 0, 0], [4] * 3)
+
+
+def _controls(gray, white):
+    """The four preliminary controls, each a (tone curve on, tone curve off) pair of 8-bit codes for gray and white."""
+    pairs = ((0, 0), gray, (237, 255), white)
+    return [dict(input=list(i), raw=list(i), display=[a / 255] * 3, tone_curve_disabled=[b / 255] * 3)
+            for i, (a, b) in zip(INPUTS, pairs)]
+
+
+# The captain's G30 ruling (2026-10-11): 0.18 gray is FilmToneMap's InMatch/OutMatch fixed point (TonemapCommon.ush:185-200),
+# so the negative control is the neutral 4.0 white, off that point, by more than one code; gray stays within one code.
+@pytest.mark.parametrize('white', [(249, 249), (249, 250), (250, 249), (255, 255)])
+def test_unchanged_or_one_code_value_white_control_refuses_publication(tmp_path, white):
     request = {'profile': {'project': {'cvars': {'r.LUT.Size': 2}}}}
-    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[display] * 3,
-                     tone_curve_disabled=[disabled] * 3) for _ in range(4)]
     with pytest.raises(ValueError, match='tone-curve controls failed'):
-        C.write_outputs(tmp_path, request, {}, [[0, 0, 0]] * 8, {}, controls)
+        C.write_outputs(tmp_path, request, {}, [[0, 0, 0]] * 8, {}, _controls((113, 113), white))
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize('gray', [(113, 115), (100, 140), (115, 113)])
+def test_a_moving_gray_fixed_point_refuses_publication_even_when_white_changes(tmp_path, gray):
+    request = {'profile': {'project': {'cvars': {'r.LUT.Size': 2}}}}
+    with pytest.raises(ValueError, match='tone-curve controls failed'):
+        C.write_outputs(tmp_path, request, {}, [[0, 0, 0]] * 8, {}, _controls(gray, (249, 255)))
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize('gray', [(113, 113), (114, 113), (113, 114)])
+def test_the_real_engine_controls_pass_the_tone_guard(gray):
+    # the live UE 5.8.2 values (g30 finish run 02): gray 113/114 vs 113, white 249 vs 255
+    assert C.tone_curve_controls(_controls(gray, (249, 255))) is None
+    assert 'white' in C.tone_curve_controls(_controls(gray, (249, 249)))
+    assert 'fixed point' in C.tone_curve_controls(_controls((100, 140), (249, 255)))
 
 
 def test_disabled_control_refuses_incorrect_restored_readback():
@@ -381,7 +403,8 @@ def test_capture_restores_native_settings_after_disabled_gpu_readback_error(tmp_
         if (failure_mode == 'readback_error'
                 and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0):
             raise RuntimeError('synthetic GPU readback error')
-        value = 140 if ((failure_mode == 'controls_only' or publication)
+        # the real engine's shape (UE 5.8.2 live run): the 0.18 gray fixed point does not move with the curve off; others do
+        value = 140 if ((failure_mode == 'controls_only' or publication) and parameter[0] != 0.18
                        and component.values['post_process_settings'].values['tone_curve_amount'] == 0.0) else 100
         return NS(r=value, g=value, b=value)
     def destroy(actor):
@@ -552,8 +575,7 @@ def test_nonfinite_control_cannot_publish_a_sidecar(tmp_path, field):
     profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
     profile['project']['cvars']['r.LUT.Size'] = 2
     request = dict(profile=profile, name='synthetic', shaper=SHAPER, shaper_source='synthetic test only')
-    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.4] * 3,
-                     tone_curve_disabled=[0.5] * 3) for _ in range(4)]
+    controls = _controls((113, 113), (249, 255))   # the live UE 5.8.2 control shape
     controls[0][field][0] = float('nan')
     with pytest.raises(ValueError, match='invalid control pixel'):
         C.write_outputs(tmp_path, request, profile['engine'], [[0.2] * 3] * 8, {}, controls)
@@ -584,8 +606,7 @@ def test_sidecar_serialization_failure_revokes_partial_marker_only(tmp_path, mon
     profile = json.loads((PATH.parents[2] / 'src/scripts/mixar/modules/lampway_tools/ue/profiles/engine_defaults.json').read_text())
     profile['project']['cvars']['r.LUT.Size'] = 2
     request = dict(profile=profile, name='synthetic', shaper=SHAPER, shaper_source='synthetic test only')
-    controls = [dict(input=[0.18] * 3, raw=[0.18] * 3, display=[0.4] * 3,
-                     tone_curve_disabled=[0.5] * 3) for _ in range(4)]
+    controls = _controls((113, 113), (249, 255))   # the live UE 5.8.2 control shape
     original_dump = C.json.dump
     def dump(value, output, **kwargs):
         if value.get('schema') == 'lampway.ue-cube-meta/1':
