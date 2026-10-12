@@ -46,7 +46,7 @@ For reproduction of the detail gate, resize to half-resolution with bilinear fil
 
 ## Template contract
 
-All eight builtins are version `1.0.0`, purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9` (`9:16`, so 1080 × 1920, for `mg-social-clip`), `min_text_px=28`; resolution, aspect and duration are render defaults (below explicit arguments, above `__scene`), `min_text_px` is authoring guidance. Runtime minimum remains 22 px. Six non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
+All eight template IDs have a version `1.0.0`; `mg-site-clip` also has `1.0.1`, which an unversioned `mg-site-clip` resolves to. Every builtin version is purpose `motion-graphics`, media `video`. Defaults are `1080p`, `16:9` (`9:16`, so 1080 × 1920, for `mg-social-clip`), `min_text_px=28`; resolution, aspect and duration are render defaults (below explicit arguments, above `__scene`), `min_text_px` is authoring guidance. Runtime minimum remains 22 px. Six non-TITAN templates use the supplied brand stylesheet's palette; TITAN templates deliberately have no palette variable.
 
 | ID | Duration guidance | Required variables | Additional defaults (abbreviated prose values) |
 |---|---|---|---|
