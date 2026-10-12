@@ -168,7 +168,8 @@ def test_retry_from_the_cards_reruns_the_failed_tasks_on_the_users_click_and_tel
     assert new and len(new) == 1 and new[0]["name"].startswith("belt"), "only the failed task runs again, on the parent's harness"
     assert new[0]["agent"] == "claude"
     rig.worker_call(new[0], "lampway_worker_done", {"summary": "belt made"})
-    typed = wait_for(lambda: [c["args"] for c in rig.herdr.calls if c["args"][:3] == ["pane", "send-text", rig.parent["pane_id"]]])
+    # herdr's one ordered submission into the parent's harness pane (main I09), not a split paste and Enter
+    typed = wait_for(lambda: [c["args"] for c in rig.herdr.calls if c["args"][:3] == ["agent", "prompt", rig.parent["pane_id"]]])
     assert typed, "the pane's agent was never told"
     note = typed[0][3]
     assert note.startswith("continue") and "sw2" in note and "Retry" in note and "belt" in note and "\n" not in note

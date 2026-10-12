@@ -373,7 +373,7 @@ def test_live_the_mock_provider_answers_hermes_through_the_gateway_and_reaches_t
 
     (events, scripts), (events2, scripts2) = run(live, scenario, app=app)
     assert events[-1]["status"] == "completed" and "Scene summary from Blender" in (final_text(events) or ""), events
-    assert scripts and scripts[0]["session_id"] == unit and "bpy.data.objects" in scripts[0]["script"]
+    assert scripts and scripts[0]["session_id"] == unit and "bpy.context.scene.objects" in scripts[0]["script"]   # this tab's scene (I06)
     assert events2[-1]["status"] == "completed" and "Ran your script" in (final_text(events2) or ""), events2
     assert len(scripts2) == len(scripts) + 1 and "__RESULT__ = {'cubes': 1}" in scripts2[-1]["script"]
 

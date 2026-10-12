@@ -124,7 +124,7 @@ def test_images_are_written_inside_the_project_root_and_their_paths_typed_before
     for f in files:
         assert stat.S_IMODE(f.stat().st_mode) == 0o600 and str(f.resolve()).startswith(str(proj.resolve()) + os.sep)
     assert stat.S_IMODE(folder.stat().st_mode) == 0o700 and not (proj / "evil.sh").exists()
-    typed = next(c["args"][3] for c in herdr.calls if c["args"][:2] == ["pane", "send-text"])
+    typed = next(c["args"][3] for c in herdr.calls if c["args"][:2] == ["agent", "prompt"])          # one ordered submission (main I09)
     first, second, text = typed.split(" ", 2)
     assert text == "What is wrong with this render?"                                             # the paths first, in order, then the text
     assert Path(first).read_bytes() == PNG and Path(second).read_bytes() == JPEG
@@ -139,7 +139,7 @@ def test_a_harness_that_takes_no_image_is_refused_saying_why_and_nothing_is_writ
         out = _send(fake, ws, "look", [PNG])
     assert out["result"]["ok"] is False and out["result"]["code"] == "images_unsupported"
     assert "Cursor" in out["result"]["message"] and "image" in out["result"]["message"]
-    assert not (proj / ".lampway").exists() and not [c for c in herdr.calls if c["args"][:2] == ["pane", "send-text"]]
+    assert not (proj / ".lampway").exists() and not [c for c in herdr.calls if c["args"][:2] in (["pane", "send-text"], ["agent", "prompt"], ["pane", "run"])]
 
 
 def test_what_is_not_an_image_is_refused_and_nothing_is_typed(stack):
@@ -149,7 +149,7 @@ def test_what_is_not_an_image_is_refused_and_nothing_is_typed(stack):
         fake.handshake(ws)
         out = _send(fake, ws, "look", [b"#!/bin/sh\nrm -rf /\n"])
     assert out["result"]["ok"] is False and out["result"]["code"] == "images_refused"
-    assert not [c for c in herdr.calls if c["args"][:2] == ["pane", "send-text"]]
+    assert not [c for c in herdr.calls if c["args"][:2] in (["pane", "send-text"], ["agent", "prompt"], ["pane", "run"])]
 
 
 def test_an_image_never_lands_outside_the_project_root_through_a_symlink(stack, tmp_path):
@@ -162,7 +162,7 @@ def test_an_image_never_lands_outside_the_project_root_through_a_symlink(stack, 
         fake.handshake(ws)
         out = _send(fake, ws, "look", [PNG])
     assert out["result"]["ok"] is False and "outside the project root" in out["result"]["message"]
-    assert list(outside.iterdir()) == [] and not [c for c in herdr.calls if c["args"][:2] == ["pane", "send-text"]]
+    assert list(outside.iterdir()) == [] and not [c for c in herdr.calls if c["args"][:2] in (["pane", "send-text"], ["agent", "prompt"], ["pane", "run"])]
 
 
 def test_an_agent_socket_never_carries_images_into_a_pane(stack):

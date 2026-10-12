@@ -1,7 +1,5 @@
 {
   "undescribed": [
-    "ask_user.questions[].options",
-    "ask_user.questions[].question",
     "lampway_addon_commit.patch_id",
     "lampway_addon_commit.project",
     "lampway_addon_read.path",
