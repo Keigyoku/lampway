@@ -77,6 +77,16 @@ def test_real_mock_provider_read_and_write_checkpoint_bytes(tmp_path, request):
         except Exception:
             assert backend.poll() is None and time.monotonic() < deadline, 'mock backend startup failed'
             time.sleep(.1)
+    # Mode 1 runs only on Hermes, in a pane on Lampway's herdr server (agent-modes spec A1, A5), and only the user's click starts
+    # that server: press the cockpit's Start through its user route before the GUI chats; it is stopped (confirmed) at the end.
+    def workbench(path, body):
+        login = urllib.request.Request(env['LAMPWAY_BACKEND_URL'] + '/api/v1/auth/local', data=b'{}', method='POST',
+                                       headers={'Content-Type': 'application/json'})
+        token = json.loads(urllib.request.urlopen(login, timeout=10).read())['access_token']
+        call = urllib.request.Request(env['LAMPWAY_BACKEND_URL'] + path, data=json.dumps(body).encode(), method='POST',
+                                      headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token})
+        return json.loads(urllib.request.urlopen(call, timeout=60).read())
+    workbench('/app/workbench/server/start', {})
     read_fd, write_fd = os.pipe()
     with (tmp_path / 'xvfb.log').open('w') as log:
         server = subprocess.Popen([xvfb, '-displayfd', str(write_fd), '-screen', '0',
@@ -121,5 +131,8 @@ def test_real_mock_provider_read_and_write_checkpoint_bytes(tmp_path, request):
             os.close(read_fd)
             server.terminate()
             server.wait(timeout=10)
-            backend.terminate()
-            backend.wait(timeout=10)
+            try:
+                workbench('/app/workbench/server/stop', {'confirm': True})      # every pane in it ends with it
+            finally:
+                backend.terminate()
+                backend.wait(timeout=10)

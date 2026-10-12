@@ -31,6 +31,17 @@ def test_a_py_message_becomes_a_run_blender_python_call():
         ("mcp__lampway__run_blender_python", {"script": "import bpy\nbpy.ops.mesh.primitive_cube_add()"})]
 
 
+def test_a_py_message_from_the_real_client_runs_after_lampways_turn_sections():
+    """The Client's turn policy rides ahead of the user's words (engine/turn_context.prompt_text); the user's ``py:`` still runs."""
+    from lampway_server.engine import turn_context as TC
+    prompt, _ = TC.prompt_text('py:bpy.data.objects["Cube"].location.x = 9', {"user_preferences": {"asset_match_threshold": 0.7}})
+    assert not prompt.startswith("py:"), prompt                      # the shape the real Client sends
+    events = _collect(MockProvider(), [Message.user_text(prompt)], VISIBLE)
+    calls = [e for e in events if isinstance(e, ToolCall)]
+    assert [(c.name, c.arguments) for c in calls] == [
+        ("mcp__lampway__run_blender_python", {"script": 'bpy.data.objects["Cube"].location.x = 9'})]
+
+
 def test_the_result_of_a_py_call_is_reported_back():
     messages = [
         Message.user_text("py: result = 1"),

@@ -126,6 +126,10 @@ def attachments(payload: Optional[dict]) -> list:
     return out
 
 
+#: What separates Lampway's sections from the user's own words in a prompt (``prompt_text``); readers split on its first occurrence.
+BODY_SEPARATOR = "\n\n---\n\n"
+
+
 def prompt_text(text: str, payload: Optional[dict], last_rules_key: str = "") -> tuple:
     """(the prompt's text, the rules key now in force): the message after R3's sections. Rules ride along only when they changed
     for this conversation."""
@@ -139,4 +143,4 @@ def prompt_text(text: str, payload: Optional[dict], last_rules_key: str = "") ->
         if section:
             parts.append(section)
     body = (text or "").strip()
-    return (("\n\n".join(parts) + "\n\n---\n\n" + body) if parts else body), key
+    return (("\n\n".join(parts) + BODY_SEPARATOR + body) if parts else body), key

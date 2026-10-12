@@ -11,6 +11,7 @@ only. ``ScriptedProvider`` replays whatever a test queued.
 import json
 from typing import AsyncIterator, Optional
 
+from ...engine.turn_context import BODY_SEPARATOR
 from .base import ModelRequest, ProviderEvent, Text, ToolCall
 
 
@@ -67,6 +68,8 @@ class MockProvider:
             yield Text(results[-1]["content"])
             return
         text = last.text().strip()
+        if not text.lower().startswith(SCRIPT_PREFIX) and BODY_SEPARATOR in text:
+            text = text.split(BODY_SEPARATOR, 1)[1].strip()        # the user's words after Lampway's turn sections (the real Client)
         if text.lower().startswith(SCRIPT_PREFIX):
             call = _call(request, "run_blender_python", {"script": text[len(SCRIPT_PREFIX):].lstrip()}, len(self.requests))
             if call is None:
