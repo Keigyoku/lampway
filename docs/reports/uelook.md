@@ -258,7 +258,7 @@ captain's ruling of 2026-10-11):
 |---|---|---|---|---|---|
 | chart | COL | pass 0.0007 | pass 0.0007 | pass 0.0005 | linear within 1 % |
 | chart | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
-| furnace | SHD | fail 1.0000 | fail 1.0000 | fail 1.0000 | mean radiance within 3 % |
+| furnace | SHD | fail 0.0705 | fail 0.0705 | fail 0.0889 | mean radiance within 3 % |
 | furnace | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
 | normals | NRM | pass 1.0000 | pass 1.0000 | pass 1.0000 | sign 100 % |
 | normals | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
@@ -272,11 +272,15 @@ What the two failures are:
   smoothstep: the light map now uses the least-squares pair (worst 0.095 of full intensity, rms 0.024), where the old
   `inner = outer × (1 − blend)` put UE's ramp at 1.83 times EEVEE's (probes 40 % dark). A probe in a blend band keeps this
   residual by construction.
-- **SHD**: diffuse agrees (the furnace dielectrics' diffuse and the lights scene at Specular 0 to 0.2 %); the smoothest metal
-  agrees (0.999 vs 0.9998); UE's sky specular is missing at roughness 0.25 and above (metals 0.15, then 0; dielectrics about 5 %
-  low). The same result held with the captured dome at 30 and 120 settle ticks, a second recapture, real-time sky capture, a
-  specified uniform cubemap and `r.ReflectionMethod 2`: the cause is not the scene, the sky source or the reflection method,
-  and is not established in this offscreen capture.
+- **SHD**: the first record read UE's rough sky specular as missing (metals at roughness 0.25 and above 0.15, then 0), the
+  same on the NVIDIA and the AMD adapter, through 30 and 120 settle ticks, a second recapture, real-time capture, a specified
+  cubemap and `r.ReflectionMethod 2`. The cause was the sky light's mobility: a spawned SkyLight is stationary, and UE mixes a
+  non-dynamic sky light's rough reflections with built lightmap irradiance (`ReflectionEnvironmentComposite.ush`
+  `ComputeMixingWeight`, taken when `!bSkyLightIsDynamic`, `IndirectLightRendering.cpp:710`); a parity level has no built
+  lighting, so the weight was zero. The UE half now makes the dome's sky light movable (`configure_sky_light`). After it, front
+  and three-quarter agree within 2.6 % on every sphere but the roughest metal (UE 7.3 % brighter); at grazing the metals differ
+  by 3.9 to 9.1 %, the dielectrics within 2.2 %. That residual is the two engines' environment BRDF at roughness 1 and at
+  grazing incidence; the 3 % tolerance is the captain's placeholder until this first furnace run.
 
 Fixed on the way (each RED first): the UE capture's alpha is inverse opacity (`SCS_SCENE_COLOR_HDR`), so the Lampway half
 reads the UE half's receipt (`capture.json`, `lampway.ue-parity-capture/1`) and compares coverage (GEO was 0.0 before); a

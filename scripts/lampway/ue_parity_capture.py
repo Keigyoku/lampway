@@ -434,10 +434,7 @@ def _build(ue, world, desc, k, made, out, receipt):
         light = ue.EditorLevelLibrary.spawn_actor_from_class(ue.SkyLight, ue.Vector(0, 0, 0))
         made.append(light)
         sl = light.get_component_by_class(ue.SkyLightComponent)
-        sl.set_editor_property('source_type', ue.SkyLightSourceType.SLS_CAPTURED_SCENE)
-        sl.set_editor_property('lower_hemisphere_is_black', False)
-        sl.set_editor_property('sky_distance_threshold', 1000.0)   # capture the 50 m dome, never the scene within 10 m
-        sl.set_editor_property('intensity', 1.0)
+        configure_sky_light(ue, sl)
         sl.recapture_sky()
         receipt['sky'] = {'radiance_k_scaled': sky, 'dome_radius_cm': 5000.0, 'sky_distance_threshold_cm': 1000.0}
     lights = []
@@ -464,6 +461,18 @@ def _build(ue, world, desc, k, made, out, receipt):
             raise ValueError('actual light forward differs from the description')
     receipt['lights'] = lights
     return shown
+
+
+def configure_sky_light(ue, sl):
+    """The dome's sky light. MOVABLE, because a static or stationary sky light (the spawn default) is mixed with built lightmaps:
+    UE scales its rough specular by the lightmap's indirect irradiance (ReflectionEnvironmentComposite.ush, ComputeMixingWeight,
+    taken when SkyLightParameters.z < 1, i.e. !bSkyLightIsDynamic in IndirectLightRendering.cpp), and a parity level has no built
+    lighting, so every rough reflection read zero (furnace, lampway-finish-pr1)."""
+    sl.set_mobility(ue.ComponentMobility.MOVABLE)
+    sl.set_editor_property('source_type', ue.SkyLightSourceType.SLS_CAPTURED_SCENE)
+    sl.set_editor_property('lower_hemisphere_is_black', False)
+    sl.set_editor_property('sky_distance_threshold', 1000.0)   # capture the 50 m dome, never the scene within 10 m
+    sl.set_editor_property('intensity', 1.0)
 
 
 def run_ticking(ue):

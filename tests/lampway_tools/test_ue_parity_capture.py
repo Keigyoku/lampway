@@ -231,3 +231,31 @@ def test_the_ue_surface_is_material_maps_own_translation(scene):
         assert got['BaseColor'] == pytest.approx(want['vectors']['BaseColor'][:3])
         for key in ('Metallic', 'Roughness', 'Specular'):
             assert got[key] == pytest.approx(want['scalars'][key], abs=1e-6), (scene, key)
+
+
+class _FakeSkyLight:
+    def __init__(self):
+        self.props, self.mobility = {}, 'STATIONARY'                 # UE spawns a SkyLight stationary
+
+    def set_mobility(self, value):
+        self.mobility = value
+
+    def set_editor_property(self, name, value):
+        self.props[name] = value
+
+
+class _FakeUE:
+    class ComponentMobility:
+        STATIC, STATIONARY, MOVABLE = 'STATIC', 'STATIONARY', 'MOVABLE'
+
+    class SkyLightSourceType:
+        SLS_CAPTURED_SCENE = 'SLS_CAPTURED_SCENE'
+
+
+def test_the_dome_sky_light_is_movable_so_rough_reflections_are_not_lightmap_mixed():
+    """The live furnace (lampway-finish-pr1, NVIDIA and AMD alike) read zero rough sky specular: a stationary sky light takes
+    ComputeMixingWeight against lightmap irradiance a parity level never builds. Movable is the dynamic path."""
+    sl = _FakeSkyLight()
+    U.configure_sky_light(_FakeUE, sl)
+    assert sl.mobility == 'MOVABLE'
+    assert sl.props['source_type'] == 'SLS_CAPTURED_SCENE' and sl.props['lower_hemisphere_is_black'] is False
