@@ -610,9 +610,15 @@ class Cockpit:
             # Herdr's native submission orders paste and Enter and acknowledges
             # both writes. Split calls can lose Enter during paste acceptance.
             # A failed/uncertain submission is never retried or given a fallback Enter.
-            native = rec.get("herdr_agent_name") or rec["agent"] in ("claude", "codex", "opencode")
-            command = ["agent", "prompt"] if native else ["pane", "run"]
-            L.run(self.root, [*command, rec["pane_id"], text])
+            if rec.get("herdr_agent_name") or rec["agent"] in ("claude", "codex", "opencode"):
+                L.run(self.root, ["agent", "prompt", rec["pane_id"], text])
+            elif HN.is_lampway(rec["agent"]):
+                # Lampway's own pane is no herdr agent, and pane run's one burst of text and Enter reaches its TUI as a
+                # paste that never submits: it keeps the natively qualified text, then its own Enter.
+                L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
+                L.run(self.root, ["pane", "send-keys", rec["pane_id"], "enter"])
+            else:
+                L.run(self.root, ["pane", "run", rec["pane_id"], text])
         else:
             L.run(self.root, ["pane", "send-text", rec["pane_id"], text])
 

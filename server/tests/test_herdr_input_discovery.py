@@ -52,6 +52,19 @@ def test_every_harness_herdr_started_submits_through_herdr_and_nothing_else_does
     assert calls == [[*verb, 'w1:p1', 'one request']]
 
 
+def test_lampways_own_hermes_pane_keeps_its_qualified_text_then_enter(tmp_path, monkeypatch):
+    # Lampway's own Mode 1 pane is not started by herdr's agent start (no herdr agent to prompt), and herdr's pane run writes
+    # the text and Enter as one burst, which the Hermes TUI takes as a paste and never submits (final validation
+    # main-integrated, merge 90f60ff0). It keeps PR #4's natively qualified text, then a separate Enter.
+    c = Cockpit(tmp_path / 'cockpit')
+    c._save(dict(version=1, sessions=[dict(id='owned', pane_id='w1:p1', agent='lampway_hermes', state='live', agent_sends=True,
+                                           herdr_agent_name=None)]))
+    calls = []
+    monkeypatch.setattr(L, 'run', lambda root, args, **kwargs: calls.append(args) or json.dumps({'result': {'ok': True}}))
+    c.send_input('owned', 'SCENE typed in the pane', by='user')
+    assert calls == [['pane', 'send-text', 'w1:p1', 'SCENE typed in the pane'], ['pane', 'send-keys', 'w1:p1', 'enter']]
+
+
 @pytest.mark.parametrize('reason', ['agent_blocked', 'agent_not_ready', 'agent_prompt_failed'])
 def test_native_prompt_failure_never_falls_back_or_sends_a_second_enter(tmp_path, monkeypatch, reason):
     c, calls = session(tmp_path), []
