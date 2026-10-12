@@ -149,7 +149,7 @@ def test_unverified_or_mismatched_encoding_refuses_before_captures(tmp_path,key,
 @pytest.mark.parametrize('key,value', [('srgb',1),('srgb','True'),('srgb',None),
     ('target_gamma',2.2),('use_legacy_gamma',True),('size_x',4),
     ('render_target_format',Format.RTF_RGBA8_SRGB),('render_target_format',Format.RTF_RGBA8)])
-def test_raw_linear_target_is_admitted_by_its_encoding_and_still_refuses_corruption(tmp_path,key,value):
+def test_corrupted_raw_linear_target_refuses_before_captures(tmp_path,key,value):
     def corrupt(target):
         target.values[key] = value
         target.set_editor_property = lambda *args: None

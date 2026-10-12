@@ -63,7 +63,7 @@ def submit(owner, name, args, call_id, session=""):
     timeout = args.get("timeout", ACTION_TIMEOUT) + 2 if name == "mixar_ui_wait" else ACTION_TIMEOUT
     now = time.monotonic()
     req = Request(owner, name, args, call_id, session, now+timeout,
-                  ceiling=now+LATE_OUTCOME_LIMIT if name in MUTATING else None)
+                  ceiling=now+LATE_OUTCOME_LIMIT if name == "mixar_ui_act" else None)
     with _request_lock:
         if (owner, call_id) in _requests:
             raise UIError("call_pending", "This UI call is already pending; inspect its receipt")
@@ -79,8 +79,8 @@ def submit(owner, name, args, call_id, session=""):
             # Its input is already being delivered: let it finish under its ceiling; the receipt records the outcome.
             return envelope({"error_type": "outcome_unknown", "call_id": call_id, "receipt_status": "accepted",
                              "error": "The UI action is still running past its response deadline",
-                             "next_step": f"Call lampway_ui_call_status(call_id={call_id}) until its status is succeeded "
-                                          f"or failed (it stops within {LATE_OUTCOME_LIMIT:g} s of submission); inspect "
+                             "next_step": f"Call lampway_ui_call_status(call_id={call_id}) until its status is no longer "
+                                          f"accepted (it stops within {LATE_OUTCOME_LIMIT:g} s of submission); inspect "
                                           "the UI before further action"},
                             call_id, failed=True)
         req.cancelled.set()

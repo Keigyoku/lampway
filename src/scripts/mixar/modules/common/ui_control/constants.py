@@ -9,7 +9,9 @@ MAX_IMAGE_BYTES = 4 * 1024 * 1024
 ACTION_TIMEOUT = 10.0
 # A claimed action (its input already being delivered) runs on past the caller's response deadline to this
 # ceiling from submission, so its receipt can record the real outcome (F16). The protocol's existing 30 s
-# bound: the longest mixar_ui_wait a caller may ask for (schema.py).
+# bound: the longest mixar_ui_wait a caller may ask for (schema.py). The pump serves one request at a time, so
+# requests queued behind such an action wait for it and may themselves answer outcome_unknown at their deadline.
+# Scene tools run in one step and are never resumed this way.
 LATE_OUTCOME_LIMIT = 30.0
 CONTEXT_TTL = 30.0
 MAX_CONTEXTS = 32

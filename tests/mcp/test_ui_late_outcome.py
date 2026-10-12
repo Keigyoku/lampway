@@ -105,6 +105,17 @@ def test_the_caller_timeout_leaves_a_claimed_action_running_and_names_the_status
     assert taken[0].ceiling - taken[0].deadline == pytest.approx(constants.LATE_OUTCOME_LIMIT - service.ACTION_TIMEOUT)
 
 
+@pytest.mark.parametrize("name", ["mixar_scene_new", "mixar_scene_switch", "mixar_project_open", "mixar_ui_observe"])
+def test_only_a_native_ui_action_gets_a_late_outcome_ceiling(pump, monkeypatch, name):
+    monkeypatch.setattr(service.schema, "validate", lambda name, args: None)
+    monkeypatch.setattr(service, "ACTION_TIMEOUT", 0.05)
+    monkeypatch.setattr(service, "_queue", service.queue.Queue(constants.MAX_PENDING))
+    monkeypatch.setattr(service, "_requests", {})
+    monkeypatch.setattr(service._receipts, "prior", lambda *a: None)
+    service.submit(str(uuid4()), name, {}, str(uuid4()))
+    assert service._queue.get_nowait().ceiling is None
+
+
 def test_a_caller_timeout_before_the_claim_still_cancels(pump, monkeypatch):
     monkeypatch.setattr(service, "ACTION_TIMEOUT", 0.05)
     monkeypatch.setattr(service.schema, "validate", lambda name, args: None)

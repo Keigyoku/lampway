@@ -235,7 +235,8 @@ def postprocess_readback(actual, fields):
 
 
 SRGB_RULE = ('UTextureRenderTarget2D::IsSRGB (UE 5.8.2-56702186, TextureRenderTarget2D.cpp:72-86): create_render_target2d '
-             'leaves OverrideFormat PF_Unknown, so the RHI target is sRGB-encoded exactly when its format is RTF_RGBA8_SRGB; '
+             '(KismetRenderingLibrary.cpp:78-96) never sets OverrideFormat, which the constructor leaves PF_Unknown '
+             '(TextureRenderTarget2D.cpp:47), so the RHI target is sRGB-encoded exactly when its format is RTF_RGBA8_SRGB; '
              'the inherited UTexture SRGB property defaults to True and is not the encoding of a float target')
 
 
