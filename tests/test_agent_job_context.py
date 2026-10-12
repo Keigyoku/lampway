@@ -7,6 +7,7 @@
 from dataclasses import dataclass, field
 import sys
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from mixar.modules.common.agent_execution_context import (
     clear_agent_execution_context,
@@ -107,6 +108,14 @@ def test_absent_agent_ctx_falls_back_for_job_stamp(monkeypatch):
 
 
 def test_matgen_forwards_context_captured_at_construction(monkeypatch):
+    # matgen_queue's package imports bpy_extras.image_utils: run alone, the root conftest's bpy_extras stub is not a
+    # package, so give it the same package shape mixar.modules.testing.mock_bpy installs (collection order must not decide).
+    if not hasattr(sys.modules.get("bpy_extras"), "__path__"):
+        extras = MagicMock()
+        extras.__path__ = []
+        monkeypatch.setitem(sys.modules, "bpy_extras", extras)
+        for sub in ("image_utils", "io_utils", "mesh_utils"):
+            monkeypatch.setitem(sys.modules, f"bpy_extras.{sub}", MagicMock())
     from mixar.modules.paint.procedural_materials import matgen_queue
 
     bpy = sys.modules["bpy"]
@@ -116,21 +125,24 @@ def test_matgen_forwards_context_captured_at_construction(monkeypatch):
         SimpleNamespace(mixie_instance_id="instance-matgen"),
         raising=False,
     )
-    submitted = {}
-
-    class Service:
-        @staticmethod
-        def enqueue(**kwargs):
-            submitted.update(kwargs)
-
-    monkeypatch.setattr(matgen_queue, "get_job_queue_service", lambda: Service())
+    # Lampway's MatGen posts to its own server from a worker thread (matgen_queue.enqueue_matgen_job), not through
+    # upstream's withheld job-queue class: the context is captured when the job is made and travels in the request.
+    submitted, workers = {}, []
+    monkeypatch.setattr(matgen_queue, "_run_in_thread", workers.append)
+    monkeypatch.setattr(matgen_queue, "_on_main_thread", lambda fn: None)
+    monkeypatch.setattr(matgen_queue, "_post", lambda path, body: submitted.update(path=path, payload=body) or {})
     try:
         set_agent_execution_context("session-matgen", "request-matgen")
-        job = matgen_queue.MatGenJob(prompt="weathered copper", pipeline="fast")
+        job = matgen_queue.enqueue_matgen_job(prompt="weathered copper", pipeline="fast")
     finally:
         clear_agent_execution_context()
+        matgen_queue._in_flight.pop("weathered copper", None)
 
-    job.submit(None, None)
+    assert job is not None and len(workers) == 1
+    workers[0]()                                  # the worker runs after the agent script has returned
+    assert submitted["path"] == "/api/v1/matgen"
+    assert "agent_context" in submitted["payload"], submitted["payload"]
+    assert job.agent_context == submitted["payload"]["agent_context"]
     assert submitted["payload"]["agent_context"] == {
         "source": "agent",
         "session_id": "session-matgen",

@@ -436,6 +436,15 @@ def test_reference_tools_names_missing_sync_tool(tmp_path, monkeypatch):
     assert any("rsync" in problem for problem in problems)
 
 
+@pytest.mark.parametrize("tool", ["ffmpeg", "ffprobe"])
+def test_reference_tools_names_missing_media_encoder(tmp_path, monkeypatch, tool):
+    # Without them about 100 motion/encode ids failed at run time ("ffmpeg not found on PATH", motion/encode.py:29)
+    # after the environment had been admitted.
+    monkeypatch.setattr(T.shutil, "which", lambda name: None if name == tool else "/test/installed/" + name)
+    problems = T.reference_tools(tmp_path, {})
+    assert any(tool in problem for problem in problems), problems
+
+
 def test_reference_private_fixture_is_explicit_and_not_in_personal_home(tmp_path):
     problems = T.reference_fixtures({})
     assert any("LAMPWAY_V3_PLATES_DIR" in p for p in problems)
