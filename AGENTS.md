@@ -102,11 +102,12 @@ review. Comment dispatch requires this caller on the default branch.
 
 Hosted jobs authorize the event and resume the dedicated box with a verified
 45-minute TTL before the self-hosted health/review job can start. Hosted cleanup
-stops after the last queued/active run. Lifecycle mutations use a shared FIFO
+stops after the last admitted wake/review or reserved review; authorization-only
+and rejected runs cannot keep a box alive. Lifecycle mutations use a shared FIFO
 queue; review concurrency stays per PR. Weekly maintenance wakes refresh the
 session and stop without reviewing code. The Boat key is isolated to hosted
-jobs and scoped to this box; adding the TTL-update scope requires Captain
-approval. No PR source is checked out by any lifecycle job.
+jobs and scoped to this box; the Captain approved all four lifecycle actions,
+including TTL update. No PR source is checked out by any lifecycle job.
 Wake admission waits for the previous review slot, then rearms the deadline;
 queued jobs do not consume their review budget behind another review.
 The public caller invokes the trusted script directly; private reusable
@@ -222,3 +223,4 @@ and restoring prior global scene state.
 | 2026-10-13 | requested PR reviews | Captain: add `@pr-review` without push reviews | opened-only reviews could not be requested again | the caller and review contract gate human collaborator commands, acknowledge accepted requests and exclude fork heads without PR execution or fixes | Captain addendum, 2026-10-13 |
 | 2026-10-13 | on-demand review boxes | Captain addendum 3: stop idle billing and keep sessions alive | permanent runners had no auto-stop deadline | hosted event/TTL/cleanup gates, isolated one-box key, per-PR review queue and scheduled refresh are owned by the caller | boxed TTL-update scope remains Captain decision |
 | 2026-10-13 | queued review admission | lifecycle overlap audit | a wake could start its TTL while waiting behind a full-length review | hold the lifecycle lease until the admitted slot finishes, then rearm before releasing the next review | RED-first queue and reservation controls |
+| 2026-10-13 | cleanup admission guard and scoped-key approval | live review found rejected authorizations delaying snapshot shutdown; Captain approved one-box TTL update | unrelated active workflow runs could retain an idle box until its deadline | inspect admitted wake/review jobs and visibility reservations before deferring cleanup; authorization cannot retain a box | RED-first rejected-run, active-work and reservation controls |

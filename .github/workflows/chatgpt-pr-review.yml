@@ -249,6 +249,29 @@ jobs:
                       self.sleep(2)
                   raise RuntimeError("Timed out waiting for box readiness.")
 
+              def run_needs_box(self, run):
+                  jobs = self.github.request(
+                      "GET", f"/repos/{self.repo}/actions/runs/{run}/jobs?per_page=100"
+                  )["jobs"]
+                  if len(jobs) >= 100:
+                      raise RuntimeError("Cannot prove the active job listing is complete; not stopping.")
+                  names = {job["name"].rsplit(" / ", 1)[-1] for job in jobs}
+                  for job in jobs:
+                      name = job["name"].rsplit(" / ", 1)[-1]
+                      if name in {"Start dedicated box", "Review or refresh ChatGPT", "review"}:
+                          if job["status"] in ACTIVE:
+                              return True
+                          if (
+                              name == "Start dedicated box"
+                              and job.get("conclusion") == "success"
+                              and "Review or refresh ChatGPT" not in names
+                          ):
+                              # Preserve a wake reservation before its review is visible.
+                              return True
+                  # Authorization-only runs do not need a machine. Any future eligible
+                  # wake must acquire our lifecycle lease and can resume after this stop.
+                  return False
+
               def stop(self):
                   for status in sorted(ACTIVE):
                       page = 1
@@ -258,7 +281,10 @@ jobs:
                               f"?status={status}&per_page=100&page={page}"
                           )
                           runs = self.github.request("GET", path)["workflow_runs"]
-                          if any(r["id"] != self.run_id and r["status"] in ACTIVE for r in runs):
+                          if any(
+                              r["id"] != self.run_id and r["status"] in ACTIVE and self.run_needs_box(r["id"])
+                              for r in runs
+                          ):
                               print("Other review runs remain queued or active; keeping their finite TTL.")
                               return False
                           if len(runs) < 100:
