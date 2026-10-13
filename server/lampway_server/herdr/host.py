@@ -306,8 +306,12 @@ class Cockpit:
             raise
         try:
             native_id = (resume_id or sid) if ad is not None else resume_id
+            # herdr's agent start returns once the agent is ready for input, and an agent launched with its first prompt is working,
+            # not ready, until that turn ends: a harness herdr starts itself gets its first prompt afterwards, by herdr's own agent
+            # prompt (one native submission, never retried); the others take it on their command line or not at all.
+            first_prompt = prompt if ad is not None and ad.herdr_kind and not lampway else None
             argv = ad.resume(resume_id, spec) if ad is not None and resume_id else (
-                ad.launch(spec, task=None if lampway else prompt) if ad is not None else None)
+                ad.launch(spec, task=None if lampway or first_prompt else prompt) if ad is not None else None)
             tokens = [ad.process_match or ad.binary] if ad is not None else (
                 [os.path.basename(shlex.split(command)[-1])] if agent == "command" else [])
             # herdr's own agent identifier, kept beside the friendly name, for a harness herdr starts itself
@@ -327,6 +331,8 @@ class Cockpit:
             elif ad is not None:
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", herdr_name, "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
+                    if first_prompt:
+                        L.run(self.root, ["agent", "prompt", herdr_name, first_prompt], timeout=60)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])

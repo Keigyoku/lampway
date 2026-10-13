@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = 'a03f2e1e7a8e1365d893128e7e43b2760c43d13a79e60c4e9bc4d91c0ec317fb'
+QA_SHA256 = 'c0ef52c8aa2e35998ab07f5207283cf29824f0fb2f38284780f293082b02d206'
 
 
 def load_qa(repo):

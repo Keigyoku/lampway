@@ -1426,6 +1426,9 @@ configured app factory must forward the captured resolution, including model and
     tools, which could rebind a worker onto the user's scene.
   - A `swarm:` header on the external route is refused (**Q11**).
 - **Its task:** the adapter's `launch(task=...)` with `worker_system_prompt` plus the task prompt.
+  *Built 2026-10-12 (captain: the BYOA workers must work):* where herdr starts the harness itself, the pane starts without it and the
+  task is its first prompt, one herdr `agent prompt` once `agent start` reports the agent ready (an agent launched with its task is
+  working, and herdr's start waits for a ready one).
 - **Done:** the pane's harness calls the worker-only MCP tool `lampway_worker_done(summary)`. That stages the result and finishes
   the brain. A pane that exits without it fails the task.
 - **Swarm tools for a BYOA parent:** `swarm_start`, `swarm_status`, `swarm_cancel` and `swarm_collect` are offered over MCP only to

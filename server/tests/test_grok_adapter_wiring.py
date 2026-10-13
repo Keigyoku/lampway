@@ -53,6 +53,12 @@ def test_candidate_native_wrap_uses_production_wiring_and_one_literal_task(tmp_p
     assert adapter.launch(pane, task=task) == ["grok", "--leader-socket", metadata["outer_socket"],
         "wrap", "--", sys.executable, "-m", "lampway_server.grok_worker", "--config", metadata_path,
         "--task=" + task]
+    # The host starts a worker without its task and gives it by herdr's agent prompt once Grok's TUI is ready (host.py).
+    assert adapter.launch(pane) == ["grok", "--leader-socket", metadata["outer_socket"],
+        "wrap", "--", sys.executable, "-m", "lampway_server.grok_worker", "--config", metadata_path]
+    for bad in ("", "nul\0byte"):
+        with pytest.raises(ValueError, match="nonempty literal task"):
+            adapter.launch(pane, task=bad)
     assert "synthetic-secret" not in str(wiring.argv) and "synthetic-secret" not in str(metadata)
     binding = json.loads(wiring.files[pane.mcp_config_path])
     assert binding["binding"] == "swarm:one:worker" and binding["desktop"] is None

@@ -110,11 +110,13 @@ class Grok(Adapter):
         if pane.desktop:
             return super().launch(pane, task)
         self._main_only(pane)
-        if not isinstance(task, str) or not task or "\0" in task:
+        # A worker starts without its task (the host gives it with herdr's agent prompt once the TUI is ready); a task, when given,
+        # stays one literal argument.
+        if task is not None and (not isinstance(task, str) or not task or "\0" in task):
             raise ValueError("Grok worker requires a nonempty literal task")
         if pane.bypass:
             raise ValueError("Grok worker boundary does not support an approval bypass")
-        return [self.binary, *self.lampway_tools(pane).argv, "--task=" + task]
+        return [self.binary, *self.lampway_tools(pane).argv, *(["--task=" + task] if task is not None else [])]
 
     def resume(self, native_id, pane):
         if not pane.desktop:

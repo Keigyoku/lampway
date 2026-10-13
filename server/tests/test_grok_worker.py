@@ -257,6 +257,18 @@ def test_task_can_be_supplied_as_literal_launch_argv_without_metadata_schema_cha
         G.build_plan(path, task='', etc=etc)
 
 
+def test_a_worker_without_a_task_starts_its_interactive_tui_idle(tmp_path):
+    """herdr's agent start waits for an idle, ready agent; the task follows by agent prompt (host.py), so the plan carries none."""
+    path, config, etc = fixture(tmp_path)
+    config.pop('task'); path.write_text(json.dumps(config))
+    argv = G.build_plan(path, etc=etc)['argv']
+    assert argv[argv.index(config['native']):] == [config['native'], '--leader-socket', config['inner_socket'], '--cwd', config['cwd']]
+    assert 'literal --argument' not in ' '.join(argv)
+    for bad in ('', 'nul\0byte'):
+        with pytest.raises(ValueError, match='task'):
+            G.build_plan(path, task=bad, etc=etc)
+
+
 @pytest.mark.parametrize('bad', ['absent', 'wrong_command', 'wrong_args', 'disabled', 'blocked', 'malformed'])
 def test_native_connector_query_refuses_uninstalled_or_wrong_binding_identity(bad):
     row = {'name': 'lampway_pane', 'command': '/synthetic-installed/lampway-pane-mcp', 'args': [], 'enabled': True}

@@ -215,12 +215,17 @@ def test_a_bound_pane_starts_a_swarm_of_panes_each_bound_to_its_worker_and_their
         assert entry["headers"]["Authorization"].startswith("Bearer ") and len(entry["headers"]["Authorization"]) > 40
         assert rec["swarm_binding"] == binding and rec["scene_session_id"] is None
         assert entry["headers"]["Authorization"][7:] not in json.dumps(rig.cockpit.list_sessions()), "the worker's token is not in the registry"
-        # the task on its command line: the worker's system prompt, then the task prompt; then the pane's own config
+        # the pane's own config on its command line; the task (the worker's system prompt, then the task prompt) is its first prompt,
+        # given once by herdr's agent prompt after the start returned ready (herdr waits for an idle agent: host.py, test_herdr_task_delivery)
         argv = start["args"][start["args"].index("--") + 1:]
-        task = next(a for a in argv if a.startswith("You are worker-"))
+        assert argv[argv.index("--mcp-config") + 1] == str(cfg) and not [a for a in argv if a.startswith("You are worker-")]
+        name = start["args"][2]
+        prompts = [c["args"] for c in rig.herdr.calls if c["args"][:3] == ["agent", "prompt", name]]
+        assert len(prompts) == 1 and rig.herdr.calls.index(start) < next(
+            i for i, c in enumerate(rig.herdr.calls) if c["args"][:3] == ["agent", "prompt", name])
+        task = prompts[0][3]
         worker_id = binding.rsplit(":", 1)[1]
         assert task.startswith(f"You are {worker_id}, one worker of a swarm") and "Model the " in task and "lampway_worker_done" in task
-        assert argv[argv.index("--mcp-config") + 1] == str(cfg) and argv.index(task) < argv.index("--mcp-config")
         by_worker[worker_id] = rec
     assert sorted(by_worker) == ["worker-1", "worker-2"]
     creates = rig.herdr.made()

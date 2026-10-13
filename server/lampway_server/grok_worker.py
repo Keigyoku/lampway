@@ -324,7 +324,8 @@ def build_plan(path, *, task=None, etc=Path('/etc')):
     if not cwd.is_dir():
         raise ValueError('worker project cwd is missing')
     task = config.get('task') if task is None else task
-    if not isinstance(task, str) or not task or '\0' in task:
+    # No task: the interactive TUI starts idle and its first prompt arrives through herdr's agent prompt.
+    if task is not None and (not isinstance(task, str) or not task or '\0' in task):
         raise ValueError('worker task must be nonempty literal text')
     connector = config.get('connector')
     if not isinstance(connector, dict):
@@ -381,7 +382,8 @@ def build_plan(path, *, task=None, etc=Path('/etc')):
             '--ro-bind', str(skeleton), '/etc', *mounts, '--ro-bind', str(shim), str(command.resolve()),
             *(compat['mounts'] if compat else []),
             *(['--ro-bind', str(work), str(work), '--ro-bind', str(shim), str(command.resolve())] if compat else []),
-            '--chdir', str(cwd), '--', str(native), '--leader-socket', str(inner), '--cwd', str(cwd), '--', task]
+            '--chdir', str(cwd), '--', str(native), '--leader-socket', str(inner), '--cwd', str(cwd),
+            *(['--', task] if task is not None else [])]
     plan = {'argv': argv, 'cwd': str(cwd), 'policy': policy, 'policy_path': str(policy_path),
             'name_policy': name_policy, 'name_policy_path': str(name_policy_path),
             'work': str(work), 'skeleton': str(skeleton), 'placeholders': placeholders,

@@ -974,25 +974,27 @@ class Validator:
                 adapter.worker_ok = True
                 adapter.locate = lambda: str(self.options.grok.resolve())
                 wiring = adapter.lampway_tools(spec)
-                launch = adapter.launch(spec, 'synthetic_no_data_probe')
+                launch = adapter.launch(spec)
                 for name, body in wiring.files.items():
                     target = Path(name); target.write_text(body); target.chmod(0o600)
                 metadata = pane_dir / 'grok-worker.json'
                 current = json.loads(metadata.read_text())
                 native_args = launch[1:]
                 self.check(action + ' production adapter launch consumed', launch[0] == 'grok' and
-                    native_args == [*wiring.argv, '--task=synthetic_no_data_probe'] and
+                    native_args == [*wiring.argv] and
                     native_args[:4] == ['--leader-socket', current['outer_socket'], 'wrap', '--'],
                     {'argv': launch, 'candidate_instance_only': True, 'native_readiness_probe': 'real'})
                 offset = len(self.http.events)
                 self.http.hold_model = False
                 command(['agent', 'start', 'owned-' + str(index), '--kind', 'grok', '--pane', pane,
                          '--timeout', '10000', '--', *native_args])
+                # Production starts the worker without its task and gives it as the
+                # first real frontend prompt once herdr reports genuine interactive
+                # readiness (herdr/host.py). Ctrl+C holds that prompt's request.
                 if action == 'ctrl-c':
-                    # Native startup must first reach genuine interactive
-                    # readiness. Hold only a subsequent real frontend prompt.
                     self.http.hold_model = True
-                    command(['agent', 'prompt', 'owned-' + str(index), 'synthetic_pending_ctrlc_probe'])
+                command(['agent', 'prompt', 'owned-' + str(index),
+                         'synthetic_pending_ctrlc_probe' if action == 'ctrl-c' else 'synthetic_no_data_probe'])
                 end = time.monotonic() + 25
                 observed = []
                 while time.monotonic() < end:
