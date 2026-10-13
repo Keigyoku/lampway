@@ -203,6 +203,24 @@ def validator_type(qa):
     return InlineValidator
 
 
+NATIVE_CANCEL_CHECK = 'CtrlC closes pending owned fixture request before pane close'
+
+
+def record_native_cancel(validator):
+    """Record, instead of raising, the native Ctrl+C turn-request close only (native Grok never closes it; captain, 2026-10-12),
+    so every later stage still runs for tests/qa/grok_native_cancel_watch.py; any other failing check raises as before."""
+    original = validator.check
+
+    def check(name, value, evidence=None):
+        if name == NATIVE_CANCEL_CHECK and not value:
+            validator.receipt['cases'].append({'name': name, 'passed': False, 'evidence': evidence, 'recorded_native_cancel': True})
+            validator.receipt['recorded_native_cancel'] = name
+            validator.save()
+            return
+        return original(name, value, evidence)
+    validator.check = check
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, required=True); parser.add_argument('--head', required=True)
@@ -210,6 +228,8 @@ def main():
     parser.add_argument('--herdr', type=Path, required=True); parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--permanent-model-refusal', action='store_true',
         help='Independent paired diagnostic: local model refusal HTTP400 instead of original503; not acceptance')
+    parser.add_argument('--record-native-cancel', action='store_true',
+        help='Record the native Ctrl+C turn-request close instead of raising it (the CI native-cancel watch only)')
     options = parser.parse_args(); options.repo = options.repo.resolve()
     admission_gate(options.head)
     options.repo = check_checkout(options.repo, options.head)
@@ -218,6 +238,8 @@ def main():
     qa = load_qa(options.repo)
     sys.path.insert(0, str(options.repo / 'server'))
     validator = validator_type(qa)(options)
+    if options.record_native_cancel:
+        record_native_cancel(validator)
     validator.receipt['head'] = actual; validator.receipt['original_qa_sha256'] = QA_SHA256
     validator.receipt['diagnostic_driver_sha256'] = qa.digest(Path(__file__))
     try:

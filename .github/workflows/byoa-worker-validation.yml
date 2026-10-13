@@ -43,6 +43,8 @@ on:
       - tests/qa/test_grok_worker_artifacts.py
       - tests/qa/test_grok_worker_native_panes_lifecycle.py
       - tests/qa/grok_worker_cancel_diagnostics.py
+      - tests/qa/grok_native_cancel_watch.py
+      - tests/qa/test_grok_native_cancel_watch.py
       - tests/qa/test_grok_worker_cancel_diagnostics.py
       - third_party/herdr
 permissions:
@@ -101,7 +103,7 @@ jobs:
         working-directory: server
         run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py tests/test_grok_acp_boundary.py
       - name: Controlled diagnostic refusal and deadline tests
-        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py tests/qa/test_grok_worker_native_panes_lifecycle.py tests/qa/test_grok_worker_cancel_diagnostics.py tests/qa/test_grok_native_retention_watch.py
+        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py tests/qa/test_grok_worker_native_panes_lifecycle.py tests/qa/test_grok_worker_cancel_diagnostics.py tests/qa/test_grok_native_retention_watch.py tests/qa/test_grok_native_cancel_watch.py
       # P4-17 (captain's ruling 2026-10-12): Lampway's ACP boundary keeps the canonical lampway_pane through a hostile same-name
       # MCP update. These two steps are the acceptance (condition i).
       - name: Lampway ACP boundary keeps the canonical server, all INET sockets denied (P4-17)
@@ -135,27 +137,30 @@ jobs:
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           python tests/qa/grok_native_retention_watch.py --output "$RUNNER_TEMP/grok-worker-transport-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_transport_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-transport-diagnostics"
-      - name: Selected inline agent diagnosis (not acceptance)
+      # Native Grok never closes a cancelled turn's in-flight model request (captain's rulings 2026-10-12: keep the route-card
+      # promise, no relay; run these as a watch like P4-17). The watch passes only on that exact native failure with every later
+      # stage complete, and fails loudly on anything else, including native Grok starting to close it.
+      - name: Selected inline agent diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
         if: ${{ !cancelled() }}
         env:
           PYTHONDONTWRITEBYTECODE: '1'
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
-      - name: Paired permanent model refusal diagnosis (not acceptance)
+          python tests/qa/grok_native_cancel_watch.py --kind inline --output "$RUNNER_TEMP/grok-worker-inline-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --record-native-cancel --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
+      - name: Paired permanent model refusal diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
         if: ${{ !cancelled() }}
         env:
           PYTHONDONTWRITEBYTECODE: '1'
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --permanent-model-refusal --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics"
-      - name: Independent ACP request cancellation diagnosis (not acceptance)
+          python tests/qa/grok_native_cancel_watch.py --kind inline --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --record-native-cancel --permanent-model-refusal --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics"
+      - name: Independent ACP request cancellation diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
         if: ${{ !cancelled() }}
         env:
           PYTHONDONTWRITEBYTECODE: '1'
           LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_cancel_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-cancel-diagnostics"
+          python tests/qa/grok_native_cancel_watch.py --kind cancel --output "$RUNNER_TEMP/grok-worker-cancel-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_cancel_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-cancel-diagnostics"
       - name: Preserve native receipt paths in a portable archive
         if: always()
         run: |

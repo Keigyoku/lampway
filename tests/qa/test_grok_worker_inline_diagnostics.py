@@ -190,3 +190,25 @@ def test_permanent_refusal_option_is_explicit_default_false():
         n.args and isinstance(n.args[0], ast.Constant) and n.args[0].value == '--permanent-model-refusal')
     assert {k.arg: ast.literal_eval(k.value) for k in option.keywords}['action'] == 'store_true'
     assert not any(k.arg == 'default' for k in option.keywords)
+
+
+def test_record_native_cancel_records_only_the_native_ctrlc_close_and_still_raises_everything_else(validator):
+    """The native-cancel CI watch (captain, 2026-10-12): only the native Ctrl+C turn-request close is recorded instead of raised,
+    so the later stages still run; every other failing check raises exactly as before."""
+    name = 'CtrlC closes pending owned fixture request before pane close'
+    validator.save = lambda: None
+    D.record_native_cancel(validator)
+    validator.check(name, False, ['held'])
+    assert validator.receipt['cases'][-1] == {'name': name, 'passed': False, 'evidence': ['held'], 'recorded_native_cancel': True}
+    assert validator.receipt['recorded_native_cancel'] == name
+    with pytest.raises(AssertionError, match='hard-close all owned worker descendants absent'):
+        validator.check('hard-close all owned worker descendants absent', False)
+    validator.check(name, True)
+    assert validator.receipt['cases'][-1]['passed'] is True
+
+
+def test_record_native_cancel_is_an_explicit_option_default_off():
+    import inspect
+    source = inspect.getsource(D.main)
+    assert "'--record-native-cancel', action='store_true'" in source
+    assert 'if options.record_native_cancel:' in source
