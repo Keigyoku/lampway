@@ -143,6 +143,8 @@ Start at [`docs/README.md`](docs/README.md). The main pages: [getting started](d
 
 ## Contributing
 
+Human repository owners, members and collaborators can request another ChatGPT review by posting `@pr-review` as a PR comment. The runner wakes on demand and stops after the last review. Commits pushed to a PR do not trigger a review.
+
 See [`CONTRIBUTING.md`](CONTRIBUTING.md): the pre-publish gate and how to enable it, lanes and integration, the test commands and the build box.
 
 - Open an issue or a discussion first for anything large: <https://github.com/Keigyoku/lampway/issues>.
