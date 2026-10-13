@@ -848,11 +848,12 @@ class Validator:
         # beyond that original intersection. Native Grok enforces MCP allow/deny
         # lists only from its policy layers ($GROK_HOME/requirements.toml, then
         # /etc/grok), never from config.toml (`grok inspect`, 1.0.50). Only this
-        # owned fixture is changed, and its original bytes are restored afterward.
+        # owned fixture is changed, and its original bytes (or absence: native
+        # first start removes an unsigned cache) are restored afterward.
         native_config = Path(env['GROK_HOME']) / 'requirements.toml'
-        original_config = native_config.read_bytes()
+        original_config = native_config.read_bytes() if native_config.exists() else None
         denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
-        native_config.write_bytes(denied.encode() + original_config)
+        native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
         before_negative = file_state(native_config)
         offset = len(self.http.events) if self.http else 0
         log = self.output / 'owned-connector.jsonl'
@@ -865,7 +866,7 @@ class Validator:
                 not read_events(log) and (not self.http or
                     not any(e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:])))
         finally:
-            native_config.write_bytes(original_config)
+            native_config.write_bytes(original_config) if original_config is not None else native_config.unlink(missing_ok=True)
         self.receipt['acceptance_scope'] = ('Native ACP policy controls only' if self.options.phase == 'stdio'
                                           else 'Native policy, helper, herdr wrap/leader and owned lifecycle fixture')
         self.receipt['completed'] = True

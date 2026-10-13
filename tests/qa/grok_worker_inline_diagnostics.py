@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = '41b568f977ef6d3d2f6b52bd995e517a89d4f1445cf0ede5336a28176eca1f15'
+QA_SHA256 = '96a589dd6122135ced1c582f162303872850fc5af4b94a64416ebb17d82d0b41'
 
 
 def load_qa(repo):
@@ -170,9 +170,11 @@ def validator_type(qa):
             self.check('native pane chain preserves warmed inputs', warmed == {p: qa.file_state(p) for p in warmed})
             self.receipt['stages']['native_policy_intersection'] = 'RUNNING'; self.save()
             # Grok's own policy layer: native MCP deny lists are enforced from requirements.toml, never config.toml.
-            native_config = Path(env['GROK_HOME']) / 'requirements.toml'; original_config = native_config.read_bytes()
+            # Native first start removes the fixture's unsigned cache copy: create it, then restore its absence.
+            native_config = Path(env['GROK_HOME']) / 'requirements.toml'
+            original_config = native_config.read_bytes() if native_config.exists() else None
             denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
-            native_config.write_bytes(denied.encode() + original_config)
+            native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
             before_negative = qa.file_state(native_config); offset = len(self.http.events)
             try:
                 asyncio.run(self.acp(native, env, cwd, 'original-denial-baseline', expect_owned=False))
@@ -181,7 +183,7 @@ def validator_type(qa):
                 self.check('original deny prevents helper initialization', not any(
                     e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:]))
             finally:
-                native_config.write_bytes(original_config)
+                native_config.write_bytes(original_config) if original_config is not None else native_config.unlink(missing_ok=True)
             self.receipt['stages']['native_policy_intersection'] = 'PASS'
             self.check('final warmed native state preserved', warmed == {p: qa.file_state(p) for p in warmed})
             self.receipt['completed'] = True
