@@ -83,3 +83,16 @@ def test_a_start_without_a_first_prompt_sends_none(herdr, tmp_path):
     c = H.Cockpit(tmp_path / "herdr")
     c.create_session("claude", "Boots", str(tmp_path), by="user")
     assert [a[:2] for a in agent_calls(herdr)] == [["agent", "start"]]
+
+
+def test_a_failed_start_leaves_none_of_the_pane_files_it_wrote(monkeypatch, tmp_path):
+    """A rolled-back start removes the pane's own files (its MCP config holds the pane's bearer), not only the pane."""
+    fake = ReadyHerdr(prompt_error='{"error":{"code":"agent_prompt_stalled","message":"no activity observed"}}')
+    monkeypatch.setattr(L, "run", fake)
+    monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
+    c = H.Cockpit(tmp_path / "herdr")
+    with pytest.raises(Exception, match="agent_prompt_stalled"):
+        c.create_session("claude", "Boots", str(tmp_path), by="user", scene_session_id="scene-1", prompt=TASK)
+    written = [p for p in (tmp_path / "herdr" / "panes").rglob("*") if p.is_file()] if (tmp_path / "herdr" / "panes").exists() else []
+    assert written == [], f"left behind: {written}"
+    assert c.list_sessions()[0]["mcp_config_path"], "the start did write a pane config (the case is not vacuous)"

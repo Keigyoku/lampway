@@ -47,8 +47,8 @@ def test_installed_main_connector_does_not_advertise_worker_readiness(tmp_path, 
     assert wiring.kind == 'symbolic_stdio'
     missing = byoa_worker_readiness()
     assert f'byoa:{harness}' in missing
-    # Grok is a worker harness (captain, 2026-10-12): an installed MAIN connector still does not make it ready; the installed
-    # native startup preflight refuses it here (no qualified native Grok in this fixture).
+    # Grok is a worker harness (captain, 2026-10-12): an installed MAIN connector still does not make it ready. Here readiness has
+    # no owning project root, so the native startup qualification fails closed before any probe (grok_worker_description).
     assert (N.GROK_REFUSAL if harness == 'grok' else adapter.worker_note) in missing[f'byoa:{harness}']
     with pytest.raises(CH.NoChoice, match='cannot run a worker'):
         CH.resolve('agent.worker_mode', CH.Job(origin='agent'))

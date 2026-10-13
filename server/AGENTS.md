@@ -104,7 +104,7 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    native Grok any client MCP update or session server list naming `lampway_pane` (Grok's name comparison) with another transport or
    argv (refused whole, failing closed on server lists, batches or frames it cannot check), and passes other requests byte for byte. It covers an ACP-stdio client, not the native TUI's own leader socket. The original native check
    runs as a CI watch and is the gate again once it passes; the module's REMOVAL note lists what is deleted then. Turning off prevents new workers and refuses their further tool calls, retaining owned completion
-   receipts and never killing unknown panes. Production worker readiness stays independent of consent. Its namespace
+   receipts and never killing unknown panes. Consent alone never makes a worker ready: the installed native startup preflight still decides. Its namespace
    uses a private standard `/dev` after the root bind in both the readiness probe and worker plan; ordinary bind mounts
    remain nodev, and no host device tree is admitted. Offline qualification uses native session-scoped MCP calls without
    waiting for a deliberately denied model turn. Its enabled synthetic user-plugin baseline must initialize before exclusion
@@ -136,7 +136,7 @@ they bind here. Adding a tool: the `lampway-tool-authoring` skill.
    Unknown, prerelease or older versions receive an actionable refusal in discovery, Choices and launch before activation;
    Lampway never upgrades the shared CLI.
    An authenticated digest-only record is durable in state `starting` before harness launch can initialize MCP.
-   Launch success makes it `live`; failed or cancelled starts revoke admission before closing only their allocated pane.
+   Launch success makes it `live`; failed or cancelled starts revoke admission before closing only their allocated pane, and remove only the pane files that start wrote.
    Active starts remain distinct from launch-ready workers; reconciliation after restart inspects the process before adoption.
    A harness pane bound to a scene tab (spec B2) gets its own MCP config, 0600 under `<herdr root>/panes/<id>/`, pointing at Lampway's
    launcher with `LAMPWAY_BOUND_SESSION`; nothing is written outside the Lampway root. Binding and unbinding change only that file and
@@ -638,3 +638,4 @@ fit_bind exposes only canon07's pinned copied-contact declaration through existi
 | 2026-10-12 | a worker's task follows its ready start | captain (direct): Grok BYOA workers must work; byoa-worker-validation run 38320574767 | herdr's agent start waits for an idle, ready agent and a worker launched with its task is working, so every worker whose first turn outlasted herdr's 30 s start wait failed to launch (native Grok: timed out waiting for agent startup) | invariant 6: start without the task, then one native agent prompt, never retried; a Grok worker's plan starts its TUI idle | played-herdr RED with herdr's own error (test_herdr_task_delivery), Grok plan/launch REDs; native inline diagnostic rerun |
 | 2026-10-12 | a worker's first prompt is confirmed | task review of ec590777..33024c9f | herdr's agent prompt without --wait acknowledges the write, not a turn, so a prompt lost to a not-yet-listening TUI left the worker idle until the swarm's timeout | invariant 6: --wait --until working/blocked, herdr's own five-second stall check; a stall ends the start, never resent | played-herdr RED for the missing confirmation and the stalled/blocked refusals; pane close asserted on rollback |
 | 2026-10-12 | Grok is a worker harness | captain (direct): "Enable it now", on the native qualification at 80877054 | the adapter refused every Grok worker with a constant although its native namespace, policy intersection, herdr lifecycle and pane cleanup now pass natively | invariant 6: worker_ok, still behind the default-off human consent and the installed native startup preflight before activation; the cancel caveat stated | RED: enrollment and disclosure tests; full server suite 3696 passed / 14 skipped |
+| 2026-10-12 | a failed start removes the pane files it wrote | task review of 1c94140a | rollback closed the pane and ended the record but left the pane's own files, its MCP config holding the pane's bearer (any adapter; a Grok launch re-probe can fail after them) | invariant 6: rollback removes exactly the files that start wrote; readiness is consent plus the native preflight | played-herdr RED: mcp.json left behind; 75 related tests pass |

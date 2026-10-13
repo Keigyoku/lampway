@@ -366,6 +366,11 @@ class Cockpit:
                 L.run(self.root, ["pane", "close", pane_id])   # only the pane allocated by this failed explicit start
             except BaseException as exc:
                 log.warning("failed pane %s could not be rolled back (%s)", pane_id, exc)
+            for path in (wiring.files if wiring is not None else {}):   # only the files this start wrote (a pane config holds its bearer)
+                try:
+                    Path(path).unlink(missing_ok=True)
+                except OSError as exc:
+                    log.warning("failed pane %s's file %s could not be removed (%s)", pane_id, path, exc)
             raise
         finally:
             self._opening.pop(pane_id, None)

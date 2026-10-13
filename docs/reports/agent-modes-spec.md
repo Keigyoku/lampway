@@ -1166,7 +1166,7 @@ superseded by this one:
   budgets/built-ins, existing restrictive policies and pane binding remain. Unsupported layouts or changed/revoked consent
   refuse before probes/activation and again before exec; OFF refuses further worker tools while retaining completion.
   This consent grants no route, trust, security, account call or readiness. Actual pinned native canonical retention and
-  configuration-preservation proof remain required; production Grok workers remain refused until qualified.
+  configuration-preservation proof were required, and production Grok workers were refused until qualified.
   *Built 2026-10-12 (captain: "Enable it now"):* with that native proof at 80877054, Grok is a worker harness; the consent above and
   the installed native startup preflight still gate every worker. Native cancel leaves Grok's in-flight model request open (the
   captain kept Lampway out of that traffic).
