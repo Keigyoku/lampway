@@ -240,7 +240,7 @@ def test_an_ended_pane_offers_resume_and_unbind_as_buttons_and_one_without_a_ses
     BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["press Resume"], "resumable": True})
     bubble = scene.mixie_chat_messages[-1]
     assert bubble.bubble_id == "byoa-ended:pane1" and [a.value for a in bubble.action_items] == [BV.RESUME_ACTION, BV.UNBIND_ACTION]
-    assert seen["calls"] == []                                                       # reopening the file only shows: nothing resumes
+    assert seen["calls"] == [] and seen["commands"] == []                            # reopening the file only shows: nothing resumes
     BV.VIEWS.clear()
     BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": ["cannot be resumed"], "resumable": False})
     assert [m.bubble_id for m in scene.mixie_chat_messages].count("byoa-ended:pane1") == 1             # replaced, not stacked
@@ -251,14 +251,14 @@ def test_resume_and_unbind_ask_the_server_and_its_answer_rebinds_the_tab_on_the_
     scene, seen = world
     BV.apply_view({"session_id": SID, "view": "ended", "pane": "pane1", "help": [], "resumable": True})
     assert BV.resume(scene) is True
-    method, params, cb = seen["calls"][-1]
-    assert method == "agent.byoa.resume" and params["session_id"] == SID
+    method, params, cb, _ = seen["commands"][-1]                                    # a command, as the server reads it
+    assert method == "byoa.resume" and params["session_id"] == SID
     assert all(len(m.action_items) == 0 for m in scene.mixie_chat_messages)          # the buttons go once pressed
     cb({"state": "complete", "result": {"ok": True, "pane": "pane2", "harness": "claude", "resumed": "pane1"}})
     BV.apply_control({"session_id": SID, "method": "agent.byoa.resume", "ok": True, "pane": "pane2", "harness": "claude"})
     assert scene.lampway_byoa_pane == "pane2" and scene["lampway_byoa_harness"] == "claude"
     assert seen["calls"][-1][0] == "agent.byoa.observe"                              # the new pane is watched at once
-    assert BV.unbind(scene) is True and seen["calls"][-1][0] == "agent.byoa.unbind"
+    assert BV.unbind(scene) is True and seen["commands"][-1][0] == "byoa.unbind"
     BV.apply_control({"session_id": SID, "method": "agent.byoa.unbind", "ok": True, "unbound": ["pane2"]})
     assert scene.lampway_byoa_pane == ""
     BV.apply_control({"session_id": SID, "method": "agent.byoa.resume", "ok": False, "message": "no session id", "help": ["Unbind it"]})
@@ -306,8 +306,8 @@ def test_stop_in_your_agent_mode_asks_the_server_to_interrupt_the_pane(world, mo
     monkeypatch.setattr(human_gate, "script_running", lambda: False)
     op = SimpleNamespace(reports=[], report=lambda kind, text: op.reports.append((kind, text)))
     assert BV.execute_stop(op, SimpleNamespace(scene=scene)) == {'FINISHED'}
-    method, params, cb = seen["calls"][-1]
-    assert method == "agent.byoa.interrupt" and params == {"session_id": SID}
+    method, params, cb, _ = seen["commands"][-1]
+    assert method == "byoa.interrupt" and params == {"session_id": SID}
     cb({"state": "complete", "result": {"ok": False, "code": "pane_refused", "message": "herdr is down", "help": ["Stop it in its own pane"]}})
     monkeypatch.setattr(human_gate, "script_running", lambda: True)
     assert BV.execute_stop(op, SimpleNamespace(scene=scene)) == {'CANCELLED'} and "script" in op.reports[-1][1]

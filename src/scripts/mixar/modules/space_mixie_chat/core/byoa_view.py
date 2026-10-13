@@ -200,8 +200,8 @@ def _control(scene, method: str, params: dict) -> bool:
     def answered(result):
         out = (result.get("result") or {}) if isinstance(result, dict) and isinstance(result.get("result"), dict) else (result or {})
         turn_events.handle_turn_notification("agent.byoa.control", {"session_id": sid, "method": method, **dict(out)})
-    try:
-        rpc.call(method, {"session_id": sid, **params}, answered)
+    try:                                      # a command, as the server reads these (agent/byoa.py _session_of)
+        rpc.command(method.removeprefix("agent."), {"session_id": sid, **params}, answered)
         return True
     except Exception as exc:  # noqa: BLE001 - not connected
         logger.debug("byoa control %s waits for the socket: %s", method, exc)
