@@ -17,7 +17,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64, chatgpt-review-lampway]
     timeout-minutes: 25
     concurrency:
-      group: chatgpt-review-${{ github.repository }}
+      group: chatgpt-review-${{ github.repository }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Verify adapter is ready
