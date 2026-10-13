@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = 'c0ef52c8aa2e35998ab07f5207283cf29824f0fb2f38284780f293082b02d206'
+QA_SHA256 = '41b568f977ef6d3d2f6b52bd995e517a89d4f1445cf0ede5336a28176eca1f15'
 
 
 def load_qa(repo):
@@ -169,7 +169,8 @@ def validator_type(qa):
             self.receipt['stages']['native_panes'] = 'PASS'
             self.check('native pane chain preserves warmed inputs', warmed == {p: qa.file_state(p) for p in warmed})
             self.receipt['stages']['native_policy_intersection'] = 'RUNNING'; self.save()
-            native_config = Path(env['GROK_HOME']) / 'config.toml'; original_config = native_config.read_bytes()
+            # Grok's own policy layer: native MCP deny lists are enforced from requirements.toml, never config.toml.
+            native_config = Path(env['GROK_HOME']) / 'requirements.toml'; original_config = native_config.read_bytes()
             denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
             native_config.write_bytes(denied.encode() + original_config)
             before_negative = qa.file_state(native_config); offset = len(self.http.events)

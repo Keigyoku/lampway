@@ -843,11 +843,13 @@ class Validator:
         (self.output / 'foreign-project.jsonl').rename(self.output / 'foreign-project.baseline.jsonl')
         asyncio.run(self.acp(restricted, env, cwd, 'project-restricted'))
         self.check('project foreign source blocked before initialization', not read_events(self.output / 'foreign-project.jsonl'))
-        # Original native config is itself a policy layer. It must still be able
-        # to deny our otherwise-admitted connector; the added requirement grants
-        # nothing beyond that original intersection. Only this owned fixture is
-        # changed, and its original bytes are restored afterward.
-        native_config = Path(env['GROK_HOME']) / 'config.toml'
+        # The original native policy layer must still be able to deny our
+        # otherwise-admitted connector; the added requirement grants nothing
+        # beyond that original intersection. Native Grok enforces MCP allow/deny
+        # lists only from its policy layers ($GROK_HOME/requirements.toml, then
+        # /etc/grok), never from config.toml (`grok inspect`, 1.0.50). Only this
+        # owned fixture is changed, and its original bytes are restored afterward.
+        native_config = Path(env['GROK_HOME']) / 'requirements.toml'
         original_config = native_config.read_bytes()
         denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
         native_config.write_bytes(denied.encode() + original_config)

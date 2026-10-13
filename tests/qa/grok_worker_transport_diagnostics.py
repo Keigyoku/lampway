@@ -23,7 +23,7 @@ import threading
 import time
 import traceback
 
-QA_SHA = 'c0ef52c8aa2e35998ab07f5207283cf29824f0fb2f38284780f293082b02d206'
+QA_SHA = '41b568f977ef6d3d2f6b52bd995e517a89d4f1445cf0ede5336a28176eca1f15'
 
 
 def load_qa(repo):
