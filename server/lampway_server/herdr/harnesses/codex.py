@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 
-from .base import BOUND_ENV, SERVER_NAME, Adapter, Observer, ToolWiring, direct_binding
+from .base import SERVER_NAME, Adapter, Observer, ToolWiring, direct_binding, launcher_env
 
 #: Codex cuts a tool call off after its default timeout; a scene call may run 570 s (the Client's setup uses the same value).
 TOOL_TIMEOUT_S = 610
@@ -69,10 +69,11 @@ class Codex(Adapter):
         argv, record, env = [], "", {}
         if pane.desktop:
             key = f"mcp_servers.{SERVER_NAME}"
+            env_rows = launcher_env(pane).items()          # Codex starts MCP servers with its own short environment list
             argv += ["-c", f"{key}.command={json.dumps(cmd[0])}", "-c", f"{key}.args={json.dumps(cmd[1:])}",
-                     "-c", f"{key}.env.{BOUND_ENV}={json.dumps(pane.scene_session_id or '')}", "-c", f"{key}.tool_timeout_sec={TOOL_TIMEOUT_S}"]
+                     *[x for k, v in env_rows for x in ("-c", f"{key}.env.{k}={json.dumps(v)}")], "-c", f"{key}.tool_timeout_sec={TOOL_TIMEOUT_S}"]
             record += (f"[{key}]\ncommand = {json.dumps(cmd[0])}\nargs = {json.dumps(cmd[1:])}\ntool_timeout_sec = {TOOL_TIMEOUT_S}\n\n"
-                       f"[{key}.env]\n{BOUND_ENV} = {json.dumps(pane.scene_session_id or '')}\n")
+                       f"[{key}.env]\n" + "".join(f"{k} = {json.dumps(v)}\n" for k, v in env_rows))
         for d in pane.direct:                 # spec S3: the bearer only in the pane's environment, never on its command line or in a file
             key = f"mcp_servers.{d.name}"
             headers = "{" + ", ".join(f"{json.dumps(k)} = {json.dumps(v)}" for k, v in d.headers.items()) + "}"

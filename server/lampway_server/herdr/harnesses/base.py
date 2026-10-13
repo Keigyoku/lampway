@@ -26,6 +26,7 @@ Argv = list
 SERVER_NAME = "lampway"
 #: The variable the pane's MCP launcher reads to pin its scene tab (spec B2).
 BOUND_ENV = "LAMPWAY_BOUND_SESSION"
+DISCOVERY_ENV = ("LAMPWAY_MCP_DISCOVERY_DIR", "MIXAR_MCP_DISCOVERY_DIR")   # the Client's, when the user moved it (mcp_bridge discovery)
 #: The header a direct entry pins its binding with (a swarm worker's ``swarm:<swarm_id>:<worker_id>``, spec S3).
 SESSION_HEADER = "X-Mixar-Session-Id"
 
@@ -110,10 +111,16 @@ def _first_line(text: str) -> str:
     return next((ln.strip() for ln in (text or "").splitlines() if ln.strip()), "")[:200]
 
 
+def launcher_env(pane: PaneSpec) -> dict:
+    """The launcher's own environment: the pane's scene tab and, when one is set, the Client's discovery directory. A harness may
+    start its MCP servers with a scrubbed environment (Codex passes only its own short list), so neither is left to inheritance."""
+    return {BOUND_ENV: pane.scene_session_id or "", **{k: os.environ[k] for k in DISCOVERY_ENV if os.environ.get(k)}}
+
+
 def mcp_entry(pane: PaneSpec) -> dict:
     """The one server entry every MCP-speaking harness gets: Lampway's launcher, pinned to the pane's scene tab."""
     cmd = list(pane.launcher) or ["lampway-mcp"]
-    return {"command": cmd[0], "args": cmd[1:], "env": {BOUND_ENV: pane.scene_session_id or ""}}
+    return {"command": cmd[0], "args": cmd[1:], "env": launcher_env(pane)}
 
 
 def bearer_headers(server: "DirectServer") -> dict:

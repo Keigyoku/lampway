@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import sys
 
-from .base import Adapter, Observer, ToolWiring, bearer_headers, direct_binding
+from .base import Adapter, Observer, ToolWiring, bearer_headers, direct_binding, launcher_env
 from ...pane_mcp import CONFIG_ENV, ROOT_ENV
 
 
@@ -134,7 +134,7 @@ class Grok(Adapter):
         path = pane.mcp_config_path
         binding = pane.scene_session_id or direct_binding(pane) or ""
         desktop = ({"command": pane.launcher[0], "args": list(pane.launcher[1:]),
-                    "env": {"LAMPWAY_BOUND_SESSION": binding}}
+                    "env": {**launcher_env(pane), "LAMPWAY_BOUND_SESSION": binding}}
                    if binding and pane.desktop and pane.launcher else None)
         direct = [{"url": entry.url, "headers": bearer_headers(entry)} for entry in pane.direct] if binding else []
         body = json.dumps({"version": 1, "binding": binding, "desktop": desktop, "direct": direct}, indent=2)

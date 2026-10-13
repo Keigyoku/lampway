@@ -170,11 +170,43 @@ def test_the_tool_wiring_names_the_launcher_and_the_bound_session(hid, tmp_path,
     assert (w.kind == "unavailable") is (hid not in SUPPORTED_WIRING) is (not HN.get(hid).tools_reachable), hid
 
 
+@pytest.mark.parametrize("hid", IDS)                 # Grok's and Your Hermes's launcher entry is in the binding file pane_mcp reads
+def test_the_launcher_entry_carries_the_clients_discovery_directory(hid, tmp_path, recorded_pi, monkeypatch):
+    """A harness may start its MCP servers with a scrubbed environment (Codex passes only its own short list), so the launcher entry
+    carries the discovery directory itself when one is set: without it the launcher looked in the default place, found no app and
+    served only its app-less tools (real Codex pane at 19967a88: 10 of 214 tools, no scene_summary)."""
+    monkeypatch.setenv("LAMPWAY_MCP_DISCOVERY_DIR", "/run/lw-disc")
+    pane = HN.PaneSpec(cwd=str(tmp_path), scene_session_id="scene-7", mcp_config_path=str(tmp_path / "pane" / "mcp.cfg"), launcher=("/opt/lw/lampway-mcp",))
+    w = HN.get(hid).lampway_tools(pane)
+    text = json.dumps({"argv": list(w.argv), "env": w.env, "files": w.files})
+    assert "LAMPWAY_MCP_DISCOVERY_DIR" in text and "/run/lw-disc" in text, hid
+    monkeypatch.delenv("LAMPWAY_MCP_DISCOVERY_DIR")
+    w = HN.get(hid).lampway_tools(pane)
+    assert "LAMPWAY_MCP_DISCOVERY_DIR" not in json.dumps({"argv": list(w.argv), "env": w.env, "files": w.files}), hid
+
+
+def test_claude_code_pre_allows_only_lampways_own_servers(tmp_path):
+    """Captain, 2026-10-13: Lampway pre-allows its own MCP servers in the Claude panes it starts. Under a user's own
+    `defaultMode: dontAsk` Claude Code denied every Lampway tool (real pane on the user's login at 19967a88); the allowance names
+    only the pane's own Lampway servers, never another tool, and a pane without Lampway's config gets none."""
+    a = HN.get("claude")
+    cfg = str(tmp_path / "pane" / "mcp.json")
+    swarm = HN.DirectServer("lampway_swarm", "http://127.0.0.1:8787/api/v1/mcp/pane", {}, "LAMPWAY_PANE_KEY", "k-1")
+    main = HN.PaneSpec(cwd=str(tmp_path), session_id="s-1", scene_session_id="scene-7", mcp_config_path=cfg,
+                       launcher=("/opt/lw/lampway-mcp",), direct=(swarm,))
+    worker = HN.PaneSpec(cwd=str(tmp_path), desktop=False, mcp_config_path=cfg,
+                         direct=(HN.DirectServer("lampway", swarm.url, {"X-Mixar-Session-Id": "swarm:s:w"}, "T", "t-1"),))
+    for pane, rule in ((main, "mcp__lampway,mcp__lampway_swarm"), (worker, "mcp__lampway")):
+        argv = a.launch(pane)
+        assert argv.count("--allowedTools") == 1 and argv[argv.index("--allowedTools") + 1] == rule, argv
+    assert "--allowedTools" not in a.launch(HN.PaneSpec(cwd=str(tmp_path), session_id="s-1"))
+
+
 def test_claude_code_reaches_lampway_through_a_per_pane_mcp_config_file(tmp_path):
     a = HN.get("claude")
     cfg = tmp_path / "pane" / "mcp.json"
     pane = HN.PaneSpec(cwd=str(tmp_path), session_id="s-1", scene_session_id="scene-7", mcp_config_path=str(cfg), launcher=("/opt/lw/lampway-mcp",))
-    assert a.launch(pane) == ["claude", "--session-id", "s-1", "--mcp-config", str(cfg)]
+    assert a.launch(pane) == ["claude", "--session-id", "s-1", "--mcp-config", str(cfg), "--allowedTools", "mcp__lampway"]
     entry = json.loads(a.lampway_tools(pane).files[str(cfg)])["mcpServers"]["lampway"]
     assert entry == {"command": "/opt/lw/lampway-mcp", "args": [], "env": {"LAMPWAY_BOUND_SESSION": "scene-7"}}
 

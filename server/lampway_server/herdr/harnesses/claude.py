@@ -3,8 +3,9 @@
 """Claude Code (`claude`): the user's own Claude Code, on its own login, in a pane on Lampway's herdr server.
 
 New session: `--session-id <uuid>` chosen by Lampway (recorded as the native id); resume: `--resume <id>`. Effort: `--effort`.
-Bypass (the user's tick only): `--dangerously-skip-permissions`. Lampway's tools: a per-pane `--mcp-config <file>`. Verified on an
-installed Claude Code 2.1.293 (see FACTS).
+Bypass (the user's tick only): `--dangerously-skip-permissions`. Lampway's tools: a per-pane `--mcp-config <file>`, its own servers
+pre-allowed with `--allowedTools` (captain, 2026-10-13); every other permission stays the user's. Verified on an installed Claude
+Code 2.1.293 (see FACTS).
 """
 import json
 import os
@@ -42,6 +43,9 @@ class Claude(Adapter):
                      "'esc to interrupt' on Claude Code's own screen. [UNVERIFIED on the installed copy: a turn needs an account]",
         "images": "a pasted image path is attached (Claude Code's documented 'give Claude an image path'). [UNVERIFIED on the "
                   "installed copy: a turn needs an account]",
+        "allowed_tools": "`claude --help` (2.1.296): `--allowedTools, --allowed-tools <tools...>` takes a comma or space-separated "
+                         "list; `mcp__<server>` allows that server's tools. Real pane on the user's own login (2.1.296, its settings' "
+                         "defaultMode dontAsk): every mcp__lampway call was denied until the server was allowed",
         "mcp_entry": "the stdio entry {command, args, env} and the http entry {type: http, url, headers} are Claude Code's documented "
                      "mcpServers shape. Stdio initialize/tools/list verified with synthetic offline sentinels on 2.1.293. "
                      "[UNVERIFIED: account-backed HTTP tool execution]",
@@ -85,7 +89,10 @@ class Claude(Adapter):
         for d in pane.direct:                 # spec S3: Lampway's own endpoint, the bearer in this 0600 file only
             servers[d.name] = {"type": "http", "url": d.url, "headers": bearer_headers(d)}
         body = json.dumps({"mcpServers": servers}, indent=2)
-        argv = (("--strict-mcp-config",) if not pane.desktop else ()) + ("--mcp-config", path) if path else ()
+        # Lampway's own servers only, pre-allowed (captain, 2026-10-13): a user's own dontAsk mode otherwise denies every Lampway tool
+        allow = ",".join(f"mcp__{name}" for name in servers)
+        argv = ((("--strict-mcp-config",) if not pane.desktop else ()) + ("--mcp-config", path)
+                + (("--allowedTools", allow) if allow else ())) if path else ()
         return ToolWiring("mcp_config_file", argv, {}, {path: body} if path else {}, tuple(pane.launcher),
                           pane.scene_session_id or direct_binding(pane), True,
                           "--strict-mcp-config confines this worker to its supplied MCP config (Claude Code 2.1.293 offline sentinel "

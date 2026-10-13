@@ -365,3 +365,24 @@ for line in sys.stdin:
             if pid is not None:
                 with pytest.raises(ProcessLookupError):os.kill(pid,0)
     asyncio.run(proof())
+
+
+def test_the_desktop_launcher_gets_the_discovery_directory_from_the_owned_binding(config, monkeypatch):
+    """The native harness starts this connector with its own filtered environment (real Hermes 0.20.6 pane at 19967a88: only the
+    two connector variables the user's entry names), so a discovery directory the user set never arrived and the launcher found
+    no app ("Lampway is starting or unavailable"). The owned binding file carries it; nothing else from its env is taken."""
+    monkeypatch.delenv("LAMPWAY_MCP_DISCOVERY_DIR", raising=False)
+    value = write(config)
+    value["desktop"]["env"] = {"LAMPWAY_BOUND_SESSION": "scene-one", "LAMPWAY_MCP_DISCOVERY_DIR": "/run/lw-disc", "ANTHROPIC_API_KEY": "x"}
+    config.write_text(json.dumps(value))
+    (config.parent / "fake_mcp.py").write_text((config.parent / "fake_mcp.py").read_text().replace(
+        "os.environ.get('LAMPWAY_BOUND_SESSION','')", "json.dumps({k: os.environ.get(k) for k in ('LAMPWAY_BOUND_SESSION', 'LAMPWAY_MCP_DISCOVERY_DIR', 'ANTHROPIC_API_KEY')})"))
+
+    async def proof():
+        connector = C.Connector(str(config))
+        try:
+            seen = json.loads((await connector.request('tools/call', {'name': 'scene_summary', 'arguments': {}}))['content'][0]['text'])
+        finally:
+            await connector.close()
+        assert seen == {"LAMPWAY_BOUND_SESSION": "scene-one", "LAMPWAY_MCP_DISCOVERY_DIR": "/run/lw-disc", "ANTHROPIC_API_KEY": None}
+    asyncio.run(proof())

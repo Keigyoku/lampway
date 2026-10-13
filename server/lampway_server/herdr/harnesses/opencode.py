@@ -9,7 +9,7 @@ left alone). Verified on an installed OpenCode 1.18.35 (see FACTS).
 import json
 import re
 
-from .base import BOUND_ENV, SERVER_NAME, Adapter, LoginState, Observer, ToolWiring, bearer_headers, direct_binding
+from .base import SERVER_NAME, Adapter, LoginState, Observer, ToolWiring, bearer_headers, direct_binding, launcher_env
 
 #: OpenCode stops listing a server's tools after 5 s by default; the launcher may first have to start Lampway (the Client's setup).
 TOOLS_TIMEOUT_MS = 60_000
@@ -60,7 +60,7 @@ class OpenCode(Adapter):
     def lampway_tools(self, pane):
         cmd = list(pane.launcher) or ["lampway-mcp"]
         servers = {SERVER_NAME: {"type": "local", "command": cmd, "enabled": True, "timeout": TOOLS_TIMEOUT_MS,
-                                 "environment": {BOUND_ENV: pane.scene_session_id or ""}}} if pane.desktop else {}
+                                 "environment": launcher_env(pane)}} if pane.desktop else {}
         for d in pane.direct:                                                          # spec S3: the bearer in this 0600 file only
             servers[d.name] = {"type": "remote", "url": d.url, "enabled": True, "timeout": TOOLS_TIMEOUT_MS, "headers": bearer_headers(d)}
         body = json.dumps({"$schema": "https://opencode.ai/config.json", "mcp": servers}, indent=2)

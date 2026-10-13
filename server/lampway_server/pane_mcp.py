@@ -15,6 +15,7 @@ from pathlib import Path
 CONFIG_ENV = "LAMPWAY_HERMES_CONNECTOR_CONFIG"
 ROOT_ENV = "LAMPWAY_HERMES_CONNECTOR_ROOT"
 SERVER_NAME = "lampway_pane"
+DISCOVERY_ENV = ("LAMPWAY_MCP_DISCOVERY_DIR", "MIXAR_MCP_DISCOVERY_DIR")   # as herdr/harnesses/base.py: the Client's, when moved
 # Pinned Hermes tools/mcp_tool_errors.py uses this wire-body budget. The
 # desktop's 8 MiB body cap fits with JSON wrapping; native 50 MiB resources
 # are a separate scope and are not promised by this desktop relay.
@@ -54,7 +55,9 @@ def read_config(path, root=None):
         if desktop is not None and (not isinstance(desktop, dict)
                 or not isinstance(desktop.get("command"), str) or not os.path.isabs(desktop["command"])
                 or not isinstance(desktop.get("args", []), list)
-                or not all(isinstance(x, str) for x in desktop.get("args", []))):
+                or not all(isinstance(x, str) for x in desktop.get("args", []))
+                or not isinstance(desktop.get("env", {}), dict)
+                or not all(isinstance(k, str) and isinstance(v, str) for k, v in desktop.get("env", {}).items())):
             return None
         from urllib.parse import urlsplit
         for entry in direct:
@@ -117,6 +120,9 @@ class Connector:
             env = {key: value for key, value in os.environ.items() if key in {
                 "PATH", "SYSTEMROOT", "WINDIR", "XDG_RUNTIME_DIR", "LAMPWAY_MCP_DISCOVERY_DIR",
                 "MIXAR_MCP_DISCOVERY_DIR", "LAMPWAY_HOME"}}
+            # The native harness starts this connector with its own filtered environment: the owned binding names the Client's
+            # discovery directory when the user moved it (herdr/harnesses/base.py launcher_env). Nothing else is taken from it.
+            env.update({k: v for k, v in (entry.get("env") or {}).items() if k in DISCOVERY_ENV})
             env["LAMPWAY_BOUND_SESSION"] = self.config["binding"]
             self.process = await asyncio.create_subprocess_exec(entry["command"], *entry.get("args", []),
                 env=env, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,

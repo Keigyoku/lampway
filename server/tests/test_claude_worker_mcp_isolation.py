@@ -20,7 +20,7 @@ def test_claude_worker_excludes_inherited_mcp_without_changing_main(tmp_path):
                           {"X-Mixar-Session-Id": "swarm:test:worker"}, "WORKER_TOKEN", "synthetic-test-token")
     worker = PaneSpec(cwd=str(tmp_path), desktop=False, mcp_config_path=path, direct=(direct,))
     wiring = adapter.lampway_tools(worker)
-    assert wiring.argv == ("--strict-mcp-config", "--mcp-config", path)
+    assert wiring.argv == ("--strict-mcp-config", "--mcp-config", path, "--allowedTools", "mcp__lampway")
     assert set(json.loads(wiring.files[path])["mcpServers"]) == {"lampway"}
     assert wiring.env == {}
     assert wiring.launcher == ()
@@ -28,7 +28,7 @@ def test_claude_worker_excludes_inherited_mcp_without_changing_main(tmp_path):
     assert launch.index("synthetic worker task") < launch.index("--mcp-config")
     assert "--strict-mcp-config" in launch
     main = PaneSpec(cwd=str(tmp_path), mcp_config_path=path, launcher=("synthetic-desktop-launcher",))
-    assert adapter.lampway_tools(main).argv == ("--mcp-config", path)
+    assert adapter.lampway_tools(main).argv == ("--mcp-config", path, "--allowedTools", "mcp__lampway")
     assert "--strict-mcp-config" not in adapter.launch(main)
 
 
