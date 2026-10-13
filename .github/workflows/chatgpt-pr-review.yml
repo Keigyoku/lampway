@@ -156,6 +156,82 @@ jobs:
                       self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
                   elif state not in {"provisioning", "booting", "resuming", "cloning"}:
                       raise RuntimeError("Box is not in a safe state for resume; retry after its stop.")
+                  self.wait_ready()
+                  if self.wait_review_slot():
+                      self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
+                      self.wait_ready()
+                  return True
+
+              def wait_review_slot(self):
+                  # This method runs while the wake/stop concurrency lease is held.
+                  # Other modern wakes cannot admit a review, so cache the already admitted
+                  # jobs and poll only those instead of rescanning a growing pending queue.
+                  candidates, reservations = [], []
+                  page = 1
+                  while True:
+                      response = self.github.request(
+                          "GET",
+                          f"/repos/{self.repo}/actions/workflows/chatgpt-pr-review.yml/runs"
+                          f"?status=in_progress&per_page=100&page={page}",
+                      )
+                      runs = response["workflow_runs"]
+                      for run in runs:
+                          if run["id"] == self.run_id:
+                              continue
+                          jobs = self.github.request(
+                              "GET",
+                              f"/repos/{self.repo}/actions/runs/{run['id']}/jobs?per_page=100",
+                          )["jobs"]
+                          names = {job["name"].rsplit(" / ", 1)[-1] for job in jobs}
+                          if "Review or refresh ChatGPT" not in names and any(
+                              job["name"].endswith("Start dedicated box")
+                              and job.get("conclusion") == "success"
+                              for job in jobs
+                          ):
+                              reservations.append(run["id"])
+                          for job in jobs:
+                              name = job["name"].rsplit(" / ", 1)[-1]
+                              if name in {"Review or refresh ChatGPT", "review"} and job["status"] in ACTIVE:
+                                  candidates.append(job["id"])
+                      if len(runs) < 100:
+                          break
+                      page += 1
+                      if page > 10:
+                          raise RuntimeError("Cannot prove the review slot listing is complete.")
+                  if not candidates and not reservations:
+                      return False
+                  print("Waiting for the already admitted review slot before rearming TTL.")
+                  for tick in range(120):
+                      waiting = []
+                      for run in reservations:
+                          jobs = self.github.request(
+                              "GET",
+                              f"/repos/{self.repo}/actions/runs/{run}/jobs?per_page=100",
+                          )["jobs"]
+                          review = [job for job in jobs if job["name"].endswith("Review or refresh ChatGPT")]
+                          if not review:
+                              state = self.github.request("GET", f"/repos/{self.repo}/actions/runs/{run}")
+                              if state["status"] != "completed":
+                                  waiting.append(run)
+                          candidates.extend(job["id"] for job in review if job["status"] in ACTIVE)
+                      reservations = waiting
+                      candidates = [
+                          job
+                          for job in candidates
+                          if self.github.request(
+                              "GET",
+                              f"/repos/{self.repo}/actions/jobs/{job}",
+                          )["status"]
+                          in ACTIVE
+                      ]
+                      if not candidates and not reservations:
+                          return True
+                      if tick % 20 == 0:
+                          self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
+                      self.sleep(15)
+                  raise RuntimeError("Review slot remained busy; no new review was admitted.")
+
+              def wait_ready(self):
                   for _ in range(120):
                       box = self.boat.request("GET", self.path)["sandbox"]
                       if box["state"] in {"ready", "idle"}:
@@ -262,9 +338,10 @@ jobs:
     needs: authorize
     if: needs.authorize.outputs.allowed == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 35
     permissions:
       contents: read
+      actions: read
     concurrency:
       group: boat-lifecycle-${{ github.repository }}
       cancel-in-progress: false

@@ -107,6 +107,8 @@ queue; review concurrency stays per PR. Weekly maintenance wakes refresh the
 session and stop without reviewing code. The Boat key is isolated to hosted
 jobs and scoped to this box; adding the TTL-update scope requires Captain
 approval. No PR source is checked out by any lifecycle job.
+Wake admission waits for the previous review slot, then rearms the deadline;
+queued jobs do not consume their review budget behind another review.
 The public caller invokes the trusted script directly; private reusable
 workflows cannot be called by a public repository.
 
@@ -219,3 +221,4 @@ and restoring prior global scene state.
 | 2026-10-12 | dedicated PR-open review caller | Captain: add ChatGPT-plan PR-open reviews on per-repository runners | no dedicated PR-open review workflow existed and public callers cannot use a private shared workflow | the workflow map and PR-open review paragraph name the trusted script, dedicated runner, fork exclusion and posted-review evidence | Captain's directive, 2026-10-12 |
 | 2026-10-13 | requested PR reviews | Captain: add `@pr-review` without push reviews | opened-only reviews could not be requested again | the caller and review contract gate human collaborator commands, acknowledge accepted requests and exclude fork heads without PR execution or fixes | Captain addendum, 2026-10-13 |
 | 2026-10-13 | on-demand review boxes | Captain addendum 3: stop idle billing and keep sessions alive | permanent runners had no auto-stop deadline | hosted event/TTL/cleanup gates, isolated one-box key, per-PR review queue and scheduled refresh are owned by the caller | boxed TTL-update scope remains Captain decision |
+| 2026-10-13 | queued review admission | lifecycle overlap audit | a wake could start its TTL while waiting behind a full-length review | hold the lifecycle lease until the admitted slot finishes, then rearm before releasing the next review | RED-first queue and reservation controls |
