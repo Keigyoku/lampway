@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Candidate Grok worker boundary; it never makes the adapter worker-ready.
+"""Grok worker boundary: the namespace each Grok swarm worker runs in (the adapter's readiness is ``worker_ok`` plus consent and
+the installed native startup preflight, rechecked before each worker).
 
 The native Grok `wrap` command may invoke this module. Only owned pane metadata
 is read. Explicit current human consent can enable a temporary HOME directory
 view and Cursor MCP attribution mask, with the disclosed immediate-name limits.
 Existing child backing paths, login and native settings remain native. Existing
 policies are bind-mounted; an occupied additional requirements slot refuses.
-No host policy, credential or native configuration file is changed. Actual namespace,
-MCP exclusion and herdr lifecycle proof are required before enabling this route.
+No host policy, credential or native configuration file is changed. The namespace, MCP
+exclusion and herdr lifecycle were proved natively at 80877054 (tests/qa/grok_worker_validation.py,
+the inline pane diagnostics); native Grok does not close an in-flight model request on cancel.
 """
 import argparse
 import errno
@@ -461,7 +463,7 @@ def _prepared_compat_digest(view):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Candidate Grok worker isolation; readiness remains unverified.')
+    parser = argparse.ArgumentParser(description='Grok worker isolation behind human consent; native startup rechecked each launch.')
     parser.add_argument('--config', required=True)
     parser.add_argument('--task', help='Literal worker task; use --task=TEXT for leading hyphens.')
     options = parser.parse_args(argv)

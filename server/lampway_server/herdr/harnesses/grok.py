@@ -4,8 +4,9 @@
 
 New session uses --session-id; resume uses --resume. Only the user's bypass tick adds --always-approve.
 MAIN uses an explicitly installed native symbolic stdio connector and a pane-owned binding file. The user's own agent,
-HOME, model settings, permissions and other MCP servers remain native. Workers are refused: exclusive discovery preserving
-all native policy/configuration is unproved. Observation is the screen. Static CLI checks use Grok 1.0.50;
+HOME, model settings, permissions and other MCP servers remain native. Workers run behind the human-consented compatibility view
+and the installed native startup preflight (captain, 2026-10-12, on the native qualification at 80877054); a native cancel does not
+close Grok's in-flight model request, which the captain accepted to keep Lampway out of the user's harness traffic. Observation is the screen. Static CLI checks use Grok 1.0.50;
 historical native behavior observations use 1.0.46 (see FACTS).
 """
 import json
@@ -31,13 +32,12 @@ class Grok(Adapter):
     always_pane_config = True
     tools_reachable = True
     direct_ok = True
-    worker_ok = False
-    worker_note = ("Grok workers need an exclusive MCP route preserving native configuration and policies. "
-                   "That route is unproved; choose another supported worker harness.")
+    worker_ok = True                           # captain, 2026-10-12: native qualification at 80877054; consent and preflight still gate each worker
+    worker_note = ("Grok workers need the human-consented compatibility view and a qualified installed native startup.")
     tools_note = ("Install lampway_pane once with your own Grok MCP command using lampway-pane-mcp. Lampway supplies only "
                   "a pane-owned binding file; your native agent, HOME, providers, permissions and other configured MCP "
-                  "servers remain unchanged. Grok workers are unavailable until exclusive MCP discovery preserving "
-                  "native policies is proved. Account-backed native tool execution remains unverified.")
+                  "servers remain unchanged. Grok workers need the separate Grok worker compatibility consent in Agent preferences. "
+                  "Account-backed native tool execution remains unverified.")
     FACTS = {
         "version": "Official Linux x86_64 1.0.50 artifact downloaded into an isolated audit directory; "
                    "SHA256 c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5, "
@@ -76,7 +76,7 @@ class Grok(Adapter):
                          "namespace could not be tested here: bwrap returned 'setting up uid map: Read-only file system'. "
                          "herdr 0.9.3 also fixes the canonical executable for each kind and has no executable override; a "
                          "namespace wrapper additionally needs a reviewed native launch seam. No workaround or shared "
-                         "native policy change is used; workers are explicitly refused.",
+                         "native policy change is used (historical 1.0.46 note; workers now run through grok_worker's namespace).",
         "herdr": "herdr 0.9.3 knows the kind `grok` (src/detect/mod.rs interactive_agent_executable)",
         "interrupt": "Ctrl+C: docs/user-guide/03-keyboard-shortcuts.md (1.0.46) 'Esc ... never cancels a running turn (Ctrl+C does)'; "
                      "herdr 0.9.3's grok.toml still names an older 'Esc:cancel' footer",

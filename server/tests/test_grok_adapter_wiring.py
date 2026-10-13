@@ -35,9 +35,11 @@ def worker(tmp_path, **changes):
 def test_candidate_native_wrap_uses_production_wiring_and_one_literal_task(tmp_path, monkeypatch):
     adapter = Grok()
     pane = worker(tmp_path)
-    with pytest.raises(ValueError, match="unproved"):
+    assert adapter.worker_ok is True                  # captain, 2026-10-12; consent and the native preflight still gate each worker
+    adapter.worker_ok = False                         # the gate itself: an unqualified adapter refuses with its note
+    with pytest.raises(ValueError, match="qualified installed native startup"):
         adapter.launch(pane, task="synthetic task")
-    adapter.worker_ok = True  # Candidate fixture; no production readiness grant.
+    adapter.worker_ok = True
     description = dict(native="/synthetic/grok", native_sha256="a" * 64,
         bwrap="/synthetic/bwrap", bwrap_sha256="b" * 64,
         connector=dict(command="/synthetic/lampway-pane-mcp", args=[], sha256="c" * 64))

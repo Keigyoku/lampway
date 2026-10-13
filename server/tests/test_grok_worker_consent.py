@@ -41,7 +41,7 @@ def test_default_off_disclosure(tmp_path):
     assert row is not None, 'Grok worker compatibility must have an explicit default-off human consent row'
     assert not row['enabled'] and not row['default']
     assert row['worker_compat']['consent_version'] == 1
-    assert not row['worker_compat']['ready']
+    assert row['worker_compat']['ready'] is True, 'the harness is qualified (captain, 2026-10-12); the human consent stays off by default'
 
 def test_off_precedes_native_qualification(tmp_path, monkeypatch):
     monkeypatch.setattr(C, 'ACTIVE', C.Store(tmp_path))
@@ -98,10 +98,24 @@ def test_agent_and_proposal_cannot_record_consent(enrolled):
     assert not enrolled.effective(KEY)[0]
     assert enrolled.proposals()[0]['state']=='open'
 
-def test_enrollment_does_not_qualify_native(enrolled):
+def test_enrollment_does_not_qualify_native(enrolled, monkeypatch):
+    """Grok is a worker harness (captain, 2026-10-12, on the native qualification at 80877054); each worker still needs the
+    human consent and the installed native startup preflight, which enrollment alone never supplies."""
     enrolled.set(KEY,enabled=True,options={'consent_version':1,'effects_sha256':C.grok_compat_disclosure()['effects_sha256']},project='/project')
-    assert H.get('grok').worker_ok is False
-    assert H.worker_problem(H.get('grok'),project='/project') == H.get('grok').worker_note
+    adapter=H.get('grok')
+    assert adapter.worker_ok is True
+    monkeypatch.setattr(adapter,'locate',lambda:'/synthetic/grok')
+    def refused(binary,*,cwd=None,project=None): raise ValueError('native startup refused')
+    monkeypatch.setattr(N,'grok_worker_description',refused)
+    assert H.worker_problem(adapter,project='/project') == N.GROK_REFUSAL
+    monkeypatch.setattr(N,'grok_worker_description',lambda binary,*,cwd=None,project=None: {})
+    assert H.worker_problem(adapter,project='/project') == ''
+    assert 'off' in H.worker_problem(adapter,project='/other'), 'no consent in that project: refused before any native probe'
+
+
+def test_the_disclosure_reports_the_qualified_harness(monkeypatch):
+    monkeypatch.setattr(N.L,'worker_probe',lambda *a,**k:pytest.fail('Disclosure must not probe'))
+    assert C.grok_compat_disclosure()['ready'] is True
 
 def test_qualified_test_adapter_receives_exact_project(enrolled):
     enrolled.set(KEY,enabled=True,options={'consent_version':1,'effects_sha256':C.grok_compat_disclosure()['effects_sha256']},project='/project')

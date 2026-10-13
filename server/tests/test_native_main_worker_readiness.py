@@ -6,6 +6,8 @@ from types import SimpleNamespace
 
 import pytest
 
+from lampway_server import native_worker_readiness as N
+
 from lampway_server import choices as CH
 from lampway_server import egress as EG
 from lampway_server.agent.swarm import SwarmContext, SwarmError, SwarmManager
@@ -45,7 +47,9 @@ def test_installed_main_connector_does_not_advertise_worker_readiness(tmp_path, 
     assert wiring.kind == 'symbolic_stdio'
     missing = byoa_worker_readiness()
     assert f'byoa:{harness}' in missing
-    assert adapter.worker_note in missing[f'byoa:{harness}']
+    # Grok is a worker harness (captain, 2026-10-12): an installed MAIN connector still does not make it ready; the installed
+    # native startup preflight refuses it here (no qualified native Grok in this fixture).
+    assert (N.GROK_REFUSAL if harness == 'grok' else adapter.worker_note) in missing[f'byoa:{harness}']
     with pytest.raises(CH.NoChoice, match='cannot run a worker'):
         CH.resolve('agent.worker_mode', CH.Job(origin='agent'))
     assert CH.preferred('agent.worker_mode') == f'byoa:{harness}'
@@ -73,7 +77,7 @@ def test_saved_unsupported_worker_refuses_before_activation_even_with_stale_read
     ctx = SwarmContext(None, 'scene', 'turn', 'call', project_root=str(tmp_path))
     with pytest.raises(SwarmError, match='worker') as refused:
         asyncio.run(manager._start({'tasks': [{'name': 'owned', 'prompt': 'synthetic work'}]}, ctx))
-    assert HN.get(harness).worker_note in str(refused.value)
+    assert (N.GROK_REFUSAL if harness == 'grok' else HN.get(harness).worker_note) in str(refused.value)
     assert events == [] and manager.swarms == {} and manager._seq == 0
     assert CH.preferred('agent.worker_mode') == f'byoa:{harness}'
 

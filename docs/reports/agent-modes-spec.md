@@ -1167,6 +1167,9 @@ superseded by this one:
   refuse before probes/activation and again before exec; OFF refuses further worker tools while retaining completion.
   This consent grants no route, trust, security, account call or readiness. Actual pinned native canonical retention and
   configuration-preservation proof remain required; production Grok workers remain refused until qualified.
+  *Built 2026-10-12 (captain: "Enable it now"):* with that native proof at 80877054, Grok is a worker harness; the consent above and
+  the installed native startup preflight still gate every worker. Native cancel leaves Grok's in-flight model request open (the
+  captain kept Lampway out of that traffic).
 - **Pi has MCP.** The spec's "Pi has no MCP by design" was true of the old `@mariozechner/pi-coding-agent`; Pi 1.x has it built
   in, but reads only `~/.pi/agent/mcp.json` and the trust-gated `.pi/mcp.json`. Lampway's Pi extension
   (`harnesses/lampway_pi_extension.js`) is a wrapper only: it reads the pane's own 0600 config (`LAMPWAY_PI_MCP`) and calls
