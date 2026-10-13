@@ -92,7 +92,7 @@ jobs:
 
           TTL_SECONDS = 2700
           ACTIVE = {"queued", "in_progress", "waiting", "pending", "requested"}
-          BOXES = {"Keigyoku/wrenchdesk": "bx_gen9h83z", "Keigyoku/lampway": "bx_rwvp6fq9"}
+          BOXES = {"Keigyoku/wrenchdesk": "bx_me4srrhb", "Keigyoku/lampway": "bx_rwvp6fq9"}
 
 
           class NoRedirect(urllib.request.HTTPRedirectHandler):
