@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-name: ChatGPT plan PR-open review
+name: ChatGPT plan PR review
 
 on:
   pull_request:
     types: [opened]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
@@ -13,11 +15,21 @@ permissions:
 
 jobs:
   review:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.action == 'opened' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.action == 'created' &&
+       github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '@pr-review') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+       github.event.comment.user.type == 'User' &&
+       !endsWith(github.event.comment.user.login, '[bot]'))
     runs-on: [self-hosted, Linux, X64, chatgpt-review-lampway]
     timeout-minutes: 25
     concurrency:
-      group: chatgpt-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+      group: chatgpt-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
       cancel-in-progress: false
     steps:
       - name: Verify adapter is ready
@@ -25,5 +37,4 @@ jobs:
       - name: Review and verify the posted review
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
         run: /opt/chatgpt-plan-adapter/.venv/bin/python /opt/chatgpt-plan-adapter/review.py

@@ -88,13 +88,19 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
-| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open reviews on the dedicated self-hosted review runner |
+| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open and requested reviews on the dedicated self-hosted runner |
 
-PR-open reviews execute the preinstalled review script on the dedicated
-`chatgpt-review-lampway` runner, with credentials held by a separate loopback
-adapter service. They never check out PR files and exclude fork PRs. The caller
-runs the trusted script directly because this public repository cannot call a
-private reusable workflow. A successful job observes a posted review.
+PR-open reviews and authorized `@pr-review` PR comments run the preinstalled
+reviewer on the dedicated `chatgpt-review-lampway` runner. Only OWNER, MEMBER or
+COLLABORATOR human comments can request a fresh full review of the current head.
+The reviewer checks the live PR before acknowledging with an eyes reaction;
+bots, plain issues, closed PRs and fork heads are excluded. Pushes do not request
+reviews. It never checks out or executes PR files and never applies fixes,
+offers committable suggestions, commits or pushes. Credentials belong to a
+separate loopback adapter service. A successful job verifies a fresh COMMENT
+review. Comment dispatch requires this caller on the default branch.
+The public caller invokes the trusted script directly; private reusable
+workflows cannot be called by a public repository.
 
 ## Facts carried from the upstream guide (verified against this tree)
 
@@ -203,3 +209,4 @@ and restoring prior global scene state.
 | 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |
 | 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |
 | 2026-10-12 | dedicated PR-open review caller | Captain: add ChatGPT-plan PR-open reviews on per-repository runners | no dedicated PR-open review workflow existed and public callers cannot use a private shared workflow | the workflow map and PR-open review paragraph name the trusted script, dedicated runner, fork exclusion and posted-review evidence | Captain's directive, 2026-10-12 |
+| 2026-10-13 | requested PR reviews | Captain: add `@pr-review` without push reviews | opened-only reviews could not be requested again | the caller and review contract gate human collaborator commands, acknowledge accepted requests and exclude fork heads without PR execution or fixes | Captain addendum, 2026-10-13 |
