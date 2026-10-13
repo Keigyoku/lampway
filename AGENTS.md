@@ -99,6 +99,14 @@ reviews. It never checks out or executes PR files and never applies fixes,
 offers committable suggestions, commits or pushes. Credentials belong to a
 separate loopback adapter service. A successful job verifies a fresh COMMENT
 review. Comment dispatch requires this caller on the default branch.
+
+Hosted jobs authorize the event and resume the dedicated box with a verified
+45-minute TTL before the self-hosted health/review job can start. Hosted cleanup
+stops after the last queued/active run. Lifecycle mutations use a shared FIFO
+queue; review concurrency stays per PR. Weekly maintenance wakes refresh the
+session and stop without reviewing code. The Boat key is isolated to hosted
+jobs and scoped to this box; adding the TTL-update scope requires Captain
+approval. No PR source is checked out by any lifecycle job.
 The public caller invokes the trusted script directly; private reusable
 workflows cannot be called by a public repository.
 
@@ -210,3 +218,4 @@ and restoring prior global scene state.
 | 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |
 | 2026-10-12 | dedicated PR-open review caller | Captain: add ChatGPT-plan PR-open reviews on per-repository runners | no dedicated PR-open review workflow existed and public callers cannot use a private shared workflow | the workflow map and PR-open review paragraph name the trusted script, dedicated runner, fork exclusion and posted-review evidence | Captain's directive, 2026-10-12 |
 | 2026-10-13 | requested PR reviews | Captain: add `@pr-review` without push reviews | opened-only reviews could not be requested again | the caller and review contract gate human collaborator commands, acknowledge accepted requests and exclude fork heads without PR execution or fixes | Captain addendum, 2026-10-13 |
+| 2026-10-13 | on-demand review boxes | Captain addendum 3: stop idle billing and keep sessions alive | permanent runners had no auto-stop deadline | hosted event/TTL/cleanup gates, isolated one-box key, per-PR review queue and scheduled refresh are owned by the caller | boxed TTL-update scope remains Captain decision |

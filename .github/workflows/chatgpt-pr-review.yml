@@ -1,40 +1,337 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Generated from chatgpt-plan-adapter/scripts/generate-lifecycle-workflows.py.
 name: ChatGPT plan PR review
-
 on:
   pull_request:
     types: [opened]
   issue_comment:
     types: [created]
-
+  schedule:
+    - cron: '37 4 * * 0'
+  workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   issues: write
   pull-requests: write
-
 jobs:
-  review:
+  authorize:
+    name: Authorize event without waking
     if: >-
-      (github.event_name == 'pull_request' &&
-       github.event.action == 'opened' &&
+      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'opened' &&
        github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'issue_comment' &&
-       github.event.action == 'created' &&
-       github.event.issue.pull_request &&
-       startsWith(github.event.comment.body, '@pr-review') &&
-       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      (github.event_name == 'issue_comment' && github.event.action == 'created' &&
+       github.event.issue.pull_request && startsWith(github.event.comment.body, '@pr-review') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                github.event.comment.author_association) &&
        github.event.comment.user.type == 'User' &&
        !endsWith(github.event.comment.user.login, '[bot]'))
-    runs-on: [self-hosted, Linux, X64, chatgpt-review-lampway]
-    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      allowed: ${{ steps.lifecycle.outputs.allowed }}
+    steps:
+      - name: Check the event and live PR head
+        id: lifecycle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BOAT_BOX_ID: bx_rwvp6fq9
+          LIFECYCLE_MODE: authorize
+        run: &lifecycle |
+          python3 - <<'PY'
+          """Event eligibility shared by the trusted reviewer and hosted lifecycle jobs."""
+
+          import re
+
+
+          def request_number(event_name, event, repo):
+              """Accept only opened PRs or collaborator-authored PR review commands."""
+              if not isinstance(event, dict) or event.get("repository", {}).get("full_name") != repo:
+                  return None
+              if event_name == "pull_request" and event.get("action") == "opened":
+                  pr = event.get("pull_request", {})
+                  if pr.get("head", {}).get("repo", {}).get("full_name") != repo:
+                      return None
+                  number, comment_id = pr.get("number"), None
+              elif event_name == "issue_comment" and event.get("action") == "created":
+                  issue, comment = event.get("issue", {}), event.get("comment", {})
+                  user, body = comment.get("user", {}), comment.get("body")
+                  if (
+                      not isinstance(issue.get("pull_request"), dict)
+                      or comment.get("author_association") not in {"OWNER", "MEMBER", "COLLABORATOR"}
+                      or user.get("type") != "User"
+                      or user.get("login", "").endswith("[bot]")
+                      or not isinstance(body, str)
+                      or not re.match(r"\A@pr-review(?:\s|\Z)", body)
+                  ):
+                      return None
+                  number, comment_id = issue.get("number"), comment.get("id")
+                  if type(comment_id) is not int or comment_id <= 0:
+                      return None
+              else:
+                  return None
+              if type(number) is not int or number <= 0:
+                  return None
+              return number, comment_id
+
+          """Hosted lifecycle controller; no PR checkout, remote execution or secret output."""
+
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+
+          TTL_SECONDS = 2700
+          ACTIVE = {"queued", "in_progress", "waiting", "pending", "requested"}
+          BOXES = {"Keigyoku/wrenchdesk": "bx_gen9h83z", "Keigyoku/lampway": "bx_rwvp6fq9"}
+
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+
+          class API:
+              def __init__(self, base, key):
+                  self.base, self.key = base, key
+                  self.opener = urllib.request.build_opener(NoRedirect())
+
+              def request(self, method, path, data=None):
+                  request = urllib.request.Request(
+                      self.base + path,
+                      method=method,
+                      data=None if data is None else json.dumps(data).encode(),
+                      headers={
+                          "Authorization": "Bearer " + self.key,
+                          "Content-Type": "application/json",
+                          "Accept": "application/json",
+                          "X-GitHub-Api-Version": "2022-11-28",
+                      },
+                  )
+                  try:
+                      with self.opener.open(request, timeout=30) as response:
+                          return json.load(response)
+                  except urllib.error.HTTPError as error:
+                      raise RuntimeError(f"Lifecycle API returned HTTP {error.code}.") from None
+                  except (urllib.error.URLError, ValueError):
+                      raise RuntimeError("Lifecycle API transport or JSON response failed.") from None
+
+
+          class Lifecycle:
+              def __init__(self, boat, github, repo, box, run_id, sleep=time.sleep):
+                  self.boat, self.github = boat, github
+                  self.repo, self.box, self.run_id, self.sleep = repo, box, run_id, sleep
+                  self.path = f"/sandboxes/{box}"
+
+              def authorized(self, event_name, event):
+                  if event.get("repository", {}).get("full_name") != self.repo:
+                      return False
+                  if event_name in {"schedule", "workflow_dispatch"}:
+                      return True
+                  request = request_number(event_name, event, self.repo)
+                  if request is None:
+                      return False
+                  pr = self.github.request("GET", f"/repos/{self.repo}/pulls/{request[0]}")
+                  return (
+                      pr.get("state") == "open"
+                      and (pr.get("head", {}).get("repo") or {}).get("full_name") == self.repo
+                  )
+
+              def start(self):
+                  state = self.boat.request("GET", self.path)["sandbox"]["state"]
+                  if state in {"stopped", "archived"}:
+                      self.boat.request("POST", self.path + "/resume", {"ttlSeconds": TTL_SECONDS})
+                  elif state in {"ready", "idle", "running"}:
+                      # Resume on a running box ignores TTL. Explicit update requires a
+                      # fourth, box-limited scope; never interrupt another review to rearm.
+                      self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
+                  elif state not in {"provisioning", "booting", "resuming", "cloning"}:
+                      raise RuntimeError("Box is not in a safe state for resume; retry after its stop.")
+                  for _ in range(120):
+                      box = self.boat.request("GET", self.path)["sandbox"]
+                      if box["state"] in {"ready", "idle"}:
+                          deadline, ttl = box.get("archiveAfter"), box.get("ttlSeconds")
+                          if not isinstance(deadline, str) or type(ttl) is not int or ttl != TTL_SECONDS:
+                              raise RuntimeError("Box has no verified auto-stop deadline; refusing review.")
+                          remaining = (
+                              datetime.fromisoformat(deadline.replace("Z", "+00:00")) - datetime.now(UTC)
+                          ).total_seconds()
+                          if remaining < 1800:
+                              raise RuntimeError("Box auto-stop deadline is too close for a review.")
+                          return True
+                      if box["state"] in {"error", "stopped", "archived"}:
+                          raise RuntimeError("Box did not become ready after resume.")
+                      self.sleep(2)
+                  raise RuntimeError("Timed out waiting for box readiness.")
+
+              def stop(self):
+                  for status in sorted(ACTIVE):
+                      page = 1
+                      while True:
+                          path = (
+                              f"/repos/{self.repo}/actions/workflows/chatgpt-pr-review.yml/runs"
+                              f"?status={status}&per_page=100&page={page}"
+                          )
+                          runs = self.github.request("GET", path)["workflow_runs"]
+                          if any(r["id"] != self.run_id and r["status"] in ACTIVE for r in runs):
+                              print("Other review runs remain queued or active; keeping their finite TTL.")
+                              return False
+                          if len(runs) < 100:
+                              break
+                          page += 1
+                          if page > 10:
+                              raise RuntimeError(
+                                  "Cannot prove the active run listing is complete; not stopping."
+                              )
+                  state = self.boat.request("GET", self.path)["sandbox"]["state"]
+                  if state in {"stopped", "archived"}:
+                      return True
+                  self.boat.request("POST", self.path + "/stop", {})
+                  for _ in range(120):
+                      box = self.boat.request("GET", self.path)["sandbox"]
+                      if box["state"] in {"stopped", "archived"}:
+                          print("Box stopped; snapshot retained.")
+                          return True
+                      if (box.get("stop") or {}).get("status") == "failing":
+                          raise RuntimeError("Boat snapshot stop is failing; no force/delete was attempted.")
+                      self.sleep(2)
+                  raise RuntimeError("Timed out verifying box stop; TTL remains the backstop.")
+
+
+          def output(name, value):
+              with Path(os.environ["GITHUB_OUTPUT"]).open("a") as destination:
+                  destination.write(f"{name}={str(value).lower()}\n")
+
+
+          def main():
+              repo, box, mode = (
+                  os.environ[k] for k in ["GITHUB_REPOSITORY", "BOAT_BOX_ID", "LIFECYCLE_MODE"]
+              )
+              if BOXES.get(repo) != box:
+                  raise RuntimeError("Repository and dedicated box do not match.")
+              github = API("https://api.github.com", os.environ["GITHUB_TOKEN"])
+              controller = Lifecycle(
+                  API("https://boat.dev/api/v1", os.environ.get("BOAT_API_KEY", "")),
+                  github,
+                  repo,
+                  box,
+                  int(os.environ["GITHUB_RUN_ID"]),
+              )
+              if mode == "authorize":
+                  event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+                  allowed = controller.authorized(os.environ["GITHUB_EVENT_NAME"], event)
+                  output("allowed", allowed)
+                  print(
+                      "Authorized review or maintenance event."
+                      if allowed
+                      else "Ignored event; box will not wake."
+                  )
+                  return
+              if not os.environ.get("BOAT_API_KEY"):
+                  raise RuntimeError(
+                      "Set the dedicated BOAT_API_KEY repository secret before enabling wakes."
+                  )
+              if mode == "start":
+                  output("touched", True)  # Cleanup runs even when readiness fails after mutation.
+                  output("ready", controller.start())
+              elif mode == "stop":
+                  output("stopped", controller.stop())
+              else:
+                  raise RuntimeError("Unknown lifecycle operation.")
+
+
+          if __name__ == "__main__":
+              try:
+                  main()
+              except Exception as error:
+                  # API errors intentionally exclude response bodies and bearer values.
+                  raise SystemExit(f"lifecycle_failed: {error}") from None
+
+          PY
+  wake:
+    name: Start dedicated box
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
     concurrency:
-      group: chatgpt-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
+      group: boat-lifecycle-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      ready: ${{ steps.lifecycle.outputs.ready }}
+      touched: ${{ steps.lifecycle.outputs.touched }}
+    steps:
+      - name: Resume with a 45 minute crash backstop
+        id: lifecycle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BOAT_API_KEY: ${{ secrets.BOAT_API_KEY }}
+          BOAT_BOX_ID: bx_rwvp6fq9
+          LIFECYCLE_MODE: start
+        run: *lifecycle
+  review:
+    name: Review or refresh ChatGPT
+    needs: wake
+    if: needs.wake.outputs.ready == 'true'
+    runs-on: [self-hosted, Linux, X64, "chatgpt-review-lampway"]
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: >-
+        chatgpt-review-${{ github.repository }}-${{
+          github.event.pull_request.number || github.event.issue.number || 'maintenance' }}
       cancel-in-progress: false
     steps:
-      - name: Verify adapter is ready
-        run: curl --fail --silent --show-error http://127.0.0.1:8787/health/ready
-      - name: Review and verify the posted review
+      - name: Wait for the loopback adapter health gate
+        run: >-
+          curl --fail --silent --show-error --retry 30 --retry-delay 2
+          --retry-connrefused --retry-all-errors --max-time 15
+          http://127.0.0.1:8787/health/ready
+      - name: Refresh the scheduled session without reviewing code
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: >-
+          curl --fail --silent --show-error --request POST
+          --header 'Authorization: Bearer local-adapter'
+          http://127.0.0.1:8787/health/refresh
+      - name: Analyze and verify one fresh review
+        if: github.event_name == 'pull_request' || github.event_name == 'issue_comment'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: /opt/chatgpt-plan-adapter/.venv/bin/python /opt/chatgpt-plan-adapter/review.py
+  stop:
+    name: Stop after the last review
+    needs: [authorize, wake, review]
+    if: always() && needs.wake.outputs.touched == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    concurrency:
+      group: boat-lifecycle-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - name: Keep other runs safe and verify snapshot stop
+        id: lifecycle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BOAT_API_KEY: ${{ secrets.BOAT_API_KEY }}
+          BOAT_BOX_ID: bx_rwvp6fq9
+          LIFECYCLE_MODE: stop
+        run: *lifecycle
