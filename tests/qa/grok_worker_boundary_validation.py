@@ -4,7 +4,8 @@
 same restricted native Grok, now pass through Lampway's ACP boundary (server/lampway_server/grok_acp_boundary.py) and leave the
 canonical lampway_pane enabled, ready, and serving its next owned call; the hostile endpoints are never contacted.
 
-This runs the ORIGINAL validator (tests/qa/grok_worker_validation.py, unchanged) with two differences, both stated here:
+This runs the ORIGINAL validator (tests/qa/grok_worker_validation.py; its line-700 check unchanged, its later pane and deny stages
+follow production since 2026-10-12, and this run stops before them) with two differences, both stated here:
 * the restricted native agent is started behind the boundary (``grok_worker.acp_boundary_argv``);
 * the three update replies that the ORIGINAL expects from native Grok ("native hot reload replied" for the STDIO injection of a
   foreign argv under the canonical name, and the HTTP and SSE "same-name native hot reload replied") must instead be the
@@ -21,7 +22,7 @@ before the stages the boundary does not sit in: the project-source native contro
 load in Grok 1.0.50 and the validator never grants trust) and, in the loopback phase, the native herdr panes (the production
 TUI over its own leader socket). Those stay the original's; while its line 700 fails the CI watch cannot reach them either.
 
-The ORIGINAL validator keeps running unchanged in CI as a watch (tests/qa/grok_native_retention_watch.py); see the boundary
+The ORIGINAL validator keeps running in CI as a watch, its line-700 check unchanged (tests/qa/grok_native_retention_watch.py); see the boundary
 module's REMOVAL note for when this script and the boundary are deleted.
 """
 import importlib.util

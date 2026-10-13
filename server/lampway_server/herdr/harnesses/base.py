@@ -139,9 +139,9 @@ class Adapter:
     picks_session_id = False                  # Lampway chooses the native id of a new session (Claude Code's --session-id)
     config_name = "mcp.json"                  # the pane's own config file name, under <herdr root>/panes/<session id>/ (B2)
     BYPASS: tuple = ()
-    #: How a task reaches a new session on its command line (spec S3): None = it cannot; () = the first positional argument;
-    #: otherwise the flag that precedes it. Only a harness herdr starts itself (``herdr_kind``) takes one: a command typed into a
-    #: shell by ``pane run`` never carries a model-written task.
+    #: How a task would reach a new session on its command line: None = it cannot; () = the first positional argument; otherwise
+    #: the flag that precedes it. A command typed into a shell by ``pane run`` never carries a model-written task. The host no longer
+    #: uses it for a harness herdr starts itself: herdr's agent start waits for a ready agent, so that task follows as one agent prompt.
     task_flag: Optional[tuple] = None
     #: Whether this adapter can write a direct entry (Lampway's own loopback endpoint with a bearer): a swarm worker's only server
     #: and a bound pane's swarm entry (spec S3). [UNVERIFIED per harness until a recorded fixture.]

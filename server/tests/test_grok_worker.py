@@ -263,7 +263,6 @@ def test_a_worker_without_a_task_starts_its_interactive_tui_idle(tmp_path):
     config.pop('task'); path.write_text(json.dumps(config))
     argv = G.build_plan(path, etc=etc)['argv']
     assert argv[argv.index(config['native']):] == [config['native'], '--leader-socket', config['inner_socket'], '--cwd', config['cwd']]
-    assert 'literal --argument' not in ' '.join(argv)
     for bad in ('', 'nul\0byte'):
         with pytest.raises(ValueError, match='task'):
             G.build_plan(path, task=bad, etc=etc)

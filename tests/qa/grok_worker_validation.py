@@ -359,19 +359,19 @@ class HTTPFixture(BaseHTTPRequestHandler):
             code = 200
         else:
             # A local rejecting model stand-in, never an account or provider endpoint.
-            self.server.events.append({'path': self.path, 'persona_present': PERSONA in json.dumps(request)})
+            self.server.events.append({'path': self.path, 'persona_present': PERSONA in json.dumps(request), 'request': (ident := os.urandom(16).hex())})
             if self.server.hold_model:
-                self.server.events.append({'path': self.path, 'model_pending': True})
+                self.server.events.append({'path': self.path, 'model_pending': True, 'request': ident})
                 end = time.monotonic() + 15
                 while self.server.hold_model and time.monotonic() < end:
                     try:
                         if self.connection.recv(1, socket.MSG_PEEK | socket.MSG_DONTWAIT) == b'':
-                            self.server.events.append({'path': self.path, 'model_cancelled': True})
+                            self.server.events.append({'path': self.path, 'model_cancelled': True, 'request': ident})
                             return
                     except BlockingIOError:
                         pass
                     except ConnectionResetError:
-                        self.server.events.append({'path': self.path, 'model_cancelled': True})
+                        self.server.events.append({'path': self.path, 'model_cancelled': True, 'request': ident})
                         return
                     time.sleep(0.05)
             response = {'error': {'message': 'Owned fixture refuses model execution'}}; code = 503
@@ -866,8 +866,10 @@ class Validator:
                 asyncio.run(self.acp(argv, env, cwd, label, expect_owned=False))
                 layer.append({'label': label, 'before': before_negative, 'after': file_state(native_config)})
             self.receipt['native_deny_layer'] = layer; self.save()
-            self.check('original native deny intersection unchanged',
-                all(row['after'] in (row['before'], {'absent': True}) for row in layer), layer)
+            # Native Grok removes this cache after one start; Lampway's worker must
+            # leave the user's deny layer exactly as the plain native run does.
+            self.check('original native deny layer left as native Grok leaves it',
+                len(layer) == 2 and layer[0]['before'] == layer[1]['before'] and layer[0]['after'] == layer[1]['after'], layer)
             self.check('original deny prevents owned connector initialization',
                 not read_events(log) and (not self.http or
                     not any(e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:])))
@@ -1010,8 +1012,7 @@ class Validator:
                     observed = snapshot()
                     if (any(current['inner_socket'] in ' '.join(r['argv']) for r in observed)
                             and any(e.get('persona_present') for e in self.http.events[offset:])
-                            and (action != 'ctrl-c' or any(
-                                e.get('model_pending') for e in self.http.events[offset:]))):
+                            and (action != 'ctrl-c' or bool(held_turn(self.http.events[offset:])))):
                         break
                     time.sleep(0.1)
                 inner = [r for r in observed if r['argv'][0] and
@@ -1037,14 +1038,16 @@ class Validator:
                 inner_namespaces = {r['pid_namespace'] for r in inner}
                 workers = [r for r in observed if r['pid_namespace'] in inner_namespaces or r in outer]
                 if action == 'ctrl-c':
-                    self.check('foreground interrupt has a pending owned request',
-                        any(e.get('model_pending') for e in self.http.events[offset:]))
+                    # The turn's own request: persona-bearing and held. A side
+                    # request closing does not stand in for it.
+                    turn = held_turn(self.http.events[offset:])
+                    self.check('foreground interrupt has a pending owned request', bool(turn), self.http.events[offset:])
                     command(['pane', 'send-keys', pane, 'ctrl+c'])
                     end = time.monotonic() + 8
-                    while time.monotonic() < end and not any(e.get('model_cancelled') for e in self.http.events[offset:]):
+                    while time.monotonic() < end and not turn <= closed_requests(self.http.events[offset:]):
                         time.sleep(0.05)
                     self.check('CtrlC closes pending owned fixture request before pane close',
-                        any(e.get('model_cancelled') for e in self.http.events[offset:]), self.http.events[offset:])
+                        bool(turn) and turn <= closed_requests(self.http.events[offset:]), self.http.events[offset:])
                     self.check('CtrlC retains native frontend after cancelling request', all(still_alive(row) for row in outer))
                     self.http.hold_model = False
                     self.check('foreground interrupt retains owned herdr server', still_alive(self.receipt['herdr_identity']))
@@ -1147,6 +1150,16 @@ def main():
             validator.receipt['http_events'] = validator.http.events; validator.save()
     return 0
 
+
+
+def held_turn(events):
+    """The held model requests that carry the persona: a turn's own request, not a side request."""
+    persona = {e.get('request') for e in events if e.get('persona_present') is True}
+    return {e.get('request') for e in events if e.get('model_pending') is True} & persona - {None}
+
+
+def closed_requests(events):
+    return {e.get('request') for e in events if e.get('model_cancelled') is True} - {None}
 
 if __name__ == '__main__':
     raise SystemExit(main())

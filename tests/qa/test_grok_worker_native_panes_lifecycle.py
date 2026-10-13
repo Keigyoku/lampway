@@ -260,9 +260,10 @@ def test_actual_observation_condition_waits_for_current_pending_ctrlc_request(
         and any(isinstance(child, ast.Break) for child in node.body)
     )
     expression = ast.fix_missing_locations(ast.Expression(body=copy.deepcopy(observation.test)))
-    earlier_events = [{'model_pending': True}] if stale_pending else []
-    current_events = [{'persona_present': persona, 'model_pending': pending}]
+    earlier_events = [{'persona_present': True, 'model_pending': True, 'request': 'earlier'}] if stale_pending else []
+    current_events = [{'persona_present': persona, 'model_pending': pending, 'request': 'current'}]
     scope = {
+        'held_turn': Q.held_turn,
         'action': action,
         'current': {'inner_socket': 'owned-inner.sock'},
         'observed': [{'argv': ['owned-native', 'owned-inner.sock' if inner_present else 'other.sock']}],
@@ -342,3 +343,19 @@ def test_actual_failure_witness_preserves_primary_and_owned_cleanup(
     assert ['pane', 'close', 'owned-pane'] in calls
     assert 'capabilities-restored' in calls
     assert environment == before
+
+
+def test_ctrlc_close_is_attributed_to_the_turns_own_request_not_a_side_request():
+    """Native panes hold two requests at once (receipt at 33024c9f): a side request without the persona and the turn's own. Only
+    the turn's own close counts."""
+    side = [{'path': '/v1/chat/completions', 'persona_present': False, 'request': 'side'},
+            {'path': '/v1/chat/completions', 'model_pending': True, 'request': 'side'}]
+    turn = [{'path': '/v1/chat/completions', 'persona_present': True, 'request': 'turn'},
+            {'path': '/v1/chat/completions', 'model_pending': True, 'request': 'turn'}]
+    events = side + turn
+    assert Q.held_turn(events) == {'turn'}
+    side_closed = events + [{'path': '/v1/chat/completions', 'model_cancelled': True, 'request': 'side'}]
+    assert not Q.held_turn(side_closed) <= Q.closed_requests(side_closed), 'a side request closing must not pass'
+    turn_closed = events + [{'path': '/v1/chat/completions', 'model_cancelled': True, 'request': 'turn'}]
+    assert Q.held_turn(turn_closed) <= Q.closed_requests(turn_closed)
+    assert Q.held_turn(side) == set() and Q.held_turn([{'model_pending': True}, {'persona_present': True}]) == set()

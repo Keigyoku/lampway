@@ -224,6 +224,7 @@ def test_a_bound_pane_starts_a_swarm_of_panes_each_bound_to_its_worker_and_their
         assert len(prompts) == 1 and rig.herdr.calls.index(start) < next(
             i for i, c in enumerate(rig.herdr.calls) if c["args"][:3] == ["agent", "prompt", name])
         task = prompts[0][3]
+        assert prompts[0][4:] == ["--wait", "--until", "working", "--until", "blocked"], "the turn start is confirmed, once"
         worker_id = binding.rsplit(":", 1)[1]
         assert task.startswith(f"You are {worker_id}, one worker of a swarm") and "Model the " in task and "lampway_worker_done" in task
         by_worker[worker_id] = rec

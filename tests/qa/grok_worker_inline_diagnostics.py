@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = 'f74244b7216aa853d934d6afc3771458b17ddb9fe93720f3e4ebfc8237e7f44a'
+QA_SHA256 = '855d38b1f100381c2326d74ceeb843c7d69eae04a1483047f262e2a429b5e3f8'
 
 
 def load_qa(repo):
@@ -182,8 +182,10 @@ def validator_type(qa):
                     asyncio.run(self.acp(argv, env, cwd, label, expect_owned=False))
                     layer.append({'label': label, 'before': before_negative, 'after': qa.file_state(native_config)})
                 self.receipt['native_deny_layer'] = layer; self.save()
-                self.check('original native deny intersection unchanged',
-                    all(row['after'] in (row['before'], {'absent': True}) for row in layer), layer)
+                # Native Grok removes this cache after one start; Lampway's worker must
+                # leave the user's deny layer exactly as the plain native run does.
+                self.check('original native deny layer left as native Grok leaves it',
+                    len(layer) == 2 and layer[0]['before'] == layer[1]['before'] and layer[0]['after'] == layer[1]['after'], layer)
                 self.check('original deny prevents helper initialization', not any(
                     e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:]))
             finally:

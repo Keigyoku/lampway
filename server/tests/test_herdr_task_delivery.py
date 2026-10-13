@@ -50,27 +50,32 @@ def agent_calls(fake):
     return [c["args"] for c in fake.calls if c["args"][:1] == ["agent"]]
 
 
-@pytest.mark.parametrize("agent", ["claude", "codex", "opencode"])
+@pytest.mark.parametrize("agent", ["claude", "codex", "opencode"])   # herdr's own kinds; Claude is a worker harness
 def test_the_first_prompt_reaches_a_ready_agent_through_one_agent_prompt(herdr, tmp_path, agent):
     c = H.Cockpit(tmp_path / "herdr")
     rec = c.create_session(agent, "Boots", str(tmp_path), by="swarm", prompt=TASK)
     name = f"lw-{rec['id']}"
     start, *rest = agent_calls(herdr)
     assert start[:3] == ["agent", "start", name] and not any(TASK in a for a in start), "the task is not on the command line"
-    assert rest == [["agent", "prompt", name, TASK]], "exactly one native submission, after the start returned ready"
+    # one native submission after the start returned ready, confirmed by herdr seeing the turn start (its five-second stall check)
+    assert rest == [["agent", "prompt", name, TASK, "--wait", "--until", "working", "--until", "blocked"]]
     assert not [c for c in herdr.calls if c["args"][:2] in (["pane", "run"], ["pane", "send-text"]) and TASK in " ".join(c["args"])]
     assert {s["id"]: s for s in c.list_sessions()}[rec["id"]]["state"] == "live"
 
 
-def test_a_failed_first_prompt_ends_the_start_and_is_never_retried(monkeypatch, tmp_path):
-    fake = ReadyHerdr(prompt_error='{"error":{"code":"agent_blocked","message":"agent is blocked"}}')
+@pytest.mark.parametrize("error", ['{"error":{"code":"agent_blocked","message":"agent is blocked"}}',
+                                   '{"error":{"code":"agent_prompt_stalled","message":"no activity observed"}}'])
+def test_a_failed_first_prompt_ends_the_start_and_is_never_retried(monkeypatch, tmp_path, error):
+    fake = ReadyHerdr(prompt_error=error)
     monkeypatch.setattr(L, "run", fake)
     monkeypatch.setattr(L, "server_status", lambda root: {"running": True})
     c = H.Cockpit(tmp_path / "herdr")
-    with pytest.raises(Exception, match="agent_blocked"):
+    with pytest.raises(Exception, match=error.split('"code":"')[1].split('"')[0]):
         c.create_session("claude", "Boots", str(tmp_path), by="swarm", prompt=TASK)
-    assert [a for a in agent_calls(fake) if a[:2] == ["agent", "prompt"]] == [["agent", "prompt", agent_calls(fake)[0][2], TASK]]
+    prompts = [a for a in agent_calls(fake) if a[:2] == ["agent", "prompt"]]
+    assert len(prompts) == 1 and prompts[0][2:4] == [agent_calls(fake)[0][2], TASK], "never retried"
     assert [s["state"] for s in c.list_sessions()] == ["ended"]
+    assert [c_["args"] for c_ in fake.calls if c_["args"][:2] == ["pane", "close"]] == [["pane", "close", "p1"]], "its pane is closed"
     assert c.list_sessions()[0]["end_reason"] == "pane launch failed"
 
 

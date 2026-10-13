@@ -331,8 +331,9 @@ class Cockpit:
             elif ad is not None:
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", herdr_name, "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
-                    if first_prompt:
-                        L.run(self.root, ["agent", "prompt", herdr_name, first_prompt], timeout=60)
+                    if first_prompt:                           # herdr confirms the turn started (or stalls within 5 s): never resent
+                        L.run(self.root, ["agent", "prompt", herdr_name, first_prompt, "--wait", "--until", "working",
+                                          "--until", "blocked"], timeout=60)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])

@@ -9,8 +9,8 @@ or Lampway's Hermes pane (``lampway_hermes``, A1; refused with help until it is 
 The swarm's substrate (``agent/swarm.py``) spawns, binds, resets and seeds the worker's own headless Lampway, then hands this brain a
 ``WorkerJob``. The brain:
 
-* opens ONE pane through that adapter, under its route (B5, inside ``Cockpit.create_session``), with the task (``job.system`` plus
-  the task prompt) on the harness's own command line. The pane splits into its unit's tab (the swarm's scene session, spec A4) and
+* opens ONE pane through that adapter, under its route (B5, inside ``Cockpit.create_session``); the task (``job.system`` plus the
+  task prompt) is its first prompt, one herdr ``agent prompt`` once herdr reports the harness ready (``host.py``). The pane splits into its unit's tab (the swarm's scene session, spec A4) and
   reports itself to herdr as "Worker N · <task>";
 * binds the pane to ``swarm:<swarm_id>:<worker_id>``: its own MCP config (B2's mechanism: 0600 under the Lampway root) has ONE
   Lampway server, the pane endpoint ``/api/v1/mcp/pane``, with that binding as its session header and a per-worker token as its
