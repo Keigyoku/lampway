@@ -847,21 +847,27 @@ class Validator:
         # otherwise-admitted connector; the added requirement grants nothing
         # beyond that original intersection. Native Grok enforces MCP allow/deny
         # lists only from its policy layers ($GROK_HOME/requirements.toml, then
-        # /etc/grok), never from config.toml (`grok inspect`, 1.0.50). Only this
-        # owned fixture is changed, and its original bytes (or absence: native
-        # first start removes an unsigned cache) are restored afterward.
+        # /etc/grok), never from config.toml (`grok inspect`, 1.0.50), and it
+        # treats $GROK_HOME/requirements.toml as a managed cache: one agent start
+        # honours it and removes it. So the deny is written before each run, and
+        # each run may only leave it as written or removed. Only this owned
+        # fixture is changed; its original bytes (or absence) are restored.
         native_config = Path(env['GROK_HOME']) / 'requirements.toml'
         original_config = native_config.read_bytes() if native_config.exists() else None
         denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
-        native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
-        before_negative = file_state(native_config)
         offset = len(self.http.events) if self.http else 0
         log = self.output / 'owned-connector.jsonl'
         if log.exists(): log.rename(self.output / 'owned-connector.before-negative.jsonl')
+        layer = []
         try:
-            asyncio.run(self.acp(baseline, env, cwd, 'original-denial-baseline', expect_owned=False))
-            asyncio.run(self.acp(restricted, env, cwd, 'original-denial-restricted', expect_owned=False))
-            self.check('original native deny intersection unchanged', before_negative == file_state(native_config))
+            for label, argv in [('original-denial-baseline', baseline), ('original-denial-restricted', restricted)]:
+                native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
+                before_negative = file_state(native_config)
+                asyncio.run(self.acp(argv, env, cwd, label, expect_owned=False))
+                layer.append({'label': label, 'before': before_negative, 'after': file_state(native_config)})
+            self.receipt['native_deny_layer'] = layer; self.save()
+            self.check('original native deny intersection unchanged',
+                all(row['after'] in (row['before'], {'absent': True}) for row in layer), layer)
             self.check('original deny prevents owned connector initialization',
                 not read_events(log) and (not self.http or
                     not any(e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:])))

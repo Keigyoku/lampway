@@ -21,7 +21,7 @@ import traceback
 
 from grok_worker_transport_diagnostics import admission_gate, check_checkout
 
-QA_SHA256 = '96a589dd6122135ced1c582f162303872850fc5af4b94a64416ebb17d82d0b41'
+QA_SHA256 = 'f74244b7216aa853d934d6afc3771458b17ddb9fe93720f3e4ebfc8237e7f44a'
 
 
 def load_qa(repo):
@@ -169,17 +169,21 @@ def validator_type(qa):
             self.receipt['stages']['native_panes'] = 'PASS'
             self.check('native pane chain preserves warmed inputs', warmed == {p: qa.file_state(p) for p in warmed})
             self.receipt['stages']['native_policy_intersection'] = 'RUNNING'; self.save()
-            # Grok's own policy layer: native MCP deny lists are enforced from requirements.toml, never config.toml.
-            # Native first start removes the fixture's unsigned cache copy: create it, then restore its absence.
+            # Grok's own policy layer (never config.toml), a managed cache that one agent start honours and removes:
+            # the deny is written before each run, and each run may only leave it as written or removed.
             native_config = Path(env['GROK_HOME']) / 'requirements.toml'
             original_config = native_config.read_bytes() if native_config.exists() else None
             denied = '[[denied_mcp_servers]]\nserver_command = ' + json.dumps([config['connector']['command']]) + '\n'
-            native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
-            before_negative = qa.file_state(native_config); offset = len(self.http.events)
+            offset = len(self.http.events); layer = []
             try:
-                asyncio.run(self.acp(native, env, cwd, 'original-denial-baseline', expect_owned=False))
-                asyncio.run(self.acp(restricted, env, cwd, 'original-denial-restricted', expect_owned=False))
-                self.check('original native deny intersection unchanged', before_negative == qa.file_state(native_config))
+                for label, argv in [('original-denial-baseline', native), ('original-denial-restricted', restricted)]:
+                    native_config.write_bytes(denied.encode() + (original_config or b'')); native_config.chmod(0o600)
+                    before_negative = qa.file_state(native_config)
+                    asyncio.run(self.acp(argv, env, cwd, label, expect_owned=False))
+                    layer.append({'label': label, 'before': before_negative, 'after': qa.file_state(native_config)})
+                self.receipt['native_deny_layer'] = layer; self.save()
+                self.check('original native deny intersection unchanged',
+                    all(row['after'] in (row['before'], {'absent': True}) for row in layer), layer)
                 self.check('original deny prevents helper initialization', not any(
                     e.get('path') == '/api/v1/mcp/pane' for e in self.http.events[offset:]))
             finally:
