@@ -88,6 +88,13 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
+| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open reviews on the dedicated self-hosted review runner |
+
+PR-open reviews execute the preinstalled review script on the dedicated
+`chatgpt-review-lampway` runner, with credentials held by a separate loopback
+adapter service. They never check out PR files and exclude fork PRs. The caller
+runs the trusted script directly because this public repository cannot call a
+private reusable workflow. A successful job observes a posted review.
 
 ## Facts carried from the upstream guide (verified against this tree)
 
@@ -195,3 +202,4 @@ and restoring prior global scene state.
 | 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |
 | 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |
 | 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |
+| 2026-10-12 | dedicated PR-open review caller | Captain: add ChatGPT-plan PR-open reviews on per-repository runners | no dedicated PR-open review workflow existed and public callers cannot use a private shared workflow | the workflow map and PR-open review paragraph name the trusted script, dedicated runner, fork exclusion and posted-review evidence | Captain's directive, 2026-10-12 |
