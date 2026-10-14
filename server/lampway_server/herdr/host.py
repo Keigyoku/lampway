@@ -31,6 +31,8 @@ EFFORTS = (None, "medium", "high", "xhigh", "max")
 GENERIC_NAMES = {"session", "new session", "untitled", "chat", "agent"}
 WORKSPACE_LABEL = LY.WORKSPACE_LABEL
 USER_TYPING_GRACE_S = 2.5
+_PROMPT_SPACING = threading.Lock()          # spaced first prompts (harness first_prompt_spacing_s), host-wide
+_PROMPT_SPACING_LAST = [float("-inf")]
 _CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]|\x1b\[[0-9;?]*[ -/]*[@-~]")
 _LOCK = threading.Lock()
 #: Spec S3. A bound pane's swarm entry (the swarm tools, on Lampway's own loopback endpoint with the pane's key as its bearer),
@@ -332,7 +334,7 @@ class Cockpit:
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", herdr_name, "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                     if first_prompt:                           # herdr confirms the turn started (or stalls within 5 s): never resent
-                        self._first_prompt(herdr_name, pane_id, first_prompt)
+                        self._first_prompt(herdr_name, pane_id, first_prompt, spacing=ad.first_prompt_spacing_s)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
@@ -723,7 +725,22 @@ class Cockpit:
         self.unbind(sid)
         return new
 
-    def _first_prompt(self, herdr_name: str, pane_id: str, text: str) -> None:
+    def _first_prompt(self, herdr_name: str, pane_id: str, text: str, spacing: float = 0.0) -> None:
+        """A harness that names what its first prompt leaves on disk by the second (Your Hermes: ``first_prompt_spacing_s``) gets
+        its first prompts one at a time on this host, each a full ``spacing`` after the previous one was taken (captain,
+        2026-10-13); every other harness is prompted at once."""
+        if not spacing:
+            return self._submit_first_prompt(herdr_name, pane_id, text)
+        with _PROMPT_SPACING:
+            wait = _PROMPT_SPACING_LAST[0] + spacing - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            try:
+                self._submit_first_prompt(herdr_name, pane_id, text)
+            finally:
+                _PROMPT_SPACING_LAST[0] = time.monotonic()
+
+    def _submit_first_prompt(self, herdr_name: str, pane_id: str, text: str) -> None:
         """One native prompt, confirmed by herdr seeing the turn start. A harness can draw its TUI (herdr: ready) while still
         initializing and drop the Enter (Your Hermes 0.21.7: the task stayed in its composer). Only when herdr reports the prompt
         stalled with the agent idle AND the pane shows the task still in its composer is one Enter sent, and herdr must then see

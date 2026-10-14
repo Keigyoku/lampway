@@ -41,6 +41,7 @@ class Hermes(Adapter):
     status_argv = None                         # `hermes status` is a board of every component, not a login check
     BYPASS = ("--yolo",)
     interrupt_keys = ("ctrl+c",)
+    first_prompt_spacing_s = 1.0              # FACTS paste_collapse: one paste file name per second per process counter
     takes_image_paths = True
     always_pane_config = True
     task_flag = ("chat", "-q")
@@ -86,6 +87,9 @@ class Hermes(Adapter):
         "images": "the TUI attaches a pasted image path and keeps the caption after it (ui-tui/src/app/useComposerState.ts "
                   "attachImageToken); `/image <path>` does the same. [UNVERIFIED by a turn: needs a configured provider]",
         "session_file": "its state.db is in the user's Hermes home, which Lampway never reads (E1.10): the island shows the screen",
+        "paste_collapse": "Hermes 0.21.7 tui_gateway/methods_complete.py paste.collapse: a paste of 5+ lines or 2000+ chars is saved as "
+                          "<HERMES_HOME>/pastes/paste_<counter>_<HHMMSS>.txt, the counter starting at 1 in each process: two "
+                          "Hermes workers prompted within one second read one file (real-account run, a9438bb3)",
     }
 
     def _search_path(self) -> str:

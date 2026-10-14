@@ -163,6 +163,7 @@ class Adapter:
     #: refused with that reason. herdr 0.9.3 has no interrupt command of its own (its CLI reference: ``agent send-keys`` is the
     #: same keys sent to a named agent).
     interrupt_keys: tuple = ()
+    first_prompt_spacing_s: float = 0.0       # seconds between this harness's first prompts on one host (0: none)
     #: Whether a prompt typed into the pane can carry an image by its path (the harness attaches a pasted image path, or its file
     #: tool reads images). False: the island's images are refused with ``images_note``, which says why.
     takes_image_paths = False

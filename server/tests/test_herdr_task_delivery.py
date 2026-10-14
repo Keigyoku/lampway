@@ -146,3 +146,33 @@ def test_any_other_stall_is_never_answered_with_an_enter_twice(monkeypatch, tmp_
     enters = [a for a in agent_calls(fake) if a[:2] == ["agent", "send-keys"]]
     assert enters == ([] if why != "still-stalled" else [["agent", "send-keys", agent_calls(fake)[0][2], "enter"]])
     assert [s["state"] for s in c.list_sessions()] == ["ended"]
+
+
+def test_hermes_first_prompts_are_spaced_a_second_apart_and_others_are_not(monkeypatch, tmp_path):
+    """Captain, 2026-10-13: space Hermes prompts a second apart. Hermes collapses a large paste into
+    ~/.hermes/pastes/paste_<counter>_<HHMMSS>.txt with a counter that restarts at 1 in every process, so two Hermes workers
+    prompted within one second shared a file and both ran worker-1's task (real-account run, a9438bb3)."""
+    import threading
+    import time
+    from lampway_server.herdr import harnesses as HN
+    assert HN.get("hermes").first_prompt_spacing_s >= 1.0
+    assert all(HN.get(h).first_prompt_spacing_s == 0 for h in HN.ADAPTERS if h != "hermes")
+    seen = []
+
+    def run(root, args, timeout=30, input=None):
+        args = [str(a) for a in args]
+        if args[:2] == ["agent", "prompt"]:
+            seen.append(("start", args[2], time.monotonic()))
+            time.sleep(0.2)                                     # herdr waits for the turn to start
+            seen.append(("end", args[2], time.monotonic()))
+        return ""
+    monkeypatch.setattr(L, "run", run)
+    c = H.Cockpit(tmp_path / "herdr")
+    for spacing, names in ((1.0, ("lw-a", "lw-b")), (0.0, ("lw-c", "lw-d"))):
+        threads = [threading.Thread(target=c._first_prompt, args=(n, "p1", TASK), kwargs={"spacing": spacing}) for n in names]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+    at = {(kind, name): t for kind, name, t in seen}
+    first, second = sorted(("lw-a", "lw-b"), key=lambda n: at[("start", n)])
+    assert at[("start", second)] - at[("end", first)] >= 1.0, "a second Hermes paste waits a full second after the first"
+    assert abs(at[("start", "lw-c")] - at[("start", "lw-d")]) < 0.15, "other harnesses are not spaced"
