@@ -18,7 +18,7 @@ from .agent.providers import make_provider, make_swarm_provider
 from .agent.turns import AgentHub
 from .agent_settings import AgentSettingsStore
 from .auth import Auth
-from .chatgpt_auth import ChatGPTAuth, LoginDeclined, LoginError
+from .chatgpt_auth import ISSUER as CHATGPT_ISSUER, ChatGPTAuth, LoginDeclined, LoginError
 from . import higgsfield_auth as HFA
 from .higgsfield_auth import HiggsfieldAuth
 from .config import Settings
@@ -52,9 +52,12 @@ def render_login_page(fields: dict, error: str = "") -> str:
                    parts=(BP.form("/app/desktop-login", "Continue", hidden=hidden, password=True),))
 
 
-def html_page(text: str, status_code: int = 200) -> HTMLResponse:
-    """Every page this server renders goes out through here, with the brand pages' CSP (brand_page.CSP)."""
-    return HTMLResponse(text, status_code=status_code, headers={"Content-Security-Policy": BP.CSP, "Cache-Control": "no-store"})
+def html_page(text: str, status_code: int = 200, form_targets: tuple = ()) -> HTMLResponse:
+    """Every page this server renders goes out through here, with the brand pages' CSP (brand_page.CSP). A browser applies
+    form-action to each redirect of a form post too, so a page whose form starts a sign-in names that one origin
+    (``form_targets``); every other page keeps form-action 'self'."""
+    csp = BP.CSP.replace("form-action 'self';", "form-action " + " ".join(("'self'", *form_targets)) + ";") if form_targets else BP.CSP
+    return HTMLResponse(text, status_code=status_code, headers={"Content-Security-Policy": csp, "Cache-Control": "no-store"})
 
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
@@ -95,10 +98,13 @@ class HostGuard:
 
 
 def loopback_origin(request: Request) -> bool:
-    """A missing Origin (a plain form post) or one naming a loopback host."""
+    """A missing Origin (a plain form post), one naming a loopback host, or the "null" Origin a browser gives our own pages' form
+    posts (their referrer policy is no-referrer) when its own Sec-Fetch-Site, which no page can set, says same-origin."""
     origin = request.headers.get("origin")
     if not origin:
         return True
+    if origin == "null":
+        return request.headers.get("sec-fetch-site") == "same-origin"
     try:
         return (urlparse(origin).hostname or "") in LOOPBACK_HOSTS
     except ValueError:
@@ -302,10 +308,11 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         return (BP.form("/app/chatgpt/start", "Continue with ChatGPT"),)
 
     def _chatgpt_page(outcome: str = "", reason: str = "", status_code: int = 200) -> HTMLResponse:
+        oauth = (CHATGPT_ISSUER,)                 # its form's start redirects to OpenAI's sign-in
         if outcome:
-            return html_page(BP.callback("ChatGPT", outcome, reason=reason, parts=_chatgpt_parts()), status_code)
+            return html_page(BP.callback("ChatGPT", outcome, reason=reason, parts=_chatgpt_parts()), status_code, oauth)
         return html_page(BP.page(title="Lampway - ChatGPT", headline="ChatGPT plan usage", line=_CHATGPT_DETAIL,
-                                 parts=_chatgpt_parts()), status_code)
+                                 parts=_chatgpt_parts()), status_code, oauth)
 
     async def chatgpt_home(request: Request):
         return _chatgpt_page()

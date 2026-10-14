@@ -41,6 +41,35 @@ def test_chatgpt_start_is_a_post_with_a_loopback_origin(http):
     assert r.status_code == 302
 
 
+def test_the_pages_own_form_post_starts_the_sign_in_from_a_real_browser(http):
+    """The page sets <meta name="referrer" content="no-referrer">, so a browser serializes the Origin of its own form POST as
+    "null" (fetch: no-referrer policy, non-GET): the Captain's real browser got "cross-origin sign-in refused" on Sign in with
+    ChatGPT (real-account run, 23931d7d). The browser's own Sec-Fetch-Site, which a page cannot set, tells same-origin apart; an
+    attacker's no-referrer page posts cross-site and stays refused, as does a bare null."""
+    page = http.get("/app/chatgpt").text
+    assert '<meta name="referrer" content="no-referrer">' in page
+    same = {"origin": "null", "sec-fetch-site": "same-origin"}
+    r = http.post("/app/chatgpt/start", headers=same, follow_redirects=False)
+    assert r.status_code == 302 and r.headers["location"].startswith("https://auth.openai.com/")
+    assert http.post("/app/chatgpt/signout", headers=same, follow_redirects=False).status_code == 303
+    for hostile in ({"origin": "null", "sec-fetch-site": "cross-site"}, {"origin": "null", "sec-fetch-site": "same-site"},
+                    {"origin": "null"}, {"origin": "http://evil.example", "sec-fetch-site": "same-origin"}):
+        assert http.post("/app/chatgpt/start", headers=hostile, follow_redirects=False).status_code == 403, hostile
+
+
+def test_the_pages_form_may_follow_the_sign_in_redirect(http):
+    """A browser applies the page's CSP form-action to every redirect of its form post: with form-action 'self' the 302 to
+    OpenAI was blocked and the button did nothing (the Captain's browser, after the null-Origin fix). The ChatGPT page names
+    exactly the origin its start redirects to, and nothing else."""
+    from urllib.parse import urlsplit
+    csp = http.get("/app/chatgpt").headers["content-security-policy"]
+    action = next(d.split()[1:] for d in csp.split(";") if d.strip().startswith("form-action"))
+    start = http.post("/app/chatgpt/start", follow_redirects=False)
+    target = urlsplit(start.headers["location"])
+    assert action == ["'self'", f"{target.scheme}://{target.netloc}"], csp
+    assert "form-action 'self';" in http.get("/app/docs").headers.get("content-security-policy", "form-action 'self';")
+
+
 def test_the_page_starts_the_sign_in_with_a_form_post(http):
     r = http.get("/app/chatgpt")
     assert 'action="/app/chatgpt/start"' in r.text and 'method="post"' in r.text
