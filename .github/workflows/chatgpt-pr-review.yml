@@ -1,40 +1,290 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
+# Generated from scripts/generate-ephemeral-workflows.py.
 name: ChatGPT plan PR review
-
-on:
+'on':
   pull_request:
-    types: [opened]
+    types:
+    - opened
   issue_comment:
-    types: [created]
-
+    types:
+    - created
+  schedule:
+  - cron: 37 4 * * 0
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Session maintenance (never review a push)
+        type: choice
+        default: refresh
+        required: true
+        options:
+        - refresh
+        - seed
+        - probe
 permissions:
   contents: read
+  actions: read
   issues: write
   pull-requests: write
-
 jobs:
-  review:
-    if: >-
-      (github.event_name == 'pull_request' &&
-       github.event.action == 'opened' &&
-       github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'issue_comment' &&
-       github.event.action == 'created' &&
-       github.event.issue.pull_request &&
-       startsWith(github.event.comment.body, '@pr-review') &&
-       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
-       github.event.comment.user.type == 'User' &&
-       !endsWith(github.event.comment.user.login, '[bot]'))
-    runs-on: [self-hosted, Linux, X64, chatgpt-review-lampway]
-    timeout-minutes: 25
-    concurrency:
-      group: chatgpt-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number }}
-      cancel-in-progress: false
+  authorize:
+    name: Authorize without review secrets
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name
+      == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.head.repo.full_name
+      == github.repository && github.event.pull_request.user.type == 'User' && !endsWith(github.event.pull_request.user.login,
+      '[bot]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
+      || (github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.pull_request
+      && startsWith(github.event.comment.body, '@pr-review') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+      github.event.comment.author_association) && github.event.comment.user.type == 'User' && !endsWith(github.event.comment.user.login,
+      '[bot]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
     steps:
-      - name: Verify adapter is ready
-        run: curl --fail --silent --show-error http://127.0.0.1:8787/health/ready
-      - name: Review and verify the posted review
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: /opt/chatgpt-plan-adapter/.venv/bin/python /opt/chatgpt-plan-adapter/review.py
+    - id: gate
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      with:
+        script: |
+          // No adapter, ChatGPT or package secret is present in this GitHub-hosted job.
+          const {owner, repo} = context.repo;
+          const payload = context.payload;
+          const human = user => user && user.type === 'User' && typeof user.login === 'string' &&
+            user.login.length > 0 && !user.login.endsWith('[bot]');
+          const trusted = value => ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(value);
+          let allowed = false;
+          if (payload.repository?.full_name === process.env.GITHUB_REPOSITORY) {
+            if (context.eventName === 'schedule') allowed = true;
+            else if (context.eventName === 'workflow_dispatch' && human(payload.sender)) {
+              const response = await github.rest.repos.getCollaboratorPermissionLevel({owner, repo,
+                username: payload.sender.login});
+              allowed = ['admin', 'maintain', 'write'].includes(response.data.permission);
+            } else {
+              let number;
+              if (context.eventName === 'pull_request' && payload.action === 'opened' &&
+                  human(payload.pull_request?.user) && trusted(payload.pull_request?.author_association) &&
+                  payload.pull_request?.head?.repo?.full_name === process.env.GITHUB_REPOSITORY) {
+                number = payload.pull_request.number;
+              } else if (context.eventName === 'issue_comment' && payload.action === 'created' &&
+                         payload.issue?.pull_request && human(payload.comment?.user) &&
+                         trusted(payload.comment?.author_association) &&
+                         typeof payload.comment?.body === 'string' &&
+                         /^@pr-review(?:\s|$)/.test(payload.comment.body) &&
+                         Number.isSafeInteger(payload.comment.id) && payload.comment.id > 0) {
+                number = payload.issue.number;
+              }
+              if (Number.isSafeInteger(number) && number > 0) {
+                const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: number});
+                allowed = pr.state === 'open' && pr.head.repo?.full_name === process.env.GITHUB_REPOSITORY;
+              }
+            }
+          }
+          core.setOutput('allowed', String(allowed));
+          core.info(allowed ? 'Authorized review or session maintenance.' : 'Ignored event; no review runner allocated.');
+  review:
+    name: Ephemeral review or session maintenance
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true' && github.event.inputs.mode != 'probe'
+    runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
+    timeout-minutes: 35
+    concurrency:
+      group: chatgpt-credentials-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+    - name: Check whether the repo session has been seeded
+      id: session
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        SESSION_MODE: ${{ github.event.inputs.mode }}
+        SESSION_SEEDED: ${{ vars.CHATGPT_REVIEW_SEEDED }}
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_CREDENTIAL_SEED: ${{ secrets.CHATGPT_CREDENTIAL_SEED }}
+      with:
+        script: |
+          // Inspect presence only. Missing configuration is a deliberate, successful skip.
+          const env = process.env;
+          const configured = Boolean(env.CHATGPT_CREDENTIAL_KEY &&
+            env.CHATGPT_ADAPTER_PACKAGE_1 && env.CHATGPT_REVIEW_HOST_ID);
+          const ready = configured && (env.SESSION_MODE === 'seed' ?
+            Boolean(env.CHATGPT_CREDENTIAL_SEED) : env.SESSION_SEEDED === 'true');
+          core.setOutput('ready', String(ready));
+          if (!ready) {
+            core.notice('ChatGPT review skipped: this repository has not completed credential seeding. ' +
+              'The Captain must run scripts/seed-ephemeral.sh; no review was posted.');
+          }
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+      if: steps.session.outputs.ready == 'true'
+    - name: Authenticate the pinned private adapter package
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_ADAPTER_REVISION: ${{ vars.CHATGPT_ADAPTER_REVISION }}
+        CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
+        CHATGPT_ADAPTER_PACKAGE_2: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_2 }}
+      with:
+        script: |
+          // Embedded into the trusted workflow. Never check out or execute a PR head.
+          const crypto = require('node:crypto');
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const {spawnSync} = require('node:child_process');
+          try {
+            const env = process.env;
+            const revision = env.CHATGPT_ADAPTER_REVISION;
+            if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error();
+            const key = Buffer.from(env.CHATGPT_CREDENTIAL_KEY, 'base64');
+            if (key.length !== 32 || !env.CHATGPT_REVIEW_HOST_ID) throw new Error();
+            const packet = JSON.parse(env.CHATGPT_ADAPTER_PACKAGE_1 +
+              (env.CHATGPT_ADAPTER_PACKAGE_2 || ''));
+            const aad = {host_id: env.CHATGPT_REVIEW_HOST_ID, purpose: 'adapter-package:' + revision,
+              repo: env.GITHUB_REPOSITORY, repo_id: Number(env.GITHUB_REPOSITORY_ID), version: 1};
+            if (packet.version !== 1 || !Number.isSafeInteger(aad.repo_id)) throw new Error();
+            const nonce = Buffer.from(packet.nonce, 'base64');
+            const ciphertext = Buffer.from(packet.ciphertext, 'base64');
+            if (nonce.length !== 12 || ciphertext.length < 16 || ciphertext.length > 512 * 1024) {
+              throw new Error();
+            }
+            const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce);
+            decipher.setAAD(Buffer.from(JSON.stringify(aad)));
+            decipher.setAuthTag(ciphertext.subarray(-16));
+            const bytes = Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]);
+            const directory = fs.mkdtempSync(path.join(env.RUNNER_TEMP, 'chatgpt-adapter-'));
+            fs.chmodSync(directory, 0o700);
+            const archive = path.join(directory, 'package.zip');
+            fs.writeFileSync(archive, bytes, {mode: 0o600});
+            const python = path.join(env.pythonLocation, 'bin/python');
+            const unpack = String.raw`
+          import pathlib, sys, zipfile
+          root = pathlib.Path(sys.argv[1]); revision = sys.argv[2]
+          with zipfile.ZipFile(root / 'package.zip') as z:
+              entries = z.infolist()
+              if not 1 <= len(entries) <= 200 or sum(x.file_size for x in entries) > 5 * 1024 * 1024:
+                  raise ValueError('Unsafe package')
+              seen = set()
+              for entry in entries:
+                  p = pathlib.PurePosixPath(entry.filename)
+                  allowed = (entry.filename in {'pyproject.toml', '.revision'} or
+                             entry.filename.startswith(('shared/', 'adapters/pr_agent/', 'deploy/ephemeral/')))
+                  if (not allowed or p.is_absolute() or '..' in p.parts or entry.filename in seen
+                      or entry.is_dir() or (entry.external_attr >> 16) & 0o170000 == 0o120000):
+                      raise ValueError('Unsafe package entry')
+                  seen.add(entry.filename)
+                  target = root.joinpath(*p.parts)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(z.read(entry)); target.chmod(0o600)
+              if (root / '.revision').read_text().strip() != revision:
+                  raise ValueError('Package revision mismatch')
+          (root / 'package.zip').unlink()
+          `;
+            const result = spawnSync(python, ['-I', '-c', unpack, directory, revision],
+              {encoding: 'utf8', timeout: 30000});
+            if (result.status !== 0) throw new Error();
+            fs.appendFileSync(env.GITHUB_ENV, `ADAPTER_DIRECTORY=${directory}\nADAPTER_NODE=${process.execPath}\n`);
+            core.info('Authenticated pinned adapter package extracted.');
+          } catch {
+            core.setFailed('adapter_package_failed: encrypted package failed identity or integrity verification.');
+          }
+      if: steps.session.outputs.ready == 'true'
+    - name: Cache public dependency downloads only
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+      with:
+        path: |-
+          ${{ runner.temp }}/chatgpt-public-pip
+          ${{ runner.temp }}/chatgpt-public-npm
+        key: chatgpt-dependencies-linux-x64-py312-${{ vars.CHATGPT_ADAPTER_REVISION }}
+      if: steps.session.outputs.ready == 'true'
+    - name: Install locked public dependencies
+      env:
+        PIP_CACHE_DIR: ${{ runner.temp }}/chatgpt-public-pip
+        npm_config_cache: ${{ runner.temp }}/chatgpt-public-npm
+      run: |
+        python -m venv "$ADAPTER_DIRECTORY/.venv"
+        "$ADAPTER_DIRECTORY/.venv/bin/pip" install --require-hashes \
+          -r "$ADAPTER_DIRECTORY/deploy/ephemeral/requirements.lock"
+        npm ci --ignore-scripts --prefix "$ADAPTER_DIRECTORY/deploy/ephemeral"
+      if: steps.session.outputs.ready == 'true'
+    - name: Run with verified rotation write-back
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_CREDENTIAL_SEED: ${{ secrets.CHATGPT_CREDENTIAL_SEED }}
+      with:
+        script: |
+          const {spawnSync} = require('node:child_process');
+          if (!process.env.ACTIONS_RUNTIME_TOKEN || !process.env.ACTIONS_RESULTS_URL) {
+            core.setFailed('Run-scoped artifact credentials unavailable.');
+          } else {
+            const result = spawnSync(process.env.ADAPTER_DIRECTORY + '/.venv/bin/python',
+              ['-m', 'shared.ephemeral_job'], {cwd: process.env.ADAPTER_DIRECTORY,
+              env: process.env, stdio: 'inherit', timeout: 30 * 60 * 1000});
+            if (result.status !== 0) core.setFailed('Review/session job failed.');
+          }
+      if: steps.session.outputs.ready == 'true'
+    - name: Remove decrypted source and state
+      if: always()
+      run: |
+        if [[ -n "${ADAPTER_DIRECTORY:-}" && "$ADAPTER_DIRECTORY" == "$RUNNER_TEMP"/chatgpt-adapter-* ]]; then
+          rm -rf -- "$ADAPTER_DIRECTORY"
+        fi
+  probe:
+    name: Probe provider without ChatGPT credentials
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.mode
+      == 'probe'
+    runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      with:
+        script: |
+          // Provider/artifact capability probe. No ChatGPT/key/package secret is supplied.
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const {spawnSync} = require('node:child_process');
+          try {
+            if (!process.env.ACTIONS_RUNTIME_TOKEN || !process.env.ACTIONS_RESULTS_URL) throw new Error();
+            const directory = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'chatgpt-probe-'));
+            const install = spawnSync('npm', ['install', '--ignore-scripts', '--prefix', directory,
+              '@actions/artifact@6.3.1'], {encoding: 'utf8', timeout: 180000});
+            if (install.status !== 0) throw new Error();
+            fs.writeFileSync(path.join(directory, 'snapshot.enc'), 'synthetic-encrypted-placeholder');
+            const source = String.raw`
+          import {pathToFileURL} from 'node:url';
+          import path from 'node:path';
+          const root = process.argv[1];
+          const sdk = await import(pathToFileURL(path.join(root, 'node_modules/@actions/artifact/lib/artifact.js')));
+          const result = await sdk.default.uploadArtifact('chatgpt-provider-probe-' + process.env.GITHUB_RUN_ID,
+            [path.join(root, 'snapshot.enc')], root, {retentionDays: 90, compressionLevel: 0});
+          process.stdout.write('\nPROBE_RECEIPT=' + JSON.stringify({id: result.id}) + '\n');
+          `;
+            const upload = spawnSync(process.execPath, ['--input-type=module', '-e', source, directory],
+              {encoding: 'utf8', timeout: 180000, env: process.env});
+            const matches = [...upload.stdout.matchAll(/^PROBE_RECEIPT=(.+)$/gm)];
+            if (upload.status !== 0 || matches.length !== 1) throw new Error();
+            const id = JSON.parse(matches[0][1]).id;
+            if (!Number.isSafeInteger(id) || id <= 0) throw new Error();
+            const {owner, repo} = context.repo;
+            const {data} = await github.rest.actions.getArtifact({owner, repo, artifact_id: id});
+            if (data.workflow_run.id !== Number(process.env.GITHUB_RUN_ID) || data.expired) throw new Error();
+            // Verify immediate API visibility while the producing job is still running.
+            core.info('Run-scoped artifact upload and immediate REST metadata read-back verified: ' + id);
+            core.info('Runner: ' + process.env.RUNNER_NAME + '; architecture: ' + process.env.RUNNER_ARCH);
+            fs.rmSync(directory, {recursive: true, force: true});
+          } catch {
+            core.setFailed('Provider/artifact probe failed; no credentials were supplied.');
+          }
