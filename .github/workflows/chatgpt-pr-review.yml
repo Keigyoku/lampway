@@ -1,15 +1,27 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Generated from chatgpt-plan-adapter/scripts/generate-lifecycle-workflows.py.
+# Generated from scripts/generate-ephemeral-workflows.py.
 name: ChatGPT plan PR review
-on:
+'on':
   pull_request:
-    types: [opened]
+    types:
+    - opened
   issue_comment:
-    types: [created]
+    types:
+    - created
   schedule:
-    - cron: '37 4 * * 0'
+  - cron: 37 4 * * 0
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Session maintenance (never review a push)
+        type: choice
+        default: refresh
+        required: true
+        options:
+        - refresh
+        - seed
+        - probe
 permissions:
   contents: read
   actions: read
@@ -17,430 +29,234 @@ permissions:
   pull-requests: write
 jobs:
   authorize:
-    name: Authorize event without waking
-    if: >-
-      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.action == 'opened' &&
-       github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'issue_comment' && github.event.action == 'created' &&
-       github.event.issue.pull_request && startsWith(github.event.comment.body, '@pr-review') &&
-       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-                github.event.comment.author_association) &&
-       github.event.comment.user.type == 'User' &&
-       !endsWith(github.event.comment.user.login, '[bot]'))
+    name: Authorize without review secrets
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name
+      == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.head.repo.full_name
+      == github.repository && github.event.pull_request.user.type == 'User' && !endsWith(github.event.pull_request.user.login,
+      '[bot]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
+      || (github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.pull_request
+      && startsWith(github.event.comment.body, '@pr-review') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+      github.event.comment.author_association) && github.event.comment.user.type == 'User' && !endsWith(github.event.comment.user.login,
+      '[bot]'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
     outputs:
-      allowed: ${{ steps.lifecycle.outputs.allowed }}
+      allowed: ${{ steps.gate.outputs.allowed }}
     steps:
-      - name: Check the event and live PR head
-        id: lifecycle
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BOAT_BOX_ID: bx_rwvp6fq9
-          LIFECYCLE_MODE: authorize
-        run: &lifecycle |
-          python3 - <<'PY'
-          """Event eligibility shared by the trusted reviewer and hosted lifecycle jobs."""
-
-          import re
-
-
-          def request_number(event_name, event, repo):
-              """Accept only opened PRs or collaborator-authored PR review commands."""
-              if not isinstance(event, dict) or event.get("repository", {}).get("full_name") != repo:
-                  return None
-              if event_name == "pull_request" and event.get("action") == "opened":
-                  pr = event.get("pull_request", {})
-                  if pr.get("head", {}).get("repo", {}).get("full_name") != repo:
-                      return None
-                  number, comment_id = pr.get("number"), None
-              elif event_name == "issue_comment" and event.get("action") == "created":
-                  issue, comment = event.get("issue", {}), event.get("comment", {})
-                  user, body = comment.get("user", {}), comment.get("body")
-                  if (
-                      not isinstance(issue.get("pull_request"), dict)
-                      or comment.get("author_association") not in {"OWNER", "MEMBER", "COLLABORATOR"}
-                      or user.get("type") != "User"
-                      or user.get("login", "").endswith("[bot]")
-                      or not isinstance(body, str)
-                      or not re.match(r"\A@pr-review(?:\s|\Z)", body)
-                  ):
-                      return None
-                  number, comment_id = issue.get("number"), comment.get("id")
-                  if type(comment_id) is not int or comment_id <= 0:
-                      return None
-              else:
-                  return None
-              if type(number) is not int or number <= 0:
-                  return None
-              return number, comment_id
-
-          """Hosted lifecycle controller; no PR checkout, remote execution or secret output."""
-
-          import json
-          import os
-          import time
-          import urllib.error
-          import urllib.request
-          from datetime import UTC, datetime
-          from pathlib import Path
-
-
-          TTL_SECONDS = 2700
-          ACTIVE = {"queued", "in_progress", "waiting", "pending", "requested"}
-          BOXES = {"Keigyoku/wrenchdesk": "bx_me4srrhb", "Keigyoku/lampway": "bx_rwvp6fq9"}
-
-
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self, req, fp, code, msg, headers, newurl):
-                  return None
-
-
-          class API:
-              def __init__(self, base, key):
-                  self.base, self.key = base, key
-                  self.opener = urllib.request.build_opener(NoRedirect())
-
-              def request(self, method, path, data=None):
-                  request = urllib.request.Request(
-                      self.base + path,
-                      method=method,
-                      data=None if data is None else json.dumps(data).encode(),
-                      headers={
-                          "Authorization": "Bearer " + self.key,
-                          "Content-Type": "application/json",
-                          "Accept": "application/json",
-                          "X-GitHub-Api-Version": "2022-11-28",
-                      },
-                  )
-                  try:
-                      with self.opener.open(request, timeout=30) as response:
-                          return json.load(response)
-                  except urllib.error.HTTPError as error:
-                      raise RuntimeError(f"Lifecycle API returned HTTP {error.code}.") from None
-                  except (urllib.error.URLError, ValueError):
-                      raise RuntimeError("Lifecycle API transport or JSON response failed.") from None
-
-
-          class Lifecycle:
-              def __init__(self, boat, github, repo, box, run_id, sleep=time.sleep):
-                  self.boat, self.github = boat, github
-                  self.repo, self.box, self.run_id, self.sleep = repo, box, run_id, sleep
-                  self.path = f"/sandboxes/{box}"
-
-              def authorized(self, event_name, event):
-                  if event.get("repository", {}).get("full_name") != self.repo:
-                      return False
-                  if event_name in {"schedule", "workflow_dispatch"}:
-                      return True
-                  request = request_number(event_name, event, self.repo)
-                  if request is None:
-                      return False
-                  pr = self.github.request("GET", f"/repos/{self.repo}/pulls/{request[0]}")
-                  return (
-                      pr.get("state") == "open"
-                      and (pr.get("head", {}).get("repo") or {}).get("full_name") == self.repo
-                  )
-
-              def start(self):
-                  state = self.boat.request("GET", self.path)["sandbox"]["state"]
-                  if state in {"stopped", "archived"}:
-                      self.boat.request("POST", self.path + "/resume", {"ttlSeconds": TTL_SECONDS})
-                  elif state in {"ready", "idle", "running"}:
-                      # Resume on a running box ignores TTL. Explicit update requires a
-                      # fourth, box-limited scope; never interrupt another review to rearm.
-                      self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
-                  elif state not in {"provisioning", "booting", "resuming", "cloning"}:
-                      raise RuntimeError("Box is not in a safe state for resume; retry after its stop.")
-                  self.wait_ready()
-                  if self.wait_review_slot():
-                      self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
-                      self.wait_ready()
-                  return True
-
-              def wait_review_slot(self):
-                  # This method runs while the wake/stop concurrency lease is held.
-                  # Other modern wakes cannot admit a review, so cache the already admitted
-                  # jobs and poll only those instead of rescanning a growing pending queue.
-                  candidates, reservations = [], []
-                  page = 1
-                  while True:
-                      response = self.github.request(
-                          "GET",
-                          f"/repos/{self.repo}/actions/workflows/chatgpt-pr-review.yml/runs"
-                          f"?status=in_progress&per_page=100&page={page}",
-                      )
-                      runs = response["workflow_runs"]
-                      for run in runs:
-                          if run["id"] == self.run_id:
-                              continue
-                          jobs = self.github.request(
-                              "GET",
-                              f"/repos/{self.repo}/actions/runs/{run['id']}/jobs?per_page=100",
-                          )["jobs"]
-                          names = {job["name"].rsplit(" / ", 1)[-1] for job in jobs}
-                          if "Review or refresh ChatGPT" not in names and any(
-                              job["name"].endswith("Start dedicated box")
-                              and job.get("conclusion") == "success"
-                              for job in jobs
-                          ):
-                              reservations.append(run["id"])
-                          for job in jobs:
-                              name = job["name"].rsplit(" / ", 1)[-1]
-                              if name in {"Review or refresh ChatGPT", "review"} and job["status"] in ACTIVE:
-                                  candidates.append(job["id"])
-                      if len(runs) < 100:
-                          break
-                      page += 1
-                      if page > 10:
-                          raise RuntimeError("Cannot prove the review slot listing is complete.")
-                  if not candidates and not reservations:
-                      return False
-                  print("Waiting for the already admitted review slot before rearming TTL.")
-                  for tick in range(120):
-                      waiting = []
-                      for run in reservations:
-                          jobs = self.github.request(
-                              "GET",
-                              f"/repos/{self.repo}/actions/runs/{run}/jobs?per_page=100",
-                          )["jobs"]
-                          review = [job for job in jobs if job["name"].endswith("Review or refresh ChatGPT")]
-                          if not review:
-                              state = self.github.request("GET", f"/repos/{self.repo}/actions/runs/{run}")
-                              if state["status"] != "completed":
-                                  waiting.append(run)
-                          candidates.extend(job["id"] for job in review if job["status"] in ACTIVE)
-                      reservations = waiting
-                      candidates = [
-                          job
-                          for job in candidates
-                          if self.github.request(
-                              "GET",
-                              f"/repos/{self.repo}/actions/jobs/{job}",
-                          )["status"]
-                          in ACTIVE
-                      ]
-                      if not candidates and not reservations:
-                          return True
-                      if tick % 20 == 0:
-                          self.boat.request("PATCH", self.path, {"ttlSeconds": TTL_SECONDS})
-                      self.sleep(15)
-                  raise RuntimeError("Review slot remained busy; no new review was admitted.")
-
-              def wait_ready(self):
-                  for _ in range(120):
-                      box = self.boat.request("GET", self.path)["sandbox"]
-                      if box["state"] in {"ready", "idle"}:
-                          deadline, ttl = box.get("archiveAfter"), box.get("ttlSeconds")
-                          if not isinstance(deadline, str) or type(ttl) is not int or ttl != TTL_SECONDS:
-                              raise RuntimeError("Box has no verified auto-stop deadline; refusing review.")
-                          remaining = (
-                              datetime.fromisoformat(deadline.replace("Z", "+00:00")) - datetime.now(UTC)
-                          ).total_seconds()
-                          if remaining < 1800:
-                              raise RuntimeError("Box auto-stop deadline is too close for a review.")
-                          return True
-                      if box["state"] in {"error", "stopped", "archived"}:
-                          raise RuntimeError("Box did not become ready after resume.")
-                      self.sleep(2)
-                  raise RuntimeError("Timed out waiting for box readiness.")
-
-              def run_needs_box(self, run):
-                  jobs = self.github.request(
-                      "GET", f"/repos/{self.repo}/actions/runs/{run}/jobs?per_page=100"
-                  )["jobs"]
-                  if len(jobs) >= 100:
-                      raise RuntimeError("Cannot prove the active job listing is complete; not stopping.")
-                  names = {job["name"].rsplit(" / ", 1)[-1] for job in jobs}
-                  for job in jobs:
-                      name = job["name"].rsplit(" / ", 1)[-1]
-                      if name in {"Start dedicated box", "Review or refresh ChatGPT", "review"}:
-                          if job["status"] in ACTIVE:
-                              return True
-                          if (
-                              name == "Start dedicated box"
-                              and job.get("conclusion") == "success"
-                              and "Review or refresh ChatGPT" not in names
-                          ):
-                              # Preserve a wake reservation before its review is visible.
-                              return True
-                  # Authorization-only runs do not need a machine. Any future eligible
-                  # wake must acquire our lifecycle lease and can resume after this stop.
-                  return False
-
-              def stop(self):
-                  for status in sorted(ACTIVE):
-                      page = 1
-                      while True:
-                          path = (
-                              f"/repos/{self.repo}/actions/workflows/chatgpt-pr-review.yml/runs"
-                              f"?status={status}&per_page=100&page={page}"
-                          )
-                          runs = self.github.request("GET", path)["workflow_runs"]
-                          if any(
-                              r["id"] != self.run_id and r["status"] in ACTIVE and self.run_needs_box(r["id"])
-                              for r in runs
-                          ):
-                              print("Other review runs remain queued or active; keeping their finite TTL.")
-                              return False
-                          if len(runs) < 100:
-                              break
-                          page += 1
-                          if page > 10:
-                              raise RuntimeError(
-                                  "Cannot prove the active run listing is complete; not stopping."
-                              )
-                  state = self.boat.request("GET", self.path)["sandbox"]["state"]
-                  if state in {"stopped", "archived"}:
-                      return True
-                  self.boat.request("POST", self.path + "/stop", {})
-                  for _ in range(120):
-                      box = self.boat.request("GET", self.path)["sandbox"]
-                      if box["state"] in {"stopped", "archived"}:
-                          print("Box stopped; snapshot retained.")
-                          return True
-                      if (box.get("stop") or {}).get("status") == "failing":
-                          raise RuntimeError("Boat snapshot stop is failing; no force/delete was attempted.")
-                      self.sleep(2)
-                  raise RuntimeError("Timed out verifying box stop; TTL remains the backstop.")
-
-
-          def output(name, value):
-              with Path(os.environ["GITHUB_OUTPUT"]).open("a") as destination:
-                  destination.write(f"{name}={str(value).lower()}\n")
-
-
-          def main():
-              repo, box, mode = (
-                  os.environ[k] for k in ["GITHUB_REPOSITORY", "BOAT_BOX_ID", "LIFECYCLE_MODE"]
-              )
-              if BOXES.get(repo) != box:
-                  raise RuntimeError("Repository and dedicated box do not match.")
-              github = API("https://api.github.com", os.environ["GITHUB_TOKEN"])
-              controller = Lifecycle(
-                  API("https://boat.dev/api/v1", os.environ.get("BOAT_API_KEY", "")),
-                  github,
-                  repo,
-                  box,
-                  int(os.environ["GITHUB_RUN_ID"]),
-              )
-              if mode == "authorize":
-                  event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
-                  allowed = controller.authorized(os.environ["GITHUB_EVENT_NAME"], event)
-                  output("allowed", allowed)
-                  print(
-                      "Authorized review or maintenance event."
-                      if allowed
-                      else "Ignored event; box will not wake."
-                  )
-                  return
-              if not os.environ.get("BOAT_API_KEY"):
-                  raise RuntimeError(
-                      "Set the dedicated BOAT_API_KEY repository secret before enabling wakes."
-                  )
-              if mode == "start":
-                  output("touched", True)  # Cleanup runs even when readiness fails after mutation.
-                  output("ready", controller.start())
-              elif mode == "stop":
-                  output("stopped", controller.stop())
-              else:
-                  raise RuntimeError("Unknown lifecycle operation.")
-
-
-          if __name__ == "__main__":
-              try:
-                  main()
-              except Exception as error:
-                  # API errors intentionally exclude response bodies and bearer values.
-                  raise SystemExit(f"lifecycle_failed: {error}") from None
-
-          PY
-  wake:
-    name: Start dedicated box
+    - id: gate
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      with:
+        script: |
+          // No adapter, ChatGPT or package secret is present in this GitHub-hosted job.
+          const {owner, repo} = context.repo;
+          const payload = context.payload;
+          const human = user => user && user.type === 'User' && typeof user.login === 'string' &&
+            user.login.length > 0 && !user.login.endsWith('[bot]');
+          const trusted = value => ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(value);
+          let allowed = false;
+          if (payload.repository?.full_name === process.env.GITHUB_REPOSITORY) {
+            if (context.eventName === 'schedule') allowed = true;
+            else if (context.eventName === 'workflow_dispatch' && human(payload.sender)) {
+              const response = await github.rest.repos.getCollaboratorPermissionLevel({owner, repo,
+                username: payload.sender.login});
+              allowed = ['admin', 'maintain', 'write'].includes(response.data.permission);
+            } else {
+              let number;
+              if (context.eventName === 'pull_request' && payload.action === 'opened' &&
+                  human(payload.pull_request?.user) && trusted(payload.pull_request?.author_association) &&
+                  payload.pull_request?.head?.repo?.full_name === process.env.GITHUB_REPOSITORY) {
+                number = payload.pull_request.number;
+              } else if (context.eventName === 'issue_comment' && payload.action === 'created' &&
+                         payload.issue?.pull_request && human(payload.comment?.user) &&
+                         trusted(payload.comment?.author_association) &&
+                         typeof payload.comment?.body === 'string' &&
+                         /^@pr-review(?:\s|$)/.test(payload.comment.body) &&
+                         Number.isSafeInteger(payload.comment.id) && payload.comment.id > 0) {
+                number = payload.issue.number;
+              }
+              if (Number.isSafeInteger(number) && number > 0) {
+                const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: number});
+                allowed = pr.state === 'open' && pr.head.repo?.full_name === process.env.GITHUB_REPOSITORY;
+              }
+            }
+          }
+          core.setOutput('allowed', String(allowed));
+          core.info(allowed ? 'Authorized review or session maintenance.' : 'Ignored event; no review runner allocated.');
+  review:
+    name: Ephemeral review or session maintenance
     needs: authorize
-    if: needs.authorize.outputs.allowed == 'true'
-    runs-on: ubuntu-latest
+    if: needs.authorize.outputs.allowed == 'true' && github.event.inputs.mode != 'probe'
+    runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
     timeout-minutes: 35
-    permissions:
-      contents: read
-      actions: read
     concurrency:
-      group: boat-lifecycle-${{ github.repository }}
+      group: chatgpt-credentials-${{ github.repository }}
       cancel-in-progress: false
       queue: max
-    outputs:
-      ready: ${{ steps.lifecycle.outputs.ready }}
-      touched: ${{ steps.lifecycle.outputs.touched }}
     steps:
-      - name: Resume with a 45 minute crash backstop
-        id: lifecycle
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BOAT_API_KEY: ${{ secrets.BOAT_API_KEY }}
-          BOAT_BOX_ID: bx_rwvp6fq9
-          LIFECYCLE_MODE: start
-        run: *lifecycle
-  review:
-    name: Review or refresh ChatGPT
-    needs: wake
-    if: needs.wake.outputs.ready == 'true'
-    runs-on: [self-hosted, Linux, X64, "chatgpt-review-lampway"]
-    timeout-minutes: 25
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
-    concurrency:
-      group: >-
-        chatgpt-review-${{ github.repository }}-${{
-          github.event.pull_request.number || github.event.issue.number || 'maintenance' }}
-      cancel-in-progress: false
-    steps:
-      - name: Wait for the loopback adapter health gate
-        run: >-
-          curl --fail --silent --show-error --retry 30 --retry-delay 2
-          --retry-connrefused --retry-all-errors --max-time 15
-          http://127.0.0.1:8787/health/ready
-      - name: Refresh the scheduled session without reviewing code
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: |
-          /opt/chatgpt-plan-adapter/.venv/bin/python -I - <<'PY'
-          import urllib.request
-          request = urllib.request.Request(
-              "http://127.0.0.1:8787/health/refresh", method="POST",
-              headers={"Authorization": "Bearer " + "local-adapter"},
-          )
-          with urllib.request.urlopen(request, timeout=60) as response:
-              print(response.read().decode())
-          PY
-      - name: Analyze and verify one fresh review
-        if: github.event_name == 'pull_request' || github.event_name == 'issue_comment'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: /opt/chatgpt-plan-adapter/.venv/bin/python /opt/chatgpt-plan-adapter/review.py
-  stop:
-    name: Stop after the last review
-    needs: [authorize, wake, review]
-    if: always() && needs.wake.outputs.touched == 'true'
-    runs-on: ubuntu-latest
+    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.12'
+    - name: Authenticate the pinned private adapter package
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_ADAPTER_REVISION: ${{ vars.CHATGPT_ADAPTER_REVISION }}
+        CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
+        CHATGPT_ADAPTER_PACKAGE_2: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_2 }}
+      with:
+        script: |
+          // Embedded into the trusted workflow. Never check out or execute a PR head.
+          const crypto = require('node:crypto');
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const {spawnSync} = require('node:child_process');
+          try {
+            const env = process.env;
+            const revision = env.CHATGPT_ADAPTER_REVISION;
+            if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error();
+            const key = Buffer.from(env.CHATGPT_CREDENTIAL_KEY, 'base64');
+            if (key.length !== 32 || !env.CHATGPT_REVIEW_HOST_ID) throw new Error();
+            const packet = JSON.parse(env.CHATGPT_ADAPTER_PACKAGE_1 +
+              (env.CHATGPT_ADAPTER_PACKAGE_2 || ''));
+            const aad = {host_id: env.CHATGPT_REVIEW_HOST_ID, purpose: 'adapter-package:' + revision,
+              repo: env.GITHUB_REPOSITORY, repo_id: Number(env.GITHUB_REPOSITORY_ID), version: 1};
+            if (packet.version !== 1 || !Number.isSafeInteger(aad.repo_id)) throw new Error();
+            const nonce = Buffer.from(packet.nonce, 'base64');
+            const ciphertext = Buffer.from(packet.ciphertext, 'base64');
+            if (nonce.length !== 12 || ciphertext.length < 16 || ciphertext.length > 512 * 1024) {
+              throw new Error();
+            }
+            const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce);
+            decipher.setAAD(Buffer.from(JSON.stringify(aad)));
+            decipher.setAuthTag(ciphertext.subarray(-16));
+            const bytes = Buffer.concat([decipher.update(ciphertext.subarray(0, -16)), decipher.final()]);
+            const directory = fs.mkdtempSync(path.join(env.RUNNER_TEMP, 'chatgpt-adapter-'));
+            fs.chmodSync(directory, 0o700);
+            const archive = path.join(directory, 'package.zip');
+            fs.writeFileSync(archive, bytes, {mode: 0o600});
+            const python = path.join(env.pythonLocation, 'bin/python');
+            const unpack = String.raw`
+          import pathlib, sys, zipfile
+          root = pathlib.Path(sys.argv[1]); revision = sys.argv[2]
+          with zipfile.ZipFile(root / 'package.zip') as z:
+              entries = z.infolist()
+              if not 1 <= len(entries) <= 200 or sum(x.file_size for x in entries) > 5 * 1024 * 1024:
+                  raise ValueError('Unsafe package')
+              seen = set()
+              for entry in entries:
+                  p = pathlib.PurePosixPath(entry.filename)
+                  allowed = (entry.filename in {'pyproject.toml', '.revision'} or
+                             entry.filename.startswith(('shared/', 'adapters/pr_agent/', 'deploy/ephemeral/')))
+                  if (not allowed or p.is_absolute() or '..' in p.parts or entry.filename in seen
+                      or entry.is_dir() or (entry.external_attr >> 16) & 0o170000 == 0o120000):
+                      raise ValueError('Unsafe package entry')
+                  seen.add(entry.filename)
+                  target = root.joinpath(*p.parts)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(z.read(entry)); target.chmod(0o600)
+              if (root / '.revision').read_text().strip() != revision:
+                  raise ValueError('Package revision mismatch')
+          (root / 'package.zip').unlink()
+          `;
+            const result = spawnSync(python, ['-I', '-c', unpack, directory, revision],
+              {encoding: 'utf8', timeout: 30000});
+            if (result.status !== 0) throw new Error();
+            fs.appendFileSync(env.GITHUB_ENV, `ADAPTER_DIRECTORY=${directory}\nADAPTER_NODE=${process.execPath}\n`);
+            core.info('Authenticated pinned adapter package extracted.');
+          } catch {
+            core.setFailed('adapter_package_failed: encrypted package failed identity or integrity verification.');
+          }
+    - name: Cache public dependency downloads only
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
+      with:
+        path: |-
+          ${{ runner.temp }}/chatgpt-public-pip
+          ${{ runner.temp }}/chatgpt-public-npm
+        key: chatgpt-dependencies-linux-x64-py312-${{ vars.CHATGPT_ADAPTER_REVISION }}
+    - name: Install locked public dependencies
+      env:
+        PIP_CACHE_DIR: ${{ runner.temp }}/chatgpt-public-pip
+        npm_config_cache: ${{ runner.temp }}/chatgpt-public-npm
+      run: |
+        python -m venv "$ADAPTER_DIRECTORY/.venv"
+        "$ADAPTER_DIRECTORY/.venv/bin/pip" install --require-hashes \
+          -r "$ADAPTER_DIRECTORY/deploy/ephemeral/requirements.lock"
+        npm ci --ignore-scripts --prefix "$ADAPTER_DIRECTORY/deploy/ephemeral"
+    - name: Run with verified rotation write-back
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_CREDENTIAL_SEED: ${{ secrets.CHATGPT_CREDENTIAL_SEED }}
+      with:
+        script: |
+          const {spawnSync} = require('node:child_process');
+          if (!process.env.ACTIONS_RUNTIME_TOKEN || !process.env.ACTIONS_RESULTS_URL) {
+            core.setFailed('Run-scoped artifact credentials unavailable.');
+          } else {
+            const result = spawnSync(process.env.ADAPTER_DIRECTORY + '/.venv/bin/python',
+              ['-m', 'shared.ephemeral_job'], {cwd: process.env.ADAPTER_DIRECTORY,
+              env: process.env, stdio: 'inherit', timeout: 30 * 60 * 1000});
+            if (result.status !== 0) core.setFailed('Review/session job failed.');
+          }
+    - name: Remove decrypted source and state
+      if: always()
+      run: |
+        if [[ -n "${ADAPTER_DIRECTORY:-}" && "$ADAPTER_DIRECTORY" == "$RUNNER_TEMP"/chatgpt-adapter-* ]]; then
+          rm -rf -- "$ADAPTER_DIRECTORY"
+        fi
+  probe:
+    name: Probe provider without ChatGPT credentials
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true' && github.event_name == 'workflow_dispatch' && github.event.inputs.mode
+      == 'probe'
+    runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
     timeout-minutes: 8
     permissions:
       contents: read
       actions: read
-    concurrency:
-      group: boat-lifecycle-${{ github.repository }}
-      cancel-in-progress: false
-      queue: max
     steps:
-      - name: Keep other runs safe and verify snapshot stop
-        id: lifecycle
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BOAT_API_KEY: ${{ secrets.BOAT_API_KEY }}
-          BOAT_BOX_ID: bx_rwvp6fq9
-          LIFECYCLE_MODE: stop
-        run: *lifecycle
+    - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      with:
+        script: |
+          // Provider/artifact capability probe. No ChatGPT/key/package secret is supplied.
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const {spawnSync} = require('node:child_process');
+          try {
+            if (!process.env.ACTIONS_RUNTIME_TOKEN || !process.env.ACTIONS_RESULTS_URL) throw new Error();
+            const directory = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP, 'chatgpt-probe-'));
+            const install = spawnSync('npm', ['install', '--ignore-scripts', '--prefix', directory,
+              '@actions/artifact@6.3.1'], {encoding: 'utf8', timeout: 180000});
+            if (install.status !== 0) throw new Error();
+            fs.writeFileSync(path.join(directory, 'snapshot.enc'), 'synthetic-encrypted-placeholder');
+            const source = String.raw`
+          import {pathToFileURL} from 'node:url';
+          import path from 'node:path';
+          const root = process.argv[1];
+          const sdk = await import(pathToFileURL(path.join(root, 'node_modules/@actions/artifact/lib/artifact.js')));
+          const result = await sdk.default.uploadArtifact('chatgpt-provider-probe-' + process.env.GITHUB_RUN_ID,
+            [path.join(root, 'snapshot.enc')], root, {retentionDays: 90, compressionLevel: 0});
+          process.stdout.write('\nPROBE_RECEIPT=' + JSON.stringify({id: result.id}) + '\n');
+          `;
+            const upload = spawnSync(process.execPath, ['--input-type=module', '-e', source, directory],
+              {encoding: 'utf8', timeout: 180000, env: process.env});
+            const matches = [...upload.stdout.matchAll(/^PROBE_RECEIPT=(.+)$/gm)];
+            if (upload.status !== 0 || matches.length !== 1) throw new Error();
+            const id = JSON.parse(matches[0][1]).id;
+            if (!Number.isSafeInteger(id) || id <= 0) throw new Error();
+            const {owner, repo} = context.repo;
+            const {data} = await github.rest.actions.getArtifact({owner, repo, artifact_id: id});
+            if (data.workflow_run.id !== Number(process.env.GITHUB_RUN_ID) || data.expired) throw new Error();
+            // Verify immediate API visibility while the producing job is still running.
+            core.info('Run-scoped artifact upload and immediate REST metadata read-back verified: ' + id);
+            core.info('Runner: ' + process.env.RUNNER_NAME + '; architecture: ' + process.env.RUNNER_ARCH);
+            fs.rmSync(directory, {recursive: true, force: true});
+          } catch {
+            core.setFailed('Provider/artifact probe failed; no credentials were supplied.');
+          }

@@ -88,32 +88,32 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
-| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open and requested reviews on the dedicated self-hosted runner |
+| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open and requested reviews on ephemeral runners |
 
-PR-open reviews and authorized `@pr-review` PR comments run the preinstalled
-reviewer on the dedicated `chatgpt-review-lampway` runner. Only OWNER, MEMBER or
-COLLABORATOR human comments can request a fresh full review of the current head.
-The reviewer checks the live PR before acknowledging with an eyes reaction;
-bots, plain issues, closed PRs and fork heads are excluded. Pushes do not request
-reviews. It never checks out or executes PR files and never applies fixes,
-offers committable suggestions, commits or pushes. Credentials belong to a
-separate loopback adapter service. A successful job verifies a fresh COMMENT
-review. Comment dispatch requires this caller on the default branch.
+PR-open reviews and authorized `@pr-review` PR comments run on ephemeral
+GitHub Actions runners. `CHATGPT_REVIEW_RUNNER` is the single per-repo provider
+setting; the default is Shipfox's smallest documented Linux x64 label. Only
+OWNER, MEMBER or COLLABORATOR human authors can request reviews. Hosted
+validation checks the live same-repo PR before allocating the review runner;
+bots, ordinary comments, plain issues, closed PRs and fork heads are excluded.
+Pushes never request reviews. A successful job verifies one fresh COMMENT
+review with an overview and exact inline findings. The reviewer never checks
+out or executes PR files, applies fixes, offers suggestions, commits or pushes.
 
-Hosted jobs authorize the event and resume the dedicated box with a verified
-45-minute TTL before the self-hosted health/review job can start. Hosted cleanup
-stops after the last admitted wake/review or reserved review; authorization-only
-and rejected runs cannot keep a box alive. Lifecycle mutations use a shared FIFO
-queue; review concurrency stays per PR. Weekly maintenance wakes refresh the
-session and stop without reviewing code. The Boat key is isolated to hosted
-jobs and scoped to this box; the Captain approved all four lifecycle actions,
-including TTL update. No PR source is checked out by any lifecycle job.
-The generated controller registry tracks the replacement Wrenchdesk box;
-Lampway remains on its own dedicated box and one-box key.
-Wake admission waits for the previous review slot, then rearms the deadline;
-queued jobs do not consume their review budget behind another review.
-The public caller invokes the trusted script directly; private reusable
-workflows cannot be called by a public repository.
+Each job installs an authenticated pinned adapter package, serves loopback,
+and uses this repo's stable SIWC host and encrypted durable credential store.
+The whole credential job is serialized per repo, including weekly readiness
+and seeding. Rotated tokens must be uploaded and authenticated by read-back
+before new access is used; failed verification makes the job red. Credentials
+and source are absent from caches. Weekly readiness refreshes only when needed.
+The Captain logs in and seeds independent profiles. Comment dispatch requires
+this caller on the default branch. The no-secret provider probe proves routing
+and artifact capabilities, not a PR review. Stopped legacy Boat boxes and keys
+remain until PR-open and requested reviews are green on both repositories;
+then the authorized retirement removes their runners, boxes, keys and secrets.
+
+The public caller embeds the trusted workflow because a public repository
+cannot call a private reusable workflow.
 
 ## Facts carried from the upstream guide (verified against this tree)
 
@@ -227,3 +227,4 @@ and restoring prior global scene state.
 | 2026-10-13 | queued review admission | lifecycle overlap audit | a wake could start its TTL while waiting behind a full-length review | hold the lifecycle lease until the admitted slot finishes, then rearm before releasing the next review | RED-first queue and reservation controls |
 | 2026-10-13 | cleanup admission guard and scoped-key approval | live review found rejected authorizations delaying snapshot shutdown; Captain approved one-box TTL update | unrelated active workflow runs could retain an idle box until its deadline | inspect admitted wake/review jobs and visibility reservations before deferring cleanup; authorization cannot retain a box | RED-first rejected-run, active-work and reservation controls |
 | 2026-10-13 | replacement Wrenchdesk runner registry | Captain addendum 4: replace the stopped box with pending resume | deleted box identity remained in the caller and weekly wake | bind the generated caller/controller to the replacement and its one-box key, preserving finite TTL and enabled services | new-box stopped-start-review-stop proof |
+| 2026-10-13 | ephemeral review credentials and provider setting | Captain addendum 5: leave persistent boxes | idle billing and rotating tokens tied reviews to permanent hosts | gate before allocation, serialize one encrypted repo store, verify rotation before use, and defer Boat retirement until four live proofs | RED-first store, write failure, gates and concurrency controls; Captain login and live proofs pending |
