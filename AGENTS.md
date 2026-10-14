@@ -100,6 +100,12 @@ Pushes never request reviews. A successful job verifies one fresh COMMENT
 review with an overview and exact inline findings. The reviewer never checks
 out or executes PR files, applies fixes, offers suggestions, commits or pushes.
 
+Before setup, an unseeded repo or missing credential configuration emits a
+clear notice and skips the review successfully. The Captain's seeder sets
+`CHATGPT_REVIEW_SEEDED` only after its run and independent durable read-back
+succeed. Seed dispatches can initialize the store; configured-session integrity
+and rotation failures still fail red. The current repo setting selects Tenki.
+
 Each job installs an authenticated pinned adapter package, serves loopback,
 and uses this repo's stable SIWC host and encrypted durable credential store.
 The whole credential job is serialized per repo, including weekly readiness
@@ -228,3 +234,4 @@ and restoring prior global scene state.
 | 2026-10-13 | cleanup admission guard and scoped-key approval | live review found rejected authorizations delaying snapshot shutdown; Captain approved one-box TTL update | unrelated active workflow runs could retain an idle box until its deadline | inspect admitted wake/review jobs and visibility reservations before deferring cleanup; authorization cannot retain a box | RED-first rejected-run, active-work and reservation controls |
 | 2026-10-13 | replacement Wrenchdesk runner registry | Captain addendum 4: replace the stopped box with pending resume | deleted box identity remained in the caller and weekly wake | bind the generated caller/controller to the replacement and its one-box key, preserving finite TTL and enabled services | new-box stopped-start-review-stop proof |
 | 2026-10-13 | ephemeral review credentials and provider setting | Captain addendum 5: leave persistent boxes | idle billing and rotating tokens tied reviews to permanent hosts | gate before allocation, serialize one encrypted repo store, verify rotation before use, and defer Boat retirement until four live proofs | RED-first store, write failure, gates and concurrency controls; Captain login and live proofs pending |
+| 2026-10-13 | unseeded review notice | Captain: merged caller before repo seeding | missing credentials turned ordinary PR openings red | check the verified-seed flag and configuration before setup; skip with notice while preserving configured-session failures | RED-first actual Node readiness gate; synthetic saved-key replay |

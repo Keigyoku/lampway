@@ -96,9 +96,33 @@ jobs:
       cancel-in-progress: false
       queue: max
     steps:
+    - name: Check whether the repo session has been seeded
+      id: session
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        SESSION_MODE: ${{ github.event.inputs.mode }}
+        SESSION_SEEDED: ${{ vars.CHATGPT_REVIEW_SEEDED }}
+        CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
+        CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
+        CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
+        CHATGPT_CREDENTIAL_SEED: ${{ secrets.CHATGPT_CREDENTIAL_SEED }}
+      with:
+        script: |
+          // Inspect presence only. Missing configuration is a deliberate, successful skip.
+          const env = process.env;
+          const configured = Boolean(env.CHATGPT_CREDENTIAL_KEY &&
+            env.CHATGPT_ADAPTER_PACKAGE_1 && env.CHATGPT_REVIEW_HOST_ID);
+          const ready = configured && (env.SESSION_MODE === 'seed' ?
+            Boolean(env.CHATGPT_CREDENTIAL_SEED) : env.SESSION_SEEDED === 'true');
+          core.setOutput('ready', String(ready));
+          if (!ready) {
+            core.notice('ChatGPT review skipped: this repository has not completed credential seeding. ' +
+              'The Captain must run scripts/seed-ephemeral.sh; no review was posted.');
+          }
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.12'
+      if: steps.session.outputs.ready == 'true'
     - name: Authenticate the pinned private adapter package
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
       env:
@@ -170,6 +194,7 @@ jobs:
           } catch {
             core.setFailed('adapter_package_failed: encrypted package failed identity or integrity verification.');
           }
+      if: steps.session.outputs.ready == 'true'
     - name: Cache public dependency downloads only
       uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25
       with:
@@ -177,6 +202,7 @@ jobs:
           ${{ runner.temp }}/chatgpt-public-pip
           ${{ runner.temp }}/chatgpt-public-npm
         key: chatgpt-dependencies-linux-x64-py312-${{ vars.CHATGPT_ADAPTER_REVISION }}
+      if: steps.session.outputs.ready == 'true'
     - name: Install locked public dependencies
       env:
         PIP_CACHE_DIR: ${{ runner.temp }}/chatgpt-public-pip
@@ -186,6 +212,7 @@ jobs:
         "$ADAPTER_DIRECTORY/.venv/bin/pip" install --require-hashes \
           -r "$ADAPTER_DIRECTORY/deploy/ephemeral/requirements.lock"
         npm ci --ignore-scripts --prefix "$ADAPTER_DIRECTORY/deploy/ephemeral"
+      if: steps.session.outputs.ready == 'true'
     - name: Run with verified rotation write-back
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
       env:
@@ -204,6 +231,7 @@ jobs:
               env: process.env, stdio: 'inherit', timeout: 30 * 60 * 1000});
             if (result.status !== 0) core.setFailed('Review/session job failed.');
           }
+      if: steps.session.outputs.ready == 'true'
     - name: Remove decrypted source and state
       if: always()
       run: |
