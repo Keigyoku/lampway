@@ -54,6 +54,11 @@ or unrelated tools. Hermes's `--toolsets` combines native tools and MCP server n
 admits an unrelated MCP server named `terminal`. Connector-only workers remove native built-ins and require a specific
 owner ruling; they are not silently enabled.
 
+A Hermes whose startup does not qualify for Lampway's guard (the standard installer's `hermes` wrapper unsets
+PYTHONPATH; any version other than 0.21.5) still runs workers, unverified (captain, 2026-10-13): they use the `lampway_pane`
+connector installed above, with your own MCP servers and tools beside it, and Lampway's harness listing says why
+(`worker_unverified`).
+
 Grok's primary-agent overlay retains inherited MCP servers, and an empty custom agent replaces the configured persona.
 A native restrictive policy can limit discovery, but moving its home changes native configuration. A preserving-home
 process-local policy namespace remains unproved: the cloud runner rejected the required user-namespace UID mapping.

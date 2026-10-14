@@ -332,8 +332,7 @@ class Cockpit:
                 if ad.herdr_kind:                                  # herdr knows this agent kind and runs its binary itself
                     L.run(self.root, ["agent", "start", herdr_name, "--kind", ad.herdr_kind, "--pane", pane_id, "--", *argv[1:]], timeout=120)
                     if first_prompt:                           # herdr confirms the turn started (or stalls within 5 s): never resent
-                        L.run(self.root, ["agent", "prompt", herdr_name, first_prompt, "--wait", "--until", "working",
-                                          "--until", "blocked"], timeout=60)
+                        self._first_prompt(herdr_name, pane_id, first_prompt)
                 else:                                              # [UNVERIFIED] whether herdr's agent start knows more kinds: typed into the pane's shell
                     # one shell-quoted command: herdr 0.9.3's `pane run` joins its arguments with spaces, unquoted (measured 2026-10-07)
                     L.run(self.root, ["pane", "run", pane_id, shlex.join(argv)])
@@ -723,6 +722,29 @@ class Cockpit:
                                   effort=rec.get("effort"))
         self.unbind(sid)
         return new
+
+    def _first_prompt(self, herdr_name: str, pane_id: str, text: str) -> None:
+        """One native prompt, confirmed by herdr seeing the turn start. A harness can draw its TUI (herdr: ready) while still
+        initializing and drop the Enter (Your Hermes 0.21.7: the task stayed in its composer). Only when herdr reports the prompt
+        stalled with the agent idle AND the pane shows the task still in its composer is one Enter sent, and herdr must then see
+        the turn start (captain, 2026-10-13); the text is never typed again and any other stall ends the start."""
+        try:
+            L.run(self.root, ["agent", "prompt", herdr_name, text, "--wait", "--until", "working", "--until", "blocked"], timeout=60)
+            return
+        except L.HerdrError as exc:
+            reason = str(exc)
+            if '"agent_prompt_stalled"' not in reason or "current status is idle" not in reason:
+                raise
+            try:
+                screen = L.run(self.root, ["pane", "read", pane_id, "--lines", "40", "--source", "recent"])
+            except L.HerdrError:
+                raise exc from None
+            letters = lambda t: "".join(ch for ch in t if ch.isalnum())       # a TUI wraps the composer and draws its own marks
+            shown = letters(_CTRL.sub("", screen))                            # a tall task scrolls: its end stays in view
+            if letters(text)[:48] not in shown and letters(text)[-48:] not in shown:
+                raise
+        L.run(self.root, ["agent", "send-keys", herdr_name, "enter"])
+        L.run(self.root, ["agent", "wait", herdr_name, "--until", "working", "--until", "blocked", "--timeout", "5000"], timeout=30)
 
     def interrupt(self, sid: str) -> list:
         """Interrupt a live session's running turn (the cockpit's interrupt and the island's Stop: a user request or the user's

@@ -104,11 +104,13 @@ class Hermes(Adapter):
                     or pane.launcher or not binding.startswith("swarm:")
                     or (pane.scene_session_id and pane.scene_session_id != binding)):
                 raise ValueError("Your Hermes connector-only worker policy requires one owned direct-only swarm MCP binding")
-            problem = self.worker_compatibility_note()
-            if problem:
-                raise ValueError(problem)
 
     def worker_compatibility_note(self):
+        """Readiness: an installed Hermes is permitted, qualified or not (captain, 2026-10-13: "permit unverified")."""
+        return ""
+
+    def worker_verification(self) -> str:
+        """"" when the installed startup qualifies for Lampway's owned guard; else why its workers run unverified."""
         from ...native_worker_readiness import hermes_worker_note
         return hermes_worker_note(self.locate())
 
@@ -123,9 +125,19 @@ class Hermes(Adapter):
         body = json.dumps({"version": 1, "binding": binding, "desktop": desktop, "direct": direct}, indent=2)
         env = {CONFIG_ENV: path, ROOT_ENV: str(Path(path).parent.parent.parent)} if path else {}
         files = {path: body} if path else {}
+        unverified = ""
         if not pane.desktop:
             if not path or not pane.direct or not binding:
                 raise ValueError("Your Hermes worker requires its owned direct MCP binding")
+            unverified = self.worker_verification()
+        if unverified:
+            # No owned guard can load (the installer's wrapper unsets PYTHONPATH; other versions are unqualified): the worker runs
+            # on the user's own lampway_pane connector, which reads this pane's binding, with its native settings and servers.
+            return ToolWiring("symbolic_stdio", (), env, files, (), binding, False,
+                              "This Hermes worker runs unverified: Lampway's connector-only guard is not in force, so it keeps your "
+                              "own Hermes's MCP servers and tools besides Lampway's (its lampway_pane connector, installed by you, "
+                              "reaches this worker's binding). Why: " + unverified)
+        if not pane.desktop:
             # Metadata only: the host validates the installed helper and native Python startup before launch.
             helper = str(Path(sys.executable).with_name("lampway-pane-mcp"))
             entry = canonical_entry(helper, path, env[ROOT_ENV])

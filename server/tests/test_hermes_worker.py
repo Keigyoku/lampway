@@ -290,13 +290,15 @@ def test_worker_candidate_keeps_canonical_herdr_argv_and_main_unchanged(tmp_path
                     mcp_config_path=str(tmp_path / "lampway/panes/worker/mcp.json"),
                     direct=(DirectServer("lampway", "http://127.0.0.1:9/api/v1/mcp/pane",
                                       {"X-Mixar-Session-Id": "swarm:one:worker"}, "WORKER_TOKEN", "synthetic"),))
-    monkeypatch.setattr(adapter, "worker_compatibility_note", lambda: "unsupported connector-only worker startup")
-    with pytest.raises(ValueError, match="connector-only worker"):
-        adapter.launch(pane, task="synthetic task")
-    with pytest.raises(ValueError, match="connector-only worker"):
-        adapter.lampway_tools(pane)
+    # An unqualified startup is permitted unverified (captain, 2026-10-13): no owned guard, the user's own lampway_pane connector.
+    monkeypatch.setattr(adapter, "worker_verification", lambda: "unsupported connector-only worker startup")
+    assert adapter.worker_compatibility_note() == ""
+    assert adapter.launch(pane, task="synthetic task") == ["hermes", "chat", "-q", "synthetic task"]
+    unverified = adapter.lampway_tools(pane)
+    assert unverified.verified is False and "unverified" in unverified.note and "unsupported connector-only" in unverified.note
+    assert set(unverified.env) == {W.CONFIG_ENV, W.ROOT_ENV} and set(unverified.files) == {pane.mcp_config_path}
     # Description fixtures explicitly supply a qualified preflight; no native process is launched.
-    monkeypatch.setattr(adapter, "worker_compatibility_note", lambda: "")
+    monkeypatch.setattr(adapter, "worker_verification", lambda: "")
     monkeypatch.setenv("PYTHONPATH", "synthetic-original-pythonpath")
     assert adapter.launch(pane, task="synthetic task") == ["hermes", "chat", "-q", "synthetic task"]
     wiring = adapter.lampway_tools(pane)

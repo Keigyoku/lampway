@@ -161,15 +161,28 @@ def test_direct_http_transport_forwards_only_owned_headers_and_call(config):
     asyncio.run(proof())
 
 
-def test_hermes_worker_refuses_until_native_isolation_policy_is_chosen(tmp_path):
+def test_an_unqualified_hermes_worker_runs_unverified_on_the_users_own_connector(tmp_path, monkeypatch):
+    """Captain, 2026-10-13: Hermes workers are permitted unverified. The standard installer's `hermes` is a bash wrapper that unsets
+    PYTHONPATH, so Lampway's owned startup guard can never load there (real install, 0.21.7+756); such a worker runs without it,
+    on the user's own lampway_pane connector and native settings, and says so."""
     from lampway_server.herdr.harnesses.hermes import Hermes
     from lampway_server.herdr.harnesses.base import PaneSpec,DirectServer
-    pane=PaneSpec(cwd=str(tmp_path),desktop=False,mcp_config_path=str(tmp_path/'worker.json'),
+    from lampway_server import native_worker_readiness as R
+    monkeypatch.setattr(R, "hermes_worker_note", lambda binary: R.HERMES_REFUSAL)
+    pane=PaneSpec(cwd=str(tmp_path),desktop=False,mcp_config_path=str(tmp_path/'lampway'/'panes'/'w'/'mcp.json'),
         direct=(DirectServer('lampway','http://127.0.0.1/api/v1/mcp/pane',
             {'X-Mixar-Session-Id':'swarm:one:worker'},'WORKER_TOKEN','synthetic'),))
-    for operation in (lambda:Hermes().lampway_tools(pane),lambda:Hermes().launch(pane,task='synthetic')):
-        with pytest.raises(ValueError,match='connector-only worker'):
-            operation()
+    adapter=Hermes()
+    assert adapter.worker_ok and adapter.worker_compatibility_note()=="" and adapter.worker_verification()==R.HERMES_REFUSAL
+    wiring=adapter.lampway_tools(pane)
+    assert wiring.verified is False and R.HERMES_REFUSAL in wiring.note
+    assert "PYTHONPATH" not in wiring.env and not any(p.endswith('sitecustomize.py') for p in wiring.files)
+    assert json.loads(wiring.files[pane.mcp_config_path])["binding"]=='swarm:one:worker'
+    from lampway_server.herdr import harnesses as HN
+    assert HN.worker_problem(adapter)==""
+    monkeypatch.setattr(Hermes, "detect", lambda self: HN.Installed("hermes", "hermes", "/usr/bin/hermes", "Hermes Agent v0.21.7"))
+    row = next(r for r in HN.listing() if r["id"] == "hermes")
+    assert row["worker_unverified"] == R.HERMES_REFUSAL
 
 
 def test_connector_refuses_arbitrary_file_before_open(tmp_path,monkeypatch):

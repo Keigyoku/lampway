@@ -36,7 +36,7 @@ def selected(tmp_path, monkeypatch, harness):
     monkeypatch.setattr(CH, 'WORLD_FACTORY', None)
 
 
-@pytest.mark.parametrize('harness', ['hermes', 'grok'])
+@pytest.mark.parametrize('harness', ['grok'])   # Hermes workers are permitted unverified (captain, 2026-10-13): the test below
 def test_installed_main_connector_does_not_advertise_worker_readiness(tmp_path, monkeypatch, harness):
     selected(tmp_path, monkeypatch, harness)
     adapter = HN.get(harness)
@@ -55,7 +55,7 @@ def test_installed_main_connector_does_not_advertise_worker_readiness(tmp_path, 
     assert CH.preferred('agent.worker_mode') == f'byoa:{harness}'
 
 
-@pytest.mark.parametrize('harness', ['hermes', 'grok'])
+@pytest.mark.parametrize('harness', ['grok'])
 def test_saved_unsupported_worker_refuses_before_activation_even_with_stale_readiness(tmp_path, monkeypatch, harness):
     selected(tmp_path, monkeypatch, harness)
     # A previously captured ready snapshot must not bypass actual launch preflight.
@@ -90,3 +90,14 @@ def test_supported_worker_stays_ready_and_resolves_saved_choice(tmp_path, monkey
     manager.cockpit = SimpleNamespace(project_root=str(tmp_path), mode1=object())
     brain = manager.worker_brain(SwarmContext(None, 'scene', 'turn', 'call', project_root=str(tmp_path)))
     assert brain.harness == 'claude' and brain.mode_choice.option == 'byoa:claude'
+
+
+def test_an_unqualified_installed_hermes_is_a_ready_worker_that_runs_unverified(tmp_path, monkeypatch):
+    """Captain, 2026-10-13: "It should permit unverified". An installed Hermes whose startup cannot take Lampway's guard is a
+    worker Choices resolves, not a refusal; its wiring says it runs unverified."""
+    selected(tmp_path, monkeypatch, 'hermes')
+    monkeypatch.setattr(N, 'hermes_worker_note', lambda binary: N.HERMES_REFUSAL)
+    assert 'byoa:hermes' not in byoa_worker_readiness()
+    assert CH.resolve('agent.worker_mode', CH.Job(origin='agent')).option == 'byoa:hermes'
+    adapter = HN.get('hermes')
+    assert adapter.worker_verification() == N.HERMES_REFUSAL

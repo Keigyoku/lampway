@@ -26,7 +26,8 @@ last send from the island). Images ride with the text for a harness that takes a
 the server writes them into a Lampway-owned folder inside the pane's project root (``Cockpit.write_pane_images``) and types their
 paths the way the harness reads them; a harness that cannot take one is refused with its reason (``images_unsupported``).
 
-**Stop (B4).** ``agent.byoa.interrupt``, and ``agent.cancel`` for a tab in Your agent mode, type the harness's own interrupt keys
+**Stop (B4).** ``agent.byoa.interrupt``, and ``agent.cancel`` for a tab in Your agent mode, cancel and join the tab's running swarm
+workers (captain, 2026-10-13) and type the harness's own interrupt keys
 into the tab's pane (``Adapter.interrupt_keys``, ``Cockpit.interrupt``): only from the user's own socket (an agent never stops a
 user's pane from here), only into a live pane Lampway started and bound to that tab. The observed turn's end is what tells the
 island the agent stopped.
@@ -497,15 +498,29 @@ class ByoaView:
         if origin_of(socket) != "user":
             return _result(False, code="agent_origin", status_code=403, message="Only your own Stop interrupts your agent's pane.", help=[USER_ONLY])
         rec = self.pane_for(session_id)
-        if rec is None or rec.get("state") != "live":
+        live = rec is not None and rec.get("state") == "live"
+        keys, refused = [], None
+        if live:
+            try:
+                keys = await asyncio.to_thread(self._cockpit().interrupt, rec["id"])
+            except Exception as exc:  # noqa: BLE001 - CockpitError, HerdrError: their reason
+                refused = str(exc)
+        # The tab's running swarm workers stop with it (captain, 2026-10-13), as Mode 1's Stop stops them: cancelled, then joined.
+        workers = await self._stop_workers(session_id)
+        if refused is not None:
+            return _result(False, code="pane_refused", status_code=409, message=refused, workers_cancelled=workers,
+                           help=["Stop it in its own pane (Lampway > Agents)"])
+        if not live and not workers:
             return _result(False, code="not_bound", status_code=409, help=[BIND_HELP if rec is None else RESUME_HELP],
                            message="No running agent pane is bound to this scene tab, so there is nothing to stop.")
-        try:
-            keys = await asyncio.to_thread(self._cockpit().interrupt, rec["id"])
-        except Exception as exc:  # noqa: BLE001 - CockpitError, HerdrError: their reason
-            return _result(False, code="pane_refused", status_code=409, message=str(exc),
-                           help=["Stop it in its own pane (Lampway > Agents)"])
-        return _result(True, pane=rec["id"], keys=keys, cancelled=True)
+        return _result(True, pane=rec["id"] if live else None, keys=keys, cancelled=True, workers_cancelled=workers)
+
+    async def _stop_workers(self, session_id: str) -> int:
+        swarm = getattr(self.hub, "swarm", None)
+        if swarm is None:
+            return 0
+        swarm.cancel_session(session_id)
+        return await swarm.join_cancelled_session(session_id)
 
     async def resume(self, socket, params: dict) -> dict:
         """The user's Resume of the tab's ended pane (spec B2, law 5): never automatic, never an agent's."""

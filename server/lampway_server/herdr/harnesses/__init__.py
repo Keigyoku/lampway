@@ -112,6 +112,8 @@ def listing() -> list:
         if a.id == "grok":
             from ...capabilities import grok_compat_disclosure
             rows[-1]["worker_compat"] = grok_compat_disclosure()
+        if a.id == "hermes" and found:                # permitted unverified (captain, 2026-10-13): the listing says when, and why
+            rows[-1]["worker_unverified"] = a.worker_verification()
     return rows
 
 

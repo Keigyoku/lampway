@@ -133,7 +133,7 @@ def test_an_agent_cannot_override_its_worker_mode(saved_choices):
                           {"preferred": "byoa:codex", "override_policy": "chain"}, by="user")
 
 
-@pytest.mark.parametrize("harness", ["hermes", "grok"])
+@pytest.mark.parametrize("harness", ["grok"])        # Hermes workers are permitted unverified (captain, 2026-10-13)
 def test_unsupported_selected_byoa_does_not_fall_back_to_mode1(saved_choices, tmp_path, monkeypatch, harness):
     from lampway_server import egress as EG
     from .worker_choice_support import install_worker_harness

@@ -72,8 +72,42 @@ def test_the_islands_cancel_for_a_tab_in_your_agent_mode_is_the_same_stop(stack)
     assert _keys(herdr) == [[rec["pane_id"], "esc"]]
 
 
+class _Swarms:
+    """The hub's own swarm, its two Stop calls recorded: this tab's workers cancelled, then joined (Mode 1's Stop does the same)."""
+    def __init__(self, fake, running=2):
+        self.calls, self.running = [], running
+        swarm = fake.http.app.state.agent.swarm
+        swarm.cancel_session = lambda session_id: self.calls.append(("cancel", session_id))
+        swarm.join_cancelled_session = self.join
+
+    async def join(self, session_id):
+        self.calls.append(("join", session_id))
+        return self.running
+
+
+def test_stop_also_stops_the_tabs_running_workers(stack):
+    """Captain, 2026-10-13: "stop should stop the tabs workers". A real Claude pane's swarm went on working after the island's
+    Stop interrupted the pane (real-account run at d8432bcb: both workers kept adding spheres)."""
+    fake, cockpit, herdr, proj, _ = stack
+    swarms = _Swarms(fake)
+    rec, _ = claude_pane(cockpit, proj)
+    with fake.connect_ws() as ws:
+        fake.handshake(ws)
+        out = _rpc(fake, ws, "agent.byoa.interrupt", {"session_id": SCENE})
+        cancel = _rpc(fake, ws, "agent.cancel", {"session_id": SCENE})
+    assert out["result"]["ok"] is True and out["result"]["workers_cancelled"] == 2 and _keys(herdr)[0] == [rec["pane_id"], "esc"]
+    assert cancel["result"]["ok"] is True and cancel["result"]["workers_cancelled"] == 2
+    assert swarms.calls == [("cancel", SCENE), ("join", SCENE)] * 2
+    _end(cockpit, rec["id"])                                    # the pane ended, its workers still run: Stop still stops them
+    with fake.connect_ws() as ws:
+        fake.handshake(ws)
+        ended = _rpc(fake, ws, "agent.byoa.interrupt", {"session_id": SCENE})
+    assert ended["result"]["ok"] is True and ended["result"]["workers_cancelled"] == 2 and len(_keys(herdr)) == 2
+
+
 def test_an_agent_socket_never_stops_the_users_pane(stack):
     fake, cockpit, herdr, proj, settings = stack
+    swarms = _Swarms(fake)
     claude_pane(cockpit, proj)
     with fake.connect_ws(token=_agent_token(settings)) as ws:
         fake.handshake(ws)
@@ -81,11 +115,12 @@ def test_an_agent_socket_never_stops_the_users_pane(stack):
         cancel = _rpc(fake, ws, "agent.cancel", {"session_id": SCENE})
     assert out["result"]["ok"] is False and out["result"]["code"] == "agent_origin"
     assert cancel["result"]["ok"] is False and cancel["result"]["code"] == "agent_origin"
-    assert _keys(herdr) == []
+    assert _keys(herdr) == [] and swarms.calls == []
 
 
 def test_stop_with_no_running_pane_says_so_and_types_nothing(stack):
     fake, cockpit, herdr, proj, _ = stack
+    _Swarms(fake, running=0)
     rec, _ = claude_pane(cockpit, proj)
     _end(cockpit, rec["id"])
     with fake.connect_ws() as ws:
