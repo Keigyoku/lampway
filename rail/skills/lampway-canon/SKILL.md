@@ -63,6 +63,8 @@ Canon08 anatomical membership uses actual weighted-bone ancestry to the nearest 
 
 ## How to work with it
 
+The canon check workflow (`.github/workflows/canon.yml`) runs on `${{ vars.CI_RUNNER || 'ubuntu-latest' }}`.
+
 1. **Find the page first.** Before writing or changing code in any of these areas, read the page and the conventions page it
    cites. Name the page in your plan and in the commit body.
 2. **Call the tool; do not improvise in a script.** When a `lampway_*` tool covers the step, use it (load `lampway-agent-tools`).
@@ -97,3 +99,4 @@ The verified native342 conform path requires an explicit reference: source_copy 
 | 2026-10-08 | actual native conform and container correction | actual source-copy and installed UE predicate evidence | a161-bone implicit reference rewrote native342 frames and a differently named Null became an extra root | Require explicit native reference or bounded source_copy, preserve authored data, and reserve Armature for disposable exports only under the verified predicate. Cross-check redundant authored binds under existing bars and retain display reconstruction errors. Keep native pose calibration and physical acceptance separate. | native default-reference/container RED, source-copy, bind corruption and near-bar controls |
 
 | 2026-10-08 | authorized AC65 starting defaults | captain judgment authorization dated 2026-10-07 | an unconditional open-decision stub ignored explicit delegated authority | record dated chosen values, rationale and untested physical status; retain overrides/falsifiers and separate documentary/synthetic evidence from physical acceptance | AC65 decision audit and default-path RED/GREEN; original gear validation remains untested |
+| 2026-10-14 | runner label routed through CI_RUNNER | `.github/workflows/canon.yml`: GitHub refuses GitHub-hosted jobs for this account (billing block); CI_RUNNER set to tenki-standard-small-2c-4g | the canon check could not start on ubuntu-latest | the canon workflow runs on the CI_RUNNER variable (default ubuntu-latest); setting CI_RUNNER to ubuntu-latest reverts it | lampway PR #17 rail check |
