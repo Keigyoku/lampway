@@ -70,6 +70,22 @@ def test_the_pages_form_may_follow_the_sign_in_redirect(http):
     assert "form-action 'self';" in http.get("/app/docs").headers.get("content-security-policy", "form-action 'self';")
 
 
+def test_sign_in_with_the_route_off_refuses_before_the_user_leaves_for_openai(settings, provider, tmp_path):
+    """The Captain signed in at OpenAI and only then read "The sign-in could not finish (EgressRefused)": the token exchange
+    needs the chatgpt_plan route, which was off. The start refuses first, on the page, naming the switch, and sends nobody away."""
+    from starlette.testclient import TestClient as Client
+    from lampway_server import egress as E
+    from lampway_server.app import create_app
+    strict = E.Egress(tmp_path / "strict-egress")
+    with Client(create_app(settings, provider=provider, egress=strict), base_url="http://127.0.0.1:8787") as client:
+        r = client.post("/app/chatgpt/start", follow_redirects=False)
+        assert r.status_code == 409 and "location" not in r.headers
+        assert "ChatGPT plan" in r.text and "switch it on" in r.text.lower()
+        strict.set_route("chatgpt_plan", True)
+        r = client.post("/app/chatgpt/start", follow_redirects=False)
+        assert r.status_code == 302 and r.headers["location"].startswith("https://auth.openai.com/")
+
+
 def test_the_page_starts_the_sign_in_with_a_form_post(http):
     r = http.get("/app/chatgpt")
     assert 'action="/app/chatgpt/start"' in r.text and 'method="post"' in r.text

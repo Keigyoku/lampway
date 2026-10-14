@@ -322,6 +322,12 @@ def create_app(settings: Settings, provider=None, chatgpt_auth=None, swarm_provi
         navigation cannot start one."""
         if not loopback_origin(request):
             return JSONResponse({"detail": "cross-origin sign-in refused"}, status_code=403)
+        from . import egress as _EG
+        try:                                      # the token exchange needs the route: refuse before anyone leaves for OpenAI
+            _EG.preflight("chatgpt_plan")
+        except _EG.EgressRefused:
+            return _chatgpt_page("error", "ChatGPT plan is switched off in Privacy, so the sign-in could not finish: switch it on, "
+                                 "then continue with ChatGPT.", status_code=409)
         return RedirectResponse(chatgpt.start_login().url, status_code=302)
 
     async def chatgpt_callback(request: Request):
