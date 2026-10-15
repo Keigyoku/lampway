@@ -100,9 +100,12 @@ metadata, for both PR-open authors and `@pr-review` comment authors. A login
 match alone never grants trust. Hosted validation checks the live same-repo
 PR before allocating the review runner; other bots, ordinary comments, plain
 issues, closed PRs and fork heads are excluded.
-Pushes never request reviews. A successful job verifies one fresh COMMENT
-review with an overview and exact inline findings. The reviewer never checks
-out or executes PR files, applies fixes, offers suggestions, commits or pushes.
+Pushes never request reviews. PR-open reviews are full; `@pr-review` reviews
+commits since the last trusted reviewed head, and `@pr-review full` requests a full
+pass. Missing or invalid incremental baselines fall back to a full review.
+A successful job verifies one fresh COMMENT review with an overview and exact
+inline findings. The authenticated adapter package includes all three chunks.
+The reviewer never checks out or executes PR files, applies fixes, offers suggestions, commits or pushes.
 
 Before setup, an unseeded repo or missing credential configuration emits a
 clear notice and skips the review successfully. The Captain's seeder sets
@@ -240,3 +243,4 @@ and restoring prior global scene state.
 | 2026-10-13 | ephemeral review credentials and provider setting | Captain addendum 5: leave persistent boxes | idle billing and rotating tokens tied reviews to permanent hosts | gate before allocation, serialize one encrypted repo store, verify rotation before use, and defer Boat retirement until four live proofs | RED-first store, write failure, gates and concurrency controls; Captain login and live proofs pending |
 | 2026-10-13 | unseeded review notice | Captain: merged caller before repo seeding | missing credentials turned ordinary PR openings red | check the verified-seed flag and configuration before setup; skip with notice while preserving configured-session failures | RED-first actual Node readiness gate; synthetic saved-key replay |
 | 2026-10-15 | trusted crew bot review admission | Captain: trust Vellum Bot Box for PR-open and requested reviews | human-only authorization refused crew PRs and their re-review requests | admit the exact vellum-bot-box[bot] Bot identity with app id 5311490 wherever metadata exists, retaining human checks, same-repo gates and review isolation | Captain decision, 2026-10-15 |
+| 2026-10-15 | incremental requested review rollout | Captain: incremental comments with explicit full override and safe readiness retry | callers lacked the third authenticated package chunk and the review-mode contract | forward PACKAGE_3 and document full PR-open, incremental comments, explicit full override and safe full fallback without changing admission gates | exact adapter source and generated caller digest recorded in the PR |
