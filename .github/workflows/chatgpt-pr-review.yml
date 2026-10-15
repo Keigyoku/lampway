@@ -179,6 +179,7 @@ jobs:
         CHATGPT_ADAPTER_REVISION: ${{ vars.CHATGPT_ADAPTER_REVISION }}
         CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
         CHATGPT_ADAPTER_PACKAGE_2: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_2 }}
+        CHATGPT_ADAPTER_PACKAGE_3: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_3 }}
       with:
         script: |
           // Embedded into the trusted workflow. Never check out or execute a PR head.
@@ -193,7 +194,7 @@ jobs:
             const key = Buffer.from(env.CHATGPT_CREDENTIAL_KEY, 'base64');
             if (key.length !== 32 || !env.CHATGPT_REVIEW_HOST_ID) throw new Error();
             const packet = JSON.parse(env.CHATGPT_ADAPTER_PACKAGE_1 +
-              (env.CHATGPT_ADAPTER_PACKAGE_2 || ''));
+              (env.CHATGPT_ADAPTER_PACKAGE_2 || '') + (env.CHATGPT_ADAPTER_PACKAGE_3 || ''));
             const aad = {host_id: env.CHATGPT_REVIEW_HOST_ID, purpose: 'adapter-package:' + revision,
               repo: env.GITHUB_REPOSITORY, repo_id: Number(env.GITHUB_REPOSITORY_ID), version: 1};
             if (packet.version !== 1 || !Number.isSafeInteger(aad.repo_id)) throw new Error();
