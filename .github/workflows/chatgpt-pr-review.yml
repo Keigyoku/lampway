@@ -30,14 +30,17 @@ permissions:
 jobs:
   authorize:
     name: Authorize without review secrets
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name
-      == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.head.repo.full_name
-      == github.repository && github.event.pull_request.user.type == 'User' && !endsWith(github.event.pull_request.user.login,
-      '[bot]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
-      || (github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.pull_request
-      && startsWith(github.event.comment.body, '@pr-review') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-      github.event.comment.author_association) && github.event.comment.user.type == 'User' && !endsWith(github.event.comment.user.login,
-      '[bot]'))
+    if: 'github.event_name == ''schedule'' || github.event_name == ''workflow_dispatch'' || (github.event_name
+      == ''pull_request'' && github.event.action == ''opened'' && github.event.pull_request.head.repo.full_name
+      == github.repository && ((github.event.pull_request.user.type == ''User'' && !endsWith(github.event.pull_request.user.login,
+      ''[bot]'') && contains(fromJSON(''["OWNER","MEMBER","COLLABORATOR"]''), github.event.pull_request.author_association))
+      || (github.event.pull_request.user.type == ''Bot'' && contains(''[{"login": "vellum-bot-box[bot]",
+      "type": "Bot", "app_id": 5311490}]'', github.event.pull_request.user.login)))) || (github.event_name
+      == ''issue_comment'' && github.event.action == ''created'' && github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, ''@pr-review'') && ((github.event.comment.user.type == ''User''
+      && !endsWith(github.event.comment.user.login, ''[bot]'') && contains(fromJSON(''["OWNER","MEMBER","COLLABORATOR"]''),
+      github.event.comment.author_association)) || (github.event.comment.user.type == ''Bot'' && contains(''[{"login":
+      "vellum-bot-box[bot]", "type": "Bot", "app_id": 5311490}]'', github.event.comment.user.login))))'
     runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
@@ -47,9 +50,33 @@ jobs:
       allowed: ${{ steps.gate.outputs.allowed }}
     steps:
     - id: gate
+      env:
+        CHATGPT_TRUSTED_BOTS: '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]'
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
       with:
         script: |
+          // Exact bot identity policy; only trusted workflow configuration can override it.
+          let botIdentities;
+          try {
+            botIdentities = JSON.parse(process.env.CHATGPT_TRUSTED_BOTS ||
+              '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]');
+            if (!Array.isArray(botIdentities) || botIdentities.some(item =>
+                !item || typeof item !== 'object' || Array.isArray(item) ||
+                Object.keys(item).sort().join(',') !== 'app_id,login,type' ||
+                typeof item.login !== 'string' || !item.login.endsWith('[bot]') ||
+                item.type !== 'Bot' || !Number.isSafeInteger(item.app_id) || item.app_id <= 0)) {
+              botIdentities = [];
+            }
+          } catch { botIdentities = []; }
+          const trustedBot = item => {
+            if (item?.user?.type !== 'Bot') return false;
+            const identity = botIdentities.find(bot => bot.login === item.user.login);
+            if (!identity) return false;
+            // PR REST responses omit this field. Any supplied app metadata must agree.
+            return !Object.hasOwn(item, 'performed_via_github_app') ||
+              (Number.isSafeInteger(item.performed_via_github_app?.id) &&
+               item.performed_via_github_app.id === identity.app_id);
+          };
           // No adapter, ChatGPT or package secret is present in this GitHub-hosted job.
           const {owner, repo} = context.repo;
           const payload = context.payload;
@@ -66,12 +93,14 @@ jobs:
             } else {
               let number;
               if (context.eventName === 'pull_request' && payload.action === 'opened' &&
-                  human(payload.pull_request?.user) && trusted(payload.pull_request?.author_association) &&
+                  (trustedBot(payload.pull_request) || (human(payload.pull_request?.user) &&
+                   trusted(payload.pull_request?.author_association))) &&
                   payload.pull_request?.head?.repo?.full_name === process.env.GITHUB_REPOSITORY) {
                 number = payload.pull_request.number;
               } else if (context.eventName === 'issue_comment' && payload.action === 'created' &&
-                         payload.issue?.pull_request && human(payload.comment?.user) &&
-                         trusted(payload.comment?.author_association) &&
+                         payload.issue?.pull_request &&
+                         (trustedBot(payload.comment) || (human(payload.comment?.user) &&
+                          trusted(payload.comment?.author_association))) &&
                          typeof payload.comment?.body === 'string' &&
                          /^@pr-review(?:\s|$)/.test(payload.comment.body) &&
                          Number.isSafeInteger(payload.comment.id) && payload.comment.id > 0) {
@@ -79,7 +108,24 @@ jobs:
               }
               if (Number.isSafeInteger(number) && number > 0) {
                 const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: number});
-                allowed = pr.state === 'open' && pr.head.repo?.full_name === process.env.GITHUB_REPOSITORY;
+                const actor = context.eventName === 'pull_request' ? payload.pull_request : payload.comment;
+                let botAllowed = true;
+                if (trustedBot(actor)) {
+                  let liveActor = pr;
+                  if (context.eventName === 'issue_comment') {
+                    const {data: comment} = await github.rest.issues.getComment({owner, repo,
+                      comment_id: payload.comment.id});
+                    const issueUrl = (process.env.GITHUB_API_URL || 'https://api.github.com') +
+                      `/repos/${owner}/${repo}/issues/${number}`;
+                    liveActor = comment;
+                    botAllowed = comment.id === payload.comment.id && comment.issue_url === issueUrl &&
+                      typeof comment.body === 'string' && /^@pr-review(?:\s|$)/.test(comment.body);
+                  }
+                  botAllowed = botAllowed && trustedBot(liveActor) &&
+                    liveActor.user.login === actor.user.login;
+                }
+                allowed = botAllowed && pr.state === 'open' &&
+                  pr.head.repo?.full_name === process.env.GITHUB_REPOSITORY;
               }
             }
           }
@@ -87,6 +133,8 @@ jobs:
           core.info(allowed ? 'Authorized review or session maintenance.' : 'Ignored event; no review runner allocated.');
   review:
     name: Ephemeral review or session maintenance
+    env:
+      CHATGPT_TRUSTED_BOTS: '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]'
     needs: authorize
     if: needs.authorize.outputs.allowed == 'true' && github.event.inputs.mode != 'probe'
     runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
