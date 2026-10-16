@@ -299,7 +299,7 @@ def test_selected_factory_failure_never_reselects_settings_or_a_fallback(saved_c
 
 def test_each_provider_step_has_resolution_context_and_restores_caller_context(saved_choices):
     from lampway_server import egress as EG
-    from lampway_server.agent.providers import ResolvedWorkerProvider
+    from lampway_server.agent.providers import ResolvedProvider
     selection = CH.resolve("agent.worker")
     seen = []
 
@@ -314,7 +314,7 @@ def test_each_provider_step_has_resolution_context_and_restores_caller_context(s
 
     async def run():
         with EG.context(kind="caller"):
-            events = ResolvedWorkerProvider(Provider(), selection).stream(None)
+            events = ResolvedProvider(Provider(), selection.egress_context(), selection.record()).stream(None)
             # Gateway consumes the first event before creating its SSE task.
             assert await events.__anext__() == "first"
             assert EG._ctx.get() == {"kind": "caller"}
@@ -324,3 +324,26 @@ def test_each_provider_step_has_resolution_context_and_restores_caller_context(s
     asyncio.run(run())
     assert len(seen) == 3
     assert all(row["option"] == selection.option and row["content_class"] == "private" for row in seen)
+
+
+@pytest.mark.parametrize("built", ["resolution", "settings"])
+def test_the_main_agent_streams_under_the_same_private_context_as_its_workers(saved_choices, settings, monkeypatch, built):
+    """Captain, 2026-10-15: the main agent needs the same permissions as its workers. On the ChatGPT plan the workers' requests
+    were private (their Choices resolution) and refused without the user's grant, while the main agent's, built from
+    LAMPWAY_PROVIDER, carried no content class and the private-content guard never ran (real-account run, a649f814)."""
+    from lampway_server import egress as EG
+    from lampway_server.agent import providers
+    seen = []
+
+    class Provider:
+        async def stream(self, request):
+            seen.append(dict(EG._ctx.get()))
+            yield "text"
+    monkeypatch.setattr(providers, "_make_provider", lambda *a, **k: Provider())
+    resolution = CH.resolve("agent.main", CH.Job())
+    main = providers.make_provider(settings, resolution=resolution if built == "resolution" else None)
+
+    async def run():
+        return [e async for e in main.stream(None)]
+    assert asyncio.run(run()) == ["text"]
+    assert seen and seen[0]["content_class"] == "private" and seen[0]["option"] == resolution.option, seen

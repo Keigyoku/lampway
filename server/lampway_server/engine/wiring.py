@@ -270,7 +270,14 @@ def provider_getter(agent, *, settings=None, chatgpt_auth=None):
             return selected_vision(provider, agent, cached[2])
         return cached[1] if cached is not None and cached[0] is provider else False
 
+    def on_refused(session_id, message: str) -> None:
+        """The gateway's report of a refusal no retry can change: a Mode 1 worker's swarm ends that worker with the reason."""
+        bindings = getattr(getattr(agent, "swarm", None), "bindings", None)
+        if is_worker_session(session_id) and bindings is not None:
+            bindings.fail(str(session_id), f"its model request was refused: {message}")
+
     get.vision_for = vision_for
+    get.on_refused = on_refused
     return get
 
 
@@ -442,20 +449,20 @@ class _SummaryProvider:
         self.supports_vision = _resolution_vision(agent, resolution, self.auth)
 
     async def stream(self, request):
-        from ..agent.providers import make_provider, ResolvedWorkerProvider
+        from ..agent.providers import ResolvedProvider, make_provider
         # Reuse the app-owned ChatGPT auth instance; no credentials or grants copied.
         auth = self.chatgpt_auth if self.chatgpt_auth is not None else getattr(self.agent.provider, 'auth', None)
         if self.resolution.provider == 'chatgpt_plan' and auth is None:
             raise ValueError('The app-owned ChatGPT authentication is unavailable')
         provider = make_provider(self.settings, chatgpt_auth=auth, resolution=self.resolution)
-        guarded = ResolvedWorkerProvider(provider, self.resolution)
+        guarded = ResolvedProvider(provider, self.resolution.egress_context(), self.resolution.record())
         try:
             async for event in guarded.stream(request):
                 yield event
         finally:
             # These clients were made for this call, never the main pane's shared client.
             import inspect
-            client = getattr(provider, 'client', None)
+            client = getattr(getattr(provider, 'provider', provider), 'client', None)
             close = getattr(client, 'aclose', None) or getattr(client, 'close', None)
             if close is not None:
                 result = close()

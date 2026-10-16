@@ -51,4 +51,4 @@ def test_saving_the_main_agents_choice_rebuilds_its_provider(state, settings, pr
         fake.login()
         r = http.put("/app/choices/agent.main", json={"scope": "global", "preferred": "openrouter:anthropic/claude-sonnet-5.5"}, headers=fake.rest_headers())
         assert r.status_code == 200, r.text
-        assert isinstance(app.state.agent.provider, OpenRouterProvider) and settings.provider == "openrouter"
+        assert isinstance(app.state.agent.provider.provider, OpenRouterProvider) and settings.provider == "openrouter"

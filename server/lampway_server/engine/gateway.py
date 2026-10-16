@@ -609,12 +609,25 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             return provider_getter(session_id, requested_model=requested_model)
         return provider_getter(session_id) if takes_session else provider_getter()
 
+    refused_hook = getattr(provider_getter, "on_refused", None)
+
+    def failed(provider, exc, session_id) -> tuple:
+        """The OpenAI-style failure; a refusal no retry can change (a 4xx other than 429) also reaches ``on_refused`` with its
+        reason, so a swarm worker refused for good ends at once instead of idling until its deadline (the getter decides)."""
+        status, err = _provider_error(provider, exc)
+        if refused_hook is not None and 400 <= status < 500 and status != 429:
+            try:
+                refused_hook(session_id, str(exc) or type(exc).__name__)
+            except Exception:  # noqa: BLE001 - reporting never changes the engine's answer
+                log.debug("an engine gateway refusal listener failed", exc_info=True)
+        return status, err
+
     def provider_or_error(session_id, requested_model=None):
         """(provider, None) or (None, the OpenAI-style error response): a pane whose choice cannot be built is told so."""
         try:
             return provider_for(session_id, requested_model), None
         except Exception as exc:  # noqa: BLE001 - a missing key, a retired option: reported, never answered by another provider
-            status, err = _provider_error(None, exc)
+            status, err = failed(None, exc, session_id)
             return None, JSONResponse(err, status_code=status)
 
     def admit(request: Request):
@@ -692,7 +705,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             raise
         except Exception as exc:  # noqa: BLE001 - setup has the same recovery/status contract as the first event
             registry.unwatch_call(token, revoked)
-            status, err = _provider_error(provider, exc)
+            status, err = failed(provider, exc, session_id)
             return JSONResponse(err, status_code=status)
         if not body.get("stream"):
             async def consume():
@@ -706,7 +719,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 - reported to the engine, never retried here
-                status, err = _provider_error(provider, exc)
+                status, err = failed(provider, exc, session_id)
                 return JSONResponse(err, status_code=status)
             finally:
                 registry.unwatch_call(token, revoked)
@@ -724,7 +737,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001
-            status, err = _provider_error(provider, exc)
+            status, err = failed(provider, exc, session_id)
             return JSONResponse(err, status_code=status)
         finally:
             if not handed_off:
@@ -750,7 +763,7 @@ def gateway_routes(registry: Registry, provider_getter: Callable) -> list:
                 except asyncio.CancelledError:
                     raise
                 except Exception as exc:  # noqa: BLE001 - after the first byte only an error event can say it
-                    _, err = _provider_error(provider, exc)
+                    _, err = failed(provider, exc, session_id)
                     yield f"data: {json.dumps(err)}\n\n"
                 yield "data: [DONE]\n\n"
             finally:

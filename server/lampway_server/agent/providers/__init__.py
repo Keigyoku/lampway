@@ -19,11 +19,8 @@ def make_provider(settings, chatgpt_auth=None, resolution=None):
     if resolution is not None and not str(resolution.option).startswith("follow:"):
         from ...choices.bridge import settings_for_option
         p = _make_provider(settings_for_option(settings, resolution.option, resolution.params), chatgpt_auth)
-        try:
-            p.choice = {"option": resolution.option, "reason": resolution.reason, "why": resolution.why}
-        except AttributeError:
-            pass
-        return p
+        return ResolvedProvider(p, resolution.egress_context(),
+                                {"option": resolution.option, "reason": resolution.reason, "why": resolution.why})
     try:
         from ...choices import shadow as SH
         from ...choices.bridge import chains
@@ -31,7 +28,17 @@ def make_provider(settings, chatgpt_auth=None, resolution=None):
         SH.record("agent.main", chains(settings)["agent.main"]["preferred"], CH.Job())       # the shadow row: resolved vs ran
     except Exception:  # noqa: BLE001
         pass
-    return _make_provider(settings, chatgpt_auth)
+    # The main agent sends what its workers send, so it carries agent.main's privacy context too (captain, 2026-10-15).
+    return ResolvedProvider(_make_provider(settings, chatgpt_auth), _main_context())
+
+
+def _main_context() -> dict:
+    from ... import choices as CH
+    try:
+        return CH.resolve("agent.main", CH.Job()).egress_context()
+    except Exception:  # noqa: BLE001 - nothing resolves: the purpose's own class still holds
+        from ...choices import registry as REG
+        return {"content_class": REG.get("agent.main").content_class}
 
 
 def _make_provider(settings, chatgpt_auth=None):
@@ -98,7 +105,7 @@ def make_swarm_provider(settings, label: str, chatgpt_auth=None, resolution=None
         selected = settings_for_option(settings, resolution.option, resolution.params)
         provider = (_openrouter(selected, selected.openrouter_model, label) if selected.provider == "openrouter"
                     else _make_provider(selected, chatgpt_auth))
-        return ResolvedWorkerProvider(provider, resolution)
+        return ResolvedProvider(provider, resolution.egress_context(), resolution.record())
     try:
         return _make_swarm_provider(settings, label, chatgpt_auth)
     except (ValueError, RuntimeError) as exc:
@@ -121,11 +128,11 @@ def make_swarm_provider(settings, label: str, chatgpt_auth=None, resolution=None
     raise first_error
 
 
-class ResolvedWorkerProvider:
-    """One pinned worker service, with its Choices privacy context on every transport step."""
-    def __init__(self, provider, resolution):
-        self.provider, self.resolution = provider, resolution
-        self.choice = resolution.record()
+class ResolvedProvider:
+    """One service, main or worker, with its Choices privacy context on every transport step."""
+    def __init__(self, provider, context: dict, choice=None):
+        self.provider, self.context = provider, dict(context)
+        self.choice = choice if choice is not None else getattr(provider, "choice", None)
 
     def __getattr__(self, name):
         return getattr(self.provider, name)
@@ -135,7 +142,7 @@ class ResolvedWorkerProvider:
         events = self.provider.stream(request).__aiter__()
         try:
             while True:
-                with EG.context(**self.resolution.egress_context()):
+                with EG.context(**self.context):
                     try:
                         event = await events.__anext__()
                     except StopAsyncIteration:
@@ -144,7 +151,7 @@ class ResolvedWorkerProvider:
         finally:
             close = getattr(events, "aclose", None)
             if close is not None:
-                with EG.context(**self.resolution.egress_context()):
+                with EG.context(**self.context):
                     await close()
 
 

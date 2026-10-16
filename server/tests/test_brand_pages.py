@@ -110,7 +110,9 @@ def test_the_served_pages_carry_the_brand_and_its_csp(settings, provider, tmp_pa
                              ("/auth/higgsfield/callback", {"code": "x", "state": "forged"}), ("/auth/hyper3d/callback", {"code": "x", "state": "forged"})):
             r = http.get(path, params=params)
             assert r.headers["content-type"].startswith("text/html"), path
-            assert r.headers.get("content-security-policy") == BP.CSP, path
+            # the ChatGPT pages' form starts a sign-in that redirects to OpenAI: form-action names exactly that origin, nothing else
+            chatgpt = BP.CSP.replace("form-action 'self';", "form-action 'self' https://auth.openai.com;")
+            assert r.headers.get("content-security-policy") == (chatgpt if path in ("/app/chatgpt", "/auth/callback") else BP.CSP), path
             assert 'class="mark"' in r.text and "--lw-canvas" in r.text, path
         assert "This sign-in link has expired" in http.get("/auth/callback", params={"code": "x", "state": "forged"}).text
         # the cockpit page (contract 10) takes the same faces and mark from its own origin

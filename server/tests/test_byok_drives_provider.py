@@ -27,7 +27,7 @@ def test_a_local_endpoint_saved_in_the_dialog_is_the_agents_provider(fake, setti
     assert chosen["preferred"] == "openai:local" and chosen["set_by"] == "user"
     assert chosen["params"] == {"model": "qwen3-coder-30b", "base_url": "http://127.0.0.1:8080/v1"}
     main = http.app.state.agent.provider
-    assert isinstance(main, OpenAICompatProvider)
+    assert isinstance(main.provider, OpenAICompatProvider)
     assert (main.base_url, main.model) == ("http://127.0.0.1:8080/v1", "qwen3-coder-30b")
 
 
@@ -37,7 +37,7 @@ def test_an_anthropic_key_saved_in_the_dialog_is_the_agents_provider(fake, setti
                                                   "api_key": "sk-" "ant-secret-FAKE-0000000000005678"})
     assert saved.status_code == 200, saved.text
     assert _main_choice(settings)["preferred"] == "anthropic:claude-sonnet-5-5"
-    assert isinstance(http.app.state.agent.provider, AnthropicProvider)
+    assert isinstance(http.app.state.agent.provider.provider, AnthropicProvider)
 
 
 def test_a_remote_endpoint_is_an_egress_route_the_user_switches_on(fake, settings, http):

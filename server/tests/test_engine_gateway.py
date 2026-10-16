@@ -354,3 +354,57 @@ def test_a_token_is_redacted_from_log_text_and_never_in_a_log_record_the_gateway
         ask(gw, {"messages": [{"role": "user", "content": "x"}]})
     assert gw.token not in caplog.text
     assert gw.token not in ask(gw, {"messages": [{"role": "user", "content": "x"}]}).text
+
+
+# ------------------------------------------------------------------------------------- a worker refused for good is told
+@pytest.mark.parametrize("stream", [True, False])
+def test_a_worker_whose_model_request_is_refused_for_good_is_ended_at_once(stream):
+    """Captain, 2026-10-15: fix the workers that hang. Two Mode 1 workers on the ChatGPT plan were refused by the private-content
+    guard; Hermes showed "Your request was not processed" and each sat "running" until the island's Stop (real-account run,
+    a649f814). A refusal no retry can change (a 4xx other than 429) reaches the getter's on_refused with its reason (the getter
+    decides what to end: test_the_swarm_ends_a_refused_worker_with_the_reason); a retryable failure never does."""
+    from starlette.applications import Starlette
+    reg = GW.Registry()
+    reported = []
+
+    class Refusing:
+        name = "chatgpt_plan"
+
+        def __init__(self, exc):
+            self.exc = exc
+
+        async def stream(self, request):
+            raise self.exc
+            yield  # noqa - an async generator
+
+    cases = {"swarm:sw1:worker-1": E.EgressRefused("this asset is private and chatgpt_plan requires a verified-ephemeral guarantee"),
+             "scene-unit": E.EgressRefused("private content"),
+             "swarm:sw1:worker-2": ChatGPTPlanError(_RECOVERY[LIMIT], code=LIMIT)}
+
+    def getter(session_id=None):
+        return Refusing(cases[session_id])
+    getter.on_refused = lambda session_id, message: reported.append((session_id, message))
+    with client_for(Starlette(routes=GW.gateway_routes(reg, getter))) as c:
+        for session in cases:
+            token = reg.issue_token(session)
+            r = c.post(CHAT, json={"model": "m", "messages": [{"role": "user", "content": "hi"}], "stream": stream},
+                       headers={"Authorization": f"Bearer {token}"})
+            assert r.status_code in (403, 429), (session, r.status_code)
+    assert reported == [("swarm:sw1:worker-1", "this asset is private and chatgpt_plan requires a verified-ephemeral guarantee"),
+                        ("scene-unit", "private content")]
+
+
+def test_the_swarm_ends_a_refused_worker_with_the_reason(settings, provider):
+    import asyncio
+    from lampway_server.engine import wiring as W
+    app = create_app(settings, provider=provider)
+    agent = app.state.agent
+
+    async def run():
+        binding, _ = agent.swarm.bindings.issue("swarm:sw1:worker-1", SimpleNamespace(meta={}))
+        W.provider_getter(agent, settings=settings).on_refused("swarm:sw1:worker-1", "private content refused")
+        with pytest.raises(RuntimeError, match="model request was refused: private content refused"):
+            await asyncio.wait_for(asyncio.shield(binding.done), 1)
+        assert not agent.swarm.bindings.is_live("swarm:sw1:worker-1")
+        W.provider_getter(agent, settings=settings).on_refused("scene-unit", "ignored")        # not a worker: nothing to end
+    asyncio.run(run())

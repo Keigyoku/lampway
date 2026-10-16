@@ -31,7 +31,7 @@ def test_env_only_setup_unchanged(clean_env, monkeypatch, tmp_path):
     monkeypatch.setenv("OPENROUTER_API_KEY", OR_KEY)
     settings = Settings.from_env({"LAMPWAY_PROVIDER": "openrouter", "LAMPWAY_STATE_DIR": str(tmp_path / "state")})
     provider = make_provider(settings)
-    assert isinstance(provider, OpenRouterProvider) and C.secret_of(C.credential("openrouter")) == OR_KEY
+    assert isinstance(provider.provider, OpenRouterProvider) and C.secret_of(C.credential("openrouter")) == OR_KEY
     assert "image_gen" in default_job_backends(settings)
 
 

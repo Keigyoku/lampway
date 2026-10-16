@@ -134,6 +134,14 @@ class WorkerBindings:
             binding.done.set_result(summary)
         binding.state = "done"
 
+    def fail(self, name: str, reason: str) -> None:
+        """A live worker that can no longer work (its model request refused for good) ends now with the reason, not at its
+        deadline: its brain is waiting on ``done``."""
+        b = self._by_name.get(name or "")
+        if b is not None and b.live and not b.done.done():
+            b.done.set_exception(RuntimeError(f"{name}: {reason}"))
+            b.state = "revoked"
+
     def revoke(self, name: str) -> None:
         b = self._by_name.get(name)
         if b is not None and b.live:
