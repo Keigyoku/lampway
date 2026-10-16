@@ -347,3 +347,33 @@ def test_the_main_agent_streams_under_the_same_private_context_as_its_workers(sa
         return [e async for e in main.stream(None)]
     assert asyncio.run(run()) == ["text"]
     assert seen and seen[0]["content_class"] == "private" and seen[0]["option"] == resolution.option, seen
+
+
+def test_the_main_agents_privacy_context_is_read_when_it_streams_not_when_it_is_built(saved_choices, settings, monkeypatch):
+    """At server start agent.main could not resolve yet (its ChatGPT connection was not loaded), so the main agent was built with
+    a context naming no option: the user's own "Allow private content" for chatgpt_plan:gpt-6.1-sol could never match it and every
+    main turn was refused (real-account run, be72a2cd). The context is resolved at each stream."""
+    from lampway_server import egress as EG
+    from lampway_server.agent import providers
+    real = CH.resolve
+    ready = {"now": False}
+
+    def resolve(pid, job=None, **kw):
+        if pid == "agent.main" and not ready["now"]:
+            raise CH.NoChoice("nothing can serve Main agent now", pid, [], "")
+        return real(pid, job, **kw) if job is not None else real(pid, **kw)
+    monkeypatch.setattr(CH, "resolve", resolve)
+    seen = []
+
+    class Provider:
+        async def stream(self, request):
+            seen.append(dict(EG._ctx.get()))
+            yield "text"
+    monkeypatch.setattr(providers, "_make_provider", lambda *a, **k: Provider())
+    main = providers.make_provider(settings)
+    ready["now"] = True
+
+    async def run():
+        return [e async for e in main.stream(None)]
+    asyncio.run(run())
+    assert seen[0]["option"] == real("agent.main", CH.Job()).option and seen[0]["content_class"] == "private", seen

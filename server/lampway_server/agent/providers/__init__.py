@@ -28,8 +28,9 @@ def make_provider(settings, chatgpt_auth=None, resolution=None):
         SH.record("agent.main", chains(settings)["agent.main"]["preferred"], CH.Job())       # the shadow row: resolved vs ran
     except Exception:  # noqa: BLE001
         pass
-    # The main agent sends what its workers send, so it carries agent.main's privacy context too (captain, 2026-10-15).
-    return ResolvedProvider(_make_provider(settings, chatgpt_auth), _main_context())
+    # The main agent sends what its workers send, so it carries agent.main's privacy context too (captain, 2026-10-15), read at
+    # each stream: at server start agent.main may not resolve yet, and a context naming no option matches no user grant.
+    return ResolvedProvider(_make_provider(settings, chatgpt_auth), _main_context)
 
 
 def _main_context() -> dict:
@@ -130,19 +131,25 @@ def make_swarm_provider(settings, label: str, chatgpt_auth=None, resolution=None
 
 class ResolvedProvider:
     """One service, main or worker, with its Choices privacy context on every transport step."""
-    def __init__(self, provider, context: dict, choice=None):
-        self.provider, self.context = provider, dict(context)
+    def __init__(self, provider, context, choice=None):
+        """``context``: the egress context, or a function returning it at each stream."""
+        self.provider, self._context = provider, context if callable(context) else dict(context)
         self.choice = choice if choice is not None else getattr(provider, "choice", None)
 
     def __getattr__(self, name):
         return getattr(self.provider, name)
 
+    @property
+    def context(self) -> dict:
+        return self._context() if callable(self._context) else self._context
+
     async def stream(self, request):
         from ... import egress as EG
+        context = self.context
         events = self.provider.stream(request).__aiter__()
         try:
             while True:
-                with EG.context(**self.context):
+                with EG.context(**context):
                     try:
                         event = await events.__anext__()
                     except StopAsyncIteration:
@@ -151,7 +158,7 @@ class ResolvedProvider:
         finally:
             close = getattr(events, "aclose", None)
             if close is not None:
-                with EG.context(**self.context):
+                with EG.context(**context):
                     await close()
 
 
