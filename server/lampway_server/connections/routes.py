@@ -21,8 +21,9 @@ def _agent_declared(request: Request) -> bool:
 
 
 def _cross_origin(request: Request) -> bool:
+    from ..browser_origin import own_page_post
     origin = request.headers.get("origin")
-    if not origin:
+    if not origin or own_page_post(request):
         return False
     try:
         return (urlparse(origin).hostname or "") not in LOOPBACK

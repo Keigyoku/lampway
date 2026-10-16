@@ -319,3 +319,31 @@ def test_scope_bound_refresh_grant_loss_refuses_before_inference(stack):
     with pytest.raises(PlanUsageDisabled,match="scope changed"):
         asyncio.run(auth.access_token_for_scope(scope))
     assert auth.vision_account_scope() is None
+
+
+def test_the_vision_form_works_from_a_real_browser(stack):
+    """The form page is no-referrer, so a real browser posts it with Origin "null": the production caller check
+    (connections._cross_origin) read that as cross-origin and the guard answered "Vision checks require the user's local
+    browser" to the user's own click (real-account run, d20bf28a). The browser's own Sec-Fetch-Site, which no page can set,
+    tells same-origin apart; a bare or cross-site null stays refused."""
+    auth, V = stack
+    from lampway_server.chatgpt_vision_routes import routes
+    from lampway_server.connections.routes import _cross_origin
+    calls = []
+    async def run_probe(auth, model, **kwargs):
+        calls.append(model)
+        return {"images_enabled": False, "status": "failed", "model": model}
+    app = Starlette(routes=routes(auth, lambda: "synthetic-model", lambda r: "agent" if _cross_origin(r) else "user",
+                                  human_session=lambda r: ("synthetic-user-session", time.time() + 3600)
+                                  if r.headers.get("authorization") == "Bearer synthetic-user" else None, run_probe=run_probe))
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 1234)), base_url="http://127.0.0.1:8787") as c:
+            entry = await c.post("/app/chatgpt/vision/ticket", json={}, headers={"Authorization": "Bearer synthetic-user"})
+            page = await c.get(entry.json()["path"])
+            nonce = re.search('name="consent" value="([^"]+)"', page.text)[1]
+            for hostile in ({"origin": "null"}, {"origin": "null", "sec-fetch-site": "cross-site"}):
+                assert (await c.post("/app/chatgpt/vision", data={"consent": nonce}, headers=hostile)).status_code == 403, hostile
+            ok = await c.post("/app/chatgpt/vision", data={"consent": nonce}, headers={"origin": "null", "sec-fetch-site": "same-origin"})
+            assert ok.status_code == 200, ok.text
+    asyncio.run(run())
+    assert calls == ["synthetic-model"]

@@ -26,8 +26,9 @@ def routes(auth, model_getter, caller_origin, *, human_session, run_probe=V.prob
             local = False
         if not local or caller_origin(request) != "user" or (not authenticated and request.headers.get("authorization")):
             return JSONResponse({"detail": "Vision checks require the user's local browser"}, status_code=403)
+        from .browser_origin import own_page_post
         origin = request.headers.get("origin")
-        if origin:
+        if origin and not own_page_post(request):
             target = urlsplit(str(request.url))
             try:
                 incoming = urlsplit(origin)

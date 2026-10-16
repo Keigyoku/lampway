@@ -104,7 +104,8 @@ def loopback_origin(request: Request) -> bool:
     if not origin:
         return True
     if origin == "null":
-        return request.headers.get("sec-fetch-site") == "same-origin"
+        from .browser_origin import own_page_post
+        return own_page_post(request)
     try:
         return (urlparse(origin).hostname or "") in LOOPBACK_HOSTS
     except ValueError:
