@@ -210,6 +210,20 @@ class MIXIE_CHAT_OT_new_session(Operator):
             session.clear_session_id(scene)
             session.set_state(scene, SessionState.OFFLINE)
 
+        # Your agent mode (agent-modes spec M0, B2): the tab keeps its pane, handed to the new chat session; the pane's binding
+        # follows the tab's session id. The user's own click, so the server is asked here (a short REST call).
+        try:
+            from ...core.agent_mode import after_new_chat
+            from mixar.modules.lampway_tools.workbench_client import WorkbenchClient
+            handed = after_new_chat(scene, old_session_id, WorkbenchClient())
+            if handed is not None and not handed.get("ok"):
+                self.report({'WARNING'}, f"Your agent's pane stays with the old chat: {handed.get('error')}")
+            elif handed is not None:
+                from ...core.byoa_view import observe
+                observe(scene)
+        except Exception as e:  # noqa: BLE001 - a New Chat never fails over the pane
+            logger.debug(f"BYOA pane hand-over skipped: {e}")
+
         # The old session is gone — sweep any agentlane:* workspace scenes it
         # leaked (their backend removal scripts were dropped as stale).
         try:
@@ -273,6 +287,12 @@ class MIXIE_CHAT_OT_abort_session(Operator):
         return False
 
     def execute(self, context):
+        from ...core.agent_mode import is_byoa
+        if is_byoa(context.scene):
+            # Your agent mode (agent-modes spec B4): Stop interrupts the tab's pane with its harness's own keys; the island
+            # stops showing running when the observed turn ends. Nothing of Mode 1's turn state is torn down.
+            from ...core import byoa_view
+            return byoa_view.execute_stop(self, context)
         session = get_session_manager()
         scene = context.scene
         scene_name = scene.name
@@ -281,11 +301,11 @@ class MIXIE_CHAT_OT_abort_session(Operator):
         clear_destination(session.get_session_id(scene))
 
         # 1. Stop agent stream for this scene only
-        cleanup_turn_handler(scene_name)
+        cleanup_turn_handler(scene_name, keep_bound=True)
 
         # 2. Drain queued events for this scene
         from ...core.queue_processor import cleanup_event_queue_for_scene
-        cleanup_event_queue_for_scene(scene_name)
+        cleanup_event_queue_for_scene(scene_name, keep_bound=True)
 
         # 3. Flush THIS session's queued tool scripts (other tabs keep theirs)
         flush_executor_queue(session_id=session.get_session_id(scene) or "")

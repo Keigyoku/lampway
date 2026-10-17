@@ -218,3 +218,48 @@ res({"ok": rob.get("ok"), "err": rob.get("error"), "engine": rob.get("engine"), 
     d = r.results[-1]
     assert d["ok"] is True, d
     assert d["engine"] == "robust" and d["same_match"] and d["sum_dev"] < 1e-3 and all(0.2 < x < 0.8 for x in d["far_mid"]), d
+
+
+def test_three_percent_matched_transfer_names_placement_and_threshold(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+bpy.ops.wm.read_factory_settings(use_empty=True)
+arm=bpy.data.armatures.new('Rig');rig=bpy.data.objects.new('Rig',arm);bpy.context.scene.collection.objects.link(rig)
+rig.select_set(True);bpy.context.view_layer.objects.active=rig;bpy.ops.object.mode_set(mode='EDIT')
+b=arm.edit_bones.new('root');b.head=(0,0,0);b.tail=(0,0,1);bpy.ops.object.mode_set(mode='OBJECT')
+def grid(name,target):
+    bm=bmesh.new();bmesh.ops.create_grid(bm,x_segments=65,y_segments=5,size=1)
+    for v in bm.verts:v.co.z=.5*(v.co.x+1) if target else -.025
+    bm.normal_update();me=bpy.data.meshes.new(name);bm.to_mesh(me);bm.free();ob=bpy.data.objects.new(name,me);bpy.context.scene.collection.objects.link(ob);return ob
+body=grid('native_body',False);piece=grid('unplaced_piece',True)
+g=body.vertex_groups.new(name='root');g.add(list(range(len(body.data.vertices))),1,'REPLACE');m=body.modifiers.new('Armature','ARMATURE');m.object=rig
+r=call('weight_transfer',object=piece.name,source=body.name)
+assert r.get('ok') and .02<r['matched_fraction']<.04 and r['unweighted_vertices']==0,r
+assert r['warnings'] and any('lampway_fit_place' in w for w in r['warnings']),r
+assert 0<r['matched_fraction_warning_threshold']<=1,r
+assert r['matched_fraction_warning_threshold']==.5,r
+assert str(r['matched_fraction_warning_threshold']) in ' '.join(r['warnings']),r
+placed=body.copy();placed.data=body.data.copy();placed.name='correctly_placed';bpy.context.scene.collection.objects.link(placed)
+for modifier in list(placed.modifiers):placed.modifiers.remove(modifier)
+for group in list(placed.vertex_groups):placed.vertex_groups.remove(group)
+positive=call('weight_transfer',object=placed.name,source=body.name)
+assert positive.get('ok') and positive['matched_fraction']==1 and positive['unweighted_vertices']==0,positive
+assert positive['warnings']==[],positive
+print('GEOMETRY_RECEIPT '+json.dumps({'calibration':'same-body-plane versus unplaced sloped grid','unplaced':r,'placed':positive}))
+''')
+
+
+def test_transfer_diagnostic_threshold_is_explicit_and_strict(tmp_path):
+    from issue2_native import run_issue_case
+    run_issue_case(tmp_path, '''
+from mixar.modules.lampway_tools.features import weights as W
+assert W._match_warnings(.03,None)==[]
+assert W._match_warnings(.5,.5)==[]
+assert W._match_warnings(.51,.5)==[]
+assert W._match_warnings(.4999999,.5)
+assert W._match_warnings(.03,.5)
+for threshold in (-.01,1.01,float('nan'),float('inf')):
+    try: W._match_warnings(.03,threshold)
+    except ValueError: pass
+    else: raise AssertionError(threshold)
+''')

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""lampway_motion_graphics (specs/motion_graphics/motion_graphics.md): video drawn by code, frame by frame, deterministic.
+"""lampway_motion_graphics (docs/canon/motion_graphics/motion_graphics.md): video drawn by code, frame by frame, deterministic.
 
 Section 12 dependencies first (the prompt purpose, the seven templates, the provenance subtype and completeness), then the section 10 tests."""
 import re
@@ -250,7 +250,7 @@ def test_a_scene_without_frame_and_a_page_resize_are_refused(tmp_path):
     project = tmp_path / "project"
     scene = put_scene(project, "x", RAMP)
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(has_frame=False))
-    assert out["error"] == "the scene does not define window.__frame: see the scene contract in specs/motion_graphics/scene.md"
+    assert out["error"] == "the scene does not define window.__frame: see the scene contract in docs/canon/motion_graphics/scene.md"
     out, _e = tool(project, {"scene": scene, **SMALL}, capture=lambda: FakeCapture(size=(320, 200)))
     assert out["error"] == "frame 0 is 320x200, not 320x180: the scene must not resize the page"
 

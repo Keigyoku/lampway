@@ -5,7 +5,7 @@
 """procedural_library (specs/mixar_docs/procedural_library.md, asset_library/asset_seed_procedural.md): a library of procedural node-group materials, built from a few parametric TEMPLATES and a preset table
 ("build the tool, not the output"). Each material is a script that builds one ShaderNodeTree group named LWP_<id> with a single Shader output and bounded, defaulted inputs (Tint, Roughness Scale, Wear, Scale,
 Bump Strength, Seed, Mask). Everything is in Object space, so no UVs are needed, and `Mask` lets a curvature or AO mask drive edge wear. The scripts are registered in the Client's own MaterialRegistry, so its
-agent tools, library popup and layer stack read them unchanged, and each script passes the same AST gate matgen applies. Statistics (base colour, metallic, roughness) come from real Cycles bakes of a PROBE
+agent tools, library popup and layer stack read them unchanged, and each script passes the same AST gate matgen applies. Statistics (base colour, metallic, roughness) come from real EEVEE emission readouts of a PROBE
 variant of the group that adds those three outputs; the registered group has only the Shader output.
 
 The library is the contract's proposed 55 (40 metals, 5 leathers, 6 cloths, 4 embroideries) from 12 templates; the data is procedural_presets.py. The first 12 were
@@ -122,8 +122,32 @@ def _group_facts(g) -> dict:
 _BAKES: dict = {}
 
 
+def _probe_atlas_safe(group):
+    """Only the library's explicit local Object-coordinate graph may move into tiles.
+
+    Unknown nodes and external/world/camera coordinates keep the original three
+    renders. This protects later generators without assuming their semantics.
+    """
+    local_nodes = {
+        "NodeGroupInput", "NodeGroupOutput", "ShaderNodeTexCoord",
+        "ShaderNodeCombineXYZ", "ShaderNodeMapping", "ShaderNodeMath",
+        "ShaderNodeMix", "ShaderNodeTexNoise", "ShaderNodeTexVoronoi",
+        "ShaderNodeTexWave", "ShaderNodeTexBrick", "ShaderNodeBump",
+        "ShaderNodeBsdfPrincipled",
+    }
+    for node in group.nodes:
+        if node.bl_idname not in local_nodes:
+            return False
+        if node.bl_idname == "ShaderNodeTexCoord":
+            if node.object is not None:
+                return False
+            if any(link.from_socket.name != "Object" for link in group.links if link.from_node == node):
+                return False
+    return True
+
+
 def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None):
-    """Three 1-sample EEVEE renders of a top-down plane whose emission is the probe's Base Color, Metallic and Roughness outputs."""
+    """Read three real emission outputs, using one local-coordinate atlas when safe."""
     key = (pid, json.dumps(params, sort_keys=True), size)
     if key in _BAKES and out_png is None:
         return _BAKES[key]
@@ -132,6 +156,8 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
     own = None if tmp_dir else tempfile.TemporaryDirectory(prefix="lw_probe_")      # a probe's EXRs are deleted one by one; its folder goes with the probe
     scratch = Path(tmp_dir) if tmp_dir else Path(own.name)
     scratch.mkdir(parents=True, exist_ok=True)
+    atlas = _probe_atlas_safe(g)
+    extra_objects, extra_meshes, extra_materials = [], [], []
     sc = bpy.data.scenes.new("lw_probe")
     mat = bpy.data.materials.new("lw_probe_mat")
     me = bpy.data.meshes.new("lw_probe_plane")
@@ -168,23 +194,75 @@ def _render_probe(pid: str, params: dict, size: int, out_png=None, tmp_dir=None)
         sc.render.film_transparent = False
         res = {}
         import numpy as np
-        for name in ("Base Color", "Metallic", "Roughness"):
-            for l in list(nt.links):
-                if l.to_node is em:
-                    nt.links.remove(l)
-            nt.links.new(grp.outputs[name], em.inputs["Color"])
-            exr = scratch / f"probe_{name.replace(' ', '_')}.exr"
+        names = ("Base Color", "Metallic", "Roughness")
+        if atlas:
+            # Each plane retains the same local mesh and Object-coordinate sample
+            # domain; camera width and image width scale together, so each tile
+            # still has exactly size x size texels over that original domain.
+            sc.render.resolution_x = 3 * size
+            cam.data.ortho_scale = 3.0
+            ob.location.x = -1.0
+            nt.links.new(grp.outputs[names[0]], em.inputs["Color"])
+            for index, name in enumerate(names[1:], 1):
+                tile_mesh = me.copy()
+                extra_meshes.append(tile_mesh)
+                tile_mat = mat.copy()
+                extra_materials.append(tile_mat)
+                tile_mesh.materials.clear()
+                tile_mesh.materials.append(tile_mat)
+                tile = bpy.data.objects.new("lw_probe_tile", tile_mesh)
+                extra_objects.append(tile)
+                tile.location.x = index - 1.0
+                sc.collection.objects.link(tile)
+                tile_tree = tile_mat.node_tree
+                tile_group = next(node for node in tile_tree.nodes if node.bl_idname == "ShaderNodeGroup")
+                tile_emission = next(node for node in tile_tree.nodes if node.bl_idname == "ShaderNodeEmission")
+                for link in list(tile_tree.links):
+                    if link.to_node is tile_emission:
+                        tile_tree.links.remove(link)
+                tile_tree.links.new(tile_group.outputs[name], tile_emission.inputs["Color"])
+            exr = scratch / "probe_atlas.exr"
             sc.render.filepath = str(exr)
             bpy.ops.render.render(write_still=True, scene=sc.name)
             img = canon_io.load_image(str(exr))
-            w, h = img.size
-            res[name] = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
-            bpy.data.images.remove(img)
-            exr.unlink()
+            try:
+                w, h = img.size
+                pixels = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
+                res = {name: pixels[:, index * size:(index + 1) * size, :].copy() for index, name in enumerate(names)}
+            finally:
+                bpy.data.images.remove(img)
+                exr.unlink()
+        else:
+            for name in names:
+                for link in list(nt.links):
+                    if link.to_node is em:
+                        nt.links.remove(link)
+                nt.links.new(grp.outputs[name], em.inputs["Color"])
+                exr = scratch / f"probe_{name.replace(' ', '_')}.exr"
+                sc.render.filepath = str(exr)
+                bpy.ops.render.render(write_still=True, scene=sc.name)
+                img = canon_io.load_image(str(exr))
+                try:
+                    w, h = img.size
+                    res[name] = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)[:, :, :3]
+                finally:
+                    bpy.data.images.remove(img)
+                    exr.unlink()
     finally:
+        for tile in extra_objects:
+            bpy.data.objects.remove(tile)
+        for tile_mat in extra_materials:
+            bpy.data.materials.remove(tile_mat)
+        for tile_mesh in extra_meshes:
+            bpy.data.meshes.remove(tile_mesh)
+        camera_data = cam.data
+        world = sc.world
         bpy.data.objects.remove(ob)
         bpy.data.objects.remove(cam)
         bpy.data.scenes.remove(sc)
+        bpy.data.cameras.remove(camera_data)
+        if world is not None:
+            bpy.data.worlds.remove(world)
         bpy.data.materials.remove(mat)
         bpy.data.meshes.remove(me)
         g2 = bpy.data.node_groups.get("LWPP_" + pid)

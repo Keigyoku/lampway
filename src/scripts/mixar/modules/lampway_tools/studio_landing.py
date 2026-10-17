@@ -15,6 +15,7 @@ COLLECTION = "Studio"
 _LANDS = (".glb", ".gltf", ".fbx", ".obj")
 
 
+@canon_io.rollback_imports
 def import_file(path: str, prefix: str = "", turn_deg=None, generator: str = "unknown") -> dict:
     """Import a Studio file RAW (canon_io), then normalize every mesh it made (lampway_normalize_mesh) when the piece's facing is
     declared (``turn_deg``); without it the objects land raw (``lw_raw``) and ``normalize`` says why - every door refuses them until
@@ -29,10 +30,14 @@ def import_file(path: str, prefix: str = "", turn_deg=None, generator: str = "un
     raw = {k: imp[k] for k in ("sha256", "container", "importer", "settings")}
     raw["bytes"] = os.path.getsize(path)
     for ob in [o for o in new if o.type == "MESH"]:
+        before_normalize = canon_io.snapshot_ids()
         try:
             N.normalize_object(ob, turn_deg=turn_deg, generator=generator, raw=raw, path_hint=os.path.basename(path))
         except Exception as exc:                                             # the refusal lands the object raw and says why
             note = str(exc)
+        finally:
+            # Normalizing this imported asset can replace its mesh; a later landing failure owns that replacement too.
+            canon_io._record_import(before_normalize)
     coll = bpy.data.collections.get(COLLECTION) or bpy.data.collections.new(COLLECTION)
     if COLLECTION not in bpy.context.scene.collection.children:
         bpy.context.scene.collection.children.link(coll)

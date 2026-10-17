@@ -15,6 +15,9 @@ from mixar.modules.space_mixie_chat.core import main_thread_routing as routing
 
 @pytest.fixture
 def two_tabs(live_bpy, monkeypatch):
+    # Other suites reinstall bpy during collection. Routing holds its import,
+    # so its scene/window boundary must use the same current mock as this fixture.
+    monkeypatch.setattr(routing, "bpy", live_bpy)
     a = _scene("A", session_id="sess-a")
     b = _scene("B", session_id="sess-b")
     lane = _scene("Workspace_x", session_id="agentlane:abc")

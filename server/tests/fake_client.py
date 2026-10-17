@@ -200,7 +200,7 @@ class FakeMixarClient:
             "message": message,
             "instance_id": self.instance_id,
             "session_id": session_id,
-            "plan_required": True,
+            "plan_required": False,              # the client's Plan Mode switch is off by default (chat_props.py)
             "execution_required": True,
             "approval_required": True,
             "rules": {"project": [], "global": []},

@@ -20,6 +20,11 @@
 /** Display name of the in-app agent (upstream: "Mixie"). */
 #define LAMPWAY_AGENT_NAME "Lampway Agent"
 
+#ifdef LAMPWAY
+/* LAMPWAY: M0 names the user-owned harness mode beside Lampway Agent. */
+#  define LAMPWAY_YOUR_AGENT_NAME "Your agent"
+#endif
+
 /** OS keyring service for the login pair (Lampway's own; see brand.py KEYRING_SERVICE). */
 #define LAMPWAY_KEYRING_SERVICE "LampwaySafeStorage"
 

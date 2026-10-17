@@ -11,9 +11,8 @@ auto-discovery is batched over several frames) is retained rather than silently
 lost.
 
 Deliberately NOT persisted to disk. The catalog is cacheable; this is not — it
-carries the account's provider, model, masked key preview and, for Codex, the
-ChatGPT account email. It is refetched per launch, which HTTP makes cheap and
-reliable.
+carries the account's provider, model and masked key preview. It is
+refetched per launch, which HTTP makes cheap and reliable.
 
 **The epoch exists for a real bug.** `_clear_byok_state_on_logout` wipes the
 mirror synchronously while a fetch worker may be milliseconds from landing. Over

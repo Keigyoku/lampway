@@ -139,7 +139,7 @@ def main(argv=None, ctx: Optional[Context] = None, out=None, err=None) -> int:
         body = T.dumps(obj)
         if helps:
             body += ("\n" if body else "") + T.dumps({"help": list(helps)})
-        print(body, file=out)
+        print(body, file=out, end='')
         return rc
 
     def fail(message, helps=(), rc=1):

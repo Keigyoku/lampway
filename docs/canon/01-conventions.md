@@ -92,3 +92,7 @@ nine pre-pipeline FBXs all measured 0.99951171875 Blender units longest dimensio
 
 No tool. Every canon tool's receipt carries a `conventions` block: `{frame, units, turn_deg, bone_direction: "head->child head",
 bone_axis_export: "Z/X", weld_m, source_frame}`. A tool that cannot fill a field refuses with the field's name.
+
+Native MetaHuman core joints and peripheral drivers use the complete measured342-edge profile in `canon/metahuman342-topology.json`. Canonical fingers end at03; the core foot chain ends at ball. These terminals continue the parent line by0.8 despite verified native driver/toe children; never choose an arbitrary toe or helper as the next core joint. Native toes keep their own peripheral chains. Exact auxiliary roles preserve their authored normalized rest-frame axes/lengths (canon17), including every half-driver and twist-driver branch. Unknown names or reparented native edges refuse together before normalization. Missing native rows remain explicit: a core minimum does not certify a complete342body.
+
+`tests/lampway_tools/test_native_complete_topology.py` uses all342 measured parent identities with synthetic geometry, checks unchanged authored frames, normalization→weighting→posed opening measurements, and unknown/reparented/stale/incomplete-roster falsifiers. Physical owner-asset rerun remains separate from this whole-topology proof.

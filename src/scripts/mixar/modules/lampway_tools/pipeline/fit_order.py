@@ -13,9 +13,10 @@ the record of what ran.
   colour" (G03.3).
 * ``match`` is the captain's sign-off on the render beside the V3 turnarounds (INV-03.5): ``captain_seen`` with the render's sha256.
 * ``pose_correct`` has no tool in Lampway (canon 03 F.2): the stage records the measured rigid correction per segment the caller passes.
-* ``conform`` refuses a metal part (INV-03.2) and is otherwise not built: the soft-part deformer waits on the captain's decision 03-H2.
+* ``conform`` solves the admitted, physically untested ARAP candidate on cloth/leather only. A solve writes a disposable candidate,
+  not a completed stage; accept requires the candidate hash and captain review of its render. Metal stays fixed (INV-03.2).
 * ``intake`` needs ``body``, a fit_body package: verified there (its package_sha256 recorded), refused unless the package records a
-  CLOSED body with its HEAD included; and it runs the SOURCE-PART CHECK first (lampway_fit_source_check: ``args.source`` the same
+  body with its HEAD included by generalized winding, permitting measured native openings; and it runs the SOURCE-PART CHECK first (lampway_fit_source_check: ``args.source`` the same
   mesh before any weld or fit, ``args.rigid_groups`` optional), refusing a detached part before anything is normalized.
 * ``bind`` is fit_bind's plan; ``weights`` is fit_bind weights FROM THE PACKAGE (its native sidecar: fit_body verb=weights, the same
   package_sha256) and then fit_bind return (canon 03 B.9: bound at the fit pose, returned to rest); ``validate`` is fit_validate
@@ -68,7 +69,7 @@ def _not_applicable(rec):
 def _tool_name(stage):
     t = TOOLS[stage][0]
     if t is None:
-        return {"match": "the captain's sign-off", "pose_correct": "a recorded rigid correction per segment", "conform": "not built"}[stage]
+        return {"match": "the captain's sign-off", "pose_correct": "a recorded rigid correction per segment", "conform": "reviewed ARAP candidate"}[stage]
     return "lampway_run_tool piece_ratios | proportion_ratios" if t == "run_tool" else f"lampway_{t}"
 
 
@@ -95,7 +96,7 @@ def _refuse(error, *help_):
     return {"ok": False, "error": error, "help": list(help_)}
 
 
-def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent", body="", texture_discard_ack=False):
+def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent", body="", texture_discard_ack=False, conform_call=None):
     if stage != "status" and stage not in STAGES:
         return _refuse(f"stage is status | {' | '.join(STAGES)}", "lampway_fit stage=status")
     rec = _load(root, piece)
@@ -132,11 +133,11 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
         if st.get("closed") is None:
             return _refuse("intake: the body package records no closed/head state: rebuild it with its mesh (lampway_fit_body verb=build mesh=<body>)",
                            "lampway_fit_body verb=build")
-        if not st.get("closed"):
-            return _refuse(f"intake: the body package's mesh is not closed ({st.get('boundary_edges')} boundary edges): fit only on the closed native body, "
-                           "head included (canon 03 G); signs near an opening are not measurements", "lampway_fit_body verb=build")
+        if not st.get("closed") and not st.get("native_openings_accepted"):
+            return _refuse(f"intake: the body package's mesh is not closed ({st.get('boundary_edges')} welded boundary edges; raw {st.get('raw_boundary_edges')}; welded non-manifold {st.get('non_manifold_edges')}; raw non-manifold {st.get('raw_non_manifold_edges')}): rebuild the native body with its mesh, "
+                           "head included by generalized winding (canon 03 G); an unverified opening is not accepted", "lampway_fit_body verb=build")
         if not st.get("head_included"):
-            return _refuse("intake: the body package's head is not included (its head joint is not inside the closed body): the native FullBody with its "
+            return _refuse("intake: the body package's head is not included (its head joint is not inside the body by generalized winding): the native FullBody with its "
                            "head (canon 03 A, G)", "lampway_fit_body verb=build")
         source = args.pop("source", None)
         groups = args.pop("rigid_groups", None)
@@ -160,14 +161,48 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
     if stage == "pose_correct" and not isinstance(args.get("segments"), list):
         return _refuse("pose_correct records the measured rigid correction per segment (canon 03 B.5; no Lampway tool yet): pass segments "
                        "[{segment, bone, angle_deg, axis}] (an empty list when every segment is within its bone)")
+    result = None
     if stage == "conform":
-        parts = list(args.get("parts") or [])
-        metal = [p for p in parts if rec["roles"].get(p) == "metal"]
-        if metal:
-            return _refuse(f"{', '.join(metal)} {'is' if len(metal) == 1 else 'are'} metal: a metal part never conforms - it moves by ONE "
-                           f"similarity (canon 03 INV-03.2)")
-        return _refuse("conform is not built: the soft-part deformer for cloth and leather waits on the captain's decision 03-H2 (canon 03 B, "
-                       "the measured candidates)")
+        parts = list(args.get("parts") or [p for p, r in rec["roles"].items() if r in SOFT])
+        bad = [p for p in parts if rec["roles"].get(p) not in SOFT]
+        if bad:
+            return _refuse(f"{bad}: only intake cloth/leather parts conform; metal moves by ONE similarity and ornaments stay unchanged (canon 03 INV-03.2)")
+        if not parts:
+            return _refuse("conform requires selected cloth/leather parts; an all-rigid piece skips this stage")
+        if args.get("action", "solve") == "accept" and (args.get("captain_seen") is not True or len(str(args.get("render_sha256", ""))) != 64):
+            return _refuse("conform accept requires the captain's review of this candidate beside V3: captain_seen=true and render_sha256")
+        if conform_call is None:
+            from ..features import fit_conform
+            conform_call = fit_conform.run
+        native_args = dict(args, parts=parts, roles=dict(rec["roles"]), body=rec["body"]["package"],
+                           body_package_sha256=rec["body"]["package_sha256"], root=root, out_dir=str(Path(piece) / "fit" / "conform"))
+        try:
+            result = conform_call(**native_args)
+        except (ValueError, RuntimeError) as e:
+            return _refuse(f"conform: {e}")
+        if not result.get("ok"):
+            return _refuse(f"conform: {result.get('error')}", *(result.get("help") or []))
+        if result.get("candidate_pending_review"):
+            accept_args = {"action": "accept", "parts": parts, "candidate_sha256": result["candidate_sha256"],
+                           "captain_seen": False, "render_sha256": "<reviewed-candidate-render-sha256>"}
+            return {"ok": True, "piece": piece, "stage": stage, "candidate_pending_review": True, "result": result,
+                    "next": [f"lampway_fit stage=conform piece={piece} args={json.dumps(accept_args, separators=(',', ':'))}"],
+                    "next_args": {"stage": "conform", "piece": piece, "args": accept_args},
+                    "review_required": "Review this candidate beside V3, then provide its render SHA and captain_seen=true", "physical_status": "untested"}
+    if stage in ("bind", "weights"):
+        conformed = next((s.get("object") for s in reversed(rec["stages"]) if s["stage"] == "conform"), None)
+        if conformed:
+            if args.get("piece", conformed) != conformed:
+                return _refuse(f"{stage} must use the reviewed conform candidate {conformed}; the input before conform is stale")
+            args["piece"] = conformed
+    if stage in ("validate", "export") and any(s["stage"] == "conform" for s in rec["stages"]):
+        returned = next((s.get("object") for s in reversed(rec["stages"]) if s["stage"] == "weights"), None)
+        if not returned:
+            return _refuse(f"{stage} requires the returned reviewed conform candidate from weights")
+        key = "bound" if stage == "validate" else "object"
+        if args.get(key) and args[key] != returned:
+            return _refuse(f"{stage} must use the returned reviewed conform candidate {returned}; the old input is stale")
+        args[key] = returned
     if stage == "proportion" and "name" not in args:
         args["name"] = "proportion_ratios" if rec.get("kind") == "chest" else "piece_ratios"
     if stage == "pose":
@@ -188,7 +223,6 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
     if stage == "openings" and texture_discard_ack:
         args["texture_discard_ack"] = True
     tool, defaults = TOOLS[stage]
-    result = None
     if tool is not None:
         targs = dict(defaults, **args)
         if stage in KIND_ARG and (kind or rec.get("kind")) and "kind" not in targs:
@@ -209,9 +243,13 @@ def run(stage, piece, root, call, kind="", roles=None, args=None, decider="agent
             vf = Path(root) / piece / "fit" / "validation.json"
             vf.parent.mkdir(parents=True, exist_ok=True)
             vf.write_text(json.dumps(result, indent=1, sort_keys=True, default=str))
-    else:
+    elif result is None:
         result = {"recorded": args, "decider": decider}
     row = {"stage": stage, "tool": tool, "inputs_sha256": _sha(args), "receipt_sha256": _sha(result), "decider": decider, "at": round(time.time(), 3)}
+    if stage == "conform":
+        row.update(object=result["object"], candidate_sha256=result["candidate_sha256"], physical_status="untested")
+    if stage == "weights" and (result.get("fit_bind_return") or {}).get("object"):
+        row["object"] = result["fit_bind_return"]["object"]
     rec["stages"].append(row)
     p = _path(root, piece)
     p.parent.mkdir(parents=True, exist_ok=True)

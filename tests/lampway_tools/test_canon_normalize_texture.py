@@ -53,6 +53,9 @@ canon_io.load_image(str(root / "raw_one.png"))
 again_img = canon_io.load_image(str(root / "Metal009_2K-PNG_NormalGL.png"), check_existing=True)       # a placement re-reading a canonical image
 out["reload"] = {"same": again_img.name, "raw": "lw_raw" in again_img.keys(), "canon": "lw_canon" in again_img.keys()}
 out["door_raw"] = probe(image="raw_one.png")
+out["raw_role_missing"] = api.normalize_texture(input="raw_one.png")
+out["raw_declared"] = api.normalize_texture(input="raw_one.png", role="normal", normal_convention="dx")
+out["door_repaired"] = probe(image="raw_one.png")
 out["door_ok"] = probe(image="Metal009_2K-PNG_NormalGL.png")
 out["door_role"] = probe(image="Metal009_2K-PNG_Roughness.png")
 bpy.data.images["Metal009_2K-PNG_NormalGL.png"].colorspace_settings.name = "sRGB"
@@ -86,7 +89,11 @@ def test_normalize_texture_binds_role_colour_space_and_convention_and_opens_the_
     assert d["role_bad"]["ok"] is False and "shiny" in d["role_bad"]["error"]
     assert d["reload"] == {"same": "Metal009_2K-PNG_NormalGL.png", "raw": False, "canon": True}, d["reload"]
     assert d["door_ok"] == {"ok": True, "ran": "Metal009_2K-PNG_NormalGL.png"}, d["door_ok"]
-    assert d["door_raw"]["ok"] is False and d["door_raw"]["error"].startswith("normalize first") and d["door_raw"]["help"][0] == "lampway_normalize_texture input=raw_one.png"
+    assert d["door_raw"]["ok"] is False and d["door_raw"]["error"].startswith("normalize first")
+    assert d["door_raw"]["help"][0] == "lampway_normalize_texture input=raw_one.png role=<texture_role>"
+    assert d["raw_role_missing"]["ok"] is False and "declare role=" in d["raw_role_missing"]["error"]
+    assert d["raw_declared"]["ok"], d["raw_declared"]
+    assert d["door_repaired"] == {"ok": True, "ran": "raw_one.png"}
     assert d["door_role"]["ok"] is False and "texture role 'roughness'" in d["door_role"]["error"]
     assert d["door_changed"]["ok"] is False and "colour space 'sRGB'" in d["door_changed"]["error"], d["door_changed"]
     assert d["door_file"]["ok"] is False and "image file changed since it was normalized" in d["door_file"]["error"], d["door_file"]

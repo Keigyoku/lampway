@@ -81,6 +81,19 @@ def public(item):
         "rect", "enabled", "sel", "popup", "type", "area_type", "region_type"}}
 
 
+def label(item):
+    """Name controls using their native text, RNA/operator or surface identity."""
+    for key in ("text", "tip"):
+        if str(item.get(key) or "").strip():
+            return str(item[key]).strip()
+    if item.get("prop"):
+        return ".".join(str(item[k]) for k in ("prop_owner", "prop") if item.get(k))
+    for key in ("op", "surface"):
+        if item.get(key):
+            return str(item[key])
+    return " ".join(str(item[k]) for k in ("area_type", "region_type", "type") if item.get(k))
+
+
 def window_extent(win):
     areas = [*win.screen.areas, *win.global_areas]
     return {"width": max((a.x+a.width for a in areas), default=0),
@@ -145,7 +158,7 @@ def observe(owner, args):
         handle = "t%d" % i      # its position in the whole list: unique across pages
         entry["targets"][handle] = ("widget", fingerprint(item))
         # most controls are icon-only (empty text): the tooltip names them (cloud audit F17)
-        targets.append({**public(item), "label": item.get("text") or item.get("tip") or "", "target": handle,
+        targets.append({**public(item), "label": label(item), "target": handle,
                         "window": window_ids[item["w"]]})
     regions = []
     for window in all_windows:

@@ -9,16 +9,17 @@
 * a stream counts as success only after ``response.completed``; ``response.failed`` stops inference with its exact error code
   and the documented recovery, and nothing falls back to another billing path.
 
-Used only by the agent loop for the signed-in user's own chat turns: there is no endpoint that forwards arbitrary requests to
+Used only as the model gateway's door for the signed-in user's own Mode 1 turns (spec A5): there is no endpoint that forwards arbitrary requests to
 this route (the terms forbid general-purpose access for other tools).
 """
 
 import json
+import copy
 from typing import AsyncIterator, Optional
 
 import httpx
 
-from .base import Message, ModelRequest, ProviderEvent, Text, ToolCall, ToolSpec
+from .base import Message, ModelRequest, ProviderEvent, Text, ToolCall, ToolSpec, image_url
 
 BASE_URL = "https://api.openai.com/v1"
 EFFORTS = {"", "minimal", "low", "medium", "high"}                # Responses API reasoning.effort; '' leaves it unset
@@ -57,60 +58,79 @@ class ChatGPTPlanProvider:
         self.base_url = base_url.rstrip("/")
         self.client = http_client or httpx.AsyncClient(transport=transport, timeout=timeout)
 
+    @property
+    def supports_vision(self) -> bool:
+        from ...chatgpt_vision import admitted
+        return admitted(self.auth, self.model, self.base_url + "/responses")
+
     async def stream(self, request: ModelRequest) -> AsyncIterator[ProviderEvent]:
-        token = await self.auth.access_token()                     # NotSignedIn / PlanUsageDisabled stop here, before any request
+        scope_fn = getattr(self.auth, "vision_account_scope", None)
+        scope = scope_fn() if callable(scope_fn) else None
+        token = await self.auth.access_token_for_scope(scope) if scope else await self.auth.access_token()
+        from ...chatgpt_vision import admitted
+        vision = bool(getattr(request, "supports_vision", None) is not False and scope and scope_fn() == scope and admitted(self.auth, self.model, self.base_url + "/responses"))
+        req = copy.deepcopy(request)
+        if not vision:
+            from ...engine.gateway import _provider_images
+            _provider_images(req, self, False)
         body = {"model": self.model, "instructions": request.system, "store": False, "stream": True,
-                "input": [item for m in request.messages for item in self._items(m)]}
+                "input": [item for m in req.messages for item in self._items(m)]}
         if self.effort:
             body["reasoning"] = {"effort": self.effort}
         if request.tools:
             body["tools"] = [self._namespace(request.tools)]
         headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "text/event-stream"}
         completed = False
-        async with self.client.stream("POST", f"{self.base_url}/responses", json=body, headers=headers) as response:
-            rid = response.headers.get("x-request-id", "")
-            if response.status_code >= 400:
-                text = (await response.aread()).decode("utf-8", "replace")[:600]
-                from ...logredact import redact_text
-                text = redact_text(text)               # a provider error body never carries a token into a message or log
-                raise ChatGPTPlanError(f"ChatGPT plan request refused: HTTP {response.status_code}: {text}",
-                                       status=response.status_code, code=self._code_of(text), request_id=rid)
-            event_type = ""
-            async for line in response.aiter_lines():
-                if line.startswith("event:"):
-                    event_type = line[6:].strip()
-                    continue
-                if not line.startswith("data:"):
-                    continue
-                try:
-                    event = json.loads(line[5:].strip())
-                except ValueError:
-                    continue
-                kind = event.get("type") or event_type
-                if kind == "response.output_text.delta" and event.get("delta"):
-                    yield Text(event["delta"])
-                elif kind == "response.output_item.done" and (event.get("item") or {}).get("type") == "function_call":
-                    item = event["item"]
+        sent_images = any(p.get("type") == "input_image" for item in body["input"] for p in item.get("content", []))
+        try:
+            async with self.client.stream("POST", f"{self.base_url}/responses", json=body, headers=headers) as response:
+                rid = response.headers.get("x-request-id", "")
+                if response.status_code >= 400:
+                    text = (await response.aread()).decode("utf-8", "replace")[:600]
+                    from ...logredact import redact_text
+                    text = redact_text(text)               # a provider error body never carries a token into a message or log
+                    raise ChatGPTPlanError(f"ChatGPT plan request refused: HTTP {response.status_code}: {text}",
+                                           status=response.status_code, code=self._code_of(text), request_id=rid)
+                event_type = ""
+                async for line in response.aiter_lines():
+                    if line.startswith("event:"):
+                        event_type = line[6:].strip()
+                        continue
+                    if not line.startswith("data:"):
+                        continue
                     try:
-                        arguments = json.loads(item.get("arguments") or "{}")
+                        event = json.loads(line[5:].strip())
                     except ValueError:
-                        arguments = {"__invalid_json__": item.get("arguments")}
-                    if not isinstance(arguments, dict):
-                        arguments = {"__invalid_json__": item.get("arguments")}
-                    yield ToolCall(id=item.get("call_id") or item.get("id") or "", name=item.get("name", ""), arguments=arguments)
-                elif kind == "response.failed":
-                    err = (event.get("response") or {}).get("error") or {}
-                    code = err.get("code") or "unknown_error"
-                    raise ChatGPTPlanError(_RECOVERY.get(code) or f"ChatGPT plan request failed: {code}: {err.get('message', '')}",
-                                           code=code, param=err.get("param") or "", request_id=rid)
-                elif kind == "response.incomplete":
-                    reason = ((event.get("response") or {}).get("incomplete_details") or {}).get("reason", "unknown")
-                    raise ChatGPTPlanError(f"the response was incomplete ({reason})", code="incomplete", request_id=rid)
-                elif kind == "response.completed":
-                    completed = True
-                    break
-        if not completed:
-            raise ChatGPTPlanError("the stream ended without response.completed (interrupted); treating the turn as failed")
+                        continue
+                    kind = event.get("type") or event_type
+                    if kind == "response.output_text.delta" and event.get("delta"):
+                        yield Text(event["delta"])
+                    elif kind == "response.output_item.done" and (event.get("item") or {}).get("type") == "function_call":
+                        item = event["item"]
+                        try:
+                            arguments = json.loads(item.get("arguments") or "{}")
+                        except ValueError:
+                            arguments = {"__invalid_json__": item.get("arguments")}
+                        if not isinstance(arguments, dict):
+                            arguments = {"__invalid_json__": item.get("arguments")}
+                        yield ToolCall(id=item.get("call_id") or item.get("id") or "", name=item.get("name", ""), arguments=arguments)
+                    elif kind == "response.failed":
+                        err = (event.get("response") or {}).get("error") or {}
+                        code = err.get("code") or "unknown_error"
+                        raise ChatGPTPlanError(_RECOVERY.get(code) or f"ChatGPT plan request failed: {code}: {err.get('message', '')}",
+                                               code=code, param=err.get("param") or "", request_id=rid)
+                    elif kind == "response.incomplete":
+                        reason = ((event.get("response") or {}).get("incomplete_details") or {}).get("reason", "unknown")
+                        raise ChatGPTPlanError(f"the response was incomplete ({reason})", code="incomplete", request_id=rid)
+                    elif kind == "response.completed":
+                        completed = True
+                        break
+            if not completed:
+                raise ChatGPTPlanError("the stream ended without response.completed (interrupted); treating the turn as failed")
+        finally:
+            if sent_images and not completed:
+                from ...chatgpt_vision import invalidate
+                invalidate(self.auth, self.model, self.base_url + "/responses", scope=scope)
 
     @staticmethod
     def _code_of(text: str) -> str:
@@ -140,5 +160,47 @@ class ChatGPTPlanProvider:
         results = [{"type": "function_call_output", "call_id": p["tool_call_id"], "output": p.get("content", "")}
                    for p in message.content if p.get("type") == "tool_result"]
         if results:
-            return results
-        return [{"type": "message", "role": "user", "content": [{"type": "input_text", "text": message.text()}]}]
+            images = []
+            for result in results:
+                if isinstance(result["output"], list):
+                    parts = result["output"]
+                    result["output"] = "".join(p.get("text", "") for p in parts if p.get("type") == "text")
+                    typed = []
+                    for part in parts:
+                        if part.get("type") == "image":
+                            image = image_url(part)["image_url"]
+                            typed.append({"type": "input_image", "image_url": image["url"], "detail": image.get("detail", "auto")})
+                    if typed:
+                        images.append({"type": "message", "role": "user", "content": [
+                            {"type": "input_text", "text": "Images from tool call " + result["call_id"]}, *typed]})
+            return [*results, *images]
+        content = []
+        for part in message.content:
+            if part.get("type") == "text":
+                content.append({"type": "input_text", "text": part.get("text", "")})
+            elif part.get("type") == "image":
+                image = image_url(part)["image_url"]
+                content.append({"type": "input_image", "image_url": image["url"], "detail": image.get("detail", "auto")})
+        return [{"type": "message", "role": "user", "content": content or [{"type": "input_text", "text": ""}]}]
+
+
+#: The disclosure the developer guidance asks for, shown on the model chip and once per session in the transcript (spec R0a).
+PLAN_NOTICE = "Using your ChatGPT plan"
+
+
+async def list_models(auth, *, base_url: str = BASE_URL, transport=None, timeout: float = 15.0) -> list:
+    """[{id, label}] of the models the route lists for this account: ``GET /v1/models`` with the access token, keeping only
+    entries whose ``visibility`` is ``list`` (spec R0a). The entry keys (``slug`` or ``id``, ``display_name``) follow the research
+    of 2026-10-06 and are [UNVERIFIED] against a live account; the live suite (test_chatgpt_live.py) checks the call answers."""
+    token = await auth.access_token()
+    async with httpx.AsyncClient(transport=transport, timeout=timeout) as client:
+        response = await client.get(f"{base_url.rstrip('/')}/models", headers={"Authorization": f"Bearer {token}"})
+    response.raise_for_status()
+    out = []
+    for entry in (response.json() or {}).get("models") or []:
+        if not isinstance(entry, dict) or entry.get("visibility") != "list":
+            continue
+        mid = str(entry.get("slug") or entry.get("id") or "")
+        if mid:
+            out.append({"id": mid, "label": str(entry.get("display_name") or mid)})
+    return out

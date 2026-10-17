@@ -30,6 +30,14 @@ def model_change_pending(scene):
 
 
 def can_send(scene):
+    from .agent_mode import is_byoa
+    if is_byoa(scene):
+        # Your agent mode (agent-modes spec B4): the text goes to the tab's pane, which queues it itself; the tab's turn
+        # state belongs to MCP operations, so only a missing socket stops a send.
+        state = get_session_manager().get_state(scene)
+        if state in (SessionState.OFFLINE, SessionState.CONNECTING):
+            return False, STATE_LABELS.get(state, n_('Agent is not connected'))
+        return True, ''
     if pending_video_attachments(scene):
         return False, VIDEO_ATTACHMENT_REJECTED
     if getattr(scene, 'mixie_chat_mode', '') == 'LIBRARY':

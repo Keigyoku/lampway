@@ -58,8 +58,8 @@ def test_swarm_fallback(live, monkeypatch, tmp_path):
     from lampway_server.agent.providers import make_swarm_provider
     from lampway_server.agent.providers.openrouter import OpenRouterProvider
     monkeypatch.setenv("OPENROUTER_API_KEY", KEY)
-    CH.active_store().set("agent.worker", "global", None, {"preferred": "claude_cli", "fallbacks": ["openrouter:deepseek/deepseek-v4.1-flash"]}, by="user")
-    s = Settings(state_dir=tmp_path / "srv", provider="chatgpt_plan", swarm_provider="claude_cli")      # the local CLI switch is off: claude_cli cannot be built
+    CH.active_store().set("agent.worker", "global", None, {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["openrouter:deepseek/deepseek-v4.1-flash"]}, by="user")
+    s = Settings(state_dir=tmp_path / "srv", provider="chatgpt_plan", swarm_provider="claude_cli")      # a retired worker from the environment cannot be built (spec R0)
     p = make_swarm_provider(s, "worker-1")
     assert isinstance(p, OpenRouterProvider) and p.model == "deepseek/deepseek-v4.1-flash"
     assert p.choice["reason"] == "fallback" and p.choice["option"] == "openrouter:deepseek/deepseek-v4.1-flash" and "claude_cli" in p.choice["why"]
@@ -112,7 +112,7 @@ def test_matgen_runs_the_material_script_choice(live, settings, provider, monkey
         CH.active_store().set("agent.material_script", "global", None, {"preferred": "openrouter:anthropic/claude-sonnet-5.5"}, by="user")
         http.post("/api/v1/matgen", json={"prompt": "rusted bronze"}, headers=fake.rest_headers())
     assert used[0] is provider
-    assert isinstance(used[1], OpenRouterProvider) and used[1].model == "anthropic/claude-sonnet-5.5"
+    assert isinstance(used[1].provider, OpenRouterProvider) and used[1].model == "anthropic/claude-sonnet-5.5"
 
 
 def test_compute_uses_the_chosen_backend_and_nothing_is_pre_chosen(live, tmp_path):
@@ -142,6 +142,6 @@ def test_make_provider_takes_the_resolution(live, settings, monkeypatch):
     CH.active_store().set("agent.main", "global", None, {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["openrouter:anthropic/claude-sonnet-5.5"]}, by="user")
     r = CH.resolve("agent.main", CH.Job())
     p = make_provider(settings, resolution=r)
-    assert isinstance(p, OpenRouterProvider) and p.model == "anthropic/claude-sonnet-5.5"
+    assert isinstance(p.provider, OpenRouterProvider) and p.model == "anthropic/claude-sonnet-5.5"
     app = create_app(settings)
-    assert isinstance(app.state.agent.provider, OpenRouterProvider)
+    assert isinstance(app.state.agent.provider.provider, OpenRouterProvider)

@@ -200,9 +200,11 @@ class ChatGPTAuth:
             "ext_agent_host_id": self.host_id(), "id_token": tok["id_token"], "access_token": tok["access_token"],
             "refresh_token": tok.get("refresh_token"), "token_type": tok.get("token_type", "Bearer"),
             "expires_in": tok.get("expires_in", 3600), "expires_at": self._clock() + int(tok.get("expires_in", 3600)),
-            "scopes": scopes, "saved_at": int(self._clock())}
+            "scopes": scopes, "saved_at": int(self._clock()), "vision_login_id": uuid.uuid4().hex}
         data["selected"] = client_id
         self._write(data)
+        from .capabilities import notify_changed
+        notify_changed()  # the new verified login scope is durable before native advertisements refresh
         log.info("signed in with ChatGPT (client %s, plan usage %s)", client_id, "enabled" if DIRECT_SCOPE in scopes else "NOT granted")
         return self.status()
 
@@ -237,10 +239,38 @@ class ChatGPTAuth:
         NotSignedIn / PlanUsageDisabled / TemporaryAuthError; never falls back to another billing path."""
         return await asyncio.to_thread(self._access_token_sync)
 
-    def _access_token_sync(self) -> str:
+    def vision_account_scope(self) -> Optional[str]:
+        """One-way verified account/client/login scope; no token or identity returned."""
+        _, cid, acct = self._account()
+        return self._vision_scope(cid, acct)
+
+    @staticmethod
+    def _vision_scope(cid, acct) -> Optional[str]:
+        if not acct or not acct.get("access_token") or DIRECT_SCOPE not in acct.get("scopes", []):
+            return None
+        fields = [acct.get("issuer"), acct.get("subject"), cid, acct.get("ext_agent_host_id"), acct.get("vision_login_id")]
+        if fields[0] != ISSUER or not all(isinstance(v, str) and v for v in fields):
+            return None
+        return hashlib.sha256(json.dumps(["lampway-chatgpt-vision-v1", *fields], separators=(",", ":")).encode()).hexdigest()
+
+    async def access_token_for_scope(self, expected_scope: str) -> str:
+        return await asyncio.to_thread(self._access_token_sync, expected_scope)
+
+    def _access_token_sync(self, expected_scope=None) -> str:
+        before = self.vision_account_scope()
+        try:
+            return self._access_token_locked(expected_scope)
+        finally:
+            if self.vision_account_scope() != before:
+                from .capabilities import notify_changed
+                notify_changed()  # durable scope loss; credential locks have been released
+
+    def _access_token_locked(self, expected_scope=None) -> str:
         from .connections import files as CF
         with self._lock, CF.locked(self.dir / ".chatgpt_auth.lock"):   # one refresh at a time ACROSS processes: the refresh token rotates
             data, cid, acct = self._account()                            # re-read after the lock: another process may have just refreshed
+            if expected_scope is not None and self._vision_scope(cid, acct) != expected_scope:
+                raise NotSignedIn("ChatGPT sign-in changed: check vision again for the selected account")
             if not acct or not acct.get("access_token"):
                 raise NotSignedIn("not signed in with ChatGPT: open /app/chatgpt on this server and choose Continue with ChatGPT")
             if DIRECT_SCOPE not in acct.get("scopes", []):
@@ -248,7 +278,10 @@ class ChatGPTAuth:
                                         "enable it from /app/chatgpt or use an API key")
             if acct["expires_at"] - self._clock() > REFRESH_MARGIN_S:
                 return acct["access_token"]
-            return self._refresh(data, cid, acct)
+            token = self._refresh(data, cid, acct)
+            if expected_scope is not None and self._vision_scope(cid, acct) != expected_scope:
+                raise PlanUsageDisabled("ChatGPT plan scope changed during refresh: enable plan usage and check vision again")
+            return token
 
     def _refresh(self, data, cid, acct) -> str:
         if not acct.get("refresh_token"):
@@ -312,6 +345,7 @@ class ChatGPTAuth:
             data, cid, acct = self._account()
             if not acct:
                 return
+            changed = any(acct.get(k) for k in ("access_token", "refresh_token", "id_token"))
             for token, hint in ((acct.get("refresh_token"), "refresh_token"), (acct.get("access_token"), "access_token")):
                 if token:
                     try:
@@ -322,3 +356,6 @@ class ChatGPTAuth:
             for k in ("access_token", "refresh_token", "id_token"):
                 acct.pop(k, None)
             self._write(data)
+        if changed:
+            from .capabilities import notify_changed
+            notify_changed()  # tokens are removed durably and the credential lock is released

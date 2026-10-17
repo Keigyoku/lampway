@@ -46,7 +46,9 @@ def _on_load_pre(*_args) -> None:
     from .export_destination import clear_all_destinations
     from .import_source import clear_all_sources
     from .session import get_session_manager
-    from .turn_checkpoints import is_restoring
+    from .turn_checkpoints import discard_all_pending, is_restoring
+
+    discard_all_pending()
 
     if is_restoring():
         # A turn-checkpoint restore reads a snapshot of THIS session while it
@@ -159,6 +161,14 @@ def _on_load_post(*_args) -> None:
                          getattr(scene, "name", "?"), e)
 
     _select_tab_for_mode(_bpy.context)
+
+    # A tab saved in Your agent mode asks for its pane's view again (agent-modes spec B4); nonblocking, and a socket that is
+    # not up yet asks on its reconnect instead.
+    try:
+        from .byoa_view import observe_all
+        observe_all()
+    except Exception as e:  # noqa: BLE001 — never break file load
+        logger.debug("BYOA view on load skipped: %s", e)
 
 
 def _select_tab_for_mode(context) -> None:

@@ -97,12 +97,8 @@ class MIXAR_PT_profile(Panel):
         layout.operator(
             "wm.url_open", text=f"About {PRODUCT_NAME}", icon='INFO',
         ).url = website_url("/about")
-        layout.operator(
-            "wm.url_open", text="Documentation", icon='HELP',
-        ).url = website_url("/docs")
-        layout.operator(
-            "wm.url_open", text="Report a Bug", icon='URL',
-        ).url = website_url("/bug-report")
+        layout.operator("mixie_chat.open_docs", text="Documentation", icon='HELP')
+        layout.operator("mixie_chat.report_bug", text="Report a Bug", icon='URL')
 
         layout.separator()
 

@@ -5,8 +5,51 @@
 from ..constants import UIError
 
 
+# Public parameter meanings apply identically to relay, MCP and QA schemas.
+_PARAMETER_DESCRIPTIONS = {
+    "release": "Release this connection's native input ownership.",
+    "instance": "Opaque running application instance identifier to bind.",
+    "session": "Opaque scene session identifier returned by the scene list.",
+    "context": "Fresh opaque observation context handle; observe again after the UI changes.",
+    "target": "Opaque control or region handle from the same observation context.",
+    "action": "Native event action selected by this schema alternative.",
+    "query": "Match visible controls by their observed labels and metadata.",
+    "image": "Include a fresh screenshot in the observation receipt.",
+    "window": "Opaque observed window identifier to inspect.",
+    "limit": "Maximum controls in this observation page, from 1 to 200.",
+    "offset": "Number of matching controls to skip before this page.",
+    "double": "Send a double click instead of a single click.",
+    "modifiers": "Keyboard modifiers held during this native event.",
+    "shift": "Hold Shift during the event.", "ctrl": "Hold Control during the event.",
+    "alt": "Hold Alt during the event.", "oskey": "Hold the platform command key during the event.",
+    "text": "Visible text to match or literal text to enter, without control characters.",
+    "enter": "Press Enter after entering the text.",
+    "item": "Visible item label to choose.",
+    "key": "Native uppercase key identifier to press.",
+    "steps": "Signed scroll steps; positive and negative values select opposite directions.",
+    "points": "Gesture path of normalized bottom-left region coordinates, each between 0 and 1.",
+    "button": "Mouse button held during the gesture.",
+    "duration": "Gesture duration in seconds, from 0.05 to 5.",
+    "present": "Wait for matching controls to be present when true or absent when false.",
+    "timeout": "Maximum wait in seconds, from 0 to 30.",
+    "call_id": "Durable local UI call identifier whose receipt should be recovered.",
+    "name": "New scene tab name, at most 63 characters without control characters.",
+    "project": "Opaque recent project identifier returned by the project list.",
+    "unsaved": "Explicit user decision for unsaved work: refuse, save or discard.",
+    "op": "Observed operator identifier to match.",
+    "prop": "Observed property identifier to match.",
+    "surface": "Observed UI surface name to match.",
+    "area_type": "Observed editor area type to match.",
+    "region_type": "Observed editor region type to match.",
+    "panel": "Observed panel label to match.",
+    "value": "Observed displayed control value to match.",
+}
+
+
 def obj(properties=None, required=()):
-    return {"type": "object", "properties": properties or {},
+    described = {name: {**value, "description": _PARAMETER_DESCRIPTIONS[name]}
+                 for name, value in (properties or {}).items()}
+    return {"type": "object", "properties": described,
             "required": list(required), "additionalProperties": False}
 
 

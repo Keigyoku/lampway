@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Hola, soc en Naman de Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+En uns minuts et mostraré l'aplicació.
+
+3
+00:00:06,760 --> 00:00:08,250
+Aquesta és la teva vista 3D.
+
+4
+00:00:08,250 --> 00:00:10,300
+Un espai 3D pel qual et pots moure.
+
+5
+00:00:11,000 --> 00:00:13,200
+Arrossega amb el botó central per orbitar, desplaça la roda per fer zoom.
+
+6
+00:00:13,200 --> 00:00:15,400
+Maj i el botó central desplacen la vista.
+
+7
+00:00:15,850 --> 00:00:17,160
+Prova-ho.
+
+8
+00:00:18,180 --> 00:00:20,700
+Clica per seleccionar, G per moure,
+
+9
+00:00:20,700 --> 00:00:22,600
+R per girar, S per escalar.
+
+10
+00:00:22,600 --> 00:00:25,410
+Aquí tens algunes dreceres útils.
+
+11
+00:00:26,040 --> 00:00:29,500
+Veus l'illa petita de baix? És la Mixie, el teu agent.
+
+12
+00:00:30,000 --> 00:00:31,180
+Clica per obrir-la.
+
+13
+00:00:32,210 --> 00:00:33,700
+La Mixie té pestanyes.
+
+14
+00:00:33,920 --> 00:00:38,800
+A Agent, explica amb paraules senzilles què vols. L'agent treballa en la teva escena.
+
+15
+00:00:39,400 --> 00:00:43,300
+L'agent utilitza models com Tripo, Meshy i Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Per tenir més control, obre les altres pestanyes:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video o World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Tria un model i ajusta'n la configuració.
+
+19
+00:00:53,560 --> 00:00:55,730
+Tot el que generes va a la biblioteca.
+
+20
+00:00:56,670 --> 00:00:58,700
+Les teves creacions són aquí.
+
+21
+00:00:59,140 --> 00:01:03,000
+Connecta la teva biblioteca perquè l'agent utilitzi els teus recursos,
+
+22
+00:01:03,000 --> 00:01:06,320
+i estalviïs crèdits.
+
+23
+00:01:06,830 --> 00:01:09,550
+A dalt a l'esquerra hi ha el calaix d'escenes.
+
+24
+00:01:09,550 --> 00:01:12,980
+Cada escena té la seva pestanya i el seu agent Mixie.
+
+25
+00:01:12,980 --> 00:01:17,010
+Executa tasques en paral·lel i canvia entre elles quan vulguis.
+
+26
+00:01:17,640 --> 00:01:21,100
+Quan l'escena estigui llesta, passa a Cinema Mode
+
+27
+00:01:21,100 --> 00:01:24,510
+per dirigir la càmera i crear fluxos de vídeo.
+
+28
+00:01:25,000 --> 00:01:26,700
+Les idees comencen en 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Treu el moodboard des de la dreta o prem la titlla.
+
+30
+00:01:30,860 --> 00:01:33,500
+És un llenç per a referències i conceptes.
+
+31
+00:01:33,500 --> 00:01:36,270
+Deixa-hi imatges, vídeos o esbossos.
+
+32
+00:01:36,940 --> 00:01:40,930
+Crea grafs de nodes per a models generatius, com a ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Ets a Zen Mode, la vista més senzilla.
+
+34
+00:01:44,400 --> 00:01:46,840
+Coneixes Blender? Passa a Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Hi ha tot l'espai de treball de Blender, amb cada panell i drecera.
+
+36
+00:01:52,980 --> 00:01:56,400
+La Mixie funciona en tots dos. Tria el que et vagi millor.
+
+37
+00:01:56,560 --> 00:01:57,570
+Tornem a Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+El nostre programa de socis creatius ofereix crèdits
+
+39
+00:02:02,200 --> 00:02:05,900
+i una comunitat que construeix el futur de la IA i el 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+Ja està. Ara saps on és tot.
+
+41
+00:02:08,550 --> 00:02:10,240
+Creem 3D plegats.

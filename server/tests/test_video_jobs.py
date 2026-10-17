@@ -88,6 +88,23 @@ def wait_for(fake, job_id, states=("succeeded", "failed", "cancelled"), timeout=
     raise AssertionError(f"job {job_id} never reached {states}: {snap}")
 
 
+def wait_for_approval(fake, job_id, timeout=10):
+    end = time.time() + timeout
+    approvals = []
+    while time.time() < end:
+        snap = fake.get(f"/api/v1/job-queue/jobs/{job_id}").json()["data"]
+        assert snap["state"] not in ("failed", "cancelled", "succeeded"), snap
+        approvals = fake.get("/app/studio").json()["approvals"]
+        pending = [a for a in approvals if a["state"] == "pending" and a["action"] == "higgsfield.job"
+                   and a["studio"] == "higgsfield" and a["settings"].get("unit") == "credits"
+                   and a["settings"].get("model") == snap["model"].removeprefix("higgsfield/")]
+        assert len(pending) <= 1, pending  # these fixtures submit only one job at a time
+        if pending and snap["state"] == "pending" and snap.get("user_message", "").startswith("Waiting for your confirmation:"):
+            return pending[0]
+        time.sleep(0.02)
+    raise AssertionError(f"job {job_id} never offered a spend approval: {snap}; approvals: {approvals}")
+
+
 def upload(fake, kind, data, name="a.bin", ctype="application/octet-stream"):
     r = fake.post(f"/api/v1/uploads/{kind}", content=data, headers={"Content-Type": ctype, "X-File-Name": name})
     assert r.status_code == 200, r.text
@@ -215,8 +232,7 @@ def test_a_higgsfield_job_waits_for_the_captain_and_nothing_is_submitted_before(
     fake, orv, hf, auth, *_ = stack
     sign_in_higgsfield(auth, hf)
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
-    snap = wait_for(fake, jid, states=("pending",))
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     snap = fake.get(f"/api/v1/job-queue/jobs/{jid}").json()["data"]
     assert snap["state"] == "pending" and "9.6 credits" in snap["user_message"] and "confirm" in snap["user_message"].lower()
     assert hf_calls(hf) == [], "get_cost only: no generation was submitted"
@@ -229,7 +245,7 @@ def test_the_captains_confirm_runs_it_downloads_the_clip_and_records_the_credits
     fake, orv, hf, auth, *_ = stack
     sign_in_higgsfield(auth, hf)
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     wrong = fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 1})
     assert wrong.status_code == 409 and hf_calls(hf) == []
@@ -246,7 +262,7 @@ def test_rejecting_cancels_the_job_without_a_submit(stack):
     fake, orv, hf, auth, *_ = stack
     sign_in_higgsfield(auth, hf)
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     assert fake.post(f"/app/studio/approvals/{ap['id']}/reject").status_code == 200
     assert wait_for(fake, jid)["state"] == "cancelled" and hf_calls(hf) == []
@@ -257,7 +273,7 @@ def test_an_unlim_choice_becomes_a_question_for_the_captain_and_is_answered_only
     sign_in_higgsfield(auth, hf)
     hf.unlim_question = True
     jid = submit(fake, "video_gen", "higgsfield/seedance_2_0", {"prompt": "x", "params": {"duration": 10, "resolution": "720p"}})
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     first = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     assert fake.post(f"/app/studio/approvals/{first['id']}/confirm", json={"price": 45.0}).status_code == 200
     q = None
@@ -279,7 +295,7 @@ def test_a_submit_timeout_fails_the_job_and_is_never_resubmitted(stack):
     fake, orv, hf, auth, *_ = stack
     sign_in_higgsfield(auth, hf)
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p"}})
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     hf.fail_next_generate = "timeout"
     fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 9.6})
@@ -296,7 +312,7 @@ def test_genjutsu_and_kling_motion_transfer_take_a_character_image_and_a_driving
     for slug in ("higgsfield/hf_mult_motion_control", "higgsfield/kling3_0_motion_control"):
         jid = submit(fake, "video_gen", slug, {"prompt": "dance", "params": {"duration": 5, "resolution": "720p"},
                                                 "reference_image_s3_keys": [img["s3_key"]], "reference_video_s3_keys": [vid["s3_key"]]})
-        time.sleep(0.25)
+        wait_for_approval(fake, jid)
         ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending" and a["label"].lower().find("higgsfield") >= 0)
         assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": ap["price"]}).status_code == 200
         assert wait_for(fake, jid)["state"] == "succeeded"
@@ -310,7 +326,7 @@ def test_a_higgsfield_image_job_is_gated_too(stack):
     fake, orv, hf, auth, *_ = stack
     sign_in_higgsfield(auth, hf)
     jid = submit(fake, "image_gen", "higgsfield/gpt_image_2_5", {"prompt": "a lamp", "params": {"number_of_images": 1}})
-    time.sleep(0.2)
+    wait_for_approval(fake, jid)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     assert hf_calls(hf) == []
     fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": ap["price"]})
@@ -360,7 +376,7 @@ def test_a_preset_recommendation_fails_the_job_naming_the_preset_and_a_template_
     snap = wait_for(fake, jid, states=("failed",))
     assert "IN THE DARK" in snap["error"] and "preset-in-the-dark" in snap["error"] and hf_calls(hf) == [] and not fake.get("/app/studio").json()["approvals"]
     jid = submit(fake, "video_gen", "higgsfield/seedance1_5", {"prompt": "x", "params": {"duration": 8, "resolution": "720p", "literal": True}})
-    time.sleep(0.3)
+    wait_for_approval(fake, jid)
     ap = next(a for a in fake.get("/app/studio").json()["approvals"] if a["state"] == "pending")
     assert ap["price"] == pytest.approx(9.6) and hf_calls(hf) == [], "declined, priced, and nothing is submitted before the user's click"
     assert fake.post(f"/app/studio/approvals/{ap['id']}/confirm", json={"price": 9.6}).status_code == 200

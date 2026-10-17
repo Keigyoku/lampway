@@ -131,3 +131,72 @@ res({"family": i["family"]["name"], "missing": i["slots"]["missing_required"], "
     assert r.rc == 0, r.out[-2000:]
     d = r.results[-1]
     assert d["family"] == "ue" and d["missing"] == [] and d["mapped"] >= 17, d
+
+
+def test_metahuman_corrective_root_with_multiple_children_keeps_authored_frame_on_apply():
+    r = run_script(PRE + RIG + '''
+for side, sign in (("l", 1), ("r", -1)):
+    for i, finger in enumerate(("thumb", "index", "middle", "ring", "pinky")):
+        for joint in (1, 2, 3):
+            name = f"{finger}_{joint:02d}_{side}"
+            J[name] = (sign * (0.40 + 0.025 * joint), 0.015 * (i - 2), 0.60)
+            P[name] = f"{finger}_{joint - 1:02d}_{side}" if joint > 1 else f"hand_{side}"
+J["upperarm_correctiveRoot_l"] = J["upperarm_l"]
+P["upperarm_correctiveRoot_l"] = "upperarm_l"
+for tag, dy in (("fwd", -0.02), ("bck", 0.02)):
+    name = "upperarm_" + tag + "_l"
+    J[name] = (0.13, dy, 0.86); P[name] = "upperarm_correctiveRoot_l"
+arm = build("mh_rig")
+bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode="EDIT")
+arm.data.edit_bones["upperarm_correctiveRoot_l"].roll = math.radians(120)
+bpy.ops.object.mode_set(mode="OBJECT")
+frame = [list(row) for row in arm.data.bones["upperarm_correctiveRoot_l"].matrix_local.to_3x3()]
+r = api.normalize_rigged(armature="mh_rig", profile="metahuman", dry_run=False)
+doc = json.loads(arm["lw_canon"]) if "lw_canon" in arm.keys() else {}
+bones = {b["name"]: b for b in doc.get("body", {}).get("bones", [])}
+res({"result": r, "corrective": bones.get("upperarm_correctiveRoot_l"), "frame": frame,
+     "errors": CA.validate(doc) if doc else ["no document"]})
+''', timeout=300)
+    assert r.rc == 0, r.out[-2500:]
+    d = r.results[-1]
+    assert d["result"]["ok"], d["result"]
+    assert d["errors"] == []
+    assert d["corrective"]["along_source"] == "authored_helper_frame"
+    import numpy as np
+    assert np.allclose(d["corrective"]["frame"], d["frame"], atol=1e-9)
+
+
+def test_n5_explicit_unit_retains_declared_size_without_reference_matching():
+    r = run_script(PRE + RIG + '''
+arm = build(k=1.258)
+auto = api.normalize_rigged(armature=arm.name, dry_run=False)
+explicit = api.normalize_rigged(armature=arm.name, unit="m", dry_run=False)
+doc = json.loads(arm["lw_canon"]) if "lw_canon" in arm else {}
+res({"auto": auto, "explicit": explicit, "scale": doc.get("scale")})
+''')
+    assert r.rc == 0, r.out[-3000:]
+    got = r.results[-1]
+    assert not got["auto"]["ok"] and "units undecided" in got["auto"]["error"], got
+    assert got["explicit"]["ok"], got["explicit"]
+    assert got["scale"]["decision"] == "declared" and got["scale"]["factor_applied"] == 1, got
+
+
+def test_n5_ik_helpers_preserve_authored_frames_without_choosing_a_child():
+    r = run_script(PRE + RIG + '''
+J['root'] = (0,0,-.1); P['root'] = None; P['pelvis']='root'
+for name in ('interaction','center_of_mass'): J[name]=J['root'];P[name]='root'
+for name,parent,target in (('ik_foot_root','root','root'),('ik_foot_l','ik_foot_root','foot_l'),('ik_foot_r','ik_foot_root','foot_r')):
+    J[name]=J[target]; P[name]=parent
+arm=build()
+raw={n:[list(row) for row in arm.data.bones[n].matrix_local.to_3x3()] for n in ('ik_foot_root','ik_foot_l','ik_foot_r','interaction','center_of_mass')}
+r=api.normalize_rigged(armature=arm.name,unit='m',dry_run=False)
+doc=json.loads(arm['lw_canon']) if 'lw_canon' in arm else {}
+res({'r':r,'raw':raw,'rows':{b['name']:b for b in doc.get('body',{}).get('bones',[]) if b['name'] in raw}})
+''')
+    assert r.rc == 0, r.out[-3000:]
+    got=r.results[-1]
+    assert got['r']['ok'],got['r']
+    for name, raw in got['raw'].items():
+        row=got['rows'][name]
+        assert row['along_source']=='reference_transport'
+        assert max(abs(a-b) for x,y in zip(raw,row['frame']) for a,b in zip(x,y)) < 1e-6

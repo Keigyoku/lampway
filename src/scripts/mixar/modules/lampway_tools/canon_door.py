@@ -8,6 +8,8 @@ Declarations (``api.tool(consumes=..., produces=...)``, ``runner.Tool(consumes=.
 * ``{"<arg>": Need(...)}`` - the argument must name a canonical datablock (or a file with its ``.canon.json`` / an npz with its
   ``canon`` header) satisfying the Need; a raw, unstamped or changed asset is refused with "normalize first";
 * ``NONE("why")`` - the tool reads no asset (the reason is mandatory text);
+* ``OBSERVE("why")`` - reads raw or canonical assets without changing them,
+  and reports their canon state; observation never requires normalization;
 * ``LEGACY("issue")`` - during migration (decision D7, the ratchet): logged and let through. The count of ``LEGACY(`` calls in
   the tree is committed in ``canon_legacy_count.txt`` and may only fall (tests/lampway_tools/test_canon_doors.py).
 * produces: ``Inherit(src, remeasure=...)``, ``Fresh(kind)``, ``Raw()`` (the stamping of outputs lands with the tools that
@@ -32,6 +34,15 @@ class NONE(Declared):
     def __post_init__(self):
         if not isinstance(self.why, str) or len(self.why.strip()) < 3:
             raise TypeError("NONE(why): say why this tool reads no asset")
+
+
+@dataclass(frozen=True)
+class OBSERVE(Declared):
+    why: str
+
+    def __post_init__(self):
+        if not isinstance(self.why, str) or len(self.why.strip()) < 3:
+            raise TypeError("OBSERVE(why): describe the read-only observation")
 
 
 @dataclass(frozen=True)
@@ -60,8 +71,8 @@ class Raw:
 
 
 def validate_declaration(consumes):
-    """Raise TypeError unless ``consumes`` is NONE(...), LEGACY(...) or {arg: Need}."""
-    if isinstance(consumes, (NONE, LEGACY)):
+    """Raise TypeError unless consumption is an explicit declaration or {arg: Need}."""
+    if isinstance(consumes, (NONE, OBSERVE, LEGACY)):
         return
     if isinstance(consumes, dict) and consumes and all(isinstance(k, str) and isinstance(v, CA.Need) for k, v in consumes.items()):
         return
@@ -143,8 +154,14 @@ def refusal(arg, value, reasons, need):
     kind = need.kind[0] if need.kind else "mesh"
     if kind == "mesh" and _skinned(value):
         kind = "rigged_mesh"                                       # lampway_normalize_mesh refuses a skinned mesh: name the right normalizer
-    helps = [f"lampway_normalize_{'rigged' if kind == 'rigged_mesh' else kind} input={value}"
-             + (" (not built yet: canon R1/R3, lane orphans)" if kind == "rigged_mesh" else "")]
-    if any(r.startswith("scale is ") for r in reasons):                # the scale STATE (satisfies), not an object scaled in the scene
-        helps.append("real scale comes from lampway_fit_place (armour) or lampway_scale_to_measure")
+    if kind == "mesh":
+        helps = [f"lampway_normalize_mesh input={value}"]
+    elif kind in ("rigged_mesh", "skeleton"):
+        helps = ["lampway_normalize_rigged armature=<armature> meshes=<mesh_names>"]
+    elif kind == "texture":
+        helps = [f"lampway_normalize_texture input={value} role=<texture_role>"]
+    else:
+        helps = ["lampway_status: inspect the configured normalization tools for this asset kind"]
+    if any(r.startswith("scale is ") for r in reasons):
+        helps.append("lampway_fit stage=place piece=<piece> body=<body> or lampway_scale_to_measure object=<mesh> target=<measurement>")
     return {"ok": False, "error": f"normalize first: {arg} {value!r} is not canonical: " + "; ".join(reasons), "help": helps}

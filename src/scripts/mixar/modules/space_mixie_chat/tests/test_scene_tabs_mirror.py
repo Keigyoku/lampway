@@ -24,6 +24,8 @@ class Tabs(list):
 
 @pytest.fixture
 def mirror(rig, monkeypatch):
+    import sys
+    monkeypatch.setattr(props, "bpy", sys.modules["bpy"])
     tabs = Tabs()
     wm = SimpleNamespace(mixar_scene_tabs=tabs, mixar_scene_tabs_attention=False)
     monkeypatch.setattr(props.bpy.context, 'window_manager', wm)

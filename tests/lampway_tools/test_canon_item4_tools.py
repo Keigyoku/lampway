@@ -25,7 +25,8 @@ def run(body, goldens):
 
 
 # The C02 two-bone rig; the body is the tube at REST skinned by the golden's weights, so posed at the fit pose it lies exactly
-# on the piece (authored at the fit pose): each piece vertex then takes the golden's own weights from the body.
+# on the piece (authored at the fit pose). Coincidence does not guarantee authored weights: the
+# 30-degree face-normal gate can reject incident faces and select a farther compatible surface.
 SETUP = r'''
 import numpy as np
 from mathutils import Matrix
@@ -55,6 +56,11 @@ wt = api.fit_bind("weights", piece="piece", armature="rig", out_dir="fb", body_o
 
 def test_g04_1_the_return_is_the_exact_inverse_and_round_trips_through_blenders_own_skinning(goldens):
     d = run('''
+# Isolate the inverse solver with the golden's authored W on its disposable fit copy.
+# The independent transfer/return control below retains actual sampled weights.
+assert wt.get("ok"), wt
+from mixar.modules.lampway_tools.features import weights as WT
+WT._write(bpy.data.objects[wt["object"]], ["A", "B"], np.array(w["W"]))
 ret = api.fit_bind("return", piece="piece", armature="rig", out_dir="fb")
 out = {"ok": ret.get("ok"), "error": ret.get("error")}
 if ret.get("ok"):
@@ -105,3 +111,21 @@ ret = api.fit_bind("return", piece="piece", armature="rig", out_dir="fb")
 res({"ok": ret.get("ok"), "error": ret.get("error")})
 ''', goldens)
     assert not d["ok"] and "another pose" in d["error"]
+
+
+def test_compatible_surface_transfer_round_trips_its_actual_weights(goldens):
+    d = run('''
+assert wt.get("ok"), wt
+from mixar.modules.lampway_tools.features import weights as WT
+names, sampled = WT._read(bpy.data.objects[wt["object"]], {"A", "B"})
+ret = api.fit_bind("return", piece="piece", armature="rig", out_dir="fb")
+assert ret.get("ok"), ret
+rest = bpy.data.objects[ret["object"]]
+ev = rest.evaluated_get(bpy.context.evaluated_depsgraph_get()); me = ev.to_mesh()
+posed = np.array([list(v.co) for v in me.vertices]); ev.to_mesh_clear()
+fit = np.array([list(v.co) for v in piece.data.vertices])
+res({"round_trip_max_m":ret["round_trip_max_m"], "evaluated_error_m":float(np.abs(posed-fit).max()),
+     "sampled_differs_from_authored":float(np.abs(sampled-np.array(w["W"])).max())})
+''', goldens)
+    assert d["round_trip_max_m"] < 1e-6 and d["evaluated_error_m"] < 1e-6, d
+    assert d["sampled_differs_from_authored"] > 1e-6, d

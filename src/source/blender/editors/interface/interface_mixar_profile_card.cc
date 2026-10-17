@@ -452,6 +452,14 @@ void add_actions(Layout *layout)
   Layout &bottom = grid.row(true);
   bottom.scale_y_set(ROW_ACTION);
 
+#ifdef LAMPWAY
+  /* LAMPWAY: Python resolves these against the running local server, including
+   * a custom backend port. Neither action depends on the placeholder website. */
+  add_action(&bottom, "MIXIE_CHAT_OT_open_docs", N_("Docs"), MixarCardIcon::Document,
+             MixarCardElement::CardButton);
+  add_action(&bottom, "MIXIE_CHAT_OT_report_bug", N_("Report a Bug"), MixarCardIcon::Alert,
+             MixarCardElement::DangerButton);
+#else
   if (WM_operatortype_find("WM_OT_url_open", true) != nullptr) {
     PointerRNA docs = bottom.op("WM_OT_url_open", IFACE_("Docs"), ICON_NONE);
     RNA_string_set(&docs, "url", MIXAR_URL_DOCS);
@@ -461,6 +469,7 @@ void add_actions(Layout *layout)
     RNA_string_set(&bug, "url", MIXAR_URL_BUG);
     mark_last(&bottom, MixarCardElement::DangerButton, float(int(MixarCardIcon::Alert)));
   }
+#endif
 }
 
 void add_logout(Layout *layout)

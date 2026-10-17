@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Habari, mimi ni Naman kutoka Mixar.
+
+2
+00:00:02,750 --> 00:00:06,200
+Kwa dakika chache nitakuonyesha programu hii.
+
+3
+00:00:06,760 --> 00:00:08,250
+Hili ni eneo lako la mwonekano.
+
+4
+00:00:08,250 --> 00:00:10,300
+Nafasi ya 3D unayoweza kuzunguka ndani yake.
+
+5
+00:00:11,000 --> 00:00:13,200
+Buruta kwa kitufe cha kati kuzungusha, sogeza gurudumu kukuza.
+
+6
+00:00:13,200 --> 00:00:15,400
+Shift na kitufe cha kati husogeza mwonekano.
+
+7
+00:00:15,850 --> 00:00:17,160
+Jaribu mwenyewe.
+
+8
+00:00:18,180 --> 00:00:20,700
+Bofya kuchagua, G kusogeza,
+
+9
+00:00:20,700 --> 00:00:22,600
+R kuzungusha, S kubadili ukubwa.
+
+10
+00:00:22,600 --> 00:00:25,410
+Hizi ni baadhi ya njia za mkato muhimu.
+
+11
+00:00:26,040 --> 00:00:29,500
+Unaona kisiwa kidogo chini? Huyo ni Mixie, wakala wako.
+
+12
+00:00:30,000 --> 00:00:31,180
+Bofya kukifungua.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie ina vichupo.
+
+14
+00:00:33,920 --> 00:00:38,800
+Katika Agent, sema unachotaka kwa maneno rahisi. Wakala atafanyia kazi mandhari yako.
+
+15
+00:00:39,400 --> 00:00:43,300
+Wakala hutumia modeli kama Tripo, Meshy na Nano Banana.
+
+16
+00:00:43,300 --> 00:00:46,180
+Kwa udhibiti zaidi, fungua vichupo vingine:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video au World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Chagua modeli na urekebishe mipangilio yake.
+
+19
+00:00:53,560 --> 00:00:55,730
+Kila unachozalisha huingia kwenye maktaba.
+
+20
+00:00:56,670 --> 00:00:58,700
+Ubunifu wako uko hapa.
+
+21
+00:00:59,140 --> 00:01:03,000
+Unganisha maktaba yako ili wakala atumie rasilimali zako,
+
+22
+00:01:03,000 --> 00:01:06,320
+na uokoe mikopo.
+
+23
+00:01:06,830 --> 00:01:09,550
+Juu kushoto kuna droo ya mandhari.
+
+24
+00:01:09,550 --> 00:01:12,980
+Kila mandhari ina kichupo chake na wakala Mixie.
+
+25
+00:01:12,980 --> 00:01:17,010
+Endesha kazi sambamba na ubadilishe kati yake wakati wowote.
+
+26
+00:01:17,640 --> 00:01:21,100
+Mandhari ikikamilika, badili kwenda Cinema Mode
+
+27
+00:01:21,100 --> 00:01:24,510
+kuongoza kamera na kuunda mtiririko wa kazi za video.
+
+28
+00:01:25,000 --> 00:01:26,700
+Mawazo huanza katika 2D.
+
+29
+00:01:26,700 --> 00:01:29,860
+Vuta moodboard kutoka kulia au bonyeza tilde.
+
+30
+00:01:30,860 --> 00:01:33,500
+Ni turubai ya marejeleo na dhana.
+
+31
+00:01:33,500 --> 00:01:36,270
+Weka picha, video au michoro hapa.
+
+32
+00:01:36,940 --> 00:01:40,930
+Jenga grafu za nodi za modeli zalishi kama katika ComfyUI.
+
+33
+00:01:41,680 --> 00:01:44,400
+Uko katika Zen Mode, mwonekano rahisi zaidi.
+
+34
+00:01:44,400 --> 00:01:46,840
+Unaijua Blender? Badili kwenda Engine Mode.
+
+35
+00:01:47,770 --> 00:01:51,900
+Eneo lote la kazi la Blender lipo, pamoja na kila paneli na njia ya mkato.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie hufanya kazi katika zote mbili. Chagua inayokufaa.
+
+37
+00:01:56,560 --> 00:01:57,570
+Turudi katika Zen Mode.
+
+38
+00:01:58,230 --> 00:02:02,200
+Programu yetu ya washirika wabunifu inakupa mikopo
+
+39
+00:02:02,200 --> 00:02:05,900
+na jumuiya inayounda mustakabali wa AI na 3D.
+
+40
+00:02:06,580 --> 00:02:08,550
+Ni hayo tu. Sasa unajua kila kitu kilipo.
+
+41
+00:02:08,550 --> 00:02:10,240
+Tuunde 3D pamoja.

@@ -432,10 +432,59 @@ def c14_controls(out):
     }))
 
 
+# ------------------------------------------------------------------ C15 AC65 judgment defaults (physically untested)
+def c15_ac65_defaults(out):
+    """Pin the authorized choices, independently of production settings/table code.
+
+    These are judgment-selected defaults, not measurements of owner gear. The
+    positive sign probes use synthetic straight joints in the canonical frame.
+    """
+    def d(bone, axis, lo=-8, hi=8, step=4):
+        return {"bone": bone, "axis": axis, "range": [lo, hi], "step": step}
+    tables, probes = {}, []
+    for kind in ("waist", "boots", "gauntlets"):
+        tables[kind] = {}
+        for side in ("l", "r"):
+            if kind == "waist":
+                dofs = [d("pelvis", "lateral")]
+                chain = [d("spine_01", "lateral")] + [d(f"thigh_{s}", a) for s in ("l", "r") for a in ("-lateral", "forward")]
+                bones = ["pelvis", "spine_01", "thigh_l", "thigh_r"]
+                expect = {"joint": "head", "along": "forward", "min_cm": 0}
+                axis, point, direction = [1, 0, 0], [0, 0, .6], [0, -1, 0]
+            elif kind == "boots":
+                dofs = [d(f"foot_{side}", "-lateral")]
+                chain = [d(f"foot_{side}", "forward"), d(f"calf_{side}", "-lateral", 0, 8, 4)]
+                bones = [f"{b}_{side}" for b in ("calf", "foot", "ball")]
+                expect = {"joint": f"ball_{side}", "along": "up", "min_cm": 0}
+                axis, point, direction = [-1, 0, 0], [0, -.15, 0], [0, 0, 1]
+            else:
+                dofs = [d(f"hand_{side}", {"line": [f"index_01_{side}", f"pinky_01_{side}"]}, -30, 30, 5)]
+                chain = [d(f"lowerarm_{side}", {"line": [f"lowerarm_{side}", f"hand_{side}"]}, -15, 15, 5)]
+                bones = [f"{b}_{side}" for b in ("lowerarm", "hand")] + [f"{f}_{n:02d}_{side}" for f in ("index", "middle", "ring", "pinky", "thumb") for n in (1, 2, 3)]
+                expect = {"joint": f"middle_03_{side}", "along": "-forward" if side == "l" else "forward", "min_cm": 0}
+                sign = 1 if side == "l" else -1
+                axis, point, direction = [sign, 0, 0], [0, 0, -.12], [0, sign, 0]
+            dofs[0]["expect"] = expect
+            table = {"dofs": dofs, "chain": chain, "regions": {"piece": {"bones": bones, "threshold_m": .002}}, "physical_status": "untested"}
+            if kind == "gauntlets":
+                table.update(curl_side=side, curl_fractions=[0, 1/3, 1/2, 2/3, 1])
+            tables[kind][side] = table
+            probes.append({"kind": kind, "side": side, "axis": axis, "point": point, "along": direction, "deg": 20, "expected_positive": True})
+    M.write_json(out / "C15_ac65_defaults/case.json", {
+        "ruling_date": "2026-10-07", "physical_status": "untested",
+        "source": "AC65 judgment authorization; canon06H1/canon08B3,B5,H1/canon09B3,H2 and bounded pose candidates",
+        "limits": "Synthetic policy and sign-path regression only; no original MetaHumanBase/gear physical acceptance",
+        "settings": {"facing_margin": .05, "pair_scale_group": "per_side", "collar_depth_mm": 20., "boots_scale_anchor": "width"},
+        "tables": tables, "sign_probes": probes,
+        "finger_curl_target_deg": [80, 95, 60],
+        "falsifiers": ["missing_default", "wrong_side", "wrong_sign", "physical_status_promoted"],
+    })
+
+
 def main(out=None):
     out = Path(out or Path(__file__).parent)
     for f in (c01_rigid, c02_inverse_lbs, c03_seam_tube, c04_weld_inpaint, c05_clearance, c06_enclosure, c07_pose_solve, c08_multiview,
-              c09_uv, c10_bake, c11_proportion, c12_gasket, c13_retopo, c14_controls):
+              c09_uv, c10_bake, c11_proportion, c12_gasket, c13_retopo, c14_controls, c15_ac65_defaults):
         f(out)
     print("goldens written:", out)
 

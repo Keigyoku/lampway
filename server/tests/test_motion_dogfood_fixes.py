@@ -387,8 +387,8 @@ def test_no_frame_after_a_script_error_names_the_error_and_scene_md(tmp_path):
     with pytest.raises(M.Refused) as exc:
         M._ready(_Broken(), tmp_path / "index.html", 64, 64)
     assert str(exc.value) == ("the scene does not define window.__frame (the page reported 1 script error; the first: scene.js:1:11: SyntaxError: "
-                              "Unexpected token ','): see the scene contract in specs/motion_graphics/scene.md")
-    with pytest.raises(M.Refused, match=r"window.__frame: see the scene contract in specs/motion_graphics/scene.md$"):
+                              "Unexpected token ','): see the scene contract in docs/canon/motion_graphics/scene.md")
+    with pytest.raises(M.Refused, match=r"window.__frame: see the scene contract in docs/canon/motion_graphics/scene.md$"):
         M._ready(type("NoFrame", (FakeCapture,), {"has_frame": lambda self: False})(), tmp_path / "index.html", 64, 64)
 
 
@@ -403,9 +403,9 @@ def test_a_script_error_that_does_not_stop_the_render_is_a_warning(tmp_path):
 
 def test_the_doc_pointers_name_files_and_sections_that_exist():
     import re
-    spec = (REPO / "specs" / "motion_graphics" / "motion_graphics.md").read_text(encoding="utf-8")
+    spec = (REPO / "docs" / "canon" / "motion_graphics" / "motion_graphics.md").read_text(encoding="utf-8")
     assert "## 2. Timeline, rendering and export" in spec and "## 4. Containment and security" in spec
-    assert "## Self-check contract" in (REPO / "specs" / "motion_graphics" / "scene.md").read_text(encoding="utf-8")
+    assert "## Self-check contract" in (REPO / "docs" / "canon" / "motion_graphics" / "scene.md").read_text(encoding="utf-8")
     for p in (REPO / "server" / "lampway_server" / "motion").glob("*.py"):
         assert not re.search(r"\(motion_graphics\.md section", p.read_text(encoding="utf-8")), p.name
 
@@ -418,7 +418,7 @@ def test_a_syntax_error_in_scene_js_is_reported_with_file_line_and_message(live_
     live_browser.scene_root = scene
     with pytest.raises(M.Refused) as exc:
         M._ready(live_browser, scene / "index.html", 64, 64, scene_root=scene)
-    assert "the first: scene.js:2:" in str(exc.value) and "SyntaxError" in str(exc.value) and "specs/motion_graphics/scene.md" in str(exc.value)
+    assert "the first: scene.js:2:" in str(exc.value) and "SyntaxError" in str(exc.value) and "docs/canon/motion_graphics/scene.md" in str(exc.value)
 
 
 # 11. a draw-on opening the scene declares is not a weak poster frame

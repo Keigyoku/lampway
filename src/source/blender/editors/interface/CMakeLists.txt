@@ -213,6 +213,12 @@ endif()
 
 blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+# LAMPWAY: creator's directory definitions do not reach this sibling target.
+# Keep interface fork guards enabled only for the configured Lampway build.
+if(LAMPWAY)
+  target_compile_definitions(bf_editor_interface PRIVATE LAMPWAY)
+endif()
+
 # RNA_prototypes.hh
 add_dependencies(bf_editor_interface bf_rna)
 

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Motion graphics: video drawn by code, frame by frame, deterministic (specs/motion_graphics/motion_graphics.md).
+"""Motion graphics: video drawn by code, frame by frame, deterministic (docs/canon/motion_graphics/motion_graphics.md).
 
 Two calls, each given ``new_capture``: a factory of FRESH capture adapters (``frames.Chromium``, or a fake). ``render(project_root, args,
 new_capture)`` drives one adapter one frame at a time (t = i / fps, never real time, in order from frame 0 in one browser), hashes every frame,
@@ -53,7 +53,7 @@ def _int(v):
 
 
 def inputs(args: dict) -> dict:
-    """The validated inputs (specs/motion_graphics/tool.md, Inputs): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
+    """The validated inputs (docs/canon/motion_graphics/tool.md, Inputs): every refusal names its fix. There is no frame range and no shard: a frame rendered out of order differs
     (measured), so the only order is from frame 0."""
     if not isinstance(args, dict):
         raise Refused("motion arguments must be a JSON object")
@@ -319,7 +319,7 @@ def _pixels(png: bytes):
     return im.size, hashlib.sha256(im.convert("RGB").tobytes()).hexdigest()
 
 
-SCENE_DOC = "specs/motion_graphics/scene.md"
+SCENE_DOC = "docs/canon/motion_graphics/scene.md"
 
 
 def _page_error(capture) -> str:
@@ -586,7 +586,7 @@ def _run_pinned(root: Path, a: dict, new_capture, out_root: Path, threads: int, 
 
 
 def summary(receipt: dict) -> dict:
-    """The tool's answer (specs/motion_graphics/tool.md, Outputs) from a receipt."""
+    """The tool's answer (docs/canon/motion_graphics/tool.md, Outputs) from a receipt."""
     out = {"ok": receipt["ok"], "run_id": receipt["run_id"], "out_dir": receipt["out_dir"],
            "files": {k: v for k, v in receipt["files"].items() if k in ("mp4", "webm", "contact", "audit")}, "code_sha256": receipt["code_sha256"],
            "frames": receipt["frames"], "frames_sha256_digest": receipt["frames_sha256_digest"],

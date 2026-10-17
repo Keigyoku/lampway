@@ -106,6 +106,11 @@ class MIXIE_CHAT_OT_send_message(Operator):
         return allowed
 
     def execute(self, context):
+        # Your agent mode (agent-modes spec M0, B4): the text goes to the tab's own pane, not to Lampway's provider.
+        from ...core.agent_mode import is_byoa
+        if is_byoa(context.scene):
+            from ...core import byoa_view
+            return byoa_view.execute_send(self, context)
         # Facelift contract 04: with the agent's provider route off in Privacy, refuse here, before the server is asked.
         from mixar.modules.lampway_tools import chat_route
         refused = chat_route.refusal(context)
@@ -289,14 +294,13 @@ class MIXIE_CHAT_OT_send_message(Operator):
             except Exception:
                 pass
 
-        # Turn checkpoint: the document exactly as it is before this fresh
-        # turn (core/turn_checkpoints.py). Taken before the user bubble is
-        # added so a restore shows the chat up to the previous reply. Never
-        # blocks the send.
+        # Arm only the pre-turn boundary. The first uncertified client
+        # script saves the document before it executes; read-only turns
+        # write no full-document checkpoint.
         checkpoint = None
         if fresh_turn:
             from ...core import turn_checkpoints
-            checkpoint = turn_checkpoints.capture(scene, message_text)
+            checkpoint = turn_checkpoints.arm(scene, message_text)
 
         # OPTIMISTIC UPDATE: Add user message immediately for instant feedback
         user_msg = scene.mixie_chat_messages.add()
@@ -412,6 +416,8 @@ class MIXIE_CHAT_OT_send_message(Operator):
             user_message=user_msg,
         ))
         if not success:
+            if checkpoint is not None:
+                turn_checkpoints.discard_pending(scene)
             self.report({'ERROR'}, error)
             metrics.stop_timer('send_message_total')
             return {'CANCELLED'}

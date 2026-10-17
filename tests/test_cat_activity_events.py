@@ -54,7 +54,8 @@ def fixture(monkeypatch):
     processor = slot_processor.SlotEventProcessor.__new__(slot_processor.SlotEventProcessor)
     processor._reparse_content_markdown = lambda *args, **kwargs: None
     yield scene, bubble, processor, clock
-    SessionManager._active_scenes.discard(scene.name)
+    with SessionManager._active_scenes_lock:
+        SessionManager._active_scenes.pop(scene.name, None)
 
 
 @pytest.mark.parametrize(('tool', 'activity'), [('get_scene', 'READING'),

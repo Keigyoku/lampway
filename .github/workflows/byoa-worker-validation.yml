@@ -1,0 +1,176 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+name: byoa-worker-validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/byoa-worker-validation.yml
+      - server/lampway_server/grok_worker.py
+      - server/lampway_server/pane_mcp.py
+      - server/lampway_server/mcp.py
+      - server/lampway_server/herdr/swarm_brain.py
+      - server/lampway_server/native_worker_readiness.py
+      - server/lampway_server/herdr/harnesses/grok.py
+      - server/lampway_server/herdr/host.py
+      - server/tests/test_grok_worker.py
+      - server/tests/test_grok_worker_cleanup.py
+      - server/tests/test_grok_worker_readiness.py
+      - server/tests/test_grok_worker_catalogue.py
+      - server/tests/test_grok_worker_workflow.py
+      - server/tests/test_grok_path_contract.py
+      - server/tests/test_native_worker_readiness.py
+      - server/tests/test_grok_worker_compat_qa.py
+      - server/tests/test_grok_worker_compat_view.py
+      - server/tests/test_grok_worker_consent.py
+      - server/tests/test_grok_retained_consent_options.py
+      - server/lampway_server/capabilities/**
+      - server/lampway_server/app.py
+      - server/lampway_server/herdr/harnesses/__init__.py
+      - server/lampway_server/agent/swarm.py
+      - server/lampway_server/choices/**
+      - tests/qa/grok_worker_validation.py
+      - server/lampway_server/grok_acp_boundary.py
+      - server/tests/test_grok_acp_boundary.py
+      - tests/qa/grok_worker_boundary_validation.py
+      - tests/qa/grok_native_retention_watch.py
+      - tests/qa/test_grok_native_retention_watch.py
+      - tests/qa/grok_worker_transport_diagnostics.py
+      - tests/qa/test_grok_worker_transport_diagnostics.py
+      - tests/qa/grok_worker_inline_diagnostics.py
+      - tests/qa/test_grok_worker_inline_diagnostics.py
+      - tests/qa/grok_worker_artifacts.py
+      - tests/qa/test_grok_worker_artifacts.py
+      - tests/qa/test_grok_worker_native_panes_lifecycle.py
+      - tests/qa/grok_worker_cancel_diagnostics.py
+      - tests/qa/grok_native_cancel_watch.py
+      - tests/qa/test_grok_native_cancel_watch.py
+      - tests/qa/test_grok_worker_cancel_diagnostics.py
+      - third_party/herdr
+permissions:
+  contents: read
+jobs:
+  owned-offline-worker:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Public dependencies in this runner only
+        run: |
+          printf 'LAMPWAY_HERDR_BUILDS=%s\n' "$RUNNER_TEMP/grok-worker-herdr" >> "$GITHUB_ENV"
+          python -m pip install -e 'server[test]' ziglang==0.16.0
+          python -c 'import pathlib,ziglang; print("ZIG=" + str(pathlib.Path(ziglang.__file__).parent / "zig"))' >> "$GITHUB_ENV"
+      - name: Exact public native artifact and authenticated distro package
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture_tools="$RUNNER_TEMP/grok-worker-tools"
+          mkdir -m 700 "$fixture_tools"
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 https://x.ai/cli/grok-1.0.50-linux-x86_64 --output "$fixture_tools/grok"
+          printf '%s  %s\n' c80de0155706ff2d995623887b102f2d0abd2c62b2643dea3a0cebaf7dd724d5 "$fixture_tools/grok" | sha256sum --check
+          chmod 755 "$fixture_tools/grok"
+          apt-cache policy bubblewrap > "$fixture_tools/apt-policy.txt"
+          package_version="$(apt-cache policy bubblewrap | awk '/Candidate:/{print $2}')"
+          test -n "$package_version" && test "$package_version" != '(none)'
+          apt-cache show "bubblewrap=$package_version" > "$fixture_tools/apt-package.txt"
+          cd "$fixture_tools"
+          apt-get download "bubblewrap=$package_version"
+          deb_files=(bubblewrap_*.deb)
+          test "${#deb_files[@]}" -eq 1
+          expected="$(awk '/^SHA256:/{print $2; exit}' apt-package.txt)"
+          test "${#expected}" -eq 64
+          printf '%s  %s\n' "$expected" "${deb_files[0]}" | sha256sum --check
+          dpkg-deb --extract "${deb_files[0]}" package
+          bwrap="$fixture_tools/package/usr/bin/bwrap"
+          test ! -u "$bwrap" && test ! -g "$bwrap"
+          test -z "$(getcap "$bwrap")"
+          sha256sum grok "${deb_files[0]}" "$bwrap" > artifact-hashes.txt
+          ldd "$bwrap" > bwrap-libraries.txt
+          printf '%s\n' "$fixture_tools/package/usr/bin" >> "$GITHUB_PATH"
+          printf 'GROK_WORKER_TOOLS=%s\n' "$fixture_tools" >> "$GITHUB_ENV"
+      - name: Pinned ordinary herdr build (no vendor modifications)
+        run: |
+          git submodule update --init --depth 1 third_party/herdr
+          python scripts/lampway/herdr_env.py
+          python -c 'import os,pathlib; p=next(pathlib.Path(os.environ["LAMPWAY_HERDR_BUILDS"]).glob("*/herdr")); print("LAMPWAY_HERDR_BIN=" + str(p))' >> "$GITHUB_ENV"
+      - name: Controlled refusal regression tests
+        working-directory: server
+        run: python -m pytest -q -o addopts='' tests/test_grok_worker.py tests/test_grok_worker_cleanup.py tests/test_grok_worker_readiness.py tests/test_grok_worker_catalogue.py tests/test_grok_worker_compat_qa.py tests/test_grok_worker_compat_view.py tests/test_grok_worker_consent.py tests/test_grok_retained_consent_options.py tests/test_grok_worker_workflow.py tests/test_grok_path_contract.py tests/test_native_worker_readiness.py tests/test_grok_acp_boundary.py
+      - name: Controlled diagnostic refusal and deadline tests
+        run: python -m pytest -q -o addopts='' tests/qa/test_grok_worker_transport_diagnostics.py tests/qa/test_grok_worker_inline_diagnostics.py tests/qa/test_grok_worker_artifacts.py tests/qa/test_grok_worker_native_panes_lifecycle.py tests/qa/test_grok_worker_cancel_diagnostics.py tests/qa/test_grok_native_retention_watch.py tests/qa/test_grok_native_cancel_watch.py
+      # P4-17 (captain's ruling 2026-10-12): Lampway's ACP boundary keeps the canonical lampway_pane through a hostile same-name
+      # MCP update. These two steps are the acceptance (condition i).
+      - name: Lampway ACP boundary keeps the canonical server, all INET sockets denied (P4-17)
+        if: ${{ !cancelled() }}
+        run: |
+          python tests/qa/grok_worker_boundary_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-boundary-stdio"
+      - name: Lampway ACP boundary keeps the canonical server inside loopback-only namespace (P4-17)
+        if: ${{ !cancelled() }}
+        run: |
+          "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_boundary_validation.py --compatibility-layer --cursor-fixture present --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-boundary-loopback"
+      # The boundary proof's control: the same run without the boundary must still fail at the original's line 700 (a pass would
+      # make the steps above vacuous), so it runs under the same watch.
+      - name: Lampway ACP boundary control without the boundary (P4-17 watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        run: |
+          python tests/qa/grok_native_retention_watch.py --output "$RUNNER_TEMP/grok-worker-boundary-control" -- python tests/qa/grok_worker_boundary_validation.py --without-boundary --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-boundary-control"
+      # The ORIGINAL native checks run unchanged under a watch: expected-failing against the pinned Grok, loud the moment they
+      # pass or fail differently (then remove the boundary: server/lampway_server/grok_acp_boundary.py REMOVAL).
+      - name: Native policy proof with all INET sockets denied (P4-17 watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        run: |
+          python tests/qa/grok_native_retention_watch.py --output "$RUNNER_TEMP/grok-worker-stdio" -- python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture absent --phase stdio --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-stdio"
+      - name: Full helper and native pane chain inside loopback-only namespace (P4-17 watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        run: |
+          python tests/qa/grok_native_retention_watch.py --output "$RUNNER_TEMP/grok-worker-loopback" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_validation.py --compatibility-layer --cursor-fixture present --phase loopback --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-loopback"
+      - name: Independent transport and loaded-policy diagnosis (not acceptance; P4-17 watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python tests/qa/grok_native_retention_watch.py --output "$RUNNER_TEMP/grok-worker-transport-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_transport_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-transport-diagnostics"
+      # Native Grok never closes a cancelled turn's in-flight model request (captain's rulings 2026-10-12: keep the route-card
+      # promise, no relay; run these as a watch like P4-17). The watch passes only on that exact native failure with every later
+      # stage complete, and fails loudly on anything else, including native Grok starting to close it.
+      - name: Selected inline agent diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python tests/qa/grok_native_cancel_watch.py --kind inline --output "$RUNNER_TEMP/grok-worker-inline-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --record-native-cancel --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-diagnostics"
+      - name: Paired permanent model refusal diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python tests/qa/grok_native_cancel_watch.py --kind inline --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_inline_diagnostics.py --record-native-cancel --permanent-model-refusal --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --herdr "$LAMPWAY_HERDR_BIN" --output "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics"
+      - name: Independent ACP request cancellation diagnosis (not acceptance; native cancel watch, expected-failing on pinned Grok)
+        if: ${{ !cancelled() }}
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python tests/qa/grok_native_cancel_watch.py --kind cancel --output "$RUNNER_TEMP/grok-worker-cancel-diagnostics" -- "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --cap-drop ALL --bind / / --dev /dev -- python tests/qa/grok_worker_cancel_diagnostics.py --repo "$GITHUB_WORKSPACE" --head "$LAMPWAY_GROK_DIAGNOSTIC_SLOT_AUTHORIZED" --grok "$GROK_WORKER_TOOLS/grok" --bwrap "$GROK_WORKER_TOOLS/package/usr/bin/bwrap" --output "$RUNNER_TEMP/grok-worker-cancel-diagnostics"
+      - name: Preserve native receipt paths in a portable archive
+        if: always()
+        run: |
+          python tests/qa/grok_worker_artifacts.py --root-parent "$RUNNER_TEMP" --root "$RUNNER_TEMP/grok-worker-stdio" --root "$RUNNER_TEMP/grok-worker-loopback" --root "$RUNNER_TEMP/grok-worker-boundary-stdio" --root "$RUNNER_TEMP/grok-worker-boundary-loopback" --root "$RUNNER_TEMP/grok-worker-boundary-control" --root "$RUNNER_TEMP/grok-worker-transport-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-diagnostics" --root "$RUNNER_TEMP/grok-worker-inline-permanent-refusal-diagnostics" --root "$RUNNER_TEMP/grok-worker-cancel-diagnostics" --output "$RUNNER_TEMP/grok-worker-evidence.tar.gz" --manifest "$RUNNER_TEMP/grok-worker-evidence-manifest.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owned-offline-grok-worker-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/grok-worker-tools/*.txt
+            ${{ runner.temp }}/grok-worker-evidence.tar.gz
+            ${{ runner.temp }}/grok-worker-evidence-manifest.json
+            ${{ runner.temp }}/grok-worker-herdr/*/herdr.json

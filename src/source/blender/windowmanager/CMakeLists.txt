@@ -212,6 +212,10 @@ if(WITH_XR_OPENXR)
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+# LAMPWAY: window readback owns its fork branch; creator definitions are local.
+if(LAMPWAY)
+  target_compile_definitions(bf_windowmanager PRIVATE LAMPWAY)
+endif()
 add_library(bf::windowmanager ALIAS bf_windowmanager)
 
 # RNA_prototypes.hh

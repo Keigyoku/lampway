@@ -53,7 +53,7 @@ def run(qa):
     name = os.environ.get('QA_WS_EXISTING_CUBE') or 'QA_WS_' + str(int(time.time()))
     if not os.environ.get('QA_WS_EXISTING_CUBE'):
         show(qa)
-        qa.chat_send('Before making any scene changes, use ask_user with choice buttons to ask '
+        qa.chat_send('Before making any scene changes, use clarify with choice buttons to ask '
                      'whether I want a red cube or a blue sphere. Wait for my answer.')
         qa.wait(f'{SCENE}.mixie_chat_state == "AWAITING_INPUT"', timeout=180)
         snap(qa, 'question')

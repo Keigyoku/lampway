@@ -127,3 +127,28 @@ print("RESULT", json.dumps({"a": a, "b": b, "plain": plain, "deleted": deleted, 
 '''))
     assert d["a"] == d["b"] and d["a"] != d["plain"] and max(abs(x - y) for x, y in zip(d["a"], d["plain"])) < 0.02
     assert d["deleted"]["ok"] and d["cams"] == [] and d["list"]["shots"] == []
+
+
+def test_advertised_comma_passes_render_exactly_clay_and_depth(tmp_path):
+    d = one(go(tmp_path, '''
+s = subject()
+call("camera_shot", action="new", shot="hero", target="Subject")
+call("camera_shot", action="preset", shot="hero", preset="DOLLY_IN", target="Subject")
+res = call("camera_shot", action="render_guides", shot="hero", passes="clay, depth", out_dir="selective", size=32)
+print("RESULT", json.dumps({"res": res, "files": sorted(os.listdir(os.path.join(root, "selective"))) if os.path.isdir(os.path.join(root, "selective")) else []}))
+'''))
+    assert d["res"]["ok"], d["res"]
+    assert set(d["res"]["guides"]) == {"clay", "depth"}
+    assert all(len(paths) == 2 for paths in d["res"]["guides"].values())
+    assert len(d["files"]) == 4
+
+
+def test_unknown_and_empty_passes_refuse_before_output(tmp_path):
+    d = one(go(tmp_path, '''
+s = subject()
+call("camera_shot", action="new", shot="hero", target="Subject")
+call("camera_shot", action="preset", shot="hero", preset="DOLLY_IN", target="Subject")
+bad = [call("camera_shot", action="render_guides", shot="hero", passes=p, out_dir="invalid", size=32) for p in ("clay,bogus", "clay,", "", ["depth", 7])]
+print("RESULT", json.dumps({"bad": bad, "created": os.path.exists(os.path.join(root, "invalid"))}))
+'''))
+    assert all(not r["ok"] for r in d["bad"]) and not d["created"]

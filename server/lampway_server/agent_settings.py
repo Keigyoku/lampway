@@ -39,7 +39,24 @@ def known_models(settings) -> set:
     return {(p["id"], m["id"]) for p in models_catalog(settings)["providers"] for m in p["models"]}
 
 
-BYOK_CONNECTIONS = {"anthropic": "anthropic", "openai": "custom_llm"}
+BYOK_CONNECTIONS = {"anthropic": "anthropic", "openai": "custom_llm", "openai_compatible": "custom_llm", "local": "custom_llm",
+                    "openrouter": "openrouter"}
+
+#: Providers whose endpoint is the user's own OpenAI-compatible server (llama.cpp, Ollama, vLLM, LM Studio...). ``local`` is what
+#: the client's local-models form sends; it is the same kind of provider (agent-modes spec R0).
+BARE_ENDPOINTS = ("openai", "openai_compatible", "local")
+
+
+def byok_choice(provider: str, model: str, base_url: Optional[str], default_base_url: str) -> Optional[dict]:
+    """The Choices entry for agent.main that a BYOK save means (spec R0: the dialog drives the provider), or None for a provider
+    the main agent cannot run on."""
+    if provider == "anthropic":
+        return {"preferred": f"anthropic:{model}"}
+    if provider == "openrouter":
+        return {"preferred": f"openrouter:{model}"}
+    if provider in BARE_ENDPOINTS:
+        return {"preferred": "openai:local", "params": {"model": model, "base_url": (base_url or default_base_url).rstrip("/")}}
+    return None
 
 
 class AgentSettingsStore:

@@ -212,22 +212,34 @@ def _run(vault, name: str, a: dict, actor: str) -> dict:
     raise LibraryError(f"unknown tool {name!r}")
 
 
+def _refusal(name, error):
+    if name == "lampway_vault_similar":
+        template = "lampway_vault_similar text=<query> axes=[\"shape\",\"look\",\"name\"]"
+    elif name in NAMES:
+        spec = next(t.parameters for t in specs() if t.name == name)
+        required = " ".join(f"{key}=<{key}>" for key in spec.get("required", []))
+        template = (name + " " + required).strip()
+    else:
+        template = "lampway_vault action=status"
+    return str(error) + "\nNext call: " + template, True
+
+
 async def call(vault, name: str, arguments: dict, ctx: dict = None, limiter: Limiter = None) -> tuple:
     """(JSON text, is_error) for one call. ``ctx`` = {origin: agent | worker | mcp, agent_id}: the authority comes from the origin, the attribution (agent:<id>) from the id."""
     ctx = ctx or {}
     origin, actor = str(ctx.get("origin") or "agent"), f"agent:{ctx.get('agent_id') or 'main'}"
     if vault is None:
-        return "the Asset Vault is not available on this server", True
+        return _refusal(name, "the Asset Vault is not available on this server")
     if name not in NAMES:
-        return f"unknown tool {name!r}", True
+        return _refusal(name, f"unknown tool {name!r}")
     need = AUTHORITY[name]
     if need not in GRANTS.get(origin, set()):
-        return f"{name} needs {need}, which a {origin} is not allowed: ask the main agent or the user", True
+        return _refusal(name, f"{name} needs {need}, which a {origin} is not allowed: ask the main agent or the user")
     a = arguments if isinstance(arguments, dict) else {}
     spec = BY_NAME[name].parameters
     unknown = sorted(set(a) - set(spec["properties"]))
     if unknown:
-        return f"{name} takes no argument {', '.join(unknown)}; its arguments are {sorted(spec['properties'])} (the rater is always you)", True
+        return _refusal(name, f"{name} takes no argument {', '.join(unknown)}; its arguments are {sorted(spec['properties'])} (the rater is always you)")
     missing = [k for k in spec["required"] if a.get(k) in (None, "", [])]
     if missing:
         from .tool_defs import needs
@@ -236,7 +248,7 @@ async def call(vault, name: str, arguments: dict, ctx: dict = None, limiter: Lim
         (limiter or LIMITER).check(actor, name in WRITES)
         out = await asyncio.to_thread(_run, vault, name, a, actor)
     except (LibraryError, ValueError, TypeError) as exc:
-        return str(exc).strip("'\""), True
+        return _refusal(name, str(exc).strip("'\""))
     return json.dumps({"ok": True, **out} if isinstance(out, dict) else {"ok": True, "result": out}, default=str), False
 
 

@@ -3,9 +3,6 @@
 * ``tripo``      the Tripo Studio driver (GPT Image 2.5, 4 images, 4K, free quota). Every setting is set and read back right
                  before Generate and the run refuses on any mismatch (incl. a price that is not free); never fewer than 4 per
                  generation; a DRY RUN unless ``live`` AND the owner's own LAMPWAY_STUDIO_ARMED=1 is set in this process.
-* ``codex_cli``  `codex exec '$imagegen'` on the owner's own ChatGPT login, one image per call (the CLI makes exactly one). Off
-                 unless the local-CLI setting is on; the refusal carries the terms caveat.
-
 * ``openrouter`` an OpenRouter image model (default ``google/gemini-3.1-flash-image``: text + reference images in, one image per
                  call) over POST /api/v1/images. Dry run unless ``live``; live needs the OpenRouter key, counts against the SAME
                  session spend ceiling as the chat models, and is refused before sending once that ceiling is reached.
@@ -19,15 +16,13 @@ import json
 import logging
 import base64
 import mimetypes
-import os
 import sys
 from pathlib import Path
 
-from .agent import cli_adapters as CLI
 from .agent import server_tools as ST
 from .studios import axi
 
-BACKENDS = ("tripo", "codex_cli", "openrouter")
+BACKENDS = ("tripo", "openrouter")              # codex_cli ($imagegen through the Codex CLI) retired: agent-modes spec R0
 log = logging.getLogger("lampway.imagegen")
 openrouter_transport = None          # tests inject an httpx transport here; None means the real network
 _IMG = (".png", ".jpg", ".jpeg", ".webp")
@@ -45,7 +40,7 @@ def backend_name() -> str:
     return name
 
 
-IMAGE_CONNECTIONS = {"openrouter": "openrouter", "tripo": "studio:tripo", "codex_cli": "codex_cli"}
+IMAGE_CONNECTIONS = {"openrouter": "openrouter", "tripo": "studio:tripo"}
 
 
 def _register_uses() -> None:
@@ -96,18 +91,7 @@ def generate(backend: str, prompt_file: str, refs, out_dir: str, count: int = 4,
         rc, text = ST._exec(cmd, ST.environment(), 900.0)
         if rc != 0:
             raise ImageGenError(f"the Tripo driver refused or failed: {text.strip()[-600:]}")
-        return {"backend": "tripo", "files": _images(Path(out)) if live else [], "dry_run": not live, "output": text}
-    CLI.require_enabled(_state_dir())
-    prompt = Path(prompt_path).read_text(encoding="utf-8").strip()
-    binary = os.environ.get("LAMPWAY_CODEX_BIN", "codex")
-    files = []
-    for i in range(1, int(count) + 1):
-        try:
-            res = CLI.codex_image(binary, prompt, ref_paths, out, name=str(i))
-        except CLI.CLIError as exc:
-            raise ImageGenError(f"codex made {len(files)} of {count} images, then failed: {exc}") from exc
-        files.append(res["file"])
-    return {"backend": "codex_cli", "files": files, "dry_run": False, "output": f"{len(files)} image(s) through codex $imagegen"}
+    return {"backend": "tripo", "files": _images(Path(out)) if live else [], "dry_run": not live, "output": text}
 
 
 def _sniff_mime(data: bytes) -> str:

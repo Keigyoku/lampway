@@ -13,6 +13,46 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GATE = ROOT / "scripts/lampway/prepublish_gate.py"
 
+EXEMPT_EMAIL_DOMAINS = (
+    "users.noreply.github.com", "example.com", "example.invalid", "example.org",
+    "lampway.local", "lampway.dev", "anthropic.com", "example.net", "example.test",
+    "x.com", "z.io",
+)
+
+
+@pytest.mark.parametrize("domain", EXEMPT_EMAIL_DOMAINS)
+@pytest.mark.parametrize("suffix", (".evil.org", "-evil.org", "x"))
+def test_exempt_email_domains_do_not_exempt_suffix_lookalikes(domain, suffix):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    email = "noreply" + "@" + domain + suffix
+    findings = gate["scan_line"](email)
+    assert any(row[0] == "any-email" for row in findings)
+    assert all(email not in row[2] and domain not in row[2] for row in findings)
+
+
+@pytest.mark.parametrize("domain", EXEMPT_EMAIL_DOMAINS)
+def test_exact_exempt_email_domains_remain_exempt(domain):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    email = "noreply" + "@" + domain
+    assert not any(row[0] == "any-email" for row in gate["scan_line"](email))
+
+
+def test_an_exempt_address_does_not_hide_another_address_on_the_same_line():
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    line = "owner" + "@" + "lampway.local " + "private-fixture" + "@" + "gmail.com"
+    assert [row[0] for row in gate["scan_line"](line)] == ["any-email"]
+
+
+@pytest.mark.parametrize("name", ("template", "other-one"))
+def test_versioned_prompt_filenames_are_not_email_addresses(name):
+    import runpy
+    gate = runpy.run_path(str(GATE))
+    filename = name + "@" + "1.0.0.json"
+    assert gate["scan_line"]('path = "prompts/' + filename + '"') == []
+
 
 def test_the_gate_sees_every_planted_offender():
     p = subprocess.run([sys.executable, str(GATE), "--self-test"], capture_output=True, text=True)
@@ -109,10 +149,11 @@ def _gate_module():
 
 
 def _committed_matrix_line():
-    # Exact payload from PR1 source a4f2cee; the native test is outside this lane.
-    operator = '@'
-    return ("    expected=(arm.matrix_world" + operator + "arm.pose.bones['lowerarm_l'].head)"
-            "-(arm.matrix_world" + operator + "arm.pose.bones['upperarm_l'].head)")
+    # Exact multiline-payload line from tests/lampway_tools/test_native_complete_topology.py
+    # at f13fa7d9de627bc9e47efa5d3b7c25083ffb8edd; source blob 7655712d34f0af165c11d0fc4c7b37d70b7e0209.
+    # Keep the reproduction independent of that native implementation's publication.
+    # Construct operator tokens separately; the resulting scanner input is byte-exact.
+    return "@".join(('    expected=(arm.matrix_world', "arm.pose.bones['lowerarm_l'].head)-(arm.matrix_world", "arm.pose.bones['upperarm_l'].head)"))
 
 
 def test_actual_committed_matrix_payload_is_not_an_email(tmp_path):

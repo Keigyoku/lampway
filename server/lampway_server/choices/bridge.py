@@ -15,7 +15,7 @@ from . import registry as REG
 _MAIN_MODEL = {"chatgpt_plan": "chatgpt_model", "anthropic": "anthropic_model", "openrouter": "openrouter_model"}
 _FIELDS = {
     "agent.main": {"provider", "anthropic_model", "openai_model", "chatgpt_model", "chatgpt_effort", "openrouter_model"},
-    "agent.worker": {"provider", "swarm_provider", "claude_swarm_model", "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model"},
+    "agent.worker": {"swarm_provider", "claude_swarm_model", "chatgpt_swarm_model", "chatgpt_swarm_effort", "openrouter_swarm_model"},
     "image.plates": {"image_backend", "image_purposes"},
 }
 _EXTRA_ENV = {"agent.main": ("LAMPWAY_CODEX_MODEL", "LAMPWAY_CLAUDE_MODEL", "LAMPWAY_CODEX_EFFORT"), "agent.dictation": ("LAMPWAY_OPENROUTER_STT_MODEL",)}
@@ -33,7 +33,7 @@ def _video_option(slug: str) -> str:
     return "higgsfield:" + slug.split("/", 1)[1] if slug.startswith("higgsfield/") else "openrouter:" + slug
 
 
-def chains(s: Settings, env=None) -> dict:
+def chains(s: Settings, env=None, *, worker_fields=None) -> dict:
     """{purpose: entry} for every purpose a settings value decides."""
     env = os.environ if env is None else env
     out = {}
@@ -42,16 +42,23 @@ def chains(s: Settings, env=None) -> dict:
         out["agent.main"] = _entry(f"{prov}:{getattr(s, _MAIN_MODEL[prov])}", params={"effort": s.chatgpt_effort} if prov == "chatgpt_plan" else None)
     elif prov == "openai":
         out["agent.main"] = _entry("openai:local", params={"model": s.openai_model, "base_url": s.openai_base_url})
-    elif prov in ("codex_cli", "codex_app_server"):
-        out["agent.main"] = _entry(prov, params={"model": env.get("LAMPWAY_CODEX_MODEL", ""), "effort": env.get("LAMPWAY_CODEX_EFFORT", "")})
-    elif prov == "claude_cli":
-        out["agent.main"] = _entry("claude_cli", params={"model": env.get("LAMPWAY_CLAUDE_MODEL", "")})
     else:
         out["agent.main"] = _entry("mock")
-    kind = s.swarm_provider or prov
-    if kind == "claude_cli":
-        out["agent.worker"] = _entry("claude_cli", params={"model": s.claude_swarm_model})
-    elif kind == "openrouter":
+    # Defaults are not a worker selection. Follow the parent's entire resolved
+    # choice until worker-specific preferences/environment/dialog values move it.
+    # A scope passes its actual keys so default-valued fields do not become clicks.
+    if worker_fields is None:
+        worker_fields = {k for k in _FIELDS["agent.worker"]
+                         if s.sources.get(k) in {"env", "saved", "choices"}
+                         or (k in PP.ENV_VARS and PP.ENV_VARS[k] in env)}
+    worker_fields = set(worker_fields)
+    kind = s.swarm_provider
+    if not kind:
+        if "openrouter_swarm_model" in worker_fields:
+            kind = "openrouter"
+        elif worker_fields & {"chatgpt_swarm_model", "chatgpt_swarm_effort"}:
+            kind = "chatgpt_plan"
+    if kind == "openrouter":
         out["agent.worker"] = _entry(f"openrouter:{s.openrouter_swarm_model}")
     elif kind == "chatgpt_plan":
         out["agent.worker"] = _entry(f"chatgpt_plan:{s.chatgpt_swarm_model}", params={"effort": s.chatgpt_swarm_effort})
@@ -65,8 +72,6 @@ def chains(s: Settings, env=None) -> dict:
             continue
         if purpose == "plates" and s.image_backend == "tripo":
             out[pid] = _entry("studio:tripo.image", [model], params)
-        elif purpose == "plates" and s.image_backend == "codex_cli":
-            out[pid] = _entry("codex_cli:imagegen", [model], params)
         else:
             out[pid] = _entry(model, params=params)
     for purpose, cfg in s.video_purposes.items():
@@ -103,7 +108,7 @@ def providers_scope(state_dir) -> dict:
     if not saved:
         return {}
     s = PP.apply_saved(Settings(), saved, env={}, choices=False)
-    every = chains(s, env={})
+    every = chains(s, env={}, worker_fields=saved)
     return {pid: {**every[pid], "source": "providers"} for pid in _touched(saved) if pid in every}
 
 
@@ -117,7 +122,7 @@ def env_scope(env=None) -> dict:
             touched.add(pid)
     if not touched:
         return {}
-    every = chains(Settings.from_env(env), env=env)
+    every = chains(Settings.from_env(env), env=env, worker_fields=set_keys)
     out = {}
     for pid in touched:
         if pid in every:
@@ -150,13 +155,11 @@ def _apply(s: Settings, pid: str, entry: dict) -> set:
         if provider == "openai" and params.get("model"):
             s.openai_model = params["model"]
             out.add("openai_model")
+        if provider == "openai" and params.get("base_url"):
+            s.openai_base_url = str(params["base_url"])
+            out.add("openai_base_url")
     elif pid == "agent.worker":
-        if prov == "claude_cli":
-            s.swarm_provider, out = "claude_cli", {"swarm_provider"}
-            if params.get("model"):
-                s.claude_swarm_model = params["model"]
-                out.add("claude_swarm_model")
-        elif prov == "openrouter" and model:
+        if prov == "openrouter" and model:
             s.swarm_provider, s.openrouter_swarm_model, out = "openrouter", model, {"swarm_provider", "openrouter_swarm_model"}
         elif prov == "chatgpt_plan" and model and s.provider == "chatgpt_plan":
             s.swarm_provider, s.chatgpt_swarm_model, out = "", model, {"swarm_provider", "chatgpt_swarm_model"}
@@ -170,8 +173,8 @@ def _apply(s: Settings, pid: str, entry: dict) -> set:
             out.add("image_purposes")
             if purpose == "plates":
                 s.image_backend, out = "openrouter", out | {"image_backend"}
-        elif purpose == "plates" and oid in ("studio:tripo.image", "codex_cli:imagegen"):
-            s.image_backend, out = ("tripo" if oid.startswith("studio") else "codex_cli"), {"image_backend"}
+        elif purpose == "plates" and oid == "studio:tripo.image":
+            s.image_backend, out = "tripo", {"image_backend"}
             fb = next((f for f in entry.get("fallbacks") or [] if f.startswith("openrouter:")), None)
             if fb:
                 cfg["model"] = fb.split(":", 1)[1]
@@ -251,7 +254,7 @@ def save_dialog_choices(s: Settings, values: dict) -> dict:
     modeled = {k: v for k, v in values.items() if k in MODELED}
     if modeled:
         trial = PP.trial(s, modeled)
-        every = chains(trial)
+        every = chains(trial, worker_fields=modeled)
         for pid in sorted(_touched(modeled)):
             if pid in every:
                 entry = {k: every[pid][k] for k in ("preferred", "fallbacks", "params")}

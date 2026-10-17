@@ -60,18 +60,26 @@ def _render_mask(ob, camera_from, view, size, tmp, shaded=False):
     return px[..., 3] > 8
 
 
-def _image_mask(path, size):
+def _image_mask(path, size=None):
+    """Plate mask; native dimensions when size is None, border-ring key per canon 10 B.6."""
     from PIL import Image
     im = Image.open(path).convert("RGBA")
     a = np.asarray(im)
     if a[..., 3].min() < 255:
         m = a[..., 3] > 127
-    else:                                                                    # no alpha: a flat background (the corner colour)
-        corners = np.concatenate([a[:8, :8, :3].reshape(-1, 3), a[-8:, -8:, :3].reshape(-1, 3)])
-        if corners.std(axis=0).max() > 12:
+    else:
+        rgb = a[..., :3].astype(float)
+        ring = np.zeros(a.shape[:2], bool)
+        ring[:8] = ring[-8:] = True
+        ring[:, :8] = ring[:, -8:] = True
+        if rgb[ring].std(axis=0).max() > 12:
             raise C.FeatureError("the plate needs an alpha or a flat background (see plate_pick)")
-        bg = np.median(corners, axis=0)
-        m = np.abs(a[..., :3].astype(float) - bg).max(-1) > 20
+        bg = np.median(rgb[ring], axis=0)
+        delta = np.abs(rgb - bg).max(-1)
+        tolerance = float(np.quantile(delta[ring], .99))
+        m = delta > tolerance
+    if size is None:
+        return m
     return np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((size, size))) > 127
 
 

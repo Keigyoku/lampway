@@ -150,7 +150,7 @@ print("RESULT", json.dumps({"a": a, "got": got, "p": p}))
     assert g["soft"] == [False, False] and g["culling"] == {"Steel": False, "Cloth": False}                             # Default Lit is one-sided only when marked so
     assert g["slot_c"] == "Cloth [UE]" and g["slot_a"] == "Steel [UE]"
     lights = {l["name"]: l for l in a["lights"]}
-    assert lights["Key"]["to"]["intensity"] == 2049.0 and lights["Rim"]["to"]["outer_cone_deg"] == 22.5
+    assert lights["Key"]["to"]["intensity"] == 2049.0 and lights["Rim"]["to"]["outer_cone_deg"] == 22.7583    # the fitted spot cones (ue/lights.py, LGT-02)
     assert a["classes"]["COL"] == "unmeasured" and a["classes"]["SHD"] == "unmeasured" and a["view"]["state"] == "ready"
     assert a["cube"]["sha256"] and a["cube"]["engine_version"] == "5.8.2" and a["cube"]["path"].endswith("test.cube")
     leather = next(m for m in a["materials"] if m["name"] == "Leather")

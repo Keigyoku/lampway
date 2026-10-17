@@ -25,6 +25,38 @@ RULES_FILE = Path(__file__).with_name("rules") / "terms.json"
 USER = ("captain", "user")
 RECEIPT_NAMES = {"checks.json": "gate", "uv_score.json": "qa", "attempts.json": "audit", "recipe.json": "audit", "verification.json": "audit"}
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".m4v"}
+ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
+BLEND_SNIFF_INPUT_LIMIT = 256 * 1024
+BLEND_SNIFF_WINDOW_LIMIT = 64 * 1024**2
+
+
+def _blend_header(head: bytes) -> bool:
+    # Pinned BLO_core_blend_header.hh: legacy12-byte and modern17-byte formats.
+    legacy = (len(head) >= 12 and head[:7] == b"BLENDER" and head[7:8] in (b"_", b"-")
+              and head[8:9] in (b"v", b"V") and all(48 <= byte <= 57 for byte in head[9:12]))
+    modern = (len(head) >= 17 and head[:13] == b"BLENDER17-01v"
+              and all(48 <= byte <= 57 for byte in head[13:17]))
+    return legacy or modern
+
+
+def _compressed_blend_header(head: bytes) -> bytes:
+    """Sniff at most17 output bytes; never unpack a source or trust its extension.
+
+    The caller caps compressed input. Reject excessive advertised windows before
+    constructing the bounded streaming decoder. This recognizes a header, not
+    full-file integrity; native loading remains responsible for the asset body.
+    """
+    import zstandard
+
+    try:
+        if zstandard.get_frame_parameters(head).window_size > BLEND_SNIFF_WINDOW_LIMIT:
+            return b""
+        decoder = zstandard.ZstdDecompressor(max_window_size=BLEND_SNIFF_WINDOW_LIMIT)
+        with decoder.stream_reader(io.BytesIO(head), read_size=1024, read_across_frames=False) as reader:
+            header = reader.read(17)
+        return header[:12 if header[7:8] in (b"_", b"-") else 17] if _blend_header(header) else b""
+    except zstandard.ZstdError:
+        return b""
 
 
 # ---- classify (magic bytes first; an unknown file is reported, never guessed) -----------------------------------------------------
@@ -46,7 +78,7 @@ def classify(head: bytes, name: str) -> Optional[dict]:
         return {"kind": "video", "container": "webm"}
     if head.startswith(b"Kaydara FBX Binary"):
         return {"kind": "mesh", "subtype": "model", "container": "fbx", "tier2": True}
-    if head.startswith(b"BLENDER"):
+    if _blend_header(head):
         return {"kind": "mesh", "subtype": "model", "container": "blend", "tier2": True}
     if head.startswith(b"PK\x03\x04"):
         return {"kind": "archive", "container": "zip"}
@@ -229,7 +261,11 @@ class Ingest:
 
     def _head(self, p: Path) -> bytes:
         with open(p, "rb") as fh:
-            return fh.read(32)
+            head = fh.read(32)
+            if head.startswith(ZSTD_MAGIC):
+                prefix = head + fh.read(BLEND_SNIFF_INPUT_LIMIT - len(head))
+                return _compressed_blend_header(prefix) or head
+            return head
 
     def scan(self, paths, source_label=None, ignore=None, recursive=True, max_files: int = 200000) -> dict:
         ignore = DEFAULT_IGNORE if ignore is None else ignore

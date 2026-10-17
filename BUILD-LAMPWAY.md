@@ -242,7 +242,7 @@ ImageMagick's `import -window root` on that display; `bpy.ops.screen.screenshot`
 ## 8. The motion-graphics browser
 
 The server's `lampway_motion_graphics` tool renders scenes in a headless Chromium it does not ship. Point `LAMPWAY_CHROMIUM` at
-Chrome for Testing's **chrome-headless-shell** (tested: 155.0.8059.39, the version in `specs/motion_graphics/acceptance.md`):
+Chrome for Testing's **chrome-headless-shell** (tested: 155.0.8059.39, the version in `docs/reports/motion-graphics-acceptance.md`):
 
 ```bash
 v=155.0.8059.39

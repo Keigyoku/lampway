@@ -38,7 +38,7 @@ def test_two_overlapping_cubes_report_one_intersection_and_separate_cubes_none(t
     r = scan(tmp_path, '''
 a = boxes("hit", [((0, 0, 0), (1, 1, 1)), ((0.5, 0.5, 0.5), (1, 1, 1))])
 b = boxes("apart", [((0, 0, 0), (1, 1, 1)), ((3, 0, 0), (1, 1, 1))])
-print("RESULT", json.dumps({"hit": call("mesh_defect_scan", object="hit", kinds=["intersection"]), "apart": call("mesh_defect_scan", object="apart", kinds=["intersection"])}))
+print("RESULT", json.dumps({"hit": call("mesh_defect_scan", full=True, object="hit", kinds=["intersection"]), "apart": call("mesh_defect_scan", full=True, object="apart", kinds=["intersection"])}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
@@ -50,7 +50,7 @@ print("RESULT", json.dumps({"hit": call("mesh_defect_scan", object="hit", kinds=
 def test_a_reversed_open_cylinder_is_a_flipped_shell_and_the_right_way_out_one_is_not(tmp_path):
     r = scan(tmp_path, '''
 tube("flipped", flip=True); tube("good", loc=(5, 0, 0))
-print("RESULT", json.dumps({"f": call("mesh_defect_scan", object="flipped", kinds=["flipped_shell", "open_loop"]), "g": call("mesh_defect_scan", object="good", kinds=["flipped_shell", "open_loop"])}))
+print("RESULT", json.dumps({"f": call("mesh_defect_scan", full=True, object="flipped", kinds=["flipped_shell", "open_loop"]), "g": call("mesh_defect_scan", full=True, object="good", kinds=["flipped_shell", "open_loop"])}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
@@ -61,8 +61,8 @@ print("RESULT", json.dumps({"f": call("mesh_defect_scan", object="flipped", kind
 def test_a_strap_thinner_than_the_threshold_is_thin_and_a_thick_one_is_not(tmp_path):
     r = scan(tmp_path, '''
 boxes("thin", [((0, 0, 0), (0.3, 0.3, 0.001))]); boxes("thick", [((0, 0, 0), (0.3, 0.3, 0.1))])
-print("RESULT", json.dumps({"t": call("mesh_defect_scan", object="thin", kinds=["thin"]), "k": call("mesh_defect_scan", object="thick", kinds=["thin"]),
-                            "loose": call("mesh_defect_scan", object="thin", kinds=["thin"], thin_threshold_m=0.0005)}))
+print("RESULT", json.dumps({"t": call("mesh_defect_scan", full=True, object="thin", kinds=["thin"]), "k": call("mesh_defect_scan", full=True, object="thick", kinds=["thin"]),
+                            "loose": call("mesh_defect_scan", full=True, object="thin", kinds=["thin"], thin_threshold_m=0.0005)}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
@@ -76,9 +76,9 @@ bm = bmesh.new(); bm.from_mesh(body.data)
 v = [bm.verts.new(p) for p in ((5, 5, 5), (5.1, 5, 5), (5, 5.1, 5))]; bm.faces.new(v)                  # one isolated triangle
 d1, d2, d3 = [bm.verts.new(p) for p in ((8, 0, 0), (9, 0, 0), (10, 0, 0))]; bm.faces.new((d1, d2, d3))        # a zero-area (collinear) triangle
 bm.to_mesh(body.data); bm.free()
-res = call("mesh_defect_scan", object="m", kinds=["floating_shell", "degenerate", "isolated_tri"])
+res = call("mesh_defect_scan", full=True, object="m", kinds=["floating_shell", "degenerate", "isolated_tri"])
 clean = boxes("c", [((0, 0, 0), (1, 1, 1))])
-print("RESULT", json.dumps({"res": res, "clean": call("mesh_defect_scan", object="c"), "trunc": call("mesh_defect_scan", object="m", max_candidates=1)}))
+print("RESULT", json.dumps({"res": res, "clean": call("mesh_defect_scan", full=True, object="c"), "trunc": call("mesh_defect_scan", full=True, object="m", max_candidates=1)}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
@@ -93,10 +93,10 @@ def test_the_scan_never_edits_the_mesh_and_refuses_what_it_cannot_read(tmp_path)
     r = scan(tmp_path, '''
 ob = boxes("m", [((0, 0, 0), (1, 1, 1)), ((0.5, 0.5, 0.5), (1, 1, 1))])
 before = (len(ob.data.vertices), len(ob.data.polygons), [tuple(v.co) for v in ob.data.vertices][:5])
-res = call("mesh_defect_scan", object="m")
+res = call("mesh_defect_scan", full=True, object="m")
 after = (len(ob.data.vertices), len(ob.data.polygons), [tuple(v.co) for v in ob.data.vertices][:5])
 empty = bpy.data.objects.new("e", bpy.data.meshes.new("e")); link(empty)
-print("RESULT", json.dumps({"same": before == after, "e": call("mesh_defect_scan", object="e"), "k": call("mesh_defect_scan", object="m", kinds=["nonsense"]), "t": call("mesh_defect_scan", object="m", thin_threshold_m=1)}))
+print("RESULT", json.dumps({"same": before == after, "e": call("mesh_defect_scan", full=True, object="e"), "k": call("mesh_defect_scan", full=True, object="m", kinds=["nonsense"]), "t": call("mesh_defect_scan", full=True, object="m", thin_threshold_m=1)}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
@@ -113,10 +113,32 @@ def test_the_real_boots1_attempt_is_scanned_in_bounded_time(tmp_path):
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.fbx(filepath=root + "/boot.fbx")
 ob = next(o for o in bpy.data.objects if o.type == "MESH")
-res = call("mesh_defect_scan", object=ob.name, kinds=["open_loop", "floating_shell", "intersection", "flipped_shell", "degenerate", "isolated_tri"], max_candidates=500)
+res = call("mesh_defect_scan", full=True, object=ob.name, kinds=["open_loop", "floating_shell", "intersection", "flipped_shell", "degenerate", "isolated_tri"], max_candidates=500)
 print("RESULT", json.dumps({"counts": res["counts"], "total": res["total"], "faces": len(ob.data.polygons)}))
 ''')
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["faces"] == 27753 and o["total"] >= 0 and time.time() - t0 < 300, o
     print("boots1 attempt_2 counts", o["counts"])
+
+
+def test_defect_default_reply_is_bounded_and_pages_keep_true_totals(tmp_path):
+    from issue2_isolated import run as isolated
+    out = isolated(tmp_path, '''
+me=bpy.data.meshes.new('triangles')
+verts=[]; faces=[]
+for i in range(160):
+    n=len(verts); verts.extend([(i*2,0,0),(i*2+1,0,0),(i*2,1,0)]); faces.append((n,n+1,n+2))
+me.from_pydata(verts,[],faces)
+ob=bpy.data.objects.new('many',me); bpy.context.collection.objects.link(ob)
+a=call('mesh_defect_scan',object='many',kinds=['isolated_tri'])
+b=call('mesh_defect_scan',object='many',kinds=['isolated_tri'],offset=50,limit=10,full=True)
+print('RESULT '+json.dumps({'a':a,'b':b,'bytes':len(json.dumps(a).encode())}))
+''')[0]
+    assert out['a']['ok'], out
+    assert out['a']['total'] == 160
+    assert len(out['a']['candidates']) == 50
+    assert out['bytes'] < 12000
+    assert out['b']['ok'] and len(out['b']['candidates']) == 10
+    assert out['b']['candidates'][0]['id'] == 'isolated_tri-50'
+    assert 'descriptor' in out['b']['candidates'][0]

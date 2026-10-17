@@ -1,0 +1,163 @@
+1
+00:00:00,700 --> 00:00:02,350
+Merhaba, ben Mixar'dan Naman.
+
+2
+00:00:02,750 --> 00:00:06,200
+Birkaç dakika içinde uygulamayı tanıtacağım.
+
+3
+00:00:06,760 --> 00:00:08,250
+Burası görünüm alanınız.
+
+4
+00:00:08,250 --> 00:00:10,300
+İçinde dolaşabileceğiniz bir 3D alan.
+
+5
+00:00:11,000 --> 00:00:13,200
+Ortadan sürükleyerek döndürün, tekerlekle yakınlaştırın.
+
+6
+00:00:13,200 --> 00:00:15,400
+Kaydırmak için Shift ile orta tuşu sürükleyin.
+
+7
+00:00:15,850 --> 00:00:17,160
+Haydi, deneyin.
+
+8
+00:00:18,180 --> 00:00:20,700
+Seçmek için tıklayın, taşımak için G,
+
+9
+00:00:20,700 --> 00:00:22,600
+döndürmek için R, ölçeklemek için S.
+
+10
+00:00:22,600 --> 00:00:25,410
+İşte birkaç yararlı kısayol.
+
+11
+00:00:26,040 --> 00:00:29,500
+Alttaki küçük adayı görüyor musunuz? O, ajanınız Mixie.
+
+12
+00:00:30,000 --> 00:00:31,180
+Açmak için tıklayın.
+
+13
+00:00:32,210 --> 00:00:33,700
+Mixie'nin sekmeleri var.
+
+14
+00:00:33,920 --> 00:00:38,800
+Agent'ta isteğinizi sade sözlerle anlatın. Sahnenizde çalışır.
+
+15
+00:00:39,400 --> 00:00:43,300
+Ajan Tripo, Meshy ve Nano Banana gibi modelleri kullanır.
+
+16
+00:00:43,300 --> 00:00:46,180
+Daha fazla kontrol için diğer sekmeleri açın:
+
+17
+00:00:46,180 --> 00:00:49,730
+3D, Image, Video veya World Model.
+
+18
+00:00:49,730 --> 00:00:53,090
+Bir model seçip ayarlarını değiştirin.
+
+19
+00:00:53,560 --> 00:00:55,730
+Ürettiğiniz her şey kütüphaneye gelir.
+
+20
+00:00:56,670 --> 00:00:58,700
+Ürettikleriniz burada.
+
+21
+00:00:59,140 --> 00:01:03,000
+Ajanın varlıklarınızı kullanması için kendi kütüphanenizi bağlayın,
+
+22
+00:01:03,000 --> 00:01:06,320
+krediden tasarruf edin.
+
+23
+00:01:06,830 --> 00:01:09,550
+Sol üstte sahneler çekmecesi var.
+
+24
+00:01:09,550 --> 00:01:12,980
+Her sahnenin kendi sekmesi ve Mixie ajanı var.
+
+25
+00:01:12,980 --> 00:01:17,010
+Görevleri yan yana yürütün, aralarında istediğiniz an geçin.
+
+26
+00:01:17,640 --> 00:01:21,100
+Sahneniz hazır olunca Cinema Mode'a geçin,
+
+27
+00:01:21,100 --> 00:01:24,510
+kamerayı yönetin ve video iş akışları oluşturun.
+
+28
+00:01:25,000 --> 00:01:26,700
+Fikirler 2D'de başlar.
+
+29
+00:01:26,700 --> 00:01:29,860
+Moodboard'u sağdan çekin veya tilde tuşuna basın.
+
+30
+00:01:30,860 --> 00:01:33,500
+Referanslar ve fikirler için bir tuvaldir.
+
+31
+00:01:33,500 --> 00:01:36,270
+Buraya resim, video veya eskiz bırakın.
+
+32
+00:01:36,940 --> 00:01:40,930
+ComfyUI gibi üretken modeller için düğüm grafikleri kurun.
+
+33
+00:01:41,680 --> 00:01:44,400
+En sade görünüm olan Zen Mode'dasınız.
+
+34
+00:01:44,400 --> 00:01:46,840
+Blender biliyorsanız Engine Mode'a geçin.
+
+35
+00:01:47,770 --> 00:01:51,900
+Tüm panelleri ve kısayollarıyla Blender çalışma alanı burada.
+
+36
+00:01:52,980 --> 00:01:56,400
+Mixie ikisinde de çalışır. Size uygun olanı seçin.
+
+37
+00:01:56,560 --> 00:01:57,570
+Zen Mode'a dönelim.
+
+38
+00:01:58,230 --> 00:02:02,200
+Yaratıcı ortak programımız size kredi sağlar
+
+39
+00:02:02,200 --> 00:02:05,900
+ve AI ile 3D'nin geleceğini şekillendiren bir topluluğa katılmanızı sağlar.
+
+40
+00:02:06,580 --> 00:02:08,550
+İşte bu kadar. Artık her şeyin yerini biliyorsunuz.
+
+41
+00:02:08,550 --> 00:02:10,240
+Birlikte 3D üretelim.

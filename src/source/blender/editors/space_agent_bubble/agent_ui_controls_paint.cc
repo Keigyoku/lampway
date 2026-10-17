@@ -463,6 +463,25 @@ void agent_ui_draw_chip_row(ARegion *region,
     }
   }
 
+#ifdef LAMPWAY
+  /* LAMPWAY: M0's own chip, painted from the same fitted rect as its native menu. */
+  if (state->agent_mode_available && BLI_rctf_size_x(&layout->chip_agent_mode) > 0.0f) {
+    fill_round(&layout->chip_agent_mode, radius, chip);
+    if (layout->chip_form[AGENT_CHIP_SLOT_AGENT_MODE] > 0) {
+      const float cx = BLI_rctf_cent_x(&layout->chip_agent_mode);
+      const float cy = BLI_rctf_cent_y(&layout->chip_agent_mode);
+      const rctf glyph{cx - icon_edge * 0.5f, cx + icon_edge * 0.5f,
+                       cy - icon_edge * 0.5f, cy + icon_edge * 0.5f};
+      agent_ui_icon_draw(AGENT_ICON_AGENT, &glyph, text, chip);
+    }
+    else {
+      chip_content(layout->chip_agent_mode, AGENT_ICON_AGENT,
+                   IFACE_(state->agent_byoa ? LAMPWAY_YOUR_AGENT_NAME : LAMPWAY_AGENT_NAME),
+                   size, icon_edge, icon_gap, text, chip);
+    }
+  }
+#endif
+
   /* Send. */
   float generate_fill[4];
   agent_ui_motion_color(
@@ -486,7 +505,12 @@ void agent_ui_draw_chip_row(ARegion *region,
     float muted[4];
     ui::mixar_theme_color_f(ui::MixarThemeSlot::TextSecondary, muted);
     const float gap = 8.0f * (BLI_rctf_size_y(&layout->btn_generate) / 32.0f);
-    const float room = layout->btn_generate.xmin - gap - (layout->chip_model.xmax + gap);
+    float chips_end = layout->chip_model.xmax;
+#ifdef LAMPWAY
+    /* LAMPWAY: a dropped model cannot let the route text cover the mode chip. */
+    chips_end = std::max(chips_end, layout->chip_agent_mode.xmax);
+#endif
+    const float room = layout->btn_generate.xmin - gap - (chips_end + gap);
     const float host_w = ui::mixar_text_width(state->route_host, size);
     if (host_w <= room) {
       label_centre(state->route_host, layout->btn_generate.xmin - gap - host_w * 0.5f,

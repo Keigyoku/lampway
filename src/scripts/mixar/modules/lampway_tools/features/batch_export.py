@@ -221,17 +221,14 @@ def _dims(obs):
 def _verify(copy_ob, path, fmt, fwd, up, unit):
     bpy.context.view_layer.update()
     want = _dims([copy_ob])
-    new = _import(path, fmt, fwd, up, unit)
+    before = canon_io.snapshot_ids()
     try:
+        new = _import(path, fmt, fwd, up, unit)
         bpy.context.view_layer.update()
         got = _dims(new)
         err = max(abs(a - b) for a, b in zip(want, got))
     finally:
-        for o in new:
-            data = o.data if o.type == "MESH" else None
-            bpy.data.objects.remove(o)
-            if data is not None and data.users == 0:
-                bpy.data.meshes.remove(data)
+        canon_io.remove_new_ids(before)
     return err
 
 

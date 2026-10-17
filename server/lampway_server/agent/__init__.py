@@ -1,1 +1,1 @@
-"""The server-side agent loop and its model providers."""
+"""The agent hub (Mode 1's client-protocol front end, spec A2), the tool registry and its door, the swarm substrate, and the model providers the gateway answers with (A5: Lampway runs no agent loop of its own)."""

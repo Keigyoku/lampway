@@ -106,3 +106,15 @@ def test_load_post_resets_ownership_to_the_new_document(native):
     native.modals = 4
     with pytest.raises(UIError, match="current UI operation"):
         ownership.release("controller-a", require_settled=True)
+
+
+def test_popup_scene_tool_refusal_names_esc_recovery(native):
+    ownership.begin("controller-a")
+    native.modals = 2  # popup opened through the same controller
+    with pytest.raises(UIError) as refused:
+        ownership.release("controller-a", require_settled=True)
+    result = refused.value.result()
+    assert result["error_type"] == "modal_active"
+    assert "ESC" in result["next_step"] and "lampway_ui_act" in result["next_step"]
+    native.modals = 1  # ESC settles the popup; the next scene tool is allowed
+    ownership.release("controller-a", require_settled=True)

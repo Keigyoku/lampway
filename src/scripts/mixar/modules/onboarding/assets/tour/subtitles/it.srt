@@ -1,0 +1,165 @@
+1
+00:00:00,660 --> 00:00:02,448
+Ciao, sono Namit di Mixart.
+
+2
+00:00:02,866 --> 00:00:06,148
+Nei prossimi minuti, ti mostrerò
+come muoverti qui nell'app.
+
+3
+00:00:06,727 --> 00:00:07,879
+Questa è la tua viewport.
+
+4
+00:00:08,158 --> 00:00:09,985
+È uno spazio tre d in cui puoi muoverti.
+
+5
+00:00:11,016 --> 00:00:15,347
+Trascina col tasto centrale per orbitare,
+scorri per lo zoom, Shift e tasto centrale per il pan.
+
+6
+00:00:15,843 --> 00:00:17,212
+Dai, prova a fare un giro.
+
+7
+00:00:18,146 --> 00:00:22,930
+Clicca su qualcosa per selezionarlo, poi gi per
+muovere, erre per ruotare, esse per scalare.
+
+8
+00:00:22,930 --> 00:00:25,397
+Ecco alcune scorciatoie che ti torneranno utili.
+
+9
+00:00:26,078 --> 00:00:27,481
+Vedi la piccola icona in basso?
+
+10
+00:00:27,910 --> 00:00:29,579
+Quella è Mixy, il tuo assistente.
+
+11
+00:00:30,079 --> 00:00:31,219
+Cliccaci sopra per aprirla.
+
+12
+00:00:32,203 --> 00:00:33,512
+Mixy ha diverse schede.
+
+13
+00:00:34,173 --> 00:00:38,219
+Agent, digli cosa vuoi con parole
+semplici e lui lavorerà sulla tua scena.
+
+14
+00:00:38,789 --> 00:00:45,229
+Mentre Agent può usare modelli generativi come Tripo,
+Meshy, NanoBanana, se vuoi più controllo sulle
+
+15
+00:00:45,229 --> 00:00:52,309
+creazioni, vai alla scheda dei modelli tre d, immagini,
+video e mondi per scegliere da una libreria e regolare
+
+16
+00:00:52,309 --> 00:00:53,073
+i parametri.
+
+17
+00:00:53,568 --> 00:00:55,817
+Tutto ciò che generi finisce nella libreria.
+
+18
+00:00:56,657 --> 00:00:58,613
+Le tue creazioni si trovano proprio qui.
+
+19
+00:00:59,595 --> 00:01:05,159
+Puoi anche collegare la tua libreria così l'assistente
+cercherà i tuoi asset e li riutilizzerà, facendoti
+
+20
+00:01:05,159 --> 00:01:06,107
+risparmiare crediti.
+
+21
+00:01:06,816 --> 00:01:09,345
+In alto a sinistra c' è il pannello delle scene.
+
+22
+00:01:09,884 --> 00:01:15,423
+Ogni scena ha la sua scheda e il suo assistente Mixy,
+così puoi gestire più compiti insieme e passare
+
+23
+00:01:15,423 --> 00:01:17,002
+dall'uno all'altro quando vuoi.
+
+24
+00:01:17,626 --> 00:01:23,262
+Finito il lavoro sulla scena, puoi passare alla
+modalità cinema, che ti permette di dirigere la camera
+
+25
+00:01:23,262 --> 00:01:24,493
+e creare workflow video.
+
+26
+00:01:24,985 --> 00:01:26,451
+Le idee iniziano in due d.
+
+27
+00:01:27,007 --> 00:01:29,880
+Estrai la mood board da destra
+o premi semplicemente tilde.
+
+28
+00:01:30,863 --> 00:01:33,210
+È una tela per riferimenti e concetti.
+
+29
+00:01:33,598 --> 00:01:36,323
+Trascina qui immagini, video o schizzi.
+
+30
+00:01:36,906 --> 00:01:40,976
+Puoi persino creare grafi a nodi per usare
+modelli generativi simili a Comfy u i.
+
+31
+00:01:41,661 --> 00:01:44,246
+Ora sei in modalità Zen, la vista più semplice.
+
+32
+00:01:44,246 --> 00:01:46,823
+Se conosci Blender, passa alla modalità engine.
+
+33
+00:01:47,742 --> 00:01:51,844
+C' è l'intero spazio di lavoro di Blender,
+ogni pannello e ogni scorciatoia che hai mai usato.
+
+34
+00:01:52,779 --> 00:01:55,592
+Mixy funziona in entrambe,
+quindi scegli quella che preferisci.
+
+35
+00:01:56,412 --> 00:01:57,592
+Torniamo alla modalità Zen.
+
+36
+00:01:58,214 --> 00:02:04,575
+Abbiamo anche un programma per partner creativi dove
+ottieni crediti e fai parte di una comunità che plasma
+
+37
+00:02:04,575 --> 00:02:05,921
+il futuro di i a e tre d.
+
+38
+00:02:06,570 --> 00:02:17,233
+È tutto.

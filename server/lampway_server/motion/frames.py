@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (specs/motion_graphics/motion_graphics.md sections 2 and 4).
+"""The frame driver: a headless Chromium over the DevTools protocol, one frame at a time (docs/canon/motion_graphics/motion_graphics.md sections 2 and 4).
 
 ``Chromium`` is the capture adapter the tool runs (the tests' fake is the other one): it launches the user's headless shell (LAMPWAY_CHROMIUM)
 niced, with its own HOME, XDG dirs, TZ=UTC and a fresh profile, opens ONE page at the requested size (DPR 1) with the network blocked, loads the

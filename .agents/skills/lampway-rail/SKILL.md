@@ -62,7 +62,7 @@ python -m pytest -q tests/rail    # the rail's own tests, including the self-tes
 ```
 
 Where it runs: `.githooks/pre-push` runs `check --quick` (fast: the tree's shape and the commits being pushed); CI runs the
-full check (`.github/workflows/rail.yml`, with the server's dependencies installed for the generated docs).
+full check (`.github/workflows/rail.yml`, on the runner `${{ vars.CI_RUNNER || 'ubuntu-latest' }}`, with the server's dependencies installed for the generated docs).
 
 ## Doing the common things
 
@@ -94,3 +94,4 @@ agent0ai/dox), adopted by Titan as captain decisions D88/D89 and Titan ADR 0034,
 |---|---|---|---|---|---|
 | 2026-10-05 | rail adoption | captain: "make the DOE x DOX AGENTS rail for Lampway" | Lampway had no AGENTS.md tree, no canonical skills and no rule tying a procedure to the code it describes | `rail/rail.py` with sync, check, selftest and closeout; the per-commit anneal rule with merge inheritance; seventeen finding codes, each planted and caught | captain ruling, 2026-10-05 |
 | 2026-10-06 | pre-push quick check and generated-doc leg | captain: "Those recs are fine" (recommendations 2, 3, 4, 7) | the rail ran only in CI; tool docs could drift from the registry; an upstream note sat under an exemption | `check --quick` in the pre-push hook, the `generated` catalog leg (RAIL-018) with its plant, upstream's updates/CLAUDE.md deleted with its exemption, pre-rail merges listed not judged | captain ruling, 2026-10-06 |
+| 2026-10-14 | runner label routed through CI_RUNNER | `.github/workflows/rail.yml`: GitHub refuses GitHub-hosted jobs for this account (billing block); CI_RUNNER set to tenki-standard-small-2c-4g | the full rail check could not start on ubuntu-latest | the CI job runs on the CI_RUNNER variable (default ubuntu-latest); setting CI_RUNNER to ubuntu-latest reverts it | lampway PR #17 rail check |

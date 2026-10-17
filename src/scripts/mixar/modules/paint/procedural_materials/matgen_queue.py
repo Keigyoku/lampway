@@ -17,6 +17,8 @@ import urllib.request
 import uuid
 from enum import Enum
 
+from mixar.modules.common.agent_execution_context import stamp_agent_context
+
 from . import matgen_persistence
 from .material_registry import ProceduralMaterial, register_material
 
@@ -86,6 +88,7 @@ class MatgenJob:
         self.applied = []
         self.apply_missing = []
         self.apply_routes = {}
+        self.agent_context = None
 
 
 _in_flight: dict = {}
@@ -146,12 +149,15 @@ def enqueue_matgen_job(prompt: str = "", pipeline: str = "fast", apply_to_object
     if prompt in _in_flight:
         return None
     job = MatgenJob(prompt, pipeline or "fast")
+    # Provenance is captured here, on the main thread while the agent's script runs; the worker sends it after the script ended.
+    body = {"prompt": prompt, "pipeline": job.pipeline}
+    job.agent_context = stamp_agent_context(body)
     targets = [str(n) for n in (apply_to_object_names or [])]
     _in_flight[prompt] = job
 
     def work():
         try:
-            reply, error = _post("/api/v1/matgen", {"prompt": prompt, "pipeline": job.pipeline}), ""
+            reply, error = _post("/api/v1/matgen", body), ""
         except MatgenUnavailable as exc:
             reply, error = None, str(exc)
 

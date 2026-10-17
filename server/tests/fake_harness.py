@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """A fake fleet for the swarm tests: one PARENT client and its headless WORKERS, each worker its own process-like world.
 
 The parent answers the harness requests the way the client's own code does (the real code is exercised against the real binary in
@@ -11,6 +13,7 @@ import hashlib
 import json
 import re
 import threading
+import time
 import uuid
 
 
@@ -236,9 +239,17 @@ class FakeFleet:
                 return self.frames
         raise AssertionError(f"turn {command_id} never ended; last frames={self.frames[-6:]!r}")
 
-    def close(self):
-        for w in self.workers.values():
+    def close(self, timeout=10.0):
+        """Close every worker WebSocket while its TestClient portal is still alive, with one total join budget."""
+        workers = tuple(self.workers.items())
+        for _connection, w in workers:
             w.shutdown()
+        deadline = time.monotonic() + timeout
+        for _connection, w in workers:
+            w.join(max(0, deadline - time.monotonic()))
+        live = [connection for connection, w in workers if w.is_alive()]
+        if live:
+            raise RuntimeError(f"fake worker threads did not close within {timeout:g}s: {', '.join(live)}")
 
 
 def new_session():

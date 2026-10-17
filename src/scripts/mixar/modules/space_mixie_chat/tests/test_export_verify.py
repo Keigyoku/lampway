@@ -186,7 +186,7 @@ def test_export_package_signature_and_isolation():
     assert params["animations"].default is None
     src = open(os.path.join(_CORE, "export_package.py"), encoding="utf-8").read()
     assert "uv_bake" not in src.replace("uv_bake.export_package", "")  # legacy manifest tag only
-    assert export_package.GENERATOR == "Mixar export_package"
+    assert export_package.GENERATOR == "Lampway export_package"
     assert set(export_package.DESTINATIONS) == {"mixar_exports", "downloads", "documents", "desktop", "project"}
     # The return dict carries both the verifier's dict and the legacy glb_check.
     tree = ast.parse(src)
@@ -212,7 +212,7 @@ def test_export_package_clears_only_its_own_previous_files(tmp_path):
     (tmp_path / "hero.glb").write_bytes(b"old")
     (tmp_path / "keep.txt").write_bytes(b"user file")
     (tmp_path / "manifest.json").write_text(json.dumps({
-        "generator": "Mixar uv_bake.export_package",
+        "generator": "Lampway uv_bake.export_package",
         "files": [{"file": "hero.glb"}, {"file": "../outside.txt"}, {"file": "keep.txt"}],
     }).replace('"keep.txt"', '"gone.txt"'))
     assert export_package._clear_previous(str(tmp_path)) == 1
@@ -221,6 +221,13 @@ def test_export_package_clears_only_its_own_previous_files(tmp_path):
     (tmp_path / "manifest.json").write_text(json.dumps({"generator": "someone else", "files": [{"file": "keep.txt"}]}))
     assert export_package._clear_previous(str(tmp_path)) == 0
     assert (tmp_path / "keep.txt").exists()
+    # A manifest from the upstream product never grants Lampway ownership.
+    (tmp_path / "manifest.json").write_text(json.dumps({
+        "generator": "Mixar export_package", "files": [{"file": "keep.txt"}],
+    }))
+    assert export_package._clear_previous(str(tmp_path)) == 0
+    assert (tmp_path / "keep.txt").read_bytes() == b"user file"
+    assert (tmp_path / "manifest.json").exists()
 
 
 def test_inspect_glb_stays_compatible(tmp_path):

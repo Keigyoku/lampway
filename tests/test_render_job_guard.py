@@ -207,9 +207,7 @@ def test_contract_doc_exists_and_is_linked():
         assert needle in text, needle
     assert "agent_final_render" not in text
     for path in (
-        ".claude/rules/private-docs-map.md",
         "AGENTS.md",
-        "docs/modules/agent-execution.md",
         "src/scripts/mixar/modules/space_mixie_chat/core/main_thread_executor.py",
         "src/scripts/mixar/modules/space_mixie_chat/core/preview_render.py",
         "src/scripts/mixar/modules/space_mixie_chat/core/render_gate.py",
@@ -273,3 +271,19 @@ def test_sidecar_instance_read_goes_through_the_main_thread():
     end = src.index("def _health()", start)
     block = src[start:end]
     assert "_run_on_main(_read)" in block
+
+
+def test_inspect_passes_render_gate_but_view_is_refused(monkeypatch):
+    from mixar.modules.common.agent_execution.request import ExecutionRequest
+    gate = _render(monkeypatch, 'scene_video')
+    responses = []
+    monkeypatch.setattr(gate.pump, 'respond', lambda client, req, result: responses.append((req.tool_name, result)))
+    _fake_client(monkeypatch)
+    inspect = ExecutionRequest('inspect-1', 'read', tool_name='lampway_inspect')
+    view = ExecutionRequest('view-1', 'focus', tool_name='lampway_view')
+    assert gate.refuse_during_render(inspect) is False
+    assert responses == []
+    assert gate.refuse_during_render(view) is True
+    assert len(responses) == 1
+    assert responses[0][0] == 'lampway_view'
+    assert responses[0][1]['error_type'] == 'render_in_progress'

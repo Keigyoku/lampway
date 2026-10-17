@@ -67,6 +67,10 @@ class StudioClient:
     def base(self) -> str:
         return (self._base or _default_url()).rstrip("/")
 
+    def chatgpt_vision_ticket(self) -> dict:
+        """Prepare a one-use browser admission; never runs the provider check."""
+        return self._call("POST", "/app/chatgpt/vision/ticket", {})
+
     def confirm(self, approval_id: str, price, answer=None) -> dict:
         """The user's confirm. ``price`` is the exact number shown (credits are fractional); ``answer`` only for a question."""
         body = {"price": price}

@@ -40,7 +40,7 @@ SELF = {"helmet": (0.04, 0.01), "waist": (0.04, 0.03), "boots": (0.06, 0.02), "g
 @pytest.mark.parametrize("kind,anchor", [("helmet", None), ("waist", None), ("boots", "width"), ("boots", "foot"), ("gauntlets", None)])
 def test_the_body_derived_self_test_comes_back_near_scale_one_and_near_no_translation(kind, anchor):
     f = ST / f"{kind}.npz"
-    V, T, meta, rep = FP.place(kind, BODY, f, turn=0.0, scale_anchor=anchor)
+    V, T, meta, rep = FP.place(kind, BODY, f, turn=0.0, scale_anchor=anchor, pair_scale_group="common")
     ts, tt = SELF[kind]
     assert meta["scale"] == pytest.approx(1.0, abs=ts), (kind, meta, rep)
     assert np.abs(np.array(meta["anchor_shift"])).max() < tt, (kind, meta["anchor_shift"], "how far the landmark moved; the raw translation also carries (1 - scale) x its distance from the origin")
@@ -52,16 +52,21 @@ def test_the_body_derived_self_test_comes_back_near_scale_one_and_near_no_transl
 def test_a_piece_shifted_4_cm_forward_is_enclosed_back_where_it_belongs(tmp_path, kind):
     f = ST / f"{kind}.npz"
     moved = _shifted(f, tmp_path / "moved.npz", -0.04)
-    _, _, meta, _ = FP.place(kind, BODY, moved, turn=0.0, scale_anchor="width" if kind == "boots" else None)
+    _, _, meta, _ = FP.place(kind, BODY, moved, turn=0.0, scale_anchor="width" if kind == "boots" else None, pair_scale_group="common")
     # enclosure puts it back within 10 mm (measured residuals 0.5-7.5 mm); an ICP-style placement biased to the thick side would not
     assert abs(meta["anchor_shift"][1] - 0.04) < 0.010, (kind, meta["anchor_shift"])
 
 
 @real
-def test_boots_need_a_ruled_anchor_and_the_three_anchors_give_different_scales():
-    with pytest.raises(FP.PlaceError, match="no ruled scale anchor"):
-        FP.place("boots", BODY, SCR / "tripo_mesh/Boots1_g1/variant1.npz", turn=-90.0)
-    scales = {a: FP.place("boots", BODY, SCR / "tripo_mesh/Boots1_g1/variant1.npz", turn=-90.0, scale_anchor=a)[2]["scale"] for a in FP.ANCHORS}
+def test_boots_default_width_preserves_explicit_historical_anchor_alternatives():
+    source=SCR / "tripo_mesh/Boots1_g1/variant1.npz"
+    with pytest.raises(FP.PlaceError, match="scale_anchor"):
+        FP.place("boots", BODY, source, turn=-90.0,scale_anchor='unknown')
+    default=FP.place("boots",BODY,source,turn=-90.0,pair_scale_group='common')
+    width=FP.place("boots",BODY,source,turn=-90.0,pair_scale_group='common',scale_anchor='width')
+    assert np.array_equal(default[0],width[0]) and default[2]['scale']==width[2]['scale']
+    assert default[2]['defaults']['boots_scale_anchor']['physical_status']=='untested'
+    scales = {a: FP.place("boots", BODY, source, turn=-90.0, scale_anchor=a,pair_scale_group='common')[2]["scale"] for a in FP.ANCHORS}
     assert scales["height"] == pytest.approx(0.52, abs=0.02) and scales["foot"] == pytest.approx(0.624, abs=0.02), scales
     assert len({round(v, 3) for v in scales.values()}) == 3
 
@@ -124,11 +129,11 @@ def test_the_api_tool_writes_the_placed_mesh_and_its_meta_inside_the_project_roo
     shutil.copy(ST / "helmet.npz", tmp_path / "helmet.npz")
     r = brun(tmp_path, """
 a = call("fit_place", kind="helmet", piece="helmet.npz", body="body.npz", out="P/placed.npz")
-b = call("fit_place", kind="boots", piece="helmet.npz", body="body.npz")
+b = call("fit_place", kind="boots", piece="helmet.npz", body="body.npz",scale_anchor="unknown")
 c = call("fit_place", kind="helmet", piece="../x.npz", body="body.npz")
 print("RESULT", json.dumps({"a": a, "b": b, "c": c, "meta": json.load(open(root + "/P/placed.npz.json"))}))
 """)
     assert r.rc == 0, r.out[-2500:]
     o = r.results[0]
     assert o["a"]["ok"] is True and (tmp_path / "P/placed.npz").exists() and o["meta"]["kind"] == "helmet" and o["meta"]["uniform_scale"] is True
-    assert o["b"]["ok"] is False and "no ruled scale anchor" in o["b"]["error"] and o["c"]["ok"] is False
+    assert o["b"]["ok"] is False and all(a in o["b"]["error"] for a in ("width","height","foot")) and o["c"]["ok"] is False

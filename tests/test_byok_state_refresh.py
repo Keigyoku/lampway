@@ -251,6 +251,6 @@ def test_every_save_submit_binds_the_epoch_capturing_callback():
         if isinstance(v, ast.Call) and isinstance(v.func, ast.Name)
         and v.func.id == "_save_callback"
     ]
-    # execute (cloud), _execute_openrouter, _execute_codex, _execute_local.
-    assert len(save_submits) == 4
+    # execute (cloud), _execute_openrouter, _execute_local (the Codex option left: agent-modes spec R0).
+    assert len(save_submits) == 3
     assert "credential_state.current_epoch()" in source

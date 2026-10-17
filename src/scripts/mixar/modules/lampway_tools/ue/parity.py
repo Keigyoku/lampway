@@ -51,6 +51,34 @@ def parity_refusals(profile):
                           "(the look profile keeps them)")
 
 
+CAPTURE_SCHEMA = "lampway.ue-parity-capture/1"
+UE_ALPHA = ("inverse_opacity", "coverage")
+
+
+def ue_capture_alpha(caps):
+    """The UE half's receipt (capture.json beside the EXRs, written by scripts/lampway/ue_parity_capture.py) names its alpha.
+    SCS_SCENE_COLOR_HDR writes inverse opacity ("SceneColor (HDR) in RGB, Inv Opacity in A"); the comparison's silhouettes and
+    edge band read coverage, so a capture without that statement cannot be compared."""
+    path = Path(caps) / "capture.json"
+    if not path.is_file():
+        raise ParityError(f"{path} is missing: UE captures come with the UE half's receipt ({CAPTURE_SCHEMA}), which names their alpha")
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        rec = None
+    if not isinstance(rec, dict) or rec.get("schema") != CAPTURE_SCHEMA or rec.get("alpha") not in UE_ALPHA:
+        raise ParityError(f"{path} is not a {CAPTURE_SCHEMA} receipt naming its alpha ({' | '.join(UE_ALPHA)})")
+    return rec["alpha"]
+
+
+def to_coverage(ue, alpha):
+    """UE pixels with their alpha as coverage (1 = surface), whatever convention the capture declared."""
+    out = np.array(ue, dtype=np.float64, copy=True)
+    if alpha == "inverse_opacity":
+        out[..., 3] = 1.0 - out[..., 3]
+    return out
+
+
 def _load_exr(path):
     from .. import canon_io
     img = canon_io.load_image(str(path), check_existing=False)
@@ -73,11 +101,12 @@ def run(scene, profile_path, size, views, out_dir, ue_captures, ue_linear_scale,
     if out.exists():
         raise ParityError(f"{out_dir} exists: a parity run never reuses a directory")
     desc = PS.describe(scene, size, tuple(views))
+    caps = Path(root) / ue_captures if ue_captures and not Path(ue_captures).is_absolute() else (Path(ue_captures) if ue_captures else None)
+    alpha = ue_capture_alpha(caps) if caps is not None else None      # before out_dir exists: a refusal leaves nothing behind
     out.mkdir(parents=True)
     (out / "scene.json").write_text(json.dumps(desc, indent=1), encoding="utf-8")
     k = profile["light_units"]["k"]
     scale = (1.0 / k) if ue_linear_scale is None else float(ue_linear_scale)
-    caps = Path(root) / ue_captures if ue_captures and not Path(ue_captures).is_absolute() else (Path(ue_captures) if ue_captures else None)
     rep_views = {}
     for view in views:
         sc = PS.build(desc, view)
@@ -103,10 +132,10 @@ def run(scene, profile_path, size, views, out_dir, ue_captures, ue_linear_scale,
             row["classes"] = {c: "needs_box" for c in CLASSES}
         else:
             PM.check_capture(cap, linear=True)
-            ue = _load_exr(cap)
+            ue = to_coverage(_load_exr(cap), alpha)
             ue[..., :3] *= scale
             res = PM.compare(_load_exr(exr), ue, desc["regions"][view], display=None)
-            row["ue"] = {"state": "captured", "exr": str(cap), "sha256": _sha(cap), "linear_scale": scale,
+            row["ue"] = {"state": "captured", "exr": str(cap), "sha256": _sha(cap), "linear_scale": scale, "alpha": alpha,
                          "linear_scale_basis": "1/k: UE lights and emissive are k-scaled; UE scene-colour pre-exposure (CMP-02) unmeasured"}
             row["classes"] = {c: r["verdict"] for c, r in res["classes"].items()}
             row["metrics"] = res["classes"]

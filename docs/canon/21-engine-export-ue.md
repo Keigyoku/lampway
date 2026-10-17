@@ -4,7 +4,7 @@
 # Canon 21 — Engine export (Unreal): the skeleton the engine reads, and the read-back that proves it
 
 Status: **CANONICAL** gate and the measured Titan recipe; **DRAFT** for any engine other than Unreal 5.8. Implemented by: Lampway
-LT `features/export_checks.py` (`skeleton_export_check`, `engine_import_check`), LT `features/fit_export.py` (rigged export behind
+LT `features/export_checks.py` (`skeleton_export_check`, `engine_import_check`), LT `features/fit_export.py` and `ue/export.py` (rigged export behind
 gates, with a read-back), LT `features/batch_export.py`; Titan `tools/armour_validate.py:414-433` (`bind_mismatch`, the bone-by-bone
 bind check); MB `PoseUE.py:4130-4205` (`exportfbxf.m_operator`), MB `MagicBoneTop_Panel.py:32429-32650` (batch export); GRT
 Unreal module (export rig = the armature object `root`; no export operator of its own).
@@ -35,11 +35,15 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    2026-10-06), and it is the pair a rig needs that entered Blender from an engine FBX imported with Z / X - a ROUND TRIP, which is
    how Titan's MetaHuman body was measured. Blender's real FBX writer was driven through all three pairs and wrote `R_bone @ M`
    for every bone (Lampway `tests/lampway_tools/test_canon_r08_export_axes.py`; the transposed map is 180 deg off, so the direction
-   is pinned). Lampway's default recipe `titan_cm_native` (Z / X) is therefore refused by the read-back on any canon-17 rig, and it
-   STAYS the default, refusing, until the engine side is confirmed (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
+   is pinned). The explicit recipe `titan_cm_native` (Z / X) is refused by the read-back on canon-17 rigs. Issue2's default-chain requirement supersedes leaving it as the default: `auto` selects X/-Y for measured normalized `blender` frames and Y/X for `ue_axes`, records the choice and keeps every readback bar. Physical engine confirmation is still required (ue_parity MEASUREMENT_PLAN `M-RIG-01`: the R08 recipes on the
    native body in Unreal 5.8). Use the convention's own recipe and let the read-back decide.
-3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone; its armature container imports as
-   one more top bone (`NewMetaHumanCharacter_FullBody`, parent of `root`, identity, scale 1 — accepted, recorded). GRT and MB
+   **Unit-carrier correction measured 2026-10-07:** the old metre-coordinate `FBX_SCALE_NONE` recipe writes a Null ancestor scale100 while UnitScaleFactor1 and direct bone scales pass. Actual legacy UE5.8 imports retain this factor in342 component scales; the native-self control passes. The convention recipes now explicitly make centimetre export copies and cancel only the pinned writer scene-unit factor, preserving dimensions, weights, frames and original data. Raw Null ancestry and direct bone scales are checked before publication. Blender's known uniform importer unit carrier is decoded without modifying rest/mesh data or changing the bars; physical native Unreal parity is still required. This corrects the earlier G21.3 assumption that direct LimbNode scale and UnitScaleFactor alone identify engine scale.
+3. **Hierarchy and root follow the reference.** The native MetaHuman has a real `root` bone. The earlier accepted extra-container
+   description does not match the actual342-bone reference: the candidate's343rd container changes `root`'s parent and refuses.
+   Installed UE5.8.2 source verifies that Blender-created top-level Null `Armature` is skipped (case-insensitive name); the
+   actual differently named candidate does not meet that predicate. The two convention recipes declare
+   `ue_armature_container="Armature"` and name only the disposable export copy accordingly. An existing object occupying
+   that exact name or an unverified requested name refuses before copies; originals are never renamed. GRT and MB
    instead name the ARMATURE OBJECT `root` and have no `root` bone (GRT's Unreal armature: 88 bones, none named `root`, measured;
    MB `CreateRig.py:12536-12538`). The two are different skeletons to the engine: the root check (LT `export_checks.py:93-106`)
    refuses the mismatch; never mix them.
@@ -48,17 +52,39 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
    `interaction`) are exported only if the reference has them (canon 16 B.6).
 5. **Frames in one convention** (canon 17 B.1): a `mixed` armature is refused before writing. The convention inside Blender and
    the axis settings form a PAIR; the read-back proves the pair.
-6. **Animation:** baked keys only (canon 19), no constraints, one action per clip, frame range recorded; root motion per canon 19.
+   A complete342 independent native bind calibration uses canon17's separately
+   verified writer-axis admission while retaining the strict joint classifier's
+   original result. Its private reference receipt must match the unchanged rest
+   fingerprint, exact topology and all342 independent bind rows under the
+   existing bars. The default file readback compares against these independent
+   reference binds, not the output itself. Missing, corrupted or stale receipts
+   refuse. Original-input headless conform and authored-file checks pass after
+   the measured329-frame correction; a fresh actual UE import of the corrected
+   file remains required and unverified.
+6. **Animation:** baked keys only (canon 19), no constraints, one action per clip, frame range recorded; root motion per canon 19. UE animation uses the same measured axes and disposable centimetre/action copies. Resolve the requested action slot against the original armature before copying, including a non-active requested action; ambiguous slots refuse. Check raw units, identity Armature container, full topology and exact pinned-writer key cadence. Preserve source action/slot, pose, frame and all datablocks. A skeleton-only clip lacks independent skin cluster binds and cannot claim authored skin-bind acceptance or native UE animation parity.
 7. **Meshes:** one skinned mesh per piece, vertex groups naming only bones the reference has (LT `fit_export.py` gates it),
    normals preserved and compared corner by corner on read-back (Titan tools rail, wave4-tools-9: canonical corner shading and
    actual FBX normal preservation). MB exports with `mesh_smooth_type='EDGE'` and no normal check (`PoseUE.py:4195`).
 8. **The engine import is a receipt, not an assumption.** The import settings (Interchange) are recorded; Titan changed none
    (memory native-body-canonical-for-fit). LT `engine_import_check` records a hand-run import's receipt (`export_checks.py:127-172`).
 
+   **Authored-file readback (2026-10-08):** the actual eight source bones are10–15cm
+   and copy rotation passes; the earlier synthetic source-short-bone mechanism
+   does not explain their imported readback refusal. A long-source/coincident-child
+   synthetic control reproduces tiny inferred display tails and RNA frame drift
+   while authored node/BindPose/cluster rotations pass. For admitted centimetre
+   exports, the restricted pinned-writer reader verifies all three redundant
+   authored binds and hierarchy under unchanged shortest-quaternion bars. It
+   refuses unsupported transforms, axes/units, missing clusters and contradictions,
+   preserving imported display errors as explicit diagnostics. Source and imported
+   rest data remain untouched. Matching the actual eight file/import rows and
+   native mesh-versus-Skeleton calibration remain owner-local measurements;
+   authored-file verification does not establish native engine parity.
+
 ## C. Invariants
 
 - **INV-21.1** No export without a read-back that compares every bone's position, rotation and scale to the reference.
-- **INV-21.2** Root and hierarchy equal the reference's (the container top bone is the one accepted extra, named).
+- **INV-21.2** Root and hierarchy equal the reference's. A container is not an accepted extra for the verified342-bone native reference.
 - **INV-21.3** No leaf bones; no bone the reference lacks unless declared.
 - **INV-21.4** The convention-and-axes pair is recorded with the file's sha256.
 
@@ -78,7 +104,7 @@ meshes and actions. Output: an FBX, and a read-back receipt comparing every bone
 | G21.1 convention gate | R02's mixed set | refused before writing | an exporter that writes it |
 | G21.2 read-back (to build, Blender headless) | a synthetic 5-bone chain in `blender` convention exported with each axis pair, re-imported with `automatic_bone_orientation=False` | the passing pair's frames equal the source to 0.01 deg - **unreachable for arbitrary frames inside Blender (measured 2026-10-06): an edit bone set to an arbitrary frame reads back up to 0.112 deg off (67 of 400 random frames over 0.01 deg), with no FBX involved; the gate's 0.01 deg is a decision owed (H.3)** | primary Y on the same chain: frames off by 90 deg while heads match |
 | G21.4 axis pair (R08) | the three pairs Z/X, X/-Y, Y/X against both canon-17 engine frames | X/-Y carries `blender` (0 deg), Y/X carries `ue_axes` (0 deg); Z/X is 120 / 90 deg off | the transposed map (180 deg off the right pair) |
-| G21.3 scale (to build) | the chain exported with default scaling and with FBX_SCALE_NONE + apply_unit_scale | the second reads scale 1 | the first reads 100 |
+| G21.3 scale | real writer metre-coordinate legacy recipe versus independent centimetre copies | corrected raw Null1/UnitScaleFactor1; decoded readback retains dimensions and all existing bars | old default returns Blender PASS while raw Null100; scene-only unit changes shrink geometry; importer object-scale application violates the existing drift guard |
 
 ## F. Implementation gap
 
@@ -101,9 +127,12 @@ worst_position_cm, worst_rotation_deg, worst_scale, over_tolerance}, sha256: {fb
 1. Whether Lampway exports with GRT/MB's `root`-object convention for third-party (non-MetaHuman) targets at all, or only the
    native body's hierarchy.
 2. The default export recipe once `M-RIG-01` has run in Unreal: the canon-17 convention's own pair (R08: X / -Y for `blender`,
-   Y / X for `ue_axes`) or Titan's Z / X for rigs that entered Blender from an engine FBX. Until then the default stays
-   `titan_cm_native` and refuses canon-17 rigs by its read-back.
+   Y / X for `ue_axes`) or Titan's Z / X for rigs that entered Blender from an engine FBX. Issue2 supersedes the former refused-default policy: `auto` selects from measured normalized frames now, retains explicit Titan and unchanged readback bars, and records physical `M-RIG-01` acceptance as pending.
 3. The read-back's rotation tolerance inside Blender: 0.01 deg (Titan's `bind_mismatch`, measured in UNREAL) is below what a
    Blender edit bone holds for an arbitrary frame (max 0.112 deg, 17 % of 400 random frames over 0.01 deg, 2026-10-06, no FBX
    involved); the cause is not identified (the errors are not clustered at the roll singularity, the bone's Y near -Z). A Blender
-   read-back may need a measured bar of its own, or a comparison against frames that went through the same storage.
+   read-back may need a measured bar of its own, or a comparison against frames that went through the same storage. No tolerance change was ruled: the implemented authored node/pose/cluster readback keeps0.01deg, reports imported display errors separately and refuses unsupported layouts.
+
+## Shared public-route contract correction
+
+The fit-chain `fit_export` and UE `skinned_piece` routes use the same measured-convention recipes, disposable centimetre copies and reserved Armature container as rig export. They validate raw unit/ancestry scales before the strict authored node/BindPose/cluster and full-hierarchy gate. The existing diagnostic imported-axis check is retained in addition to the unchanged canon bind bars. Wrong position, quaternion, scale, missing reference rows and hierarchy mutations refuse. Passing these file/Blender checks does not assert native Unreal or original-gear acceptance.

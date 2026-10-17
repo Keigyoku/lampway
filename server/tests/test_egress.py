@@ -185,7 +185,29 @@ def test_no_server_module_opens_a_network_door_around_the_hook():
     door = re.compile(r"^\s*(import|from)\s+(urllib\.request|urllib3|requests|aiohttp|websockets|websocket|socket)\b|\bsocket\.create_connection\b|\burlopen\(", re.M)
     allowed = {"studios/tripo/relief_gen.py", "studios/tripo/tripo_image.py", "studios/tripo/tripo_mesh.py", "studios/tripo/tripo_texture.py"}
     found = {str(p.relative_to(root)) for p in root.rglob("*.py") if door.search(p.read_text())}
-    assert found - allowed - {"egress.py"} == set(), f"modules with a network door the egress hook cannot see: {sorted(found - allowed)}"
+    assert found - allowed - {"egress.py"} - set(LOOPBACK_ONLY) == set(), \
+        f"modules with a network door the egress hook cannot see: {sorted(found - allowed - set(LOOPBACK_ONLY))}"
+    assert set(LOOPBACK_ONLY) <= found, "a loopback-only entry that opens no door any more must be removed"
+
+
+#: Spec A1/A2: modules whose door is to Lampway's OWN Mode 1 pane on this computer, never off it. Each is held by its own check below.
+LOOPBACK_ONLY = {
+    "engine/serve_client.py": "the island's JSON-RPC client of a pane's `hermes serve`: ws://127.0.0.1 only, never through a proxy",
+    "engine/units.py": "picks a free port for a pane's serve by binding 127.0.0.1:0, and waits for that serve on loopback",
+}
+
+
+def test_the_loopback_only_doors_reach_loopback_only():
+    import asyncio
+    from lampway_server.engine import serve_client as SC
+    with pytest.raises(ValueError, match="loopback"):
+        SC.ServeClient(80, "t", host="example.com")
+    assert SC.ServeClient(80, "t").url.startswith("ws://127.0.0.1:80/")
+    src = Path(SC.__file__).read_text()
+    assert "proxy=None" in src and src.count("websockets.connect(") == 1, "one connect, never through a proxy"
+    units = (Path(SC.__file__).parent / "units.py").read_text()
+    assert re.findall(r"s\.bind\(\((.*?)\)\)", units) == ['"127.0.0.1", 0'] and "connect(" not in units.replace("connect_when_up", "").replace(".connect()", "")
+    assert asyncio.iscoroutinefunction(SC.ServeClient.connect)
 
 
 # ------------------------------------------------------------------------------------------------ routes
@@ -215,16 +237,6 @@ def test_the_routes_need_the_bearer_switch_persist_override_log_and_export(setti
         assert any(r["event"] == "override" for r in log)
         exp = http.get("/app/egress/export", headers=h)
         assert exp.status_code == 200 and all(json.loads(l) for l in exp.text.splitlines())
-
-
-def test_the_local_cli_adapter_is_gated_where_lampway_launches_it(mgr):
-    from lampway_server.agent import cli_adapters as CA
-    with pytest.raises(E.EgressRefused, match="claude_plan is off"):
-        asyncio.run(CA._run(["/nonexistent/claude"], "hi", 5))                                # refused BEFORE the binary is even looked for
-    mgr.set_route("claude_plan", True)
-    with pytest.raises(CA.CLIError, match="not found"):
-        asyncio.run(CA._run(["/nonexistent/claude"], "hi", 5))
-    assert mgr.log()[-1]["route"] == "claude_plan" and mgr.indicator()["over_the_wire"] is False
 
 
 def test_preflight_refuses_without_a_row_for_a_send_and_the_studio_receipt_is_cancelled_not_unknown(mgr):

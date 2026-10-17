@@ -21,7 +21,7 @@ def raster_half_open(t, gx, gy):
     a, b, c = np.asarray(t, float)
     if (b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]) < 0:
         b, c = c, b
-    inside = np.ones(np.shape(gx), bool)
+    inside = np.ones(np.broadcast_shapes(np.shape(gx), np.shape(gy)), bool)
     for p, q in ((a, b), (b, c), (c, a)):
         dx, dy = q[0] - p[0], q[1] - p[1]
         e = dx * (gy - p[1]) - dy * (gx - p[0])
@@ -30,18 +30,21 @@ def raster_half_open(t, gx, gy):
     return inside
 
 
-def coverage(TU, res):
+def coverage(TU, res, budget=None, window=None):
     """(res, res) int grid: how many UV triangles (k x 3 x 2, in 0..1) cover each texel centre."""
-    cnt = np.zeros((res, res), np.int32)
+    ox, oy, ex, ey = (0, 0, res, res) if window is None else window
+    cnt = np.zeros((ey-oy, ex-ox), np.int32)
     for t in np.asarray(TU, float) * res:
+        if budget is not None: budget.check()
         if abs((t[1, 0] - t[0, 0]) * (t[2, 1] - t[0, 1]) - (t[2, 0] - t[0, 0]) * (t[1, 1] - t[0, 1])) < 1e-12:
             continue
-        x0, y0 = np.floor(t.min(0)).astype(int).clip(0, res - 1)
-        x1, y1 = np.ceil(t.max(0)).astype(int).clip(0, res - 1)
+        x0, y0 = np.maximum(np.floor(t.min(0)).astype(int), (ox,oy))
+        x1, y1 = np.minimum(np.ceil(t.max(0)).astype(int), (ex-1,ey-1))
         if x1 < x0 or y1 < y0:
             continue
-        gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
-        cnt[y0:y1 + 1, x0:x1 + 1] += raster_half_open(t, gx, gy)
+        gx = np.arange(x0, x1 + 1)[None, :] + 0.5
+        gy = np.arange(y0, y1 + 1)[:, None] + 0.5
+        cnt[y0-oy:y1-oy + 1, x0-ox:x1-ox + 1] += raster_half_open(t, gx, gy)
     return cnt
 
 
@@ -57,7 +60,7 @@ def fan(F, FUV, V, UV):
     return np.array(T3).reshape(-1, 3, 3), np.array(TU).reshape(-1, 3, 2), np.array(owner, int)
 
 
-def uv_island_ids(F, FUV, UV, vertex_key=None, decimals=6):
+def uv_island_ids(F, FUV, UV, vertex_key=None, decimals=6, budget=None):
     """(faces,) island id per face, numbered in first-seen order. ``vertex_key`` maps a vertex index to its identity
     (default: the index itself; pass ``weld_keys`` on a seam-split smart mesh); UVs compare rounded to ``decimals``."""
     UV = np.round(np.asarray(UV, float), decimals)
@@ -71,6 +74,7 @@ def uv_island_ids(F, FUV, UV, vertex_key=None, decimals=6):
         return x
     firsts = []
     for f, fu in zip(F, FUV):
+        if budget is not None: budget.check()
         ks = [(vk(v), float(UV[u][0]), float(UV[u][1])) for v, u in zip(f, fu)]
         for k in ks[1:]:
             parent[find(k)] = find(ks[0])

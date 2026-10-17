@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGING_CMAKE = ROOT / "src" / "build_files" / "cmake" / "packaging.cmake"
 WIX_TEMPLATE = ROOT / "src" / "release" / "windows" / "installer_wix" / "WIX.template"
-PACKAGE_SH = ROOT / "scripts" / "unix" / "package.sh"
+CREATOR_CMAKE = ROOT / "src" / "source" / "creator" / "CMakeLists.txt"
 
 
 def _cmake() -> str:
@@ -60,8 +60,12 @@ def test_lampway_installs_never_remove_a_mixar_install():
 
 
 def test_macos_dmg_bundle_name_has_no_version():
-    source = PACKAGE_SH.read_text(encoding="utf-8")
-
-    assert 'APP_BUNDLE_NAME="Mixar.app"' in source
-    assert "VERSIONED_APP_NAME" not in source
-    assert 'mv "$WORK_APP" "$DMG_STAGING/$APP_BUNDLE_NAME"' in source
+    # CPack packages the installed bundle; there is no separate package.sh.
+    assert re.search(r'if\(APPLE\)\s+set\(CPACK_GENERATOR "DragNDrop"\)', _cmake())
+    source = CREATOR_CMAKE.read_text(encoding="utf-8")
+    mac = source[source.index("elseif(APPLE)", source.index("# Install Targets (Platform Specific)")):]
+    assert "set_target_properties(mixar PROPERTIES OUTPUT_NAME Mixar)" in mac
+    destinations = re.findall(r'DESTINATION\s+"([^"\n]*Mixar\.app[^"\n]*)"', mac)
+    assert destinations, "the DMG must contain the installed application bundle"
+    assert all(path.startswith(("Mixar.app/", "./Mixar.app/")) for path in destinations)
+    assert all("VERSION" not in path for path in destinations)

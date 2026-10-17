@@ -26,7 +26,7 @@ no global parent clear, and the defects listed in canons 16 D and 17 D cannot oc
 ## Contract
 
 ```json
-{"armature": "object", "map": "rig/<name>.map.json", "reference": "fit_body package | reference FBX", "convention": "blender|ue_axes",
+{"armature": "object", "map": "rig/<name>.map.json", "reference": "source_copy | fit_body package | reference FBX", "convention": "blender|ue_axes",
  "ik_bones": false, "offsets": {"<bone>": {"roll_deg": 0.0}}, "merge_weights": {"<from_group>": "<to_bone>"}, "out_name": "<name>_ue",
  "dry_run": true}
 ```
@@ -39,6 +39,32 @@ vertex's rest position changing (> 1e-9 m) after the frame rewrite (the skin is 
 B.7, never by re-weighting).
 Receipt: `{renamed, synthesized, reparented, frames: {bone: angle_to_reference_deg}, convention, merged_groups,
 rest_vertex_drift_m, sha256: {input, map, reference, output}}`.
+
+For the verified native342 topology, an omitted reference refuses instead of
+substituting the shipped161-bone Manny profile. `reference="source_copy"` is an
+explicit preservation operation: require the complete native graph, identity
+mapping and a measured convention matching the requested convention. Refuse
+mixed/unknown frames, synthesis, offsets, IK additions and weight merging before
+copies. Preserve authored heads, tails, rest frames, parent edges, flags and skin
+weights on independent copies, bypassing EditBone reconstruction. Original pose,
+actions and data remain unchanged; the result has no animation, as with ordinary
+conform. Receipt fields `reference_scope="source_preservation"` and
+`engine_bind_acceptance` explicitly retain unverified native UE parity. This mode
+does not supply an independent native reference or repair a native pose mismatch.
+Generic, non-native conform retains its existing reference-driven construction.
+
+An explicit independent native profile on the exact complete342 graph uses
+canon17's reference-bind calibration when its joints already match the source
+under0.01cm. Preserve each source head and length; carry the independent engine
+frame through the fixed inverse writer bridge for `blender`, or directly for
+`ue_axes`. Reject synthesis, offsets, IK, nonidentity maps and invalid reference
+rotation/scale before allocation. Verify Blender's stored frame under the
+unchanged0.01degree bar and retain the rest/posed-skin checks. A private
+`lw_native_reference_bind` receipt binds the independent reference rows and
+declared axes to the output rest fingerprint. `reference_scope` is
+`independent_native_bind`; actual UE import acceptance remains unverified.
+This bounded path calibrates a matching native body; it does not fit different
+reference joints or claim a general native reference construction algorithm.
 
 ## Goldens
 

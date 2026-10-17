@@ -121,6 +121,26 @@ def _file_path(record: dict) -> str:
     return os.path.join(session_dir(record.get("session_id", "")), record.get("file", ""))
 
 
+def refile(session_id: str, new_id: str) -> bool:
+    """Move a session's whole timeline (its directory and every record's ``session_id``) to ``new_id``, which must have none.
+    The chat filed under ``new_id`` keeps its checkpoints, and ``session_id`` starts an empty timeline (``mode1_pane``: ``/new``
+    in Lampway Agent's pane keeps the tab's session id for the new chat). True when a timeline moved."""
+    if not session_id or not new_id or session_id == new_id:
+        return False
+    old_dir = os.path.join(checkpoints_root(), _safe_id(session_id))
+    new_dir = os.path.join(checkpoints_root(), _safe_id(new_id))
+    if not os.path.isdir(old_dir) or os.path.exists(new_dir):
+        return False
+    replace_file(old_dir, new_dir)
+    items = _load_index(new_id)
+    for item in items:
+        item["session_id"] = new_id
+    _write_index(new_id, items)
+    _has_cache.pop(session_id, None)
+    _has_cache.pop(new_id, None)
+    return True
+
+
 def list_checkpoints(session_id: str) -> list:
     """Restorable checkpoints of a session, newest first."""
     if not session_id:

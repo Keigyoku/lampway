@@ -236,3 +236,61 @@ Suites before the push (scratch TMPDIR and basetemp, deleted after each run):
 - Four pre-existing failures on `lp/wave5`, none from this lane: `test_brand_words` and `test_no_mixar_in_ui_strings`
   (`material_bake_export.py:54` "Mixar Paint", `mcp_inventory/api.py:154`), `test_prepublish_gate` (`/home/x` in the allow
   list without a reason), `test_site_links` (eight hosts in `fal.py` and `studios/rest/shapes.py`).
+
+## The UE half, measured (PR #1 finish, 2026-10-11)
+
+The captain approved the UE editor leg in PR #1 ("Build it in PR #1"). It is `scripts/lampway/ue_parity_capture.py`, a
+ticking UE editor job run in a disposable QA project (`UnrealEditor-Cmd -RenderOffscreen -ExecCmds "py <file>"`, a
+post-tick callback, quit at the end). Deviation from the off-tree contract (`ue_editor_leg.md` §6): it is a Lampway QA script
+in a disposable project, not a Titan recipe through `editor_runner` on the Titan project, and its profile is the QA
+project's live readback, not the Titan profile.
+
+**The cube is real.** The maintained `ue_cube_generator_capture.py`, under the captain's G30 ruling (the neutral 4.0 white
+is the disabled-tone negative control; 0.18 gray, FilmToneMap's InMatch/OutMatch point, is the fixed-point check), sampled
+UE 5.8.2-56702186 on Vulkan offscreen: 32,768 rows, sidecar `lampway.ue-cube-meta/1`, cube sha256 `5d752a23f174…`.
+`ue/cube.py` validates it, `ue_look enable` builds the view ("UE 5.8 Filmic fa7a5554") and the parity renders run with it.
+
+**Parity record** (UE 5.8.2 Vulkan offscreen; EEVEE headless; 768 px; parity profile = the QA project's live readback with manual
+exposure, bloom/vignette/SSAO off and `r.ReflectionMethod 0`, profile hash `97a65261cf2e`; GEO outside the PST edge band, the
+captain's ruling of 2026-10-11):
+
+Each cell is the class verdict and its metric: COL, LGT and SHD the worst |UE/Lampway - 1| over the class's samples (linear
+luminance, outside the edge band), NRM the sign agreement, GEO the silhouette IoU.
+
+| scene | class | front | three_quarter | grazing | tolerance |
+|---|---|---|---|---|---|
+| chart | COL | pass 0.0007 | pass 0.0007 | pass 0.0005 | linear within 1 % |
+| chart | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
+| furnace | SHD | fail 0.0705 | fail 0.0705 | fail 0.0889 | mean radiance within 3 % |
+| furnace | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
+| normals | NRM | pass 1.0000 | pass 1.0000 | pass 1.0000 | sign 100 % |
+| normals | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
+| lights | LGT | fail 0.0337 | fail 0.0324 | fail 0.0241 | within 2 % after k |
+| lights | GEO | pass 1.0000 | pass 1.0000 | pass 1.0000 | IoU >= 0.995 |
+
+What the two failures are:
+- **LGT**: in a per-probe read of the front renders eight of nine probes agree within 0.3 %; probe 8, 21.7° off the spot's
+  axis inside its blend band, reads 3.6 % low. The class metric is 3.37 % front, 2.41 % grazing. EEVEE's spot falloff is a smoothstep in cosine space (`eevee_light_lib.bsl.hh:89-96`, `eevee_light.cc:244-248`);
+  UE's is a squared linear ramp (`DynamicLightingCommon.ush:58-66`, `SpotLightSceneProxy.cpp:18-23`). No UE cone pair is a
+  smoothstep: the light map now uses the least-squares pair (worst 0.095 of full intensity, rms 0.024), where the old
+  `inner = outer × (1 − blend)` put UE's ramp at 1.83 times EEVEE's (probes 40 % dark). A probe in a blend band keeps this
+  residual by construction. The captain's ruling (2026-10-11): recorded as a model limit.
+- **SHD**: the first record read UE's rough sky specular as missing (metals at roughness 0.25 and above 0.15, then 0), the
+  same on the NVIDIA and the AMD adapter, through 30 and 120 settle ticks, a second recapture, real-time capture, a specified
+  cubemap and `r.ReflectionMethod 2`. The cause was the sky light's mobility: a spawned SkyLight is stationary, and UE mixes a
+  non-dynamic sky light's rough reflections with built lightmap irradiance (`bNormalize` at `ReflectionEnvironmentComposite.ush:237`, scaled by `ComputeMixingWeight` at `:253`, defined at
+  `ReflectionEnvironmentShared.ush:235`; taken when `!bSkyLightIsDynamic`, `IndirectLightRendering.cpp:710`). A parity level has
+  no built lighting, so the weight falls to 1 - MixingAlpha and rough sky specular vanished where MixingAlpha saturates.
+  The UE half now makes the dome's sky light movable (`configure_sky_light`). After it, the class metric is 7.05 % front and three-quarter, 8.89 % grazing. By sphere (an unmasked RGB-mean probe of the same renders), front
+  and three-quarter agree within 2.6 % on every sphere but the roughest metal (UE about 7 % brighter); at grazing the metals differ
+  by 3.9 to 9.1 %, the dielectrics within 2.2 %. That residual is the two engines' environment BRDF at roughness 1 and at
+  grazing incidence. The captain's ruling (2026-10-12): recorded as a model limit, like LGT's band probe; the 3 %
+  tolerance stays, so SHD reads fail with this residual on record.
+
+Fixed on the way (each RED first): the UE capture's alpha is inverse opacity (`SCS_SCENE_COLOR_HDR`), so the Lampway half
+reads the UE half's receipt (`capture.json`, `lampway.ue-parity-capture/1`) and compares coverage (GEO was 0.0 before); a
+class a scene does not sample is `unmeasured`, not `fail` (ue_parity.md §3); the UE plane faced away from the camera (roll
+−90; a probe with a quadrant image fixed the sign: roll +90), which read as a flipped green (NRM 0 %, now 100 %); the
+description now carries every lit surface's material, which the UE half translates exactly as `material_map` does (the
+Lambert planes had been given a Specular 0.5 lobe in UE); a region whose samples all fall in the edge band is unmeasured, not a
+pass (the ratio of no samples had read 0.0).

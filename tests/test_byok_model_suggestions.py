@@ -122,53 +122,26 @@ def test_save_rejects_stale_model_from_another_provider(monkeypatch):
     model_suggestions.clear()
 
 
-def test_codex_save_uses_openai_catalog_models(monkeypatch):
-    """Codex has no catalog group of its own: its model dropdown reuses the
-    "openai" models. A stale/sentinel selection is rejected before the
-    network; a real openai catalog model is sent with the pasted auth.json
-    bundle as the key."""
-    model_suggestions.populate(
-        providers=[("openai", "OpenAI", "From catalog")],
-        models={"openai": [("gpt-5.5", "GPT-5.5", "GPT-5.5")]},
-    )
-    assert model_suggestions.get_model_items("codex") == [("gpt-5.5", "GPT-5.5", "GPT-5.5")]
-    assert model_suggestions.is_valid_model("codex", "gpt-5.5") is True
-
+def test_a_codex_selection_left_over_is_not_a_subscription_login(monkeypatch):
+    """The Codex (ChatGPT sub) option is gone (agent-modes spec R0, B0): a stale
+    "codex" selection is an unknown cloud provider, refused before the network
+    for want of a catalog model, and nothing reads or sends a Codex login."""
     sent = []
     monkeypatch.setattr(byok_ops, "_redraw_mixie_chat_areas", lambda: None)
     monkeypatch.setattr(
         byok_ops.byok_client, "save_credentials", lambda **kwargs: sent.append(kwargs),
     )
-
-    def _wm(model):
-        return SimpleNamespace(
-            byok_dialog_state="IDLE",
-            byok_last_error="",
-            byok_form_provider="codex",
-            byok_form_model=model,
-            byok_form_codex_bundle='{"tokens": {}}',
-        )
-
-    stale = _wm("NONE")
-    assert byok_ops.MIXAR_BYOK_OT_save().execute(
-        SimpleNamespace(window_manager=stale)) == {'CANCELLED'}
-    assert stale.byok_dialog_state == "ERROR"
-    assert sent == []
-
-    ok = _wm("gpt-5.5")
-    assert byok_ops.MIXAR_BYOK_OT_save().execute(
-        SimpleNamespace(window_manager=ok)) == {'FINISHED'}
-    assert ok.byok_dialog_state == "SAVING"
-    assert sent[0]["provider"] == "codex"
-    assert sent[0]["model"] == "gpt-5.5"
-    assert sent[0]["api_key"] == '{"tokens": {}}'
-    model_suggestions.clear()
+    wm = SimpleNamespace(byok_dialog_state="IDLE", byok_last_error="", byok_form_provider="codex",
+                         byok_form_model="gpt-5.5", byok_form_api_key="")
+    assert byok_ops.MIXAR_BYOK_OT_save().execute(SimpleNamespace(window_manager=wm)) == {'CANCELLED'}
+    assert wm.byok_dialog_state == "ERROR" and sent == []
+    assert not hasattr(model_suggestions, "is_codex")
 
 
 def test_dialog_cancel_wipes_live_secret_fields():
     wm = SimpleNamespace(
         byok_form_api_key="provider-secret",
-        byok_form_codex_bundle="jwt-bundle",
+        byok_form_local_custom_key="local-secret",
     )
 
     byok_ops.MIXAR_BYOK_OT_open_dialog().cancel(
@@ -176,7 +149,7 @@ def test_dialog_cancel_wipes_live_secret_fields():
     )
 
     assert wm.byok_form_api_key == ""
-    assert wm.byok_form_codex_bundle == ""
+    assert wm.byok_form_local_custom_key == ""
 
 
 def test_secret_properties_are_not_saved_in_blend_files(monkeypatch):
@@ -198,4 +171,4 @@ def test_secret_properties_are_not_saved_in_blend_files(monkeypatch):
 
     by_name = {item.get("name"): item for item in string_properties}
     assert by_name["API Key"]["options"] == {'SKIP_SAVE'}
-    assert by_name["Codex auth.json"]["options"] == {'SKIP_SAVE'}
+    assert "Codex auth.json" not in by_name

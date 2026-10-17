@@ -80,13 +80,43 @@ def test_har04_each_synthetic_error_fails_exactly_its_class():
     assert PM.compare(a, one, regions, display=srgb)["classes"]["COL"]["display_max_codes"] <= 1.01
 
 
+@pytest.mark.parametrize("absent", ["COL", "SHD", "NRM", "LGT"])
+def test_a_class_the_scene_does_not_measure_is_unmeasured_not_failed(absent):
+    """ue_parity.md §3: per class "within tolerance / not / unmeasured". The live chart run (lampway-finish-pr1) reported SHD,
+    NRM and LGT as fail with zero samples; a scene isolates its own class and leaves the others unmeasured."""
+    a, regions = synthetic()
+    regions = {**regions, absent: []}
+    rep = PM.compare(a, a.copy(), regions, display=srgb)
+    assert rep["classes"][absent]["verdict"] == "unmeasured", rep["classes"][absent]
+    assert {c: r["verdict"] for c, r in rep["classes"].items() if c not in (absent, "PST", "TEX")} == {
+        c: "pass" for c in ("COL", "SHD", "NRM", "LGT", "GEO") if c != absent}
+    worse = a.copy()
+    worse[..., :3] *= 1.5                                         # a measured class still fails with samples present
+    assert all(r["verdict"] == "fail" for c, r in PM.compare(a, worse, regions, display=srgb)["classes"].items()
+               if c in ("COL", "SHD", "LGT") and c != absent)
+
+
 def test_geo_silhouette_and_the_edge_band():
+    # The captain's ruling (2026-10-11): GEO compares the silhouettes outside the PST edge band (ue_parity.md §5, the PST row's
+    # "excluded from all metrics above"), so a loss must reach past the 3 px band around both boundaries to count.
     a, regions = synthetic()
     b = a.copy()
-    b[2:92, 2:6, 3] = 0.0                                                          # four columns of silhouette lost
+    b[2:92, 2:10, 3] = 0.0                                                         # eight columns of silhouette lost
     rep = PM.compare(a, b, regions, display=srgb)
     assert rep["classes"]["GEO"]["verdict"] == "fail" and rep["classes"]["GEO"]["silhouette_iou"] < 0.995
     assert rep["classes"]["PST"]["verdict"] == "report" and rep["classes"]["PST"]["edge_band_px"] == 3
+
+
+@pytest.mark.parametrize("ring", [1, 2])
+def test_geo_ignores_an_antialiasing_ring_inside_the_edge_band(ring):
+    """The live chart's oblique views (lampway-finish-pr1): every disagreeing pixel lay within 1 px of agreed coverage
+    (IoU 0.987-0.990 over the whole silhouette)."""
+    a, regions = synthetic()
+    b = a.copy()
+    b[2 - ring:92 + ring, 2 - ring:94 + ring, 3] = 1.0                             # the silhouette grown by an AA ring
+    rep = PM.compare(a, b, regions, display=srgb)
+    assert rep["classes"]["GEO"]["verdict"] == "pass" and rep["classes"]["GEO"]["silhouette_iou"] == 1.0
+    assert rep["classes"]["GEO"]["outside_edge_band"] is True
 
 
 def test_col_without_a_display_cube_is_needs_decision_for_its_display_half():
@@ -125,3 +155,40 @@ def test_har02_lens_to_ue_fov_and_identical_patch_centres():
     ue = PM.project_ue(pts, hfov_deg=PM.ue_hfov_deg(50.0, 36.0), width=w, height=h)
     np.testing.assert_allclose(bl, ue, atol=1e-6)
     assert np.allclose(bl[0], [w / 2, h / 2])
+
+
+@pytest.mark.parametrize("body", ['{"schema": "other", "alpha": "coverage"}', '{"schema": "lampway.ue-parity-capture/1", "alpha": "premultiplied"}',
+                                  '{not json', '[1, 2]', None])
+def test_a_ue_capture_receipt_that_does_not_name_its_alpha_refuses(tmp_path, body):
+    from mixar.modules.lampway_tools.ue import parity as P
+    if body is not None:
+        (tmp_path / "capture.json").write_text(body)
+    with pytest.raises(P.ParityError, match="capture"):
+        P.ue_capture_alpha(tmp_path)
+
+
+def test_coverage_conversion_follows_the_declared_alpha():
+    from mixar.modules.lampway_tools.ue import parity as P
+    px = np.zeros((2, 2, 4)); px[0, 0, 3] = 1.0
+    assert P.to_coverage(px, "inverse_opacity")[..., 3].tolist() == [[0.0, 1.0], [1.0, 1.0]]
+    assert P.to_coverage(px, "coverage")[..., 3].tolist() == px[..., 3].tolist()
+    assert px[0, 0, 3] == 1.0                                       # the input is not modified
+
+
+def test_a_silhouette_entirely_inside_the_edge_band_is_unmeasured_not_failed():
+    """The 64 px harness furnace (lampway-finish-pr1): every sphere lay inside the 3 px band, so nothing was left to compare."""
+    a = np.zeros((32, 32, 4)); a[14:18, 14:18, 3] = 1.0
+    rep = PM.compare(a, a.copy(), {}, display=None)
+    assert rep["classes"]["GEO"]["verdict"] == "unmeasured" and rep["classes"]["GEO"]["silhouette_iou"] is None
+
+
+@pytest.mark.parametrize("cls", ["COL", "SHD"])
+def test_regions_left_without_samples_by_the_edge_band_are_unmeasured_not_passed(cls):
+    """Found while fixing the 64 px harness (lampway-finish-pr1): every sphere region lay inside the edge band, the means were
+    NaN, and the ratio of no samples read 0.0, a pass. A skip is not a pass."""
+    a, regions = synthetic()
+    b = a.copy()
+    b[..., :3] *= 1.5                                                          # a gross error the empty regions must not hide
+    tiny = {cls: [[2, 2, 3, 3]]}                                               # a region that lies wholly inside the edge band
+    rep = PM.compare(a, b, tiny, display=None)
+    assert rep["classes"][cls]["verdict"] == "unmeasured", rep["classes"][cls]

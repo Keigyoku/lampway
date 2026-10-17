@@ -157,12 +157,12 @@ print("RESULT", json.dumps({"res": res, "pending": [a["id"] for a in studio_stat
 PROVIDERS = '''
 from mixar.modules.lampway_tools.ui.operators import studio_ops
 from mixar.modules.lampway_tools import studio_state
-VIEW = {"values": {"provider": "chatgpt_plan", "chatgpt_model": "gpt-6.1-sol", "chatgpt_effort": "medium", "swarm_provider": "claude_cli",
+VIEW = {"values": {"provider": "chatgpt_plan", "chatgpt_model": "gpt-6.1-sol", "chatgpt_effort": "medium", "swarm_provider": "openrouter",
         "claude_swarm_model": "claude-sonnet-5-5", "openrouter_swarm_model": "deepseek/deepseek-v4.1-flash", "image_backend": "openrouter",
         "openrouter_image_model": "openai/gpt-image-2.5-sunburst", "openrouter_image_size": "2880x2880", "openrouter_image_quality": "high",
         "image_purposes": {"plates": {"model": "openai/gpt-image-2.5-flare", "size": "2880x2880"}, "mask": {"model": "google/gemini-3.1-flash-image"},
                            "concept": {"model": "black-forest-labs/flux-3-image", "resolution": "2K"}, "tile": {"model": "openai/gpt-image-2.5-flare", "size": "2048x2048"}}},
-        "source": {}, "choices": {"main_providers": ["mock", "chatgpt_plan", "openrouter"], "swarm_providers": ["", "claude_cli", "openrouter"],
+        "source": {}, "choices": {"main_providers": ["mock", "chatgpt_plan", "openrouter"], "swarm_providers": ["", "openrouter"],
         "efforts": ["", "low", "medium", "high"], "image_backends": ["tripo", "openrouter"], "image_qualities": ["", "high"]}}
 SAVED = []
 class FakeServer:
@@ -178,7 +178,7 @@ studio_ops.CLIENT_FACTORY = lambda: FakeServer()
 def test_the_provider_dialog_loads_the_server_values_and_saves_only_what_changed():
     r = run(PROVIDERS + '''
 bpy.ops.lampway.providers_open("INVOKE_DEFAULT") if False else None
-op_ok = bpy.ops.lampway.providers_save("EXEC_DEFAULT", main_provider="openrouter", chatgpt_effort="medium", swarm_provider="claude_cli",
+op_ok = bpy.ops.lampway.providers_save("EXEC_DEFAULT", main_provider="openrouter", chatgpt_effort="medium", swarm_provider="openrouter",
                                        image_backend="openrouter", image_model="openai/gpt-image-2.5-flare", image_size="2048x1152", image_quality="high",
                                        plates_size="2160x3840", plates_model="openai/gpt-image-2.5-flare", concept_resolution="4K", mask_model="sourceful/riverflow-v2.5-pro")
 try:

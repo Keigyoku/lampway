@@ -117,7 +117,8 @@ _BEARER_MODULES = (
     "mixar.modules.space_mixie_chat.core.connection_manager", "mixar.modules.space_mixie_chat.core.message_helpers",
     "mixar.modules.space_mixie_chat.core.parked_resume", "mixar.modules.space_mixie_chat.core.socket_connection",
     "mixar.modules.space_mixie_chat.core.sound_catalog", "mixar.modules.space_mixie_chat.core.voice", "mixar.modules.space_mixie_chat.core.voice_input", "mixar.modules.space_mixie_chat.ui",
-    "mixar.modules.lampway_tools.studio_client", "mixar.modules.lampway_tools.egress_client", "mixar.modules.lampway_tools.mcp_client",
+    "mixar.modules.lampway_tools.studio_client", "mixar.modules.lampway_tools.context_client",
+    "mixar.modules.lampway_tools.egress_client", "mixar.modules.lampway_tools.mcp_client",
     "mixar.modules.lampway_tools.workbench_client", "mixar.modules.lampway_tools.library_client", "mixar.modules.lampway_tools.features.jobs_client",
     "mixar.modules.lampway_tools.ui", "mixar.modules.lampway_tools.keyring_file", "mixar.modules.testing",
 )

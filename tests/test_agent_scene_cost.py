@@ -179,9 +179,17 @@ def _pump_result(monkeypatch, scene, to_dict):
     import bpy
 
     monkeypatch.setattr(bpy, "context", SimpleNamespace(scene=scene), raising=False)
-    executor = SimpleNamespace(execute=lambda script: SimpleNamespace(to_dict=lambda: to_dict))
-    req = ExecutionRequest("id-1", "pass", tool_name="execute_bpy_script")
-    return pump.execute_request(req, executor)
+    def execute(script, *, session_id):
+        assert script == "pass"
+        assert session_id == "scene-cost-session"
+        return SimpleNamespace(to_dict=lambda: to_dict)
+
+    executor = SimpleNamespace(execute=execute)
+    req = ExecutionRequest("id-1", "pass", session_id="scene-cost-session",
+                           tool_name="execute_bpy_script")
+    result = pump.execute_request(req, executor)
+    assert result["success"] == to_dict["success"]
+    return result
 
 
 def test_the_pump_measures_an_effectful_script(monkeypatch):

@@ -75,6 +75,18 @@ def _current():
     return model_suggestions.get_platform_models(), preference_state.snapshot()
 
 
+class MIXIE_CHAT_MT_agent_mode(Menu):
+    """Choose Lampway Agent or your own installed harness for this scene tab."""
+
+    bl_idname = "MIXIE_CHAT_MT_agent_mode"
+    bl_label = "Agent Mode"
+
+    def draw(self, context):
+        from mixar.modules.space_mixie_chat.core import agent_mode as AM
+        self.layout.ui_units_x = 18
+        AM.draw_rows(self.layout, context.scene)
+
+
 class MIXIE_CHAT_MT_agent_model(Menu):
     """Choose which model runs the agent."""
 
@@ -84,6 +96,11 @@ class MIXIE_CHAT_MT_agent_model(Menu):
     def draw(self, context):
         layout = self.layout
         layout.ui_units_x = 15
+        # M0's switch has its own adjacent chip. A user's harness chooses its own model.
+        from mixar.modules.space_mixie_chat.core import agent_mode as AM
+        if AM.is_byoa(context.scene):
+            layout.label(text=AM.MODEL_NOTE)
+            return
         models, current = _current()
         # The key in use, named from the credential state at draw time so a
         # fetch that lands after the menu opened shows on the next draw.
@@ -139,6 +156,7 @@ class MIXIE_CHAT_MT_agent_model_thinking(Menu):
 
 
 classes = (
+    MIXIE_CHAT_MT_agent_mode,
     MIXIE_CHAT_MT_agent_model,
     MIXIE_CHAT_MT_agent_model_thinking,
 )

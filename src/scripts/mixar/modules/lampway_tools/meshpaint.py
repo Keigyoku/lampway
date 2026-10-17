@@ -9,7 +9,7 @@ render of OUR mesh, so the painted plate lands on the geometry (projection IoU 0
 
   1. a clay render of our mesh per cardinal view                                  (tool clay_view)
   2. the image backend paints the design over it as flat albedo, 4 variants per view; the references are, in order, the clay
-     render, a painted view for consistency, and V3's design plate of that view      (server: imagegen, tripo or codex_cli)
+     render, a painted view for consistency, and V3's design plate of that view      (server: imagegen, tripo or openrouter)
   3. pick 1 of 4 per view (silhouette IoU against the clay render, plus the eye)
   4. the clay-alpha plate set                                                      (tool mesh_paint_set)
   5. projection at 4096 with no warp (RP_COLOR_FULL=1 RP_NO_FLOW=1) into its own directory, then the masks
