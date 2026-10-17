@@ -90,6 +90,45 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
+| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open and requested reviews on ephemeral runners |
+
+PR-open reviews and authorized `@pr-review` PR comments run on ephemeral
+GitHub Actions runners. `CHATGPT_REVIEW_RUNNER` is the single per-repo provider
+setting; the default is Shipfox's smallest documented Linux x64 label. OWNER,
+MEMBER or COLLABORATOR human authors retain their live permission checks.
+The explicit trusted-bot allow-list also admits only `vellum-bot-box[bot]`
+with account type `Bot` and app id `5311490` wherever the event carries app
+metadata, for both PR-open authors and `@pr-review` comment authors. A login
+match alone never grants trust. Hosted validation checks the live same-repo
+PR before allocating the review runner; other bots, ordinary comments, plain
+issues, closed PRs and fork heads are excluded.
+Pushes never request reviews. PR-open reviews are full; `@pr-review` reviews
+commits since the last trusted reviewed head, and `@pr-review full` requests a full
+pass. Missing or invalid incremental baselines fall back to a full review.
+A successful job verifies one fresh COMMENT review with an overview and exact
+inline findings. The authenticated adapter package includes all three chunks.
+The reviewer never checks out or executes PR files, applies fixes, offers suggestions, commits or pushes.
+
+Before setup, an unseeded repo or missing credential configuration emits a
+clear notice and skips the review successfully. The Captain's seeder sets
+`CHATGPT_REVIEW_SEEDED` only after its run and independent durable read-back
+succeed. Seed dispatches can initialize the store; configured-session integrity
+and rotation failures still fail red. The current repo setting selects Tenki.
+
+Each job installs an authenticated pinned adapter package, serves loopback,
+and uses this repo's stable SIWC host and encrypted durable credential store.
+The whole credential job is serialized per repo, including weekly readiness
+and seeding. Rotated tokens must be uploaded and authenticated by read-back
+before new access is used; failed verification makes the job red. Credentials
+and source are absent from caches. Weekly readiness refreshes only when needed.
+The Captain logs in and seeds independent profiles. Comment dispatch requires
+this caller on the default branch. The no-secret provider probe proves routing
+and artifact capabilities, not a PR review. Stopped legacy Boat boxes and keys
+remain until PR-open and requested reviews are green on both repositories;
+then the authorized retirement removes their runners, boxes, keys and secrets.
+
+The public caller embeds the trusted workflow because a public repository
+cannot call a private reusable workflow.
 
 ## Governing runtime contracts
 
@@ -219,3 +258,13 @@ and restoring prior global scene state.
 | 2026-10-09 | native Text focus after persistent directory editing | resumed I02 save/reopen failure | directory Enter retained editing and consumed the first filename press, so delivered text reached an unfocused field | establish Text focus with bounded native activation, keep other control behavior and verify actual persistence without timing guesses | debugger-localized native transition, focus-model RED and exact Save/repeat/reopen controls |
 | 2026-10-10 | full-collection fixture isolation | current owner-local audit and inherited no-red target | cached bpy doubles diverged, Scene lacked custom properties and cleanup used the wrong registry interface | restore scoped cached imports, model native property semantics and preserve forwarded scene/session assertions without changing Agent Mode policy | exact original54 collection confirms52 PASS and two explicit production interface conflicts; restoration and property plants fire |
 | 2026-10-10 | specialized recovery mock consistency | complete client diagnostic | recovery patched only its own bpy while actual transport read a different scene list | share the native-shaped scene collection across actual consumers and restore prior global state | genuine full-collection RED, explicit mismatched-list plant and preserved live-handler exclusion/prompt controls |
+| 2026-10-12 | dedicated PR-open review caller | Captain: add ChatGPT-plan PR-open reviews on per-repository runners | no dedicated PR-open review workflow existed and public callers cannot use a private shared workflow | the workflow map and PR-open review paragraph name the trusted script, dedicated runner, fork exclusion and posted-review evidence | Captain's directive, 2026-10-12 |
+| 2026-10-13 | requested PR reviews | Captain: add `@pr-review` without push reviews | opened-only reviews could not be requested again | the caller and review contract gate human collaborator commands, acknowledge accepted requests and exclude fork heads without PR execution or fixes | Captain addendum, 2026-10-13 |
+| 2026-10-13 | on-demand review boxes | Captain addendum 3: stop idle billing and keep sessions alive | permanent runners had no auto-stop deadline | hosted event/TTL/cleanup gates, isolated one-box key, per-PR review queue and scheduled refresh are owned by the caller | boxed TTL-update scope remains Captain decision |
+| 2026-10-13 | queued review admission | lifecycle overlap audit | a wake could start its TTL while waiting behind a full-length review | hold the lifecycle lease until the admitted slot finishes, then rearm before releasing the next review | RED-first queue and reservation controls |
+| 2026-10-13 | cleanup admission guard and scoped-key approval | live review found rejected authorizations delaying snapshot shutdown; Captain approved one-box TTL update | unrelated active workflow runs could retain an idle box until its deadline | inspect admitted wake/review jobs and visibility reservations before deferring cleanup; authorization cannot retain a box | RED-first rejected-run, active-work and reservation controls |
+| 2026-10-13 | replacement Wrenchdesk runner registry | Captain addendum 4: replace the stopped box with pending resume | deleted box identity remained in the caller and weekly wake | bind the generated caller/controller to the replacement and its one-box key, preserving finite TTL and enabled services | new-box stopped-start-review-stop proof |
+| 2026-10-13 | ephemeral review credentials and provider setting | Captain addendum 5: leave persistent boxes | idle billing and rotating tokens tied reviews to permanent hosts | gate before allocation, serialize one encrypted repo store, verify rotation before use, and defer Boat retirement until four live proofs | RED-first store, write failure, gates and concurrency controls; Captain login and live proofs pending |
+| 2026-10-13 | unseeded review notice | Captain: merged caller before repo seeding | missing credentials turned ordinary PR openings red | check the verified-seed flag and configuration before setup; skip with notice while preserving configured-session failures | RED-first actual Node readiness gate; synthetic saved-key replay |
+| 2026-10-15 | trusted crew bot review admission | Captain: trust Vellum Bot Box for PR-open and requested reviews | human-only authorization refused crew PRs and their re-review requests | admit the exact vellum-bot-box[bot] Bot identity with app id 5311490 wherever metadata exists, retaining human checks, same-repo gates and review isolation | Captain decision, 2026-10-15 |
+| 2026-10-15 | incremental requested review rollout | Captain: incremental comments with explicit full override and safe readiness retry | callers lacked the third authenticated package chunk and the review-mode contract | forward PACKAGE_3 and document full PR-open, incremental comments, explicit full override and safe full fallback without changing admission gates | exact adapter source and generated caller digest recorded in the PR |
