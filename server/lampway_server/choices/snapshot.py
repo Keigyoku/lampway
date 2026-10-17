@@ -38,7 +38,7 @@ class World:
 
 
 def live_world(hub=None, egress=None, spend=None, enforce_private: bool = False, custom_llm_local: bool = True, zdr=None, catalogue=None,
-               costs=None, local=None) -> World:
+               costs=None, local=None, project=None) -> World:
     """The snapshot of the running server: Connections' state words (never an identity), the egress switches, the spend policy."""
     from .. import connections as C
     from .. import egress as EG
@@ -46,5 +46,31 @@ def live_world(hub=None, egress=None, spend=None, enforce_private: bool = False,
     eg = egress or EG.ACTIVE
     conns = {v["id"]: v["state"] for v in hub.view()}
     routes = {r: bool(eg.enabled(r)) for r in EG.ROUTES} if eg is not None else {}
+    readiness = byoa_worker_readiness(project=project)
+    readiness.update(local or {})
     return World(connections=conns, routes=routes, zdr=zdr, catalogue=dict(catalogue or {}), spend=dict(spend or {}), costs=dict(costs or {}),
-                 local=dict(local or {}), custom_llm_local=custom_llm_local, enforce_private=enforce_private)
+                 local=readiness, custom_llm_local=custom_llm_local, enforce_private=enforce_private)
+
+
+def byoa_worker_readiness(*, project=None) -> dict:
+    """Local installation, bounded startup qualification and opt-in facts; no login or credential-file inspection."""
+    from .. import choices as CH
+    from ..herdr import harnesses as HN
+    state_dir = getattr(CH.active_store(), "state_dir", None)
+    enabled = HN.enabled(state_dir)
+    missing = {}
+    for hid, adapter in HN.ADAPTERS.items():
+        reason = None
+        if not enabled:
+            reason = "your own agents in Lampway's panes are off: enable Bring Your Own Agent first"
+        elif not adapter.direct_ok:
+            reason = f"{adapter.label} cannot run a worker: {adapter.tools_note or 'no supported per-pane tool endpoint'}"
+        elif (problem := HN.worker_problem(adapter, project=project)):
+            reason = f"{adapter.label} cannot run a worker: {problem}"
+        elif adapter.locate() is None:
+            reason = f"{adapter.label} is not installed: {adapter.install_hint}"
+        if not reason and hasattr(adapter, "compatibility_note"):
+            reason = adapter.compatibility_note()
+        if reason:
+            missing[f"byoa:{hid}"] = reason
+    return missing

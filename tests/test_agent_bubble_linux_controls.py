@@ -29,6 +29,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "src" / "scripts"
 if str(SCRIPTS) not in sys.path:
@@ -335,9 +337,9 @@ def _platform_condition(expression, defined):
     import re
 
     macros = re.findall(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)", expression)
-    assert set(macros) <= {"__APPLE__", "_WIN32", "__linux__", "LAMPWAY"}, expression
+    assert set(macros) <= {"__APPLE__", "_WIN32", "__linux__", "LAMPWAY"}, f"unexpected platform conditional: {expression!r}"
     remainder = re.sub(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)", "", expression)
-    assert re.fullmatch(r"[\s()&|]*", remainder), expression
+    assert re.fullmatch(r"[\s()&|]*", remainder), f"unexpected platform conditional: {expression!r}"
     expression = re.sub(r"defined\(([A-Za-z_][A-Za-z_0-9]*)\)",
                         lambda match: str(match[1] in defined), expression)
     expression = expression.replace("&&", " and ").replace("||", " or ")
@@ -393,8 +395,9 @@ def _platform_preprocessor_pass(source, defined):
     return live, guarded
 
 
-def _linux_preprocessor_pass(source):
-    return _platform_preprocessor_pass(source, {"__linux__", "LAMPWAY"})
+def _linux_preprocessor_pass(source, *, lampway=True):
+    """What a Linux build keeps; ``LAMPWAY`` follows the target setting (the mode-chip guards are Lampway's)."""
+    return _platform_preprocessor_pass(source, {"__linux__"} | ({"LAMPWAY"} if lampway else set()))
 
 
 def test_platform_model_matches_compiler_preprocessor():
@@ -442,14 +445,15 @@ def test_platform_model_retains_compound_condition_and_rejection_controls():
             _platform_condition(invalid, {"__linux__"})
 
 
-def test_the_cinema_seat_functions_have_a_linux_definition():
+@pytest.mark.parametrize("lampway", [False, True], ids=["LAMPWAY-OFF", "LAMPWAY-ON"])
+def test_the_cinema_seat_functions_have_a_linux_definition(lampway):
     """Regression (Linux link error): the Cinema seat functions were defined
     only inside the Apple/Windows guard. The compile errors hid it — a link
     only runs once every translation unit compiles — but the gate calls them
     from a file with no platform conditionals, so Linux failed on undefined
     references as soon as the two "was not declared in this scope" errors
     were fixed."""
-    live, guarded = _linux_preprocessor_pass(BUBBLE_CC.read_text(encoding="utf-8"))
+    live, guarded = _linux_preprocessor_pass(BUBBLE_CC.read_text(encoding="utf-8"), lampway=lampway)
     # Without a platform guard in the file this test would be vacuous.
     assert guarded, "no platform-guarded lines to contrast against"
     for signature in CINEMA_SEAT_FUNCTION_SIGNATURES:
@@ -459,13 +463,14 @@ def test_the_cinema_seat_functions_have_a_linux_definition():
         )
 
 
-def test_no_cinema_seat_global_is_used_without_a_linux_declaration():
+@pytest.mark.parametrize("lampway", [False, True], ids=["LAMPWAY-OFF", "LAMPWAY-ON"])
+def test_no_cinema_seat_global_is_used_without_a_linux_declaration(lampway):
     """Regression (Linux compile error, which only ever showed on Linux): the
     Cinema seat globals were declared inside the Apple/Windows guard while
     ``ED_agent_bubble_windows_closed()`` reset two of them unconditionally —
     "'g_pill_cinema_seat_valid' was not declared in this scope", then the same
     for 'g_pill_cinema_host'."""
-    live, _guarded = _linux_preprocessor_pass(BUBBLE_CC.read_text(encoding="utf-8"))
+    live, _guarded = _linux_preprocessor_pass(BUBBLE_CC.read_text(encoding="utf-8"), lampway=lampway)
     for name in CINEMA_SEAT_GLOBALS:
         referenced = [line for line in live if name in line]
         if not referenced:
@@ -475,3 +480,21 @@ def test_no_cinema_seat_global_is_used_without_a_linux_declaration():
             f"{name} is referenced in code that survives a Linux build but is "
             f"only declared for Apple/Windows: {referenced[0].strip()!r}"
         )
+
+
+@pytest.mark.parametrize("lampway", [False, True])
+def test_linux_preprocessor_respects_nested_feature_and_platform_guards(lampway):
+    source = "#ifdef LAMPWAY\n#if defined(__APPLE__) || defined(__linux__)\nfeature_linux\n#else\nfeature_other\n#endif\n#else\nupstream\n#endif"
+    live, guarded = _linux_preprocessor_pass(source, lampway=lampway)
+    assert ("feature_linux" in live) is lampway
+    assert ("upstream" in live) is not lampway
+    assert "feature_other" in guarded
+    assert "feature_other" not in live
+
+
+# `&&` and `#ifndef` are evaluated by the compiler-verified grammar above; an unknown macro and `#elif` still refuse.
+@pytest.mark.parametrize("directive", ["#ifdef UNKNOWN_FEATURE", "#if defined(__linux__) && defined(UNKNOWN_FEATURE)",
+                                       "#ifndef UNKNOWN_FEATURE", "#elif defined(__linux__)"])
+def test_linux_preprocessor_refuses_unsupported_conditions(directive):
+    with pytest.raises(AssertionError, match="unexpected"):
+        _linux_preprocessor_pass(directive)

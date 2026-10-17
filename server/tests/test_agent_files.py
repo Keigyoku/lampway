@@ -34,7 +34,9 @@ def test_every_offered_tool_is_in_a_generated_skill_or_excluded_with_a_reason_an
     covered = {t for s in out["skills"] for t in s["tools_covered"]}
     excluded = {e["tool"]: e["reason"] for e in out["excluded"]}
     assert out["uncovered_tools"] == [] and covered.isdisjoint(excluded) and covered | set(excluded) == {r["name"] for r in rows}
-    assert all(excluded[t] for t in excluded) and any(t.startswith("studio_") for t in excluded) and "ask_user" in excluded
+    assert all(excluded[t] for t in excluded) and any(t.startswith("studio_") for t in excluded)
+    # ask_user left the registry (Hermes asks with clarify, spec A2): no generated file names it, and no reason cites the removed loop
+    assert "ask_user" not in covered | set(excluded) and not [t for t, why in excluded.items() if "agent loop" in why]
     assert GEN.check(proj, rows=rows)["ok"] is True
     rows2 = rows + [{"name": "lampway_dummy_new_tool", "description": "A tool added after the skills were written.", "params": [], "offered": True}]
     chk = GEN.check(proj, rows=rows2)
@@ -275,7 +277,8 @@ def test_runtime_mcp_instructions_need_no_client_checkout(monkeypatch, tmp_path)
 
 def test_g12_laws_preserve_whole_source_bullets():
     sentence, _ = GEN.find_sentence('server/lampway_server/agent/prompt.py', 'When the request leaves a real choice open')
-    assert 'ask_user' in sentence and sentence.endswith('few.'), sentence
+    # Mode 1 asks with Hermes's own `clarify` (spec A5): the whole bullet, both of its sentences, survives.
+    assert 'clarify' in sentence and sentence.endswith('The user answers in the island or in this pane.'), sentence
     sentence, _ = GEN.find_sentence('server/lampway_server/agent/prompt.py', 'The sandbox has no file system access beyond a temp directory')
     assert sentence.endswith('Never try to work around that.'), sentence
 

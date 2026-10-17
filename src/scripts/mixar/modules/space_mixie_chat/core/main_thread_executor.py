@@ -5,6 +5,8 @@
 """
 Async script execution queue for main thread execution.
 
+The render/device/job contract is documented in docs/render-job-contract.md.
+
 The WebSocket thread queues ExecutionRequests (never executes scripts); a
 main-thread timer executes ONE script per tick; long scripts must bound their
 own work because synchronous bpy still blocks the UI. The
@@ -332,6 +334,13 @@ def _execute_dequeued_request(req, status, lane) -> Optional[float]:
     refusal = authorize_script(req.session_id, req.agent_ctx)
     if refusal is not None:
         _send_error_response(req.request_id, refusal["error"], refusal["error_type"])
+        return _stop_timer_if_idle()
+
+    # A script naming a turn of Lampway Agent's pane runs only while that turn is live in its tab (mode1_pane.py).
+    from .mode1_pane import script_refusal
+    refusal = script_refusal(_request_session_id(req), req.agent_ctx)
+    if refusal is not None:
+        _send_error_response(req.request_id, refusal["error"], refusal["error_type"], req)
         return _stop_timer_if_idle()
 
     # Safety net: reject scripts that were queued just before load_pre

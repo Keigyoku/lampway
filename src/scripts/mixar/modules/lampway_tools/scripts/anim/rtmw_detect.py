@@ -14,6 +14,11 @@ import sys
 
 
 def main(argv):
+    if not argv:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+        import axi_out
+        axi_out.home(__file__, "Detect RTMW whole-body 2D keypoints per frame using user-supplied ONNX weights")
+        return 0
     if len(argv) < 3:
         print("error: usage: rtmw_detect.py <out.json> <rtmw.onnx> <frame.png> [...] [--input WxH]"); return 2
     size = (288, 384)

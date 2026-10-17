@@ -29,6 +29,7 @@ class _PropScene:
 
 @pytest.fixture
 def scenes(live_bpy, monkeypatch):
+    monkeypatch.setattr(scene_identity, "bpy", live_bpy)
     monkeypatch.setenv("MIXAR_SCENES_DOSSIER_DIR", "0")
     original = _PropScene(_scene("Kitchen", session_id="sess-k"))
     original.mixie_chat_messages.add().text = "hello"
@@ -78,6 +79,7 @@ def test_depsgraph_hook_only_scans_when_the_scene_count_grows(scenes, monkeypatc
 @pytest.fixture
 def adoption(live_bpy, monkeypatch):
     """A signed-in tab and a scene a script just made (state left at OFFLINE)."""
+    monkeypatch.setattr(scene_identity, "bpy", live_bpy)
     monkeypatch.setenv("MIXAR_SCENES_DOSSIER_DIR", "0")
     monkeypatch.setattr(live_bpy.context, "window", None, raising=False)
     tab = _scene("Pool", session_id="sess-p")

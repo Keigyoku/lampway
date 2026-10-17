@@ -21,9 +21,9 @@ class SessionActivity:
         elif kind == "attention":
             self.activity, self.attention = "waiting", ev.get("text", "")
         elif kind == "turn-completed":
-            self.activity = "idle"
             if ev.get("id") is not None and ev.get("id") == self.last_completed_id:
                 return
+            self.activity = "idle"
             self.last_completed_id = ev.get("id")
             self.unread = True
             self.completion_version += 1

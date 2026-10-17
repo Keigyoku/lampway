@@ -16,6 +16,8 @@ import re
 import sys
 from urllib.parse import urlparse
 
+import pytest
+
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src/scripts"))
 from mixar.config import brand  # noqa: E402
@@ -29,8 +31,6 @@ HOSTS = {
     "api.openai.com": "provider", "chatgpt.com": "provider login", "clerk.higgsfield.ai": "provider login", "mcp.higgsfield.ai": "provider",
     "higgsfield.ai": "provider", "www.tripo3d.ai": "studio", "wavespeed.ai": "provider named in a prompt template", "www.eachlabs.ai": "provider named in a prompt template",
     "huggingface.co": "model downloads", "opencode.ai": "documentation of a connected app", "www.blender.org": "provenance", "developer.blender.org": "provenance",
-    "projects.blender.org": "pinned Blender source, manual and Lab MCP provenance; upstream README code-review host",
-    "docs.blender.org": "official versioned Blender API/manual provenance; upstream README reference-manual host",
     "spdx.dev": "licence tooling", "www.contributor-covenant.org": "code of conduct source", "json-schema.org": "schema namespace", "www.w3.org": "xml namespace",
     "schemas.microsoft.com": "xml namespace", "developer.nvidia.com": "build dependency", "www.apple.com": "signing certificate authority",
     "queue.fal.run": "provider: the fal queue (specs/mrmak/12, behind the job receipts and egress)", "fal.ai": "provider: fal's site, named in the price-source note",
@@ -48,6 +48,34 @@ SUFFIXES = {".py", ".sh", ".bat", ".md", ".xml", ".desktop", ".cmake", ".example
 SKIP_PARTS = {"tests", "testing", "locale", "__pycache__"}
 SKIP_FILES = {"pii_allow.txt", "prepublish_gate.py"}       # the PII gate's own self-test plants fake hosts
 URL = re.compile(r"https?://([A-Za-z0-9.\-]+)")
+FULL_URL = re.compile(r"https?://[A-Za-z0-9.\-]+[^\s<>\"')\]]*")
+# Attribution in these two static corpus files is not runtime egress permission.
+# Keep the exact packaged source pins and versioned documentation references.
+CORPUS = "server/lampway_server/blender_docs/data/"
+STATIC_REFERENCES = {
+    CORPUS + "manifest.json": {
+        "https://projects.blender.org/blender/blender-manual.git",
+        "https://projects.blender.org/lab/blender_mcp.git",
+        "https://projects.blender.org/blender/blender.git",
+        "https://projects.blender.org/blender/blender/commit/fbe6228777e7d9afefcd61a413844e790ae75db7",
+        "https://projects.blender.org/blender/blender-manual/commit/4a3be8f9ed3b66b24913e0a0d491d3429a70ea08",
+        "https://docs.blender.org/api/5.2/",
+        "https://docs.blender.org/manual/en/5.2/",
+    },
+    CORPUS + "NOTICE.md": {
+        "https://projects.blender.org/blender/blender-manual",
+        "https://projects.blender.org/lab/blender_mcp",
+    },
+    # The packaged corpus records its versioned documentation links (templates filled from the build pin, never fetched).
+    "server/lampway_server/blender_docs/provenance.py": {
+        "https://docs.blender.org/api/{series}/",
+        "https://docs.blender.org/manual/en/{series}/",
+    },
+    # The vendored Lab inspect summaries' attribution (a docstring, never a request).
+    "src/scripts/mixar/modules/lampway_tools/inspect/_vendor/__init__.py": {
+        "https://projects.blender.org/lab/blender_mcp.git.",
+    },
+}
 # Only these references in this handoff are documentation, not an outbound API.
 # Do not admit the Epic host generally or carry this exception into executable code.
 UE_HANDOFF = "scripts/lampway/ue_cube_generator_handoff.md"
@@ -55,7 +83,7 @@ UE_REFERENCES = {
     f"https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/{name}?application_version=5.6"
     for name in ("RenderingLibrary", "SceneCaptureComponent2D", "PostProcessSettings")
 }
-FULL_URL = re.compile(r"https?://[A-Za-z0-9.\-]+[^\s<>\"')\]]*")
+STATIC_REFERENCES[UE_HANDOFF] = UE_REFERENCES
 
 
 def _site_pages():
@@ -83,7 +111,7 @@ def _hosts_in(files):
 
 def _host_offenders(files):
     return [f"{p}:{n}: {URL.match(url).group(1)}" for p, n, url in _links_in(files)
-            if URL.match(url).group(1) not in HOSTS and not (p == UE_HANDOFF and url in UE_REFERENCES)]
+            if URL.match(url).group(1) not in HOSTS and url not in STATIC_REFERENCES.get(p, ())]
 
 
 def _files(roots):
@@ -127,6 +155,49 @@ def test_the_host_gate_sees_a_planted_offender(tmp_path):
     assert bad == ["lampway.app", "www.mixar.app"]
 
 
+def test_packaged_attribution_is_exact_and_keeps_the_global_host_gate():
+    files = [ROOT / p for p in STATIC_REFERENCES]
+    references = [(p, url) for p, _n, url in _links_in(files)
+                  if URL.match(url).group(1) not in HOSTS]
+    assert len(references) == 16      # manifest 7 + NOTICE 2 + provenance 2 + vendored 1 + UE handoff 3, and manifest's one repeat
+    assert set(references) == {(p, url) for p, urls in STATIC_REFERENCES.items() for url in urls}
+    assert _host_offenders(files) == []
+    assert "projects.blender.org" not in HOSTS and "docs.blender.org" not in HOSTS and "dev.epicgames.com" not in HOSTS
+
+
+@pytest.mark.parametrize("path", tuple(STATIC_REFERENCES))
+def test_every_static_reference_is_refused_in_runtime_source(tmp_path, monkeypatch, path):
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", tmp_path)
+    runtime = tmp_path / "server/lampway_server/runtime.py"
+    runtime.parent.mkdir(parents=True)
+    runtime.write_text("\n".join(sorted(STATIC_REFERENCES[path])))
+    assert len(_host_offenders([runtime])) == len(STATIC_REFERENCES[path])
+
+
+@pytest.mark.parametrize("url", (
+    "https://docs.blender.org/api/5.3/",
+    "https://projects.blender.org/blender/blender/commit/0000000000000000000000000000000000000000",
+    "https://docs.blender.org/api/5.2/?redirect=https://example.invalid",
+    "https://docs.blender.org.example.invalid/api/5.2/",
+    "https://projects.blender.org/api/upload",
+    "https://docs.blender.org/api/5.2/#unrecorded-fragment",
+))
+def test_static_reference_exception_rejects_changed_urls(tmp_path, monkeypatch, url):
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", tmp_path)
+    manifest = tmp_path / (CORPUS + "manifest.json")
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(url)
+    assert len(_host_offenders([manifest])) == 1
+
+
+def test_an_allowed_reference_does_not_hide_an_extra_url_on_its_line(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", tmp_path)
+    notice = tmp_path / (CORPUS + "NOTICE.md")
+    notice.parent.mkdir(parents=True)
+    notice.write_text("https://projects.blender.org/lab/blender_mcp https://projects.blender.org/api/upload")
+    assert _host_offenders([notice]) == [f"{CORPUS}NOTICE.md:1: projects.blender.org"]
+
+
 def test_native_and_python_profile_links_use_registered_local_operators():
     native = (ROOT / "src/source/blender/editors/interface/interface_mixar_profile_card.cc").read_text()
     python = (ROOT / "src/scripts/mixar/modules/space_mixie_chat/ui/topbar.py").read_text()
@@ -144,16 +215,17 @@ def test_native_and_python_profile_links_use_registered_local_operators():
 
 
 def test_official_documentation_inventory_does_not_allow_lookalike_hosts(tmp_path):
-    f = tmp_path / "provenance.py"
-    f.write_text('A = "https://projects.blender.org/blender/blender"\n'
-                 'B = "https://docs.blender.org/api/5.2/"\n'
-                 'C = "https://docs.blender.org.example.invalid/api/5.2/"\n')
+    f = tmp_path / (CORPUS + "manifest.json")
+    f.parent.mkdir(parents=True)
+    f.write_text('{"source": "https://projects.blender.org/blender/blender.git",\n'
+                 ' "api": "https://docs.blender.org/api/5.2/",\n'
+                 ' "lookalike": "https://docs.blender.org.example.invalid/api/5.2/"}\n')
     sys.modules[__name__].ROOT, saved = tmp_path, ROOT
     try:
-        bad = [h for _p, _n, h in _hosts_in([f]) if h not in HOSTS]
+        bad = _host_offenders([f])
     finally:
         sys.modules[__name__].ROOT = saved
-    assert bad == ["docs.blender.org.example.invalid"]
+    assert bad == [f"{CORPUS}manifest.json:3: docs.blender.org.example.invalid"]
 
 
 def test_ue_references_are_exact_and_confined_to_the_documentation_handoff(tmp_path, monkeypatch):

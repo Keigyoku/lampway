@@ -14,6 +14,7 @@ keep a card from outliving the turn that made it.
 import re
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
 CHAT_CORE = (
@@ -97,8 +98,8 @@ class TestMirrorRunsAgainstTheRealSlot:
         seen = {}
 
         def fake_mirror(items, scene=None):
-            seen["scene"] = scene
             seen["items"] = [(i.item_id, i.text, i.status) for i in items]
+            seen["scene"] = scene
             return len(seen["items"])
 
         monkeypatch.setattr(cards_mod, "mirror_todo_items", fake_mirror)
@@ -132,7 +133,7 @@ class TestMirrorRunsAgainstTheRealSlot:
         processor._start_loader_timer = lambda: None
 
         bubble = FakeBubble()
-        scene = object()
+        scene = SimpleNamespace(name="CardTab", mixie_session_id="card-session")
         processor._apply_todo_slot(
             bubble,
             [
@@ -146,3 +147,4 @@ class TestMirrorRunsAgainstTheRealSlot:
         assert seen["scene"] is scene
         assert [i[0] for i in seen["items"]] == ["0", "1"]
         assert seen["items"][0][2] == 'IN_PROGRESS'
+        assert seen["scene"] is scene, "the panel mirrors the tab whose todo slot changed"

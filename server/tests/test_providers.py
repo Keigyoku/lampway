@@ -157,14 +157,14 @@ def test_make_provider_builds_the_configured_provider(settings, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-not-real")
     settings.provider = "anthropic"
     anthropic = make_provider(settings)
-    assert isinstance(anthropic, AnthropicProvider) and anthropic.model == "claude-sonnet-5-5"
+    assert isinstance(anthropic.provider, AnthropicProvider) and anthropic.model == "claude-sonnet-5-5"
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-local")
     settings.provider = "openai"
     settings.openai_model = "qwen3"
     settings.openai_base_url = "http://127.0.0.1:1234/v1"
     openai = make_provider(settings)
-    assert isinstance(openai, OpenAICompatProvider) and openai.model == "qwen3"
+    assert isinstance(openai.provider, OpenAICompatProvider) and openai.model == "qwen3"
     assert openai.base_url == "http://127.0.0.1:1234/v1"
 
 

@@ -152,6 +152,10 @@ struct AgentIslandLayout {
   /* Hosted model pick, right of Auto. Empty when the Python half has not
    * registered its WindowManager mirror yet, or when the row is too narrow
    * to carry it without eating Upload Reference. */
+#ifdef LAMPWAY
+  /* LAMPWAY: M0 mode picker, beside the existing model picker. */
+  rctf chip_agent_mode;
+#endif
   rctf chip_model;
   AgentModelChipForm model_form;
   /* Form each chip was fitted at (#agent_chip_fit): 0 is the full label; a

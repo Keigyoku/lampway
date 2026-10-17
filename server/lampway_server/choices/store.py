@@ -80,7 +80,7 @@ def validate(pid: str, entry: dict) -> dict:
     policy = entry.get("override_policy")
     if policy is not None and policy not in REG.POLICIES:
         raise Refused(f"override_policy is one of {', '.join(REG.POLICIES)}")
-    if pid in ("agent.main", "agent.worker") and policy not in (None, "none"):
+    if pid in ("agent.main", "agent.worker", "agent.worker_mode") and policy not in (None, "none"):
         raise Refused(OWN_PROVIDER)
     params = entry.get("params") or {}
     if not isinstance(params, dict):

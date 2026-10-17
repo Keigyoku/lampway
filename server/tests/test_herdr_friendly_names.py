@@ -6,8 +6,10 @@ import re
 
 import pytest
 
-from lampway_server.herdr.host import Cockpit
+from lampway_server.herdr.host import Cockpit, agent_name
 from lampway_server.herdr import launcher as L
+
+from .launch_notice_support import prior_human_disclosure  # noqa: F401  (the harness's first-launch notice was already read)
 
 
 @pytest.fixture
@@ -41,7 +43,7 @@ def test_friendly_label_preserved_while_launch_identifier_is_valid(cockpit, agen
     assert re.fullmatch(r'[a-z][a-z0-9_-]{0,39}', start[2])
     assert rec['name'] == name
     assert rec['herdr_agent_name'] == start[2]
-    assert rec['herdr_agent_name'] == 'lampway-' + rec['id']
+    assert rec['herdr_agent_name'] == agent_name(rec['id'])
     assert Cockpit(c.root).list_sessions() == [rec]
     tab = next(a for a in calls if a[:2] == ['tab', 'create'])
     assert tab[tab.index('--label') + 1] == name[:40]

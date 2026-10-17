@@ -37,6 +37,21 @@ Network and render contract pages cite current public modules and operator behav
 
 Inherited audit receipts preserve historical allocation separately from current source and actual-fixture reruns. Keep each finding's numerical bar, source hash and acceptance limits; report physical-quality rejection, compiled native controls and older-binary overlays separately from a matching native build or live provider acceptance.
 
+Native-only diagnostics state their actual source and pinned engine identities, rendered observations and exact owned
+cleanup. Historical application binaries remain labelled historical; source controls and diagnostic observer corrections
+do not replace matching-build, whole-client or account acceptance. Preserve failed runs when a later repair passes.
+Native persistence and rendered transcript are distinct observations: correct stored user rows do not establish that
+messages sent from another frontend appear in the pane. A compression diagnostic must commit native compaction before
+testing its display, resume and Undo behavior; a native no-op cannot qualify those later steps.
+Likewise, configured MCP entries and session-admitted routes are distinct. A native update acknowledgement does not
+establish a completed restart; describe actual event ordering and current readiness, keeping source versions separate.
+Describe native lifecycle and hostile-reload failures even when earlier source controls pass; handler-instance mocks and
+post-filter route exclusion do not establish rendered history or preservation of an available canonical connector.
+
+Worker compatibility documentation distinguishes human enrollment from actual native qualification. State every temporary
+configuration-view effect, its default-off setting and scope, retained MAIN behavior and exact native proof status. A consent
+receipt never counts as a repaired hostile-reload or matching application-build result.
+
 ## Test
 
 ```bash
@@ -75,12 +90,14 @@ boundaries do not imply accepted skin quality or a matching complete build.
 | 2026-10-07 | authoritative external ledger recount | captain: issue 2 AC64 | stale classes and counts could be copied while private source identities leaked into public reports | verify row identity/content, generate live registry counts, retain per-row evidence and gaps privately, publish ordinal-only reconciliation | source-drift, privacy-output and manual-evidence falsifiers |
 | 2026-10-07 | complete issue acceptance inventory | captain: include G23 and G24–G26 | body-only review silently omitted comment criteria and overstated aggregate acceptance | preserve original rows, append comment criteria, source-pin all revisions and qualify absent gate evidence | complete73-row source reconciliation |
 | 2026-10-07 | public network and render contracts | captain: inherited no-red audit | absent private maps and stale names made documentation checks fail despite current implementations | cite current guarded behavior and public modules, preserve certificate/egress/render controls and observed limitations | full network/render test-contract suite |
-
 | 2026-10-07 | original subtitle release recovery | captain: fix missing bundled originals without private transfer | public source omitted eight authored dub tracks and runtime packs contain no subtitles | verify official archive digest and installer file identities, preserve original bytes/timing and source licence | public release recovery hashes and maintained locale validation |
-
 | 2026-10-07 | precise physical bind and role handoffs | captain: continue actual bind diagnosis and approve three material roles | aggregate bind errors could not distinguish hierarchy, axes and comparison semantics; role approval risked implying full fit sign-off | enumerate minimum local capture with derived-only output and record exact role-only ruling without upgrading acceptance | owner-local capture and48role provenance overlays |
 | 2026-10-08 | motion canon and report convention | captain: follow existing canon and reports layout | root specs and a new parallel specs tree would split documentation authority | index normative contracts under canon and retain evidence history in reports | all relocated Markdown targets resolve; original thresholds and historical evidence retained |
 | 2026-10-08 | supplied-input audit correction provenance | complete validation package | older missing-input claims obscured actual supplied fixtures and component passes risked implying physical acceptance | preserve prior receipts, identify corrected fixtures and predecessors, and keep source versus physical gates separate | private current receipts and source-hashed follow-up report |
-
 | 2026-10-08 | inherited audit evidence and live limits | captain assigns twelve inherited findings to PR1 | component receipts could erase poor motion quality or imply rebuilt native acceptance | retain per-finding code/test evidence, original verdicts and separate physical obligations | inherited audit follow-up report and private source-hashed package |
 | 2026-10-09 | resumed causal audit corrections | captain asks why unfinished work stopped | packet delivery obscured feasible surface and Linux dock defects while untested hypotheses survived | report causal source fixes, failed previews, unchanged bars and exact external interfaces without promoting aggregate acceptance | resumed follow-up and committed-head verification packet |
+| 2026-10-10 | native diagnostics retain their acceptance limits | actual terminal undo/personality failures and valid-YAML observer correction | diagnostic source checks could be confused with matching application or account proof | native diagnostic paragraph: exact identities, failed runs, historical binaries and separate acceptance scopes | actual pinned native observations and process-refusing source controls retained |
+| 2026-10-10 | distinguish native persistence from pane display | committed native compaction and resume preserve user rows, but actual scrolling finds only the first external user header | stored history was mistaken for proof of all rendered user turns | native diagnostic paragraph: observe persistence and rendering separately; require committed compaction before later proof | retained native frames and unchanged physical assertions expose the missing user rows |
+| 2026-10-10 | distinguish configured MCP metadata and reload acknowledgement from readiness | 9af native CI advances past startup, then fails catalogue and environment-reload checks | disabled configurations were counted as admitted routes and asynchronous update acknowledgement was treated as a completed handshake | native diagnostic paragraph: explicit session admission and actual reload ordering, with source versions separately qualified | retained pinned native CI wire shows resolved blocked entries and progress before acknowledgement; repaired native proof remains required |
+| 2026-10-10 | source controls retain native lifecycle and reload limits | b1 native compression and Grok hostile-reload failures after earlier controlled passes | static single-instance checks missed handler recreation and post-merge exclusion disabled the canonical route | diagnostic paragraph: distinguish native lifecycle and canonical availability from earlier source passes, preserving actual failed assertions | b1 history four passes, compression two failures and both Grok native failures retained; later matching proof remains required |
+| 2026-10-11 | explicit Grok compatibility documentation | captain authorizes worker-only layer with human warning | a config opt-in could be mistaken for native safety proof or silent persistent configuration replacement | body paragraph: exacttemporaryeffects/default/scope, retained MAIN and independent qualification | version1 disclosure and controlled RED/GREEN retained; actual native acceptance separate |

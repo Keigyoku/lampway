@@ -35,6 +35,13 @@
 #  define LAMPWAY_AGENT_NAME "Lampway Agent"
 #endif
 
+#ifdef LAMPWAY
+/* LAMPWAY: standalone fitter mirrors the brand header's M0 mode label. */
+#  ifndef LAMPWAY_YOUR_AGENT_NAME
+#    define LAMPWAY_YOUR_AGENT_NAME "Your agent"
+#  endif
+#endif
+
 namespace blender {
 
 enum AgentChipSlot {
@@ -42,6 +49,10 @@ enum AgentChipSlot {
   AGENT_CHIP_SLOT_SCRIBBLE,
   AGENT_CHIP_SLOT_VOICE,
   AGENT_CHIP_SLOT_AUTO,
+#ifdef LAMPWAY
+  /* LAMPWAY: mode stays accessible even when the model chip drops. */
+  AGENT_CHIP_SLOT_AGENT_MODE,
+#endif
   AGENT_CHIP_SLOT_MODEL,
   AGENT_CHIP_SLOT_READING,
   AGENT_CHIP_SLOT_CLEAR,
@@ -77,6 +88,11 @@ struct AgentChipRowInputs {
   bool voice_listening = false;
   bool voice_capturing = false;
   const char *voice_status = "";
+#ifdef LAMPWAY
+  /* LAMPWAY: saved scene-tab mode, independent of model registration. */
+  bool agent_mode_available = false;
+  bool agent_byoa = false;
+#endif
   bool model_available = false;
   const char *model_label = "";
   /** Fixed chip words and the voice status are measured as drawn: the island
@@ -141,6 +157,13 @@ inline void agent_chip_forms(const AgentChipRowInputs &in,
   }
   r_chips[AGENT_CHIP_SLOT_AUTO] = {{width("Auto", m.switch_w) + m.pad_x, m.switch_w + 2.0f * m.pad_x},
                                    2};
+#ifdef LAMPWAY
+  /* LAMPWAY: a core control with an icon floor; never sacrifice the mode switch. */
+  if (in.agent_mode_available) {
+    r_chips[AGENT_CHIP_SLOT_AGENT_MODE] = {
+        {width(in.agent_byoa ? LAMPWAY_YOUR_AGENT_NAME : LAMPWAY_AGENT_NAME, m.icon), icon_only}, 2};
+  }
+#endif
   if (in.model_available) {
     /* Full (chevron) -> Label -> Icon, at Upload's own floor. */
     const char *label = in.model_label[0] ? in.model_label : LAMPWAY_AGENT_NAME;
@@ -166,6 +189,10 @@ inline constexpr AgentChipSlot AGENT_CHIP_SHED_ORDER[] = {
     AGENT_CHIP_SLOT_SCRIBBLE,
     AGENT_CHIP_SLOT_READING,
     AGENT_CHIP_SLOT_VOICE,
+#ifdef LAMPWAY
+    /* LAMPWAY: shed the mode label last, retaining the menu's icon floor. */
+    AGENT_CHIP_SLOT_AGENT_MODE,
+#endif
 };
 
 /** Place the chips of \a chips inside \a span, each followed by \a gap (the

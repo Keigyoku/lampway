@@ -482,6 +482,6 @@ def cleanup_event_queue():
     shutdown()
 
 
-def cleanup_event_queue_for_scene(scene_name):
-    from .turn_events import drop_scene
-    drop_scene(scene_name)
+def cleanup_event_queue_for_scene(scene_name, *, keep_bound=False):
+    from .turn_events import drop_scene, retire_scene
+    (retire_scene if keep_bound else drop_scene)(scene_name)

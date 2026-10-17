@@ -84,10 +84,17 @@ def test_sign_out_from_a_foreign_origin_is_refused(stack):
 def test_there_is_no_route_that_forwards_requests_to_the_plan_route(stack):
     _, _, app = stack
     paths = [r.path for r in app.routes]
+    # The one exception is the engine gateway (agent-modes spec E1.4): Lampway's own engine process, on loopback, with a per-process token
+    # that only Lampway's process manager issues, is answered by the user's chosen main provider. It is not a general forwarder for another
+    # tool; whether it may serve the ChatGPT-plan provider is the captain's (raised in the engine gateway's commit). Nothing else may match.
+    gateway = [p for p in paths if "completions" in p]
+    assert gateway == ["/engine/v1/chat/completions"]
     for p in paths:
+        if p in gateway:
+            continue
         assert "responses" not in p and "completions" not in p and not p.startswith("/v1")
     chatgpt = sorted(p for p in paths if "chatgpt" in p or p == "/auth/callback")
-    assert chatgpt == ["/app/chatgpt", "/app/chatgpt/signout", "/app/chatgpt/start", "/app/chatgpt/status", "/auth/callback"]
+    assert chatgpt == ["/app/chatgpt", "/app/chatgpt/signout", "/app/chatgpt/start", "/app/chatgpt/status", "/app/chatgpt/vision", "/app/chatgpt/vision", "/app/chatgpt/vision/ticket", "/auth/callback"]
 
 
 def test_the_provider_name_selects_it_and_it_needs_no_key(tmp_path):

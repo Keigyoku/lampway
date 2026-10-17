@@ -26,7 +26,9 @@ Survival was exercised against the real herdr binary: SIGKILL of the agent proce
 
 ## 2. Using it
 
-Prerequisites: `herdr` installed (on `PATH`, at `~/.local/bin/herdr`, or `LAMPWAY_HERDR_BIN`) and run once by you; for Claude Code, Codex or OpenCode panes the local-CLI switch `LAMPWAY_LOCAL_CLI=1` and the usual terms caveat in [providers](providers.md). The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
+Prerequisites: Lampway's pinned herdr (`third_party/herdr`, tag `v0.9.3`), built with `scripts/lampway/herdr_env.py` (Lampway uses it ahead of any herdr on `PATH`; `LAMPWAY_HERDR_BIN` overrides, and without a pinned build a herdr on `PATH` or at `~/.local/bin/herdr` is used); for a pane running your own agent the switch `LAMPWAY_LOCAL_CLI=1` and that harness's egress route (`byoa:claude`, `byoa:codex`, `byoa:hermes`, `byoa:opencode`, `byoa:pi`, `byoa:grok` or `byoa:cursor`) switched on in Privacy ([privacy](privacy.md)). Each pane runs the vendor's own binary as you, on its own login; Lampway never reads that login and never sends a model request through it. herdr and its panes start without your API keys; a key reaches a pane only when you tick "bill this pane to my API key" for it.
+
+The harnesses come through one adapter each (`server/lampway_server/herdr/harnesses/`, agent-modes spec B1). Each adapter's flags were checked on 2026-10-07 against an installed copy, with a throwaway home and only `--help`, `--version` and offline commands (no sign-in, no model call): Claude Code 2.1.293, Codex CLI 0.161.0, OpenCode 1.18.35, Pi 1.0.4, Grok 1.0.46, Cursor's `cursor-agent` 2026.10.01, and Hermes Agent v0.21.5 (your own, never Lampway's engine). Each adapter's `FACTS` names the command behind each flag; what only a running turn could show (a harness's interrupt key, how it takes a pasted image) is marked `[UNVERIFIED]` there. herdr starts every one of them itself (`agent start --kind`). The cockpit root is `LAMPWAY_HERDR_ROOT`, else `<LAMPWAY_HOME or state dir>/herdr`.
 
 In the Lampway tab, open **Cockpit (agent sessions)**:
 
@@ -34,13 +36,19 @@ In the Lampway tab, open **Cockpit (agent sessions)**:
 |---|---|
 | Refresh sessions, Reconcile | read the state; re-adopt by the server's truth (nothing is spawned or killed) |
 | **Start the herdr server** | your click; starts Lampway's detached server |
-| **New session** | agent (`claude`, `codex`, `opencode`, `shell`), a name, a first task; effort `medium`, `high`, `xhigh` or `max` |
+| **New session** | agent (`claude`, `codex`, `opencode`, `shell`), a name, a first task; effort `medium`, `high`, `xhigh` or `max` (the server also accepts `hermes`, `pi`, `grok` and `cursor`) |
 | **Read to Text** | the last 70 screen lines of a session into a Blender Text datablock; reading never marks an answer seen |
 | **Cockpit window** | a **read-only** mirror of the session's screen in a Text editor window, refreshed every two seconds |
 | **Send** | types into a session; this is your own send |
 | **Close**, **Stop the herdr server** | end a session or everything, each with a confirm |
 
 Today the window is a text mirror, not a terminal. The routes behind it: `GET /app/workbench`, `POST /app/workbench/server/start|stop`, `/reconcile`, `/sessions`, `/sessions/{id}/screen|input|close|agent-sends`.
+
+**A pane bound to a scene tab.** A harness pane can be bound to the scene tab it was started from (`scene_session_id` on create, or `POST /app/workbench/sessions/{id}/binding`, from your Client only). The pane then gets its own MCP config under the cockpit root (`panes/<id>/`), pointing at Lampway's MCP launcher with `LAMPWAY_BOUND_SESSION` set to that tab, so its tool calls land in that tab; your own user-scope MCP entries are left alone. Claude Code is pointed at the file with `--mcp-config`, Codex with `-c mcp_servers.lampway...` overrides, OpenCode with `OPENCODE_CONFIG`, and Pi through Lampway's own small Pi extension (`-e`; it hands the file's entries to Pi's built-in MCP client for that session only). Your own Hermes, Grok and Cursor's agent read MCP servers only from your own config or the project's shared one, which Lampway never writes, so their panes cannot reach Lampway's tools; the island's agent list says "(no Lampway tools)" for them, and you can add Lampway's connector to them yourself. Unbinding (closing the tab) only changes that file and the record: the pane runs on, listed unbound, and a running harness picks up a new binding when it next starts its Lampway server.
+
+**Who is typing** is decided by the server from the caller, never from a field in the request: a request that declares an agent origin, a cross-origin request or an agent's token is an agent send.
+
+**From the island (Your agent mode).** The composer types into the tab's pane. Attached images go along for a harness that takes an image by its path: Lampway writes them into `.lampway/panes/<id>/images/` inside your project root (never outside it) and types their paths before your text; Cursor's agent takes none, and Send says so. **Stop** types the harness's own interrupt keys into its pane (Esc for Claude Code, Codex and Pi, Esc twice for OpenCode, Ctrl+C for Hermes, Grok and Cursor); the island stops showing the agent as running when its turn ends. When you open a .blend whose tab was bound to a pane that has since ended, the island offers **Resume** (a new pane continues the harness's own session, when Lampway recorded its id) or **Unbind**; nothing restarts by itself. Only your own clicks do these: an agent's request cannot.
 
 **What the agent may do** (the `lampway_workbench` tool): `list` and `read` sessions; `send` only into a session where you switched **agent sends** on (default off), never into a shell session, never while you typed in the last 2.5 seconds; `open` a session with a descriptive title (placeholders refused), effort capped unless you asked for max, never with bypass permissions; `interrupt` and `close` need a request from you. Text read from a screen is reference data, not instructions. A request cannot raise the permission level: bypass can only come from your own click in the cockpit.
 

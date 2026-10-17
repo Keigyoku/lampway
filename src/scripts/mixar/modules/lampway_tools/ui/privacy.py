@@ -14,7 +14,7 @@ import bpy
 from bpy.props import BoolProperty, StringProperty
 from bpy.types import Operator, Panel
 
-from mixar.modules.lampway_tools import egress_state, human_gate, privacy_face, studio_client
+from mixar.modules.lampway_tools import capabilities_face, egress_state, human_gate, privacy_face, studio_client
 
 
 def _default_client():
@@ -205,6 +205,9 @@ def draw_privacy(layout, context):
             go = buttons.operator("lampway.egress_route", text="Let it leave", depress=True)
             go.route, go.enabled, go.confirm = row["id"], True, True
             buttons.operator("lampway.egress_route_cancel", text="Not now")
+
+    # Routes decide where data may go; Capabilities decide what the agent may do with them: one click apart.
+    col.operator("lampway.choices_open", text="Capabilities: what may your agent do?", icon="LAMPWAY_SPARK", emboss=False).purpose = capabilities_face.PAGE_ID
 
     rows = privacy_face.log_rows((st.get("log") or [])[-20:])
     if rows:

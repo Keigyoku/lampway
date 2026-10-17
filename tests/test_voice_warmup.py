@@ -18,7 +18,11 @@ def token(expiry):
     return 'header.' + payload + '.signature'
 
 
-VALID = token(time.time() + 3600)
+@pytest.fixture
+def valid_token():
+    # Collection can precede execution by more than this token's lifetime in
+    # the full native suite. Mint credentials when each case actually starts.
+    return token(time.time() + 3600)
 
 
 def wait_prepared(warm):
@@ -36,18 +40,18 @@ def load_warmup(module, monkeypatch):
     return warmup
 
 
-def test_prepared_socket_is_consumed_once_without_second_handshake(transport_module, monkeypatch):
+def test_prepared_socket_is_consumed_once_without_second_handshake(transport_module, monkeypatch, valid_token):
     module = transport_module
     warmup = load_warmup(module, monkeypatch)
     sock = Socket()
     sock.events[:0] = [json.dumps({'type': 'prepared', 'expires_in_seconds': 300}), '{"type":"pong"}']
     connect = Mock(return_value=sock)
     monkeypatch.setattr(module.websocket, 'create_connection', connect)
-    warmup.prepare('https://example.com', VALID)
+    warmup.prepare('https://example.com', valid_token)
     warm = warmup._candidate
     wait_prepared(warm)
     assert sock.sent == ['{"type":"prepare","protocol_version":1}']
-    worker = module.Transport('https://example.com', VALID, 'test')
+    worker = module.Transport('https://example.com', valid_token, 'test')
     worker.feed(b'\x01\x02')
     worker.stop()
     worker.run()
@@ -56,10 +60,10 @@ def test_prepared_socket_is_consumed_once_without_second_handshake(transport_mod
     assert connect.call_count == 1
     assert worker.timings['warm_connection'] is True
     assert b'\x01\x02' in sock.sent and sock.closed
-    assert warmup.take('https://example.com', VALID) is None
+    assert warmup.take('https://example.com', valid_token) is None
 
 
-def test_cancel_while_prepare_reply_pending_closes_socket(transport_module, monkeypatch):
+def test_cancel_while_prepare_reply_pending_closes_socket(transport_module, monkeypatch, valid_token):
     module = transport_module
     warmup = load_warmup(module, monkeypatch)
     entered, release = threading.Event(), threading.Event()
@@ -70,7 +74,7 @@ def test_cancel_while_prepare_reply_pending_closes_socket(transport_module, monk
         return '{"type":"prepared","expires_in_seconds":300}'
     sock.recv = recv
     monkeypatch.setattr(module.websocket, 'create_connection', Mock(return_value=sock))
-    warmup.prepare('https://example.com', VALID)
+    warmup.prepare('https://example.com', valid_token)
     warm = warmup._candidate
     assert entered.wait(2)
     warmup.shutdown()
@@ -79,17 +83,17 @@ def test_cancel_while_prepare_reply_pending_closes_socket(transport_module, monk
     assert sock.closed and warm.socket is None
 
 
-def test_stale_prepared_socket_falls_back_before_start(transport_module, monkeypatch):
+def test_stale_prepared_socket_falls_back_before_start(transport_module, monkeypatch, valid_token):
     module = transport_module
     warmup = load_warmup(module, monkeypatch)
     old, fresh = Socket(), Socket()
     old.events = ['{"type":"prepared","expires_in_seconds":300}', '']
     connect = Mock(side_effect=[old, fresh])
     monkeypatch.setattr(module.websocket, 'create_connection', connect)
-    warmup.prepare('https://example.com', VALID)
+    warmup.prepare('https://example.com', valid_token)
     warm = warmup._candidate
     wait_prepared(warm)
-    worker = module.Transport('https://example.com', VALID, 'test')
+    worker = module.Transport('https://example.com', valid_token, 'test')
     worker.feed(b'\x01\x02')
     worker.stop()
     worker.run()
@@ -129,7 +133,7 @@ def test_expiring_prepared_token_refreshes_before_start_without_losing_audio(tra
     assert [e['type'] for e in list(worker.events.queue)] == ['ready', 'final']
 
 
-def test_prepared_identity_uses_token_rotated_during_handshake(transport_module, monkeypatch):
+def test_prepared_identity_uses_token_rotated_during_handshake(transport_module, monkeypatch, valid_token):
     module = transport_module
     warmup = load_warmup(module, monkeypatch)
     rotated = token(time.time() + 7200)
@@ -139,7 +143,7 @@ def test_prepared_identity_uses_token_rotated_during_handshake(transport_module,
         opener.token = rotated
         return sock
     monkeypatch.setattr(module.Transport, '_connect', connect)
-    warmup.prepare('https://example.com', VALID)
+    warmup.prepare('https://example.com', valid_token)
     warm = warmup._candidate
     wait_prepared(warm)
     assert warmup.take('https://example.com', rotated) is sock
@@ -153,17 +157,17 @@ def test_unknown_expiry_is_not_usable_for_preparation(value):
     assert remaining(value) is None
 
 
-def test_expiry_during_takeover_ping_does_not_transfer_socket(transport_module, monkeypatch):
+def test_expiry_during_takeover_ping_does_not_transfer_socket(transport_module, monkeypatch, valid_token):
     module = transport_module
     warmup = load_warmup(module, monkeypatch)
     sock = Socket()
     sock.events = ['{"type":"prepared","expires_in_seconds":300}', '{"type":"pong"}']
     monkeypatch.setattr(module.websocket, 'create_connection', Mock(return_value=sock))
-    warmup.prepare('https://example.com', VALID)
+    warmup.prepare('https://example.com', valid_token)
     warm = warmup._candidate
     wait_prepared(warm)
     monkeypatch.setattr(warmup, 'remaining', Mock(side_effect=[31, 29]))
-    assert warmup.take('https://example.com', VALID) is None
+    assert warmup.take('https://example.com', valid_token) is None
     warm.thread.join(2)
     assert sock.closed and not warm.transferred
 

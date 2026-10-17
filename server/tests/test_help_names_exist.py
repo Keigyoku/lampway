@@ -8,6 +8,10 @@ import re
 
 from lampway_server.agent.tools import TOOL_NAMES
 from lampway_server.agent_files.generate import mcp_local_tool_names
+from lampway_server.herdr.swarm_brain import WORKER_DONE
+
+# The registry plus the tool the pane endpoint serves a swarm worker alone (agent-modes spec S3): a name with no tool behind it still fails.
+KNOWN = TOOL_NAMES | {WORKER_DONE.name}
 
 ROOT = Path(__file__).resolve().parents[2]
 NAME = re.compile(r"\blampway_[a-z0-9_]+\b")
@@ -33,7 +37,7 @@ def _named_in_refusals():
 def registered_names():
     # Local UI/scene tools are served by the launcher, outside agent TOOLS.
     # Use its source registries, not exceptions for individual help strings.
-    return TOOL_NAMES | mcp_local_tool_names()
+    return KNOWN | mcp_local_tool_names()
 
 
 def test_every_tool_a_refusal_names_is_in_the_registry():

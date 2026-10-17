@@ -125,12 +125,14 @@ def test_matgen_forwards_context_captured_at_construction(monkeypatch):
         SimpleNamespace(mixie_instance_id="instance-matgen"),
         raising=False,
     )
-    # Lampway's MatGen posts to its own server from a worker thread (matgen_queue.enqueue_matgen_job), not through
-    # upstream's withheld job-queue class: the context is captured when the job is made and travels in the request.
-    submitted, workers = {}, []
+    posted = []
+    workers = []
+    landings = []
+    monkeypatch.setattr(matgen_queue, "_in_flight", {})
     monkeypatch.setattr(matgen_queue, "_run_in_thread", workers.append)
-    monkeypatch.setattr(matgen_queue, "_on_main_thread", lambda fn: None)
-    monkeypatch.setattr(matgen_queue, "_post", lambda path, body: submitted.update(path=path, payload=body) or {})
+    monkeypatch.setattr(matgen_queue, "_on_main_thread", landings.append)
+    monkeypatch.setattr(matgen_queue, "_post",
+                        lambda path, body: posted.append((path, body)) or {})
     try:
         set_agent_execution_context("session-matgen", "request-matgen")
         job = matgen_queue.enqueue_matgen_job(prompt="weathered copper", pipeline="fast")
@@ -138,17 +140,46 @@ def test_matgen_forwards_context_captured_at_construction(monkeypatch):
         clear_agent_execution_context()
         matgen_queue._in_flight.pop("weathered copper", None)
 
-    assert job is not None and len(workers) == 1
-    workers[0]()                                  # the worker runs after the agent script has returned
-    assert submitted["path"] == "/api/v1/matgen"
-    assert "agent_context" in submitted["payload"], submitted["payload"]
-    assert job.agent_context == submitted["payload"]["agent_context"]
-    assert submitted["payload"]["agent_context"] == {
+    # The thread runs after the originating script's context has ended. A
+    # different script's context must not be attributed to this queued job.
+    try:
+        set_agent_execution_context("other-session", "other-turn")
+        workers.pop()()
+    finally:
+        clear_agent_execution_context()
+    assert len(posted) == 1
+    path, body = posted[0]
+    assert path == "/api/v1/matgen"
+    assert body["prompt"] == "weathered copper"
+    assert body["pipeline"] == "fast"
+    assert job.agent_context == body["agent_context"]
+    assert body["agent_context"] == {
         "source": "agent",
         "session_id": "session-matgen",
         "turn_id": "request-matgen",
         "instance_id": "instance-matgen",
     }
+    assert job.state is matgen_queue.JobState.QUEUED
+    assert len(landings) == 1
+
+
+def test_user_matgen_does_not_adopt_a_later_agent_context(monkeypatch):
+    from mixar.modules.paint.procedural_materials import matgen_queue
+
+    posted, workers = [], []
+    monkeypatch.setattr(matgen_queue, "_in_flight", {})
+    monkeypatch.setattr(matgen_queue, "_run_in_thread", workers.append)
+    monkeypatch.setattr(matgen_queue, "_on_main_thread", lambda fn: None)
+    monkeypatch.setattr(matgen_queue, "_post",
+                        lambda path, body: posted.append((path, body)) or {})
+    clear_agent_execution_context()
+    matgen_queue.enqueue_matgen_job(prompt="user material", pipeline="fast")
+    try:
+        set_agent_execution_context("later-session", "later-turn")
+        workers.pop()()
+    finally:
+        clear_agent_execution_context()
+    assert posted == [("/api/v1/matgen", {"prompt": "user material", "pipeline": "fast"})]
 
 
 def test_transport_ids_map_to_the_routed_scenes_chat_session(monkeypatch):

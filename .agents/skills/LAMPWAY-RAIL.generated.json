@@ -1,26 +1,26 @@
 {
   "generator": "rail/rail.py sync",
   "outputs": {
-    ".agents/skills/lampway-agent-tools/SKILL.md": "235cc9d80234de3ec22f0800ffd7baa5103b1358e17018a36f2d59d02937a929",
+    ".agents/skills/lampway-agent-tools/SKILL.md": "2728c70d97af240636e4f9e3938c0f887d5f3e2e93c64bea07477ce6a8cfdbaa",
     ".agents/skills/lampway-canon/SKILL.md": "8c971f44179eb07c444dabc366a668cd445434a3cc20e50e1fd5e3b6ab7996f7",
-    ".agents/skills/lampway-coding-guidelines/SKILL.md": "96dd6efda492d4d002a9aef778c4459dc49ccaf370e8d8490aeef9918fe78be9",
+    ".agents/skills/lampway-coding-guidelines/SKILL.md": "4e30f6bbb38bfb28869736bd0daba53b2151f26796d2a1929659536a614053c4",
     ".agents/skills/lampway-rail/SKILL.md": "22e45c0bfbd18a04c6710b19cb3c892ee48a65377f09552c2515ad672ea80aa3",
-    ".agents/skills/lampway-release/SKILL.md": "5fa1fc3b85894853c184162865fdd528a3ee0b0001b05c7d1df0752af28998e5",
-    ".agents/skills/lampway-tool-authoring/SKILL.md": "3a8581c5d677bb6570c3faec8a877afd66fffa2f8da8ecf75f17013ff42a3560",
-    ".claude/skills/lampway-agent-tools/SKILL.md": "235cc9d80234de3ec22f0800ffd7baa5103b1358e17018a36f2d59d02937a929",
+    ".agents/skills/lampway-release/SKILL.md": "3e54d4845e06b4311a71faadad451b1c4e6aebbd6b386a3b81eb066272b314a5",
+    ".agents/skills/lampway-tool-authoring/SKILL.md": "71d0f5cb3e1d0c8a423facac1eefcdf408f9b62adfd1a448eb80b5ba491cbd3a",
+    ".claude/skills/lampway-agent-tools/SKILL.md": "2728c70d97af240636e4f9e3938c0f887d5f3e2e93c64bea07477ce6a8cfdbaa",
     ".claude/skills/lampway-canon/SKILL.md": "8c971f44179eb07c444dabc366a668cd445434a3cc20e50e1fd5e3b6ab7996f7",
-    ".claude/skills/lampway-coding-guidelines/SKILL.md": "96dd6efda492d4d002a9aef778c4459dc49ccaf370e8d8490aeef9918fe78be9",
+    ".claude/skills/lampway-coding-guidelines/SKILL.md": "4e30f6bbb38bfb28869736bd0daba53b2151f26796d2a1929659536a614053c4",
     ".claude/skills/lampway-rail/SKILL.md": "22e45c0bfbd18a04c6710b19cb3c892ee48a65377f09552c2515ad672ea80aa3",
-    ".claude/skills/lampway-release/SKILL.md": "5fa1fc3b85894853c184162865fdd528a3ee0b0001b05c7d1df0752af28998e5",
-    ".claude/skills/lampway-tool-authoring/SKILL.md": "3a8581c5d677bb6570c3faec8a877afd66fffa2f8da8ecf75f17013ff42a3560"
+    ".claude/skills/lampway-release/SKILL.md": "3e54d4845e06b4311a71faadad451b1c4e6aebbd6b386a3b81eb066272b314a5",
+    ".claude/skills/lampway-tool-authoring/SKILL.md": "71d0f5cb3e1d0c8a423facac1eefcdf408f9b62adfd1a448eb80b5ba491cbd3a"
   },
   "schema": 1,
   "sources": {
-    "rail/skills/lampway-agent-tools/SKILL.md": "235cc9d80234de3ec22f0800ffd7baa5103b1358e17018a36f2d59d02937a929",
+    "rail/skills/lampway-agent-tools/SKILL.md": "2728c70d97af240636e4f9e3938c0f887d5f3e2e93c64bea07477ce6a8cfdbaa",
     "rail/skills/lampway-canon/SKILL.md": "8c971f44179eb07c444dabc366a668cd445434a3cc20e50e1fd5e3b6ab7996f7",
-    "rail/skills/lampway-coding-guidelines/SKILL.md": "96dd6efda492d4d002a9aef778c4459dc49ccaf370e8d8490aeef9918fe78be9",
+    "rail/skills/lampway-coding-guidelines/SKILL.md": "4e30f6bbb38bfb28869736bd0daba53b2151f26796d2a1929659536a614053c4",
     "rail/skills/lampway-rail/SKILL.md": "22e45c0bfbd18a04c6710b19cb3c892ee48a65377f09552c2515ad672ea80aa3",
-    "rail/skills/lampway-release/SKILL.md": "5fa1fc3b85894853c184162865fdd528a3ee0b0001b05c7d1df0752af28998e5",
-    "rail/skills/lampway-tool-authoring/SKILL.md": "3a8581c5d677bb6570c3faec8a877afd66fffa2f8da8ecf75f17013ff42a3560"
+    "rail/skills/lampway-release/SKILL.md": "3e54d4845e06b4311a71faadad451b1c4e6aebbd6b386a3b81eb066272b314a5",
+    "rail/skills/lampway-tool-authoring/SKILL.md": "71d0f5cb3e1d0c8a423facac1eefcdf408f9b62adfd1a448eb80b5ba491cbd3a"
   }
 }

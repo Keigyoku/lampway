@@ -6,6 +6,7 @@ import asyncio
 from contextlib import asynccontextmanager
 import http.client
 import json
+import os
 import re
 import uuid
 
@@ -227,7 +228,8 @@ def create_server(connector):
 
 
 async def run(instance=None, session=None):
-    connector = Connector(instance, session)
+    # A Lampway herdr pane's own MCP config pins its scene tab (agent-modes spec B2); --session still wins.
+    connector = Connector(instance, session or os.environ.get("LAMPWAY_BOUND_SESSION") or None)
     server = create_server(connector)
     try:
         async with stdio_server() as (read, write):

@@ -52,9 +52,9 @@ def test_the_provider_step_refuses_a_provider_whose_route_is_off():
     assert w.step == 3, "the step stays"
     w.back()
     assert w.step == 2, "Back reaches the routes"
-    local = walk("claude_cli")
-    local.step = 3
-    assert local.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
+    keyed = walk("anthropic")
+    keyed.step = 3
+    assert keyed.next() == "Claude plan needs the api.anthropic.com route: go Back and switch it on, or pick a local provider"
     free = walk("mock")
     free.step = 3
     assert free.next() is None
@@ -187,3 +187,143 @@ def test_back_refreshes_the_temporary_popup_content(ui):
         tag_refresh_ui=lambda: refreshes.append('layout'), tag_redraw=lambda: refreshes.append('draw')))
     assert ui.LAMPWAY_OT_onboarding_back.execute(None, context) == {'FINISHED'}
     assert w.step == 3 and refreshes == ['layout', 'draw']
+
+
+def _popup_context(log):
+    return SimpleNamespace(
+        region=SimpleNamespace(tag_redraw=lambda: log.append('editor redraw')),
+        region_popup=SimpleNamespace(type='TEMPORARY',
+            tag_refresh_ui=lambda: log.append('popup layout'),
+            tag_redraw=lambda: log.append('popup redraw')))
+
+
+def test_f23_opens_one_popup_and_draws_dynamic_footer(ui, monkeypatch):
+    from unittest.mock import Mock
+    from test_lampway_onboarding_capabilities import walk as capability_walk
+    class Layout(Recorder):
+        def __init__(self):
+            super().__init__()
+            self.children = []
+        def row(self, **kw):
+            child = Layout()
+            self.children.append(child)
+            return child
+        column = split = row
+    w = capability_walk()
+    w.step = 4
+    ui.WALK.update(walk=w, anchor=None, capability_page=0)
+    popup = Mock(return_value={'RUNNING_MODAL'})
+    forbidden = Mock(side_effect=AssertionError('no second modal or draw-time transport'))
+    monkeypatch.setattr(ui, '_door', forbidden)
+    context = SimpleNamespace(window=SimpleNamespace(screen=SimpleNamespace(areas=[]), global_areas=[]),
+        window_manager=SimpleNamespace(invoke_popup=popup, invoke_props_dialog=forbidden,
+            lampway_onboarding_routes=[], lampway_onboarding_caps=[]))
+    operator = SimpleNamespace(layout=Layout())
+    event = SimpleNamespace(mouse_x=20, mouse_y=30)
+    assert ui.LAMPWAY_OT_onboarding.invoke(operator, context, event) == {'RUNNING_MODAL'}
+    popup.assert_called_once_with(operator, width=640)
+    for step in (2, 4, 5):
+        w.step = step
+        operator.layout = Layout()
+        ui.LAMPWAY_OT_onboarding.draw(operator, context)
+        assert operator.layout.log[0] == ('label', w.steps[step - 1], 'NONE')
+        footer = operator.layout.children[-1]
+        back = footer.children[0]
+        assert back.enabled == (step > 2)
+        assert back.log == [('op', 'lampway.onboarding_back', 'Back', 'NONE')]
+        label = w.continue_label() if step == len(w.steps) else 'Continue'
+        assert footer.log == [('op', 'lampway.onboarding_next', label, 'NONE')]
+    forbidden.assert_not_called()
+
+
+def test_f23_dynamic_next_reaches_capabilities_then_finishes_once(ui, monkeypatch):
+    from test_lampway_onboarding_capabilities import walk as capability_walk, Door
+    from unittest.mock import Mock
+    assert hasattr(ui, 'LAMPWAY_OT_onboarding_next'), 'Explicit footer Next operator missing'
+    w = capability_walk()
+    w.step = 3
+    ui.WALK.update(walk=w, anchor=(20, 30), capability_page=1)
+    log = []
+    context = _popup_context(log)
+    door = Door()
+    transport = Mock(return_value=door)
+    save = Mock()
+    reinvoke = Mock(side_effect=AssertionError('step navigation must reuse popup'))
+    monkeypatch.setattr(ui, '_door', transport)
+    monkeypatch.setattr(ui.bpy.ops.wm, 'save_userpref', save)
+    monkeypatch.setattr(ui.bpy.ops.lampway, 'onboarding', reinvoke)
+    op = SimpleNamespace(report=lambda *args: None)
+    assert ui.LAMPWAY_OT_onboarding_next.execute(op, context) == {'FINISHED'}
+    assert w.kind == 'capabilities' and w.step == 4
+    assert ui.LAMPWAY_OT_onboarding_next.execute(op, context) == {'FINISHED'}
+    assert w.kind == 'spending' and w.step == 5
+    transport.assert_not_called(); save.assert_not_called()
+    assert ui.LAMPWAY_OT_onboarding_next.execute(op, context) == {'FINISHED'}
+    assert ui.WALK == {'walk': None, 'anchor': None, 'capability_page': 0}
+    transport.assert_called_once_with(); save.assert_called_once_with()
+    assert len(door.writes) == 1 and door.writes[0][0] == 'caps'
+    reinvoke.assert_not_called()
+
+
+def test_f23_refusal_refreshes_without_advancing_or_reinvoking(ui, monkeypatch):
+    from unittest.mock import Mock
+    assert hasattr(ui, 'LAMPWAY_OT_onboarding_next'), 'Explicit footer Next operator missing'
+    w = walk('chatgpt_plan'); w.step = 3
+    ui.WALK['walk'] = w
+    reports, refresh = [], []
+    reinvoke = Mock(side_effect=AssertionError('refusal must keep existing popup'))
+    monkeypatch.setattr(ui.bpy.ops.lampway, 'onboarding', reinvoke)
+    assert ui.LAMPWAY_OT_onboarding_next.execute(SimpleNamespace(report=lambda *a: reports.append(a)), _popup_context(refresh)) == {'FINISHED'}
+    assert w.step == 3 and ui.WALK['walk'] is w
+    assert reports == [({'ERROR'}, w.refusal())]
+    assert refresh == ['popup layout', 'popup redraw', 'editor redraw']
+    reinvoke.assert_not_called()
+
+
+def test_f23_failed_finish_preserves_choices_and_popup(ui, monkeypatch):
+    from unittest.mock import Mock
+    from test_lampway_onboarding_capabilities import walk as capability_walk
+    assert hasattr(ui, 'LAMPWAY_OT_onboarding_next'), 'Explicit footer Next operator missing'
+    w = capability_walk(); w.step = len(w.steps)
+    w.click_capability('terminal', True)
+    ui.WALK.update(walk=w, anchor=(20, 30), capability_page=1)
+    initial = dict(w.capability_chosen)
+    refresh, reports = [], []
+    monkeypatch.setattr(ui, '_door', Mock(side_effect=RuntimeError('synthetic server unavailable')))
+    save = Mock(); reinvoke = Mock(side_effect=AssertionError('retry must stay in original popup'))
+    monkeypatch.setattr(ui.bpy.ops.wm, 'save_userpref', save)
+    monkeypatch.setattr(ui.bpy.ops.lampway, 'onboarding', reinvoke)
+    assert ui.LAMPWAY_OT_onboarding_next.execute(SimpleNamespace(report=lambda *a: reports.append(a)), _popup_context(refresh)) == {'FINISHED'}
+    assert ui.WALK == {'walk': w, 'anchor': (20, 30), 'capability_page': 1}
+    assert w.capability_chosen == initial and w.caps == {'job_cap': 1.0, 'day_cap': 5.0, 'above': 0.25}
+    assert reports == [({'ERROR'}, "Lampway's server did not take the setup: synthetic server unavailable")]
+    assert refresh == ['popup layout', 'popup redraw', 'editor redraw']
+    save.assert_not_called(); reinvoke.assert_not_called()
+
+
+def test_f23_back_preserves_capabilities_and_page_without_transport(ui, monkeypatch):
+    from unittest.mock import Mock
+    from test_lampway_onboarding_capabilities import walk as capability_walk
+    w = capability_walk(); w.step = len(w.steps)
+    w.click_capability('terminal', True)
+    ui.WALK.update(walk=w, anchor=(20, 30), capability_page=1)
+    initial = dict(w.capability_chosen)
+    forbidden = Mock(side_effect=AssertionError('Back cannot write or open a modal'))
+    monkeypatch.setattr(ui, '_door', forbidden)
+    monkeypatch.setattr(ui.bpy.ops.lampway, 'onboarding', forbidden)
+    log = []
+    assert ui.LAMPWAY_OT_onboarding_back.execute(None, _popup_context(log)) == {'FINISHED'}
+    assert w.kind == 'capabilities' and w.step == 4
+    assert w.capability_chosen == initial and ui.WALK['capability_page'] == 1
+    assert log == ['popup layout', 'popup redraw', 'editor redraw']
+    forbidden.assert_not_called()
+
+
+def test_f23_refresh_does_not_rebuild_an_editor_region(ui):
+    assert hasattr(ui, '_refresh_step'), 'Popup refresh helper missing'
+    log = []
+    context = SimpleNamespace(region=None, region_popup=SimpleNamespace(type='WINDOW',
+        tag_refresh_ui=lambda: log.append('wrong refresh'), tag_redraw=lambda: log.append('wrong redraw')))
+    ui._refresh_step(context)
+    assert log == []
+    assert ui.LAMPWAY_OT_onboarding_next in ui.classes

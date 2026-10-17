@@ -17,6 +17,7 @@ _REPLAYABLE_BLOCKS = {"thinking", "redacted_thinking", "text", "tool_use"}
 
 class AnthropicProvider:
     name = "anthropic"
+    supports_vision = True
 
     def __init__(self, model: str = DEFAULT_MODEL, *, client: Optional[AsyncAnthropic] = None,
                  transport=None, max_tokens: int = MAX_TOKENS, api_key: Optional[str] = None):
@@ -78,6 +79,8 @@ class AnthropicProvider:
         for part in message.content:
             if part.get("type") == "text":
                 content.append({"type": "text", "text": part.get("text", "")})
+            elif part.get("type") == "image":
+                content.append({"type": "image", "source": part["source"]})
             elif part.get("type") == "tool_result":
                 content.append({"type": "tool_result", "tool_use_id": part["tool_call_id"],
                                 "content": part.get("content", ""), "is_error": bool(part.get("is_error"))})

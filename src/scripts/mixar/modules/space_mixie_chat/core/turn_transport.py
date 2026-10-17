@@ -55,6 +55,11 @@ class TurnTransport:
         if method in ('chat', 'input'):
             from .rules import rules_snapshot
             payload['rules'] = rules_snapshot(scene)
+        if method == 'chat':
+            # The tab's agent mode, Scene.lampway_agent_mode (agent-modes spec M0): the server refuses a Mode 1 turn into a
+            # Your agent tab (wrong_mode).
+            from .agent_mode import get_mode
+            payload['agent_mode'] = get_mode(scene)
         if method in ('chat', 'input'):
             # Answers can replace folders while a question is pending. Send
             # the complete snapshot (empty clears) on both entry points so
@@ -148,8 +153,8 @@ class TurnTransport:
             payload['question_ref'] = question_ref
         return self._send('input', payload, user_message)
 
-    def stop_stream(self):
-        turn_events.drop_scene(self.scene_name)
+    def stop_stream(self, *, keep_bound=False):
+        (turn_events.retire_scene if keep_bound else turn_events.drop_scene)(self.scene_name)
         self._running = False
 
     def resume_stream(self, session_id, after_seq=None, auth_token=None):
@@ -203,10 +208,10 @@ def get_turn_handler(scene_name=''):
     return None
 
 
-def cleanup_turn_handler(scene_name):
+def cleanup_turn_handler(scene_name, *, keep_bound=False):
     handler = _handlers.pop(scene_name, None)
     if handler:
-        handler.stop_stream()
+        handler.stop_stream(keep_bound=keep_bound)
 
 
 def cleanup_all_turn_handlers(app_exit=False):

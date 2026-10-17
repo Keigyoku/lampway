@@ -6,7 +6,7 @@
 Lampway's own backend for the desktop client (the GPL fork of the Mixar client). The upstream backend is closed and hosted, so this one is new: **single-user, loopback by default**, no accounts, no billing. It does the jobs a hosted backend would, on accounts and machines you own:
 
 1. **Login** for the client (PKCE desktop SSO against a loopback page, refresh tokens that survive restarts).
-2. The **agent loop**: the client has no model code. The server receives `agent.chat` over a JSON-RPC WebSocket, calls a model, and runs Python in Blender by sending `blender.execute_script` back over the same socket. It also runs **parallel workers** (headless Blender processes) and the typed, fenced commit that lands their results.
+2. The **agent's front end and doors**: the client has no model code, and neither does this server run an agent loop. Lampway's agent (Mode 1) is the pinned Hermes runtime in a pane on Lampway's herdr server; the server receives `agent.chat` over a JSON-RPC WebSocket and is a second client of that pane's `hermes serve`, answers Hermes's model requests through its loopback **gateway** (the provider you chose), and runs Python in Blender for Hermes's tool calls by sending `blender.execute_script` back over the client's socket ([agent modes](../docs/reports/agent-modes-spec.md) A1-A5). It also runs the **swarm** (every worker a pane with its own headless Blender) and the typed, fenced commit that lands their results.
 3. The **job queue** and generation catalogue for images and video, the **studio** plan/confirm flow, prompts, the experiment ledger, job receipts, the egress gate, the compute wrapper and the cockpit routes.
 
 Documentation for users is in [`docs/`](../docs/README.md); this page is for running and testing the server.
@@ -20,12 +20,14 @@ pip install -r requirements-lock.txt      # the pinned set the suite was verifie
 pip install -e .
 
 export LAMPWAY_USER_PASSWORD='choose-a-password'   # optional: the sign-in page asks for it
-export LAMPWAY_PROVIDER=mock                        # mock | anthropic | openai | openrouter | chatgpt_plan | codex_cli | claude_cli | codex_app_server
+export LAMPWAY_PROVIDER=mock                        # mock | anthropic | openai | openrouter | chatgpt_plan
 python -m lampway_server                            # or: lampway-server
 # serving on http://127.0.0.1:8787
 ```
 
 Normally you do not run it by hand: `scripts/lampway/lampway` starts it, points the app at it and stops it again ([getting started](../docs/getting-started.md)).
+
+**Lampway's agent needs its engine.** Mode 1 runs only on the pinned Hermes engine, in a herdr pane: build it with `scripts/lampway/engine_env.py` (it also prebuilds Hermes's TUI), build herdr with `scripts/lampway/herdr_env.py`, and have Node.js 22 or 24 on the server's PATH (or `LAMPWAY_NODE`). The server puts the engine in Mode 1's seat whenever it finds a finished build; there is no switch, and there is no other loop to fall back to. Without the engine, Node.js or herdr, a chat to Lampway's agent is refused before anything starts, with the command that fixes it (and, where it helps, the switch to Your agent); the start-up log says why once. The server must listen on loopback for the engine's doors.
 
 Python 3.12 or newer is what the lock was verified with (`pyproject.toml` allows 3.11). The Asset Vault library needs Python 3.14 and numpy today ([asset vault](../docs/asset-vault.md)).
 
@@ -41,10 +43,12 @@ The full list lives in `lampway_server/config.py`; the ones you will touch:
 | `LAMPWAY_PROJECT_ROOT` | `~/.local/share/lampway/projects` | the root every tool path is jailed to; receipts, ledger, video and uploads live under it |
 | `LAMPWAY_USER_EMAIL` / `LAMPWAY_USER_NAME` / `LAMPWAY_USER_PASSWORD` | `owner@lampway.local` / `Owner` / empty | the one account; empty password means the browser sign-in page approves without asking and the form login is refused |
 | `LAMPWAY_JWT_SECRET` | generated once, kept at `<state>/jwt_secret` (0600) | HS256 secret for access tokens |
-| `LAMPWAY_PROVIDER` | `mock` | the main provider; see [providers](../docs/providers.md) |
+| `LAMPWAY_PROVIDER` | `mock` | the main provider, which answers the agent's model requests through the gateway; see [providers](../docs/providers.md) |
+| `LAMPWAY_ENGINES_DIR` | `<repo>/build/engines`, then `<state>/engines` | where the finished Hermes engine build is found (`scripts/lampway/engine_env.py`); found means in Mode 1's seat |
+| `LAMPWAY_NODE` | `node` on PATH | the Node.js that runs Hermes's TUI in the agent's pane (22 or 24; never downloaded) |
 | `LAMPWAY_ANTHROPIC_MODEL`, `OPENAI_BASE_URL`, `LAMPWAY_OPENAI_MODEL`, `OPENAI_API_KEY`, `LAMPWAY_CHATGPT_MODEL` | see `config.py` | per-provider models and endpoints |
 | `OPENROUTER_API_KEY` or `LAMPWAY_OPENROUTER_KEY_FILE`, `LAMPWAY_OPENROUTER_BUDGET_USD` | none / `3.0` | the OpenRouter key and the session ceiling |
-| `LAMPWAY_LOCAL_CLI` | off | `1` enables the local CLI adapters |
+| `LAMPWAY_LOCAL_CLI` | off | `1` lets the cockpit start your own agent CLIs (Claude Code, Codex, Hermes, OpenCode, Pi, Grok, Cursor) in its panes; each also needs its `byoa:<harness>` egress route on |
 | `LAMPWAY_LOG_LEVEL` | `INFO` | debug logs name methods and ids, never payloads or keys |
 
 Every outbound route is **off** until it is switched on in the Privacy panel ([privacy](../docs/privacy.md)), so a real provider is refused until you do.
@@ -78,7 +82,7 @@ failure is shown with its fix. A job receipt carries the `choice` (option, reaso
 | Area | Endpoints |
 |---|---|
 | auth | `POST /api/v1/auth/login`, `/auth/desktop/token`, `/auth/refresh`, `GET /auth/me`, the sign-in page `/app/desktop-login` |
-| agent | WebSocket `/api/agent/ws/{instance_id}`: handshake, chat, input, cancel, status, attach (journal replay), the v3 swarm harness, `blender.execute_script` |
+| agent | WebSocket `/api/agent/ws/{instance_id}`: handshake, chat, input, cancel, status, attach (journal replay), the v3 swarm harness, `blender.execute_script`; the engine's loopback doors `/engine/v1` (the model gateway) and `/engine/mcp/<unit>` (Lampway's tools for a Mode 1 pane) |
 | generation | `/api/v1/job-queue/jobs`, `/api/v1/generation-catalog`, `/api/v1/uploads/{kind}`, `/api/v1/jobs/files/...` |
 | local routes | `/app/provider-settings`, `/app/studio/*`, `/app/prompts*`, `/app/ledger*`, `/app/egress*`, `/app/workbench*`, `/app/mcp/*`, `/app/swarm*`, the sign-in pages `/app/chatgpt` and `/app/higgsfield` |
 | other | `/api/v1/mcp` (MCP over JSON-RPC), `/api/v1/asset-search/*`, `/api/v1/matgen`, WebSocket `/api/v1/dictation/ws` |
@@ -94,4 +98,4 @@ Account, billing and growth endpoints answer with local constants: telemetry eve
 pytest                        # no Blender, no network, no model; uses a fake client that speaks the real client's frames
 ```
 
-The suite covers auth, the WebSocket system layer, the agent turn contract, providers on fake transports, the swarm harness, studios, video, prompts, ledger, receipts, egress, compute, cockpit and the Asset Vault library. Keep `TMPDIR` and `--basetemp` on a filesystem with space for a full run.
+The suite covers auth, the WebSocket system layer, the agent turn contract (against a scripted `hermes serve`, `tests/serve_support.py`; no engine needed), providers on fake transports, the swarm harness, studios, video, prompts, ledger, receipts, egress, compute, cockpit and the Asset Vault library. Keep `TMPDIR` and `--basetemp` on a filesystem with space for a full run. The live Mode 1 tests (`tests/test_engine_pane_live.py`, `tests/test_engine_hermes_config.py`) need the built engine, its prebuilt TUI, Node.js and, for the real-herdr case, herdr (`LAMPWAY_ENGINES_DIR`, `LAMPWAY_HERDR_BIN`); without them they skip, and a skip is not a pass.

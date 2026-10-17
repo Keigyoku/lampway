@@ -196,5 +196,5 @@ def test_the_swarm_on_chatgpt_plan_uses_its_own_model_and_effort(tmp_path):
     shared = FakeAuth()
     main, worker = make_provider(s, chatgpt_auth=shared), make_swarm_provider(s, "worker-1", chatgpt_auth=shared)
     assert main.auth is shared and worker.auth is shared          # one sign-in: rotating refresh tokens must never be refreshed twice
-    assert isinstance(main, ChatGPTPlanProvider) and isinstance(worker, ChatGPTPlanProvider)
+    assert isinstance(main.provider, ChatGPTPlanProvider) and isinstance(worker, ChatGPTPlanProvider)   # main: in its privacy context
     assert (main.model, main.effort) == ("gpt-6.1-sol", "medium") and (worker.model, worker.effort) == ("gpt-6.1-sol", "low")

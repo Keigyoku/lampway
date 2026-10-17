@@ -39,8 +39,8 @@ measured using analytical position identities at 1e-5 m, reporting raw and welde
 boundary/non-manifold counts. This does not weld or publish the authored geometry,
 and native weight vertex ids stay unchanged. Generalized winding (canon 15) tests
 head inclusion on the original triangles regardless of watertightness; a measured
-head winding >0.5 permits native openings at intake. `closed=false` remains true
-in the receipt, rather than being mislabeled. Headless/unverified packages still
+head winding >0.5 permits native openings at intake. The receipt retains
+`closed=false`, rather than mislabeling the body as watertight. Headless/unverified packages still
 refuse. Signed measurements near openings retain canon 15's declared-band rule.
 
 1. **Intake.** Turn to the body frame (`turn_deg` recorded), keep every salvageable part (memory salvage-parts-piece-by-piece),
@@ -200,6 +200,7 @@ remain untested.
 | 2026-10-04 | Chest audit clipping inflated by A-pose vs the piece's implied pose | pose the body to the piece | memory pose-body-to-the-piece |
 | 2026-10-08 | Soft-part conform was an unconditional not-built refusal despite the missing implementation criterion | captain: "Admit ARAP candidate; delegate untested solver defaults"; implement a bounded candidate with explicit clearance/seam targets, immutable rigid vertices and mandatory candidate-output review; retain physical_status untested | canon03-H2 ruling and candidate controls |
 | 2026-09-25..29 | Every automatic glove sizing failed (skin-to-shell shrink, caps too wide, PCA off-axis, angle clustering mixed fingers); per-finger girth needed 1.5–2.25 and bloated the glove | plate labels are a TYPED decision; girth is an open captain decision | memory fit-tool-direction; §7k |
+| 2026-10-11 | Render seam identities and authored facial openings rejected a native body at intake | analytical topology only; verified generalized head winding admits recorded native openings while retaining authored vertices, weight IDs and closed=false | accepted PR1 `6b99d173`; issue #11 bounded intake authorization |
 
 ## E. Golden tests (pipeline level; the step goldens live in their canons)
 
@@ -253,7 +254,7 @@ placed, clear piece passed through unchanged.
   others are refused.
 - Each stage delegates to its canon tool and appends to `<piece>/fit/fit.json` (stage, inputs' sha256, receipt sha256, decider).
 - **Refusals (each names the next command):** a stage before its predecessors; a geometry stage after a texture without
-  `texture_discard_ack`; any part without a role; a metal part routed to `conform`; a body package that is not native, not
+  `texture_discard_ack`; any part without a role; a metal part routed to `conform`; a body package that is not native, is
   missing its head (generalized winding ≤0.5), has unverified openings or lacks the weight sidecar; a piece whose source-part check (one similarity per rigid group, residual
   < 0.5 mm) fails (the detached-glove guard); `match` not signed off (`captain_seen: true` with the render hash) before `place`
   results are used by `bind`.

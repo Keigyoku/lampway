@@ -33,6 +33,7 @@ _bindings = {}
 _turns = {}
 _commands = {}
 _blocked = set()
+_retired = {}                       # Stop fences these turn IDs, while the scene's unit remains bound for new pane turns.
 _MAX_BYTES = 64 * 1024 * 1024
 _MAX_ITEMS = 512
 _pump = TurnEventPump(lambda: _drain())
@@ -47,6 +48,9 @@ class Turn:
     pending: dict = field(default_factory=dict)
     complete: bool = False
     recovering: bool = False
+    observed: bool = False    # pane transcript or independent swarm cards (byoa_view.py), never the tab's turn state
+    pane: bool = False        # a turn Lampway Agent's pane started (mode1_pane.py): the tab's turn, like an island turn
+    swarm_card: bool = False  # S3's independent worker cards: neither a scene turn nor the pane's activity
 
 
 def arm():
@@ -183,13 +187,56 @@ def _drain():
         return 0.02 if _inbox or _overflow else None
 
 
+def _old_conversation(scene, metadata) -> bool:
+    """Explicit Mode 1 conversation IDs fence old delivery; a first start can teach the tab its ID."""
+    from .agent_mode import is_byoa
+    from .mode1_pane import CONVERSATION_KEY
+    if is_byoa(scene):
+        return False
+    cid = str(metadata.get('conversation_id') or '')
+    if not cid:
+        return False
+    known = str(scene.get(CONVERSATION_KEY) or '')
+    return bool(cid and known and cid != known)
+
+
 def _consume(method, params):
+    if method == 'agent.recovery.conversation':
+        from . import mode1_pane
+        mode1_pane.note_conversation(params.get('session_id'), params.get('conversation_id'))
+        return
+    if method == 'agent.recovery.cards':
+        sid = params.get('session_id')
+        if not sid or sid in _blocked:
+            return
+        for started in params.get('cards') or []:
+            if not isinstance(started, dict) or started.get('session_id') != sid or not started.get('swarm'):
+                continue
+            _consume('agent.turn.started', {**started, 'observed': True, 'replay': True})
+            turn = _turns.get(started.get('turn_id'))
+            if turn is not None and turn.swarm_card and not turn.complete:
+                _request_replay(turn)
+        return
+    if method == 'agent.byoa.view':
+        from . import byoa_view
+        byoa_view.apply_view(params)
+        return
+    if method == 'agent.byoa.control':            # Stop, Resume, Unbind answered (byoa_view.py)
+        from . import byoa_view
+        byoa_view.apply_control(params)
+        return
+    if method == 'agent.pane.new_conversation':   # /new in Lampway Agent's pane (agent-modes spec Q15): mode1_pane.py
+        from . import mode1_pane
+        mode1_pane.apply_new_conversation(params)
+        return
     if method == 'agent.recovery.status':
         sid = params.get('session_id')
         scene = _resolve(sid)
         info = params.get('info') or {}
         tid = info.get('turn_id')
-        if scene is None or sid in _blocked:
+        if scene is None or sid in _blocked or tid in _retired.get(sid, ()):
+            return
+        if _old_conversation(scene, info):
             return
         turn = _turns.get(tid)
         saved = turn_cursor.read(scene, sid, tid)
@@ -237,22 +284,50 @@ def _consume(method, params):
                 entry[1](scene, params)
         return
     sid, tid = params.get('session_id'), params.get('turn_id')
-    if not sid or not tid or sid in _blocked:
+    if not sid or not tid or sid in _blocked or tid in _retired.get(sid, ()):
         return
     scene = _resolve(sid)
     if scene is None:
         return
     turn = _turns.get(tid)
     if method == 'agent.turn.started':
+        if _old_conversation(scene, params):
+            return
+        from . import mode1_pane
+        mode1_pane.remember_conversation(scene, params)   # the Hermes session the tab's pane shows (agent-modes spec Q15)
         if turn is not None:
             turn.recovering = bool(params.get('replay'))
+            return
+        if params.get('observed'):
+            # B4's pane transcript belongs to Your agent mode; S3's swarm cards render in either mode.
+            # Neither takes the tab's turn (no BUSY, no run, no executor turn).
+            from .agent_mode import is_byoa
+            swarm_card = bool(params.get('swarm'))
+            if not swarm_card and not is_byoa(scene):
+                return
+            if len(_turns) >= 64:
+                completed = next((key for key, value in _turns.items() if value.complete), None)
+                if completed:
+                    _turns.pop(completed)
+            _turns[tid] = Turn(sid, tid, str(params.get('run_id') or ''), observed=True, swarm_card=swarm_card)
+            from . import byoa_view
+            if not swarm_card:
+                byoa_view.begin_observed_turn(scene, params)
             return
         from .session import get_session_manager
         session = get_session_manager()
         run_id = str(params.get('run_id') or '')
         expected = tid in _commands
         wakeup = session.run_open(scene) and run_id == getattr(scene, 'mixie_run_id', '')
-        if not expected and not wakeup:
+        typed = not expected and not wakeup and params.get('origin') == 'pane'
+        if typed:
+            # A turn typed in Lampway Agent's pane (agent-modes spec A2): the tab's turn, like an island turn (mode1_pane.py).
+            from . import mode1_pane
+            why = mode1_pane.refusal(scene, sid, tid)
+            if why:
+                logger.info('Lampway Agent pane turn %s ignored: %s', tid, why)
+                return
+        elif not expected and not wakeup:
             return  # Late start from a revoked/previous run.
         # Bounded history retains completed cursors for duplicate suppression.
         if len(_turns) >= 64:
@@ -264,11 +339,14 @@ def _consume(method, params):
         saved = turn_cursor.read(scene, sid, tid)
         turn = _turns[tid] = Turn(sid, tid, run_id,
                                   cursor=int(saved.get('cursor', -1)),
-                                  complete=bool(saved.get('complete', False)))
+                                  complete=bool(saved.get('complete', False)),
+                                  pane=params.get('origin') == 'pane' or str(tid).startswith('pane_'))
         if turn.complete:
             session.set_run(scene, saved.get('run_id', ''), bool(saved.get('run_open')))
             session.set_state(scene, SessionState[saved.get('state', 'IDLE')])
             return
+        if typed:
+            mode1_pane.add_prompt(scene, params)
         _begin_scene_turn(scene, run_id)
         return
     if turn is None or turn.complete:
@@ -283,6 +361,10 @@ def _consume(method, params):
     if not isinstance(payload, dict):
         return
     if payload.get('type') == 'resume_unavailable':
+        if turn.observed:
+            from . import byoa_view
+            byoa_view.apply_observed(scene, turn, payload)
+            return
         _replay_unavailable(scene, turn)
         return
     seq = params.get('seq', payload.get('seq'))
@@ -299,7 +381,8 @@ def _consume(method, params):
         _apply(scene, turn, event)
         turn.pending.pop(next_seq)
         turn.cursor = next_seq  # Advance only after successful rendering.
-        turn_cursor.save(scene, turn)
+        if not turn.observed:   # an observed turn keeps its own cursor (byoa_view.CURSOR_KEY), never Mode 1's
+            turn_cursor.save(scene, turn)
         if turn.complete:
             turn.pending.clear()
             break
@@ -308,6 +391,10 @@ def _consume(method, params):
 
 
 def _apply(scene, turn, payload):
+    if turn.observed:
+        from . import byoa_view
+        byoa_view.apply_observed(scene, turn, payload)
+        return
     from .queue_processor import get_event_processor
     processor = get_event_processor()
     if payload.get('type') == 'turn_end':
@@ -369,6 +456,21 @@ def _replay_unavailable(scene, turn):
     turn.complete = True
 
 
+def _queue_status(result, session_ids, recover_sessions):
+    """RPC callback seam: conversation identity precedes every recovered delivery in the same ordered inbox."""
+    for sid, cid in (result.get('conversations') or {}).items():
+        if sid in session_ids:
+            handle_turn_notification('agent.recovery.conversation', {
+                'session_id': sid, 'conversation_id': cid,
+            })
+    for sid, info in (result.get('turns') or {}).items():
+        if sid in recover_sessions:
+            handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
+    for sid, cards in (result.get('swarm_cards') or {}).items():
+        if sid in session_ids:
+            handle_turn_notification('agent.recovery.cards', {'session_id': sid, 'cards': cards})
+
+
 def reconnect(session_ids=None):
     """Resume every interrupted delivery from its rendered cursor, main thread.
     With ``session_ids``, only those sessions' turns and commands."""
@@ -389,9 +491,7 @@ def reconnect(session_ids=None):
                     'command_id': cid, 'session_id': session_id, **(result.get('result') or {}),
                 })
             def described(value):
-                info = (value.get('turns') or {}).get(session_id, {})
-                if info.get('turn_id'):
-                    handle_turn_notification('agent.recovery.status', {'session_id': session_id, 'info': info})
+                _queue_status(value, {session_id}, {session_id})
             try:
                 call('agent.status', {'session_ids': [session_id]}, described)
             except Exception:
@@ -403,17 +503,17 @@ def reconnect(session_ids=None):
     import bpy
     from mixar.modules.common.agent_rpc.client import call
     from .session import get_session_manager
-    ids = []
+    ids, scene_recovery = [], set()
     for scene in bpy.data.scenes:
         sid = getattr(scene, 'mixie_session_id', '')
-        if sid and sid not in _blocked and (get_session_manager().run_open(scene)
-                                           or turn_cursor.read(scene, sid)):
+        if (sid and sid not in _blocked and (wanted is None or sid in wanted)):
             bind(scene)
             ids.append(sid)
+            if get_session_manager().run_open(scene) or turn_cursor.read(scene, sid):
+                scene_recovery.add(sid)
     if ids:
         def status(result):
-            for sid, info in (result.get('turns') or {}).items():
-                handle_turn_notification('agent.recovery.status', {'session_id': sid, 'info': info})
+            _queue_status(result, ids, scene_recovery)
         try:
             call('agent.status', {'session_ids': ids[:32]}, status)
         except Exception:
@@ -421,9 +521,64 @@ def reconnect(session_ids=None):
 
     from .turn_resume import check_orphaned_turns
     check_orphaned_turns()
+    try:   # every tab in Your agent mode asks for its pane's view again on the new socket (agent-modes spec B4)
+        from . import byoa_view
+        byoa_view.observe_all()
+    except Exception:  # noqa: BLE001 - the view never blocks recovery
+        logger.debug('BYOA view recovery skipped', exc_info=True)
+
+
+def drain_session(sid):
+    """Render every frame already queued for one tab, in order. Main thread (mode1_pane.script_refusal: a script must not
+    overtake its own turn's start)."""
+    global _inbox_bytes
+    with _LOCK:
+        items = list(_inbox.pop(sid, ()))
+        for item in items:
+            _inbox_bytes -= item[2]
+    for method, params, _size in items:
+        try:
+            _consume(method, params)
+        except Exception:
+            logger.exception('Agent event could not be rendered')
+
+
+def retire_scene(scene_name):
+    """Stop this scene's known and queued turns; keep its unit available to a new turn typed in its pane.
+
+    Retired identities outlive the bounded completed-turn cache. Removing a scene or its conversation instead uses drop_scene.
+    """
+    global _inbox_bytes
+    import bpy
+    scene = bpy.data.scenes.get(scene_name)
+    if scene is None:
+        return
+    sid = getattr(scene, 'mixie_session_id', '')
+    if not sid:
+        return
+    retired = _retired.setdefault(sid, set())
+    with _LOCK:
+        for _method, params, size in _inbox.pop(sid, ()):
+            _inbox_bytes -= size
+            identities = [params, params.get('info') or {}, *(params.get('cards') or [])]
+            for metadata in identities:
+                if isinstance(metadata, dict) and metadata.get('turn_id'):
+                    retired.add(metadata['turn_id'])
+        _overflow.discard(sid)
+    for tid, turn in _turns.items():
+        if turn.session_id == sid:
+            retired.add(tid)
+            turn.complete = True
+            turn.pending.clear()
+    for key, entry in list(_commands.items()):
+        if entry[0] == sid:
+            retired.add(key)
+            _commands.pop(key, None)
+    _blocked.discard(sid)
 
 
 def drop_scene(scene_name):
+    """A scene/conversation teardown additionally blocks future turns until an explicit chat/reopen."""
     import bpy
     scene = bpy.data.scenes.get(scene_name)
     if scene is None:
@@ -456,3 +611,4 @@ def reset():
     _commands.clear()
     _bindings.clear()
     _blocked.clear()
+    _retired.clear()

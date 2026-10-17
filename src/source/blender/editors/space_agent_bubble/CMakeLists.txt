@@ -129,7 +129,8 @@ set(LIB
 
 blender_add_lib(bf_editor_space_agent_bubble "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# LAMPWAY: fork-only Linux floating-dock registration belongs to this consumer.
+# LAMPWAY: the mode-chip guards and the fork-only Linux floating-dock registration belong to this target;
+# creator definitions are local.
 if(LAMPWAY)
   target_compile_definitions(bf_editor_space_agent_bubble PRIVATE LAMPWAY)
 endif()

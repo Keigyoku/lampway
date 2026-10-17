@@ -39,6 +39,6 @@ def test_the_purposes_choice_decides_the_backend(ran):
 def test_an_agents_backend_is_an_override_within_the_chain(ran):
     text, err = ST._run_imagegen(args(backend="openrouter"))             # Flare is in the shipped chain: allowed
     assert not err and ran[-1][0] == "openrouter"
-    text, err = ST._run_imagegen(args(backend="codex_cli"))
-    assert err and text == "codex_cli:imagegen is not one of your choices for image.plates: propose it with lampway_choices"
+    text, err = ST._run_imagegen(args(backend="codex_cli"))             # retired (agent-modes spec R0): not a backend at all
+    assert err and text == "backend is tripo or openrouter, not 'codex_cli'"
     assert len(ran) == 1

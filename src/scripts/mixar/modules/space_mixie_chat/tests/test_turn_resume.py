@@ -92,6 +92,12 @@ def _scene(name, session_id):
     return scene
 
 
+@pytest.fixture(autouse=True)
+def isolated_handlers(monkeypatch):
+    from mixar.modules.space_mixie_chat.core import turn_transport
+    monkeypatch.setattr(turn_transport, "_handlers", {})
+
+
 def test_status_asked_for_idle_sessions_only(monkeypatch):
     idle = _scene("Scene", "sid-1")
     busy = _scene("Scene.001", "sid-2")
@@ -404,7 +410,9 @@ def _hits_for(monkeypatch, info):
         "mixar.modules.space_mixie_chat.core.main_thread_executor.run_on_main_thread",
         marshaled.append,
     )
-    turn_resume.check_orphaned_turns()
+    with patch.object(turn_resume.logger, "exception") as errors:
+        turn_resume.check_orphaned_turns()
+    errors.assert_not_called()
     if not marshaled:
         return False
     with patch.object(turn_resume, "offer_resume_prompt") as offer:

@@ -23,6 +23,7 @@ The source armature, its meshes and its actions are never touched; the copy carr
 across frames). Never: delete a bone, clear every parent, apply a pose as rest, exec scene text."""
 
 import hashlib
+from contextlib import contextmanager
 import json
 import math
 import os
@@ -85,6 +86,43 @@ def _source(ob):
 
 def _skinned(ob):
     return [o for o in bpy.data.objects if o.type == "MESH" and any(m.type == "ARMATURE" and m.object is ob for m in o.modifiers)]
+
+
+@contextmanager
+def _conform_visibility(objects):
+    """Admit owned copies for edit/evaluation without unhiding source collections."""
+    bpy.context.view_layer.update()
+    layer = list(bpy.context.view_layer.objects)
+    selected = [(o, o.select_get()) for o in layer]
+    active = bpy.context.view_layer.objects.active
+    flags = [(o, o.hide_viewport, o.hide_render, o.hide_select, o.hide_get()) for o in objects]
+    temporary = None
+    try:
+        temporary = bpy.data.collections.new("Lampway conform evaluation")
+        bpy.context.scene.collection.children.link(temporary)
+        for ob, *_flags in flags:
+            ob.hide_viewport = ob.hide_render = ob.hide_select = False
+            ob.hide_set(False)
+            temporary.objects.link(ob)
+        bpy.context.view_layer.update()
+        if any(not ob.visible_get() for ob in objects):
+            raise C.FeatureError("the conform copies cannot enter this view layer")
+        yield
+    finally:
+        try:
+            current = bpy.context.view_layer.objects.active
+            if current in objects and current.mode != "OBJECT":
+                bpy.ops.object.mode_set(mode="OBJECT")
+        finally:
+            for ob, viewport, render, select, hidden in flags:
+                ob.hide_viewport, ob.hide_render, ob.hide_select = viewport, render, select
+                ob.hide_set(hidden)
+            if temporary is not None:
+                bpy.data.collections.remove(temporary)
+            bpy.context.view_layer.update()
+            for original, was_selected in selected:
+                original.select_set(was_selected)
+            bpy.context.view_layer.objects.active = active
 
 
 def _copy(ob, name, meshes, suffix):
@@ -225,105 +263,103 @@ def conform(armature, map, root, reference="", convention="blender", ik_bones=Fa
         made += [new, *copies]
         base, base_meshes = _copy(ob, f"{name}__baseline", meshes, f"__baseline_{name}")
         made += [base, *base_meshes]
-        # The source is never revealed. Only disposable working copies must
-        # participate in Edit Mode and depsgraph skin verification.
-        for working in made:
-            working.hide_viewport = False
-            working.hide_set(False)
-        bpy.context.view_layer.update()
-        if not preserving:
-            groups = [[g.name for g in c.vertex_groups] for c in copies]
-            tmp = {old: f"lw_conform_tmp_{i}" for i, old in enumerate(rename)}
-            for old in rename:                                  # two phases, so a rename never lands on a name still in use
-                new.data.bones[old].name = tmp[old]
-            for old, n in rename.items():
-                new.data.bones[tmp[old]].name = n
-            C.activate(new)
-            bpy.ops.object.mode_set(mode="EDIT")
-            ebs = new.data.edit_bones
+        # The source is never revealed: only the disposable working copies enter Edit Mode and the depsgraph skin
+        # verification, through a temporary collection, and their own flags come back after it.
+        with _conform_visibility([new, *copies, base, *base_meshes]):
+            if not preserving:
+                groups = [[g.name for g in c.vertex_groups] for c in copies]
+                tmp = {old: f"lw_conform_tmp_{i}" for i, old in enumerate(rename)}
+                for old in rename:                                  # two phases, so a rename never lands on a name still in use
+                    new.data.bones[old].name = tmp[old]
+                for old, n in rename.items():
+                    new.data.bones[tmp[old]].name = n
+                C.activate(new)
+                bpy.ops.object.mode_set(mode="EDIT")
+                ebs = new.data.edit_bones
+                for b in plan["bones"]:
+                    if b["name"] not in ebs:
+                        e = ebs.new(b["name"])
+                        e.head, e.tail = b["head"], np.add(b["head"], (0.0, 0.0, max(b["length"], 1e-3)))
+                for b in plan["bones"]:
+                    e = ebs[b["name"]]
+                    e.use_connect = False
+                    e.parent = ebs[b["parent"]] if b["parent"] else None
+                for b in plan["bones"]:
+                    e = ebs[b["name"]]
+                    R = np.asarray(b["frame"], float)
+                    M = Matrix(((*R[0], b["head"][0]), (*R[1], b["head"][1]), (*R[2], b["head"][2]), (0, 0, 0, 1)))
+                    e.matrix = M
+                    e.length = max(b["length"], 1e-4)
+                bpy.ops.object.mode_set(mode="OBJECT")
+                for c, names in zip(copies, groups):                # the vertex groups follow their bones, by index (two phases)
+                    for i, g in enumerate(c.vertex_groups):
+                        g.name = f"lw_conform_vg_{i}"
+                    for i, g in enumerate(c.vertex_groups):
+                        g.name = rename.get(names[i], names[i])
+            merged = {}
+            for c in copies:
+                for g, to in merge.items():
+                    src_g = c.vertex_groups.get(rename.get(g, g))
+                    if src_g is None:
+                        continue
+                    dst = c.vertex_groups.get(to) or c.vertex_groups.new(name=to)
+                    n = 0
+                    for v in c.data.vertices:
+                        for ge in v.groups:
+                            if ge.group == src_g.index and ge.weight > 0:
+                                dst.add([v.index], ge.weight, "ADD")
+                                n += 1
+                    c.vertex_groups.remove(src_g)
+                    merged.setdefault(g, {"to": to, "vertices": 0})["vertices"] += n
+            bpy.context.view_layer.update()
+            # verify: heads that existed did not move (bit for bit), frames are the plan's
+            moved = []
             for b in plan["bones"]:
-                if b["name"] not in ebs:
-                    e = ebs.new(b["name"])
-                    e.head, e.tail = b["head"], np.add(b["head"], (0.0, 0.0, max(b["length"], 1e-3)))
-            for b in plan["bones"]:
-                e = ebs[b["name"]]
-                e.use_connect = False
-                e.parent = ebs[b["parent"]] if b["parent"] else None
-            for b in plan["bones"]:
-                e = ebs[b["name"]]
-                R = np.asarray(b["frame"], float)
-                M = Matrix(((*R[0], b["head"][0]), (*R[1], b["head"][1]), (*R[2], b["head"][2]), (0, 0, 0, 1)))
-                e.matrix = M
-                e.length = max(b["length"], 1e-4)
-            bpy.ops.object.mode_set(mode="OBJECT")
-            for c, names in zip(copies, groups):                # the vertex groups follow their bones, by index (two phases)
-                for i, g in enumerate(c.vertex_groups):
-                    g.name = f"lw_conform_vg_{i}"
-                for i, g in enumerate(c.vertex_groups):
-                    g.name = rename.get(names[i], names[i])
-        merged = {}
-        for c in copies:
-            for g, to in merge.items():
-                src_g = c.vertex_groups.get(rename.get(g, g))
-                if src_g is None:
-                    continue
-                dst = c.vertex_groups.get(to) or c.vertex_groups.new(name=to)
-                n = 0
-                for v in c.data.vertices:
-                    for ge in v.groups:
-                        if ge.group == src_g.index and ge.weight > 0:
-                            dst.add([v.index], ge.weight, "ADD")
-                            n += 1
-                c.vertex_groups.remove(src_g)
-                merged.setdefault(g, {"to": to, "vertices": 0})["vertices"] += n
-        bpy.context.view_layer.update()
-        # verify: heads that existed did not move (bit for bit), frames are the plan's
-        moved = []
-        for b in plan["bones"]:
-            got = tuple(new.data.bones[b["name"]].head_local)
-            if b["source"] is not None and max(abs(x - y) for x, y in zip(got, src["heads"][b["source"]])) > 1e-9:
-                moved.append(b["name"])
-        if moved:
-            raise C.FeatureError(f"the frame rewrite moved the rest head of {', '.join(moved[:8])} (> 1e-9 m): rolled back")
-        frame_errs = {b["name"]: RC.angle_deg(np.array(new.data.bones[b["name"]].matrix_local.to_3x3()), b["frame"]) for b in plan["bones"]}
-        worst = max(frame_errs, key=frame_errs.get)
-        frame_err = {"bone": worst, "deg": frame_errs[worst]}
-        if plan.get("reference_scope") == "independent_native_bind" and frame_errs[worst] > RC.BARS["rotation_deg"]:
-            raise C.FeatureError(f"{worst}: native frame storage error {frame_errs[worst]:.6g} deg exceeds the unchanged bind rotation bar: rolled back")
-        rest_new, rest_base = _evaluated(copies), _evaluated(base_meshes)
-        drift = max((float(np.max(np.abs(a - b))) for a, b in zip(rest_new, rest_base) if len(a)), default=0.0)
-        span = max((float(np.max(np.abs(a))) for a in rest_base if len(a)), default=1.0)
-        bar = 1e-9 + float(np.finfo(np.float32).eps) * max(1.0, span) * 4
-        if drift > bar:
-            raise C.FeatureError(f"a vertex's rest position changed by {drift:.3g} m (> {bar:.3g}): rolled back")
-        # the posed check: the same world pose on both rigs, keyed by the source bone
-        srcs = sorted(rename)
+                got = tuple(new.data.bones[b["name"]].head_local)
+                if b["source"] is not None and max(abs(x - y) for x, y in zip(got, src["heads"][b["source"]])) > 1e-9:
+                    moved.append(b["name"])
+            if moved:
+                raise C.FeatureError(f"the frame rewrite moved the rest head of {', '.join(moved[:8])} (> 1e-9 m): rolled back")
+            frame_errs = {b["name"]: RC.angle_deg(np.array(new.data.bones[b["name"]].matrix_local.to_3x3()), b["frame"]) for b in plan["bones"]}
+            worst = max(frame_errs, key=frame_errs.get)
+            frame_err = {"bone": worst, "deg": frame_errs[worst]}
+            if plan.get("reference_scope") == "independent_native_bind" and frame_errs[worst] > RC.BARS["rotation_deg"]:
+                raise C.FeatureError(f"{worst}: native frame storage error {frame_errs[worst]:.6g} deg exceeds the unchanged bind rotation bar: rolled back")
+            rest_new, rest_base = _evaluated(copies), _evaluated(base_meshes)
+            drift = max((float(np.max(np.abs(a - b))) for a, b in zip(rest_new, rest_base) if len(a)), default=0.0)
+            span = max((float(np.max(np.abs(a))) for a in rest_base if len(a)), default=1.0)
+            bar = 1e-9 + float(np.finfo(np.float32).eps) * max(1.0, span) * 4
+            if drift > bar:
+                raise C.FeatureError(f"a vertex's rest position changed by {drift:.3g} m (> {bar:.3g}): rolled back")
+            # the posed check: the same world pose on both rigs, keyed by the source bone
+            srcs = sorted(rename)
 
-        def delta(head, a):
-            h = Matrix.Translation(head)
-            return h @ Quaternion(POSE_AXIS, a).to_matrix().to_4x4() @ h.inverted()
-        d_base = {s: delta(ob.data.bones[s].head_local, math.radians(10.0 + 7.0 * (k % 5))) for k, s in enumerate(srcs)}
-        for g, to in merge.items():                     # a merged bone moves exactly as the bone it merged into: the skins agree
-            back = next((s for s, n in rename.items() if n == to), None)
-            if g in d_base and back in d_base:
-                d_base[g] = d_base[back]
-        d_new = {rename[s]: d_base[s] for s in srcs}
-        _world_pose(base, d_base, _depth(base))
-        _world_pose(new, d_new, _depth(new))
-        posed_new, posed_base = _evaluated(copies), _evaluated(base_meshes)
-        posed = max((float(np.max(np.abs(a - b))) for a, b in zip(posed_new, posed_base) if len(a)), default=0.0)
-        for pb in new.pose.bones:
-            pb.matrix_basis = Matrix.Identity(4)
-        bpy.context.view_layer.update()
-        if posed > POSED_BAR_M:
-            raise C.FeatureError(f"the conformed skin deforms differently under the same world pose ({posed:.3g} m > {POSED_BAR_M}): a vertex group "
-                                 "did not follow its bone; rolled back")
+            def delta(head, a):
+                h = Matrix.Translation(head)
+                return h @ Quaternion(POSE_AXIS, a).to_matrix().to_4x4() @ h.inverted()
+            d_base = {s: delta(ob.data.bones[s].head_local, math.radians(10.0 + 7.0 * (k % 5))) for k, s in enumerate(srcs)}
+            for g, to in merge.items():                     # a merged bone moves exactly as the bone it merged into: the skins agree
+                back = next((s for s, n in rename.items() if n == to), None)
+                if g in d_base and back in d_base:
+                    d_base[g] = d_base[back]
+            d_new = {rename[s]: d_base[s] for s in srcs}
+            _world_pose(base, d_base, _depth(base))
+            _world_pose(new, d_new, _depth(new))
+            posed_new, posed_base = _evaluated(copies), _evaluated(base_meshes)
+            posed = max((float(np.max(np.abs(a - b))) for a, b in zip(posed_new, posed_base) if len(a)), default=0.0)
+            for pb in new.pose.bones:
+                pb.matrix_basis = Matrix.Identity(4)
+            bpy.context.view_layer.update()
+            if posed > POSED_BAR_M:
+                raise C.FeatureError(f"the conformed skin deforms differently under the same world pose ({posed:.3g} m > {POSED_BAR_M}): a vertex group "
+                                     "did not follow its bone; rolled back")
     except Exception:
         _remove([o for o in made if o.name in bpy.data.objects])
         if bpy.context.object is not None and bpy.context.object.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")
         raise
     _remove([base, *base_meshes])
+    # The outputs keep their source's visibility: a copy inherits hide_viewport but not the view layer's hidden state.
     for output, (viewport, hidden) in zip([new, *copies], visibility):
         output.hide_viewport = viewport
         output.hide_set(hidden)

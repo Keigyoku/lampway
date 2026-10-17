@@ -127,9 +127,9 @@ def test_agent_override_policy():
     assert str(exc.value) == "openrouter:google/gemini-3.1-flash-image is not one of your choices for image.plates: propose it with lampway_choices"
     assert CR.resolve("image.plates", CR.Job(content_class="public", override="openrouter:google/gemini-3.1-flash-image", origin="user"),
                       world(), d).reason == "override", "the user's own per-job override is always allowed"
-    dm = doc(**{"global": {"agent.main": {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["claude_cli"]}}})
+    dm = doc(**{"global": {"agent.main": {"preferred": "chatgpt_plan:gpt-6.1-sol", "fallbacks": ["anthropic:claude-sonnet-5-5"]}}})
     with pytest.raises(CR.NoChoice, match="an agent must not change its own provider"):
-        CR.resolve("agent.main", CR.Job(override="claude_cli", origin="agent"), world(), dm)
+        CR.resolve("agent.main", CR.Job(override="anthropic:claude-sonnet-5-5", origin="agent"), world(), dm)
     dr = doc(**{"global": {"3d.retopo": {"preferred": "local:quadriflow", "fallbacks": ["studio:meshy.remesh"]}}})
     assert CR.resolve("3d.retopo", CR.Job(override="local:voxel", origin="agent"), world(), dr).option == "local:voxel"
     dr2 = doc(**{"global": {"3d.retopo": {"preferred": "local:quadriflow"}}})
@@ -165,7 +165,7 @@ def test_follow_resolves_through_the_purpose_it_names():
 
 
 def test_the_registry_has_every_purpose_and_the_normalization_judge():
-    assert len(REG.PURPOSES) == 56 and "normalize.judge" in REG.PURPOSES
+    assert len(REG.PURPOSES) == 57 and "normalize.judge" in REG.PURPOSES and "agent.worker_mode" in REG.PURPOSES
     assert {p.group for p in REG.PURPOSES.values()} == {g for g, _ in REG.GROUPS}
     for p in REG.PURPOSES.values():
         assert set(p.default) <= set(p.options), p.id

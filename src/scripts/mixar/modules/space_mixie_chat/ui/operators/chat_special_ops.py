@@ -192,6 +192,12 @@ class MIXIE_CHAT_OT_select_slot_action(Operator):
         if self.action_value.startswith("lib_add:"):
             return self._add_library_asset(context)
 
+        # Your agent mode (agent-modes spec B2): an ended pane's Resume / Unbind, the user's own click; answered through the
+        # server, never automatic.
+        from ...core import byoa_view
+        if self.action_value in (byoa_view.RESUME_ACTION, byoa_view.UNBIND_ACTION):
+            return byoa_view.execute_pane_action(self, context, self.action_value)
+
         # Contract 04: an answered question's expander opens and closes here (no backend round-trip).
         from mixar.modules.lampway_tools import answered as _answered
         if self.action_value.startswith(_answered.PREFIX):

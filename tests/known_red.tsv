@@ -8,3 +8,5 @@
 # (they collect and pass there), and the three tests/mcp failures that collection revealed came in (two broken, one stale).
 # owner: 'upstream fork' = the same test fails at the fork base d8a5fff (measured, 2026-10-06); otherwise the lane whose change made it fail
 # id	class	reason	owner
+# Reconciled: issue #11 matching FDCA whole-client run and a current cloud recheck affirmatively PASS all 122 former entries.
+# No failing, skipped or uncollected entry was removed; all other failures still fail the maintained gate.
