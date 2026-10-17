@@ -23,7 +23,7 @@ def test_stop_joins_only_its_units_motion_request_and_preserves_the_http_reply(t
     release = {unit: threading.Event() for unit in ('a', 'b')}
     filed, interrupts = [], []
 
-    def work(vault, root, arguments, capture, cancel):
+    def work(vault, root, arguments, capture, cancel, progress=None):
         unit = arguments['name']
         started[unit].set()
         try:
