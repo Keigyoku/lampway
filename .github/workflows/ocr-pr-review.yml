@@ -1,0 +1,214 @@
+# SPDX-FileCopyrightText: 2026 Lampway contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+# OpenCodeReview (alibaba/open-code-review) as Lampway's PR reviewer, on the Anthropic key. It replaces
+# chatgpt-pr-review.yml and keeps its trust model: the `authorize` job below is that workflow's, minus its
+# session-maintenance events, so who may spend a review is unchanged. The review job is Vellum-ADE/journey's
+# (journey #606, c7a08b74).
+name: OCR PR review
+'on':
+  pull_request:
+    types:
+    - opened
+  issue_comment:
+    types:
+    - created
+permissions:
+  contents: read
+jobs:
+  authorize:
+    name: Authorize without review secrets
+    if: '(github.event_name == ''pull_request'' && github.event.action == ''opened'' && github.event.pull_request.head.repo.full_name
+      == github.repository && ((github.event.pull_request.user.type == ''User'' && !endsWith(github.event.pull_request.user.login,
+      ''[bot]'') && contains(fromJSON(''["OWNER","MEMBER","COLLABORATOR"]''), github.event.pull_request.author_association))
+      || (github.event.pull_request.user.type == ''Bot'' && contains(''[{"login": "vellum-bot-box[bot]",
+      "type": "Bot", "app_id": 5311490}]'', github.event.pull_request.user.login)))) || (github.event_name
+      == ''issue_comment'' && github.event.action == ''created'' && github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, ''@pr-review'') && ((github.event.comment.user.type == ''User''
+      && !endsWith(github.event.comment.user.login, ''[bot]'') && contains(fromJSON(''["OWNER","MEMBER","COLLABORATOR"]''),
+      github.event.comment.author_association)) || (github.event.comment.user.type == ''Bot'' && contains(''[{"login":
+      "vellum-bot-box[bot]", "type": "Bot", "app_id": 5311490}]'', github.event.comment.user.login))))'
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    outputs:
+      allowed: ${{ steps.gate.outputs.allowed }}
+      number: ${{ steps.gate.outputs.number }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
+      base_ref: ${{ steps.gate.outputs.base_ref }}
+      full: ${{ steps.gate.outputs.full }}
+    steps:
+    - id: gate
+      env:
+        CHATGPT_TRUSTED_BOTS: '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]'
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      with:
+        script: |
+          // Exact bot identity policy; only trusted workflow configuration can override it.
+          let botIdentities;
+          try {
+            botIdentities = JSON.parse(process.env.CHATGPT_TRUSTED_BOTS ||
+              '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]');
+            if (!Array.isArray(botIdentities) || botIdentities.some(item =>
+                !item || typeof item !== 'object' || Array.isArray(item) ||
+                Object.keys(item).sort().join(',') !== 'app_id,login,type' ||
+                typeof item.login !== 'string' || !item.login.endsWith('[bot]') ||
+                item.type !== 'Bot' || !Number.isSafeInteger(item.app_id) || item.app_id <= 0)) {
+              botIdentities = [];
+            }
+          } catch { botIdentities = []; }
+          const trustedBot = item => {
+            if (item?.user?.type !== 'Bot') return false;
+            const identity = botIdentities.find(bot => bot.login === item.user.login);
+            if (!identity) return false;
+            // PR REST responses omit this field. Any supplied app metadata must agree.
+            return !Object.hasOwn(item, 'performed_via_github_app') ||
+              (Number.isSafeInteger(item.performed_via_github_app?.id) &&
+               item.performed_via_github_app.id === identity.app_id);
+          };
+          // No review secret is present in this job.
+          const {owner, repo} = context.repo;
+          const payload = context.payload;
+          const human = user => user && user.type === 'User' && typeof user.login === 'string' &&
+            user.login.length > 0 && !user.login.endsWith('[bot]');
+          const trusted = value => ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(value);
+          let allowed = false;
+          let full = false;
+          let live;
+          if (payload.repository?.full_name === process.env.GITHUB_REPOSITORY) {
+            let number;
+            if (context.eventName === 'pull_request' && payload.action === 'opened' &&
+                (trustedBot(payload.pull_request) || (human(payload.pull_request?.user) &&
+                 trusted(payload.pull_request?.author_association))) &&
+                payload.pull_request?.head?.repo?.full_name === process.env.GITHUB_REPOSITORY) {
+              number = payload.pull_request.number;
+            } else if (context.eventName === 'issue_comment' && payload.action === 'created' &&
+                       payload.issue?.pull_request &&
+                       (trustedBot(payload.comment) || (human(payload.comment?.user) &&
+                        trusted(payload.comment?.author_association))) &&
+                       typeof payload.comment?.body === 'string' &&
+                       /^@pr-review(?:\s|$)/.test(payload.comment.body) &&
+                       Number.isSafeInteger(payload.comment.id) && payload.comment.id > 0) {
+              number = payload.issue.number;
+              // `@pr-review full` re-reviews the whole PR instead of only new findings.
+              full = /^@pr-review\s+full(?:\s|$)/.test(payload.comment.body);
+            }
+            if (Number.isSafeInteger(number) && number > 0) {
+              const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: number});
+              const actor = context.eventName === 'pull_request' ? payload.pull_request : payload.comment;
+              let botAllowed = true;
+              if (trustedBot(actor)) {
+                let liveActor = pr;
+                if (context.eventName === 'issue_comment') {
+                  const {data: comment} = await github.rest.issues.getComment({owner, repo,
+                    comment_id: payload.comment.id});
+                  const issueUrl = (process.env.GITHUB_API_URL || 'https://api.github.com') +
+                    `/repos/${owner}/${repo}/issues/${number}`;
+                  liveActor = comment;
+                  botAllowed = comment.id === payload.comment.id && comment.issue_url === issueUrl &&
+                    typeof comment.body === 'string' && /^@pr-review(?:\s|$)/.test(comment.body);
+                }
+                botAllowed = botAllowed && trustedBot(liveActor) &&
+                  liveActor.user.login === actor.user.login;
+              }
+              allowed = botAllowed && pr.number === number && pr.state === 'open' &&
+                pr.head.repo?.full_name === process.env.GITHUB_REPOSITORY;
+              live = pr;
+            }
+          }
+          // The review runs on the head this live read saw, and the gate needs a review on it.
+          const sha = live?.head?.sha;
+          allowed = allowed && typeof sha === 'string' && /^[0-9a-f]{40}$/.test(sha) &&
+            typeof live.base?.ref === 'string' && live.base.ref.length > 0;
+          core.setOutput('allowed', String(allowed));
+          if (allowed) {
+            core.setOutput('number', String(live.number));
+            core.setOutput('head_sha', sha);
+            core.setOutput('base_ref', live.base.ref);
+            core.setOutput('full', String(full));
+          }
+          core.info(allowed ? 'Authorized review.' : 'Ignored event; no review runner allocated.');
+  review:
+    name: OCR review
+    needs: authorize
+    if: needs.authorize.outputs.allowed == 'true'
+    runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 35
+    concurrency:
+      group: ocr-review-${{ github.repository }}-${{ needs.authorize.outputs.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+    # The action checks out the trusted base and fetches only the head's objects;
+    # it never runs the PR's code. Pinned to the v1.13.1 tag's commit.
+    - name: Run OpenCodeReview
+      id: ocr
+      uses: alibaba/open-code-review@8eb83340a487b1150af00701b94f01af97e4b4d6 # v1.13.1
+      with:
+        ocr_version: 1.13.1
+        llm_url: https://api.anthropic.com
+        llm_use_anthropic: 'true'
+        llm_protocol: anthropic
+        llm_model: claude-sonnet-5-5
+        llm_auth_token: ${{ secrets.ANTHROPIC_API_KEY }}
+        # The Action's default body adds `"thinking": {"type": "disabled"}`, and the
+        # Anthropic API answered every request with 400. Send the plain request.
+        llm_extra_body: '{}'
+        github_token: ${{ github.token }}
+        pr_number: ${{ needs.authorize.outputs.number }}
+        base_ref: ${{ needs.authorize.outputs.base_ref }}
+        head_sha: ${{ needs.authorize.outputs.head_sha }}
+        incremental: 'true'
+        sticky_summary: 'true'
+        # Without checkpoints every run reviews merge-base..head and full_review does nothing (the
+        # pinned action.yml): a request reviews only what changed since the last covered head.
+        checkpoint_range: 'true'
+        full_review: ${{ needs.authorize.outputs.full }}
+        max_tokens_budget: '2000000'
+        upload_artifacts: 'true'
+    # The merge gate counts a github-actions[bot] review whose commit_id is the
+    # exact head. OCR posts inline findings as such reviews, but with nothing
+    # new to post it writes only its sticky summary comment. Then this step
+    # posts one COMMENT review on the head carrying that summary, so every
+    # completed run leaves the review the gate reads.
+    - name: Ensure a review on the head
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+      env:
+        PR_NUMBER: ${{ needs.authorize.outputs.number }}
+        HEAD_SHA: ${{ needs.authorize.outputs.head_sha }}
+        SUMMARY_URL: ${{ steps.ocr.outputs.summary_comment_url }}
+        INLINE: ${{ steps.ocr.outputs.comments_inline }}
+      with:
+        script: |
+          const {owner, repo} = context.repo;
+          const pull_number = Number(process.env.PR_NUMBER);
+          const head = process.env.HEAD_SHA;
+          if (Number(process.env.INLINE || 0) > 0) {
+            core.info('OCR posted its inline review on the head ' + head + '.');
+            return;
+          }
+          const tag = `<!-- ocr-review-run:${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT} -->`;
+          const reviews = await github.paginate(github.rest.pulls.listReviews,
+            {owner, repo, pull_number, per_page: 100});
+          const posted = reviews.some(review => review.user?.login === 'github-actions[bot]' &&
+            review.commit_id === head && (review.body || '').includes(tag));
+          if (posted) {
+            core.info('This run already posted its review on the head ' + head + '.');
+            return;
+          }
+          let summary = 'OpenCodeReview finished with no new inline findings.';
+          const id = /\/issues\/comments\/(\d+)$/.exec(process.env.SUMMARY_URL || '')?.[1] ||
+            /#issuecomment-(\d+)$/.exec(process.env.SUMMARY_URL || '')?.[1];
+          if (id) {
+            const {data: comment} = await github.rest.issues.getComment({owner, repo,
+              comment_id: Number(id)});
+            if (typeof comment.body === 'string' && comment.body.trim()) summary = comment.body;
+          }
+          await github.rest.pulls.createReview({owner, repo, pull_number, commit_id: head,
+            event: 'COMMENT', body: `${tag}\n${summary}`});
+          core.info('Posted the run review on the head ' + head + '.');
