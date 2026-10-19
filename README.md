@@ -57,7 +57,7 @@ What is not here: a hosted service, accounts, billing, telemetry by default, or 
 
 ## Quick start (Linux)
 
-You need an Ubuntu 24.04 environment with GCC 14, about 13 GB of disk per build environment, and an hour: a clean build measured **41 minutes on 5 of 16 cores**, an unchanged re-run about a minute. The full walkthrough is [`docs/getting-started.md`](docs/getting-started.md); the build details are [`BUILD-LAMPWAY.md`](BUILD-LAMPWAY.md).
+You need an Ubuntu 24.04 environment with GCC 14, about 13 GB of disk per build environment, and an hour: a clean build measured **41 minutes on 5 of 16 cores**, an unchanged re-run about a minute. The full walkthrough is [`docs/getting-started.md`](docs/getting-started.md); the build details are [`BUILD-LAMPWAY.md`](BUILD-LAMPWAY.md). The motion-graphics tool also needs a headless Chromium it does not ship: set `LAMPWAY_CHROMIUM` as in [`BUILD-LAMPWAY.md`](BUILD-LAMPWAY.md) section 8.
 
 ```bash
 git clone https://github.com/Keigyoku/lampway.git     # the build script fetches the upstream submodule itself, shallow
