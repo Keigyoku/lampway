@@ -19,7 +19,7 @@ Behavior follows the [agent wrapper](../../../server/lampway_server/agent/motion
 ## Entry points
 
 - The agent tool `lampway_motion_graphics` takes the JSON inputs below and returns JSON.
-- The AXI CLI `python -m lampway_server.motion` ([cli.py](../../server/lampway_server/motion/cli.py)) is a thin layer over the same `_work` (the same checks, receipt and Vault filing). The project is `LAMPWAY_PROJECT_ROOT` or the working directory.
+- The AXI CLI `python -m lampway_server.motion` ([cli.py](../../../server/lampway_server/motion/cli.py)) is a thin layer over the same `_work` (the same checks, receipt and Vault filing). The project is `LAMPWAY_PROJECT_ROOT` or the working directory.
   - With no arguments it prints `bin`, a one-line `description`, `project`, `scenes[N]{name}` and the newest ten `runs[N]{run_id,ok,warn}` (`0 scenes`/`0 runs` when there are none).
   - `render --scene <dir> [--width --height --fps --duration --template id@v --var k=v --no-vault --full]` and `verify --receipt <path> [--full]`.
   - Output is TOON (`compute/toon_out.py`) with minimal default fields (findings as `{frame,check,severity}`, at most ten rows with a `_shown` count); `--full` adds every row, finding details, hashes, outputs and timings. Every output ends in `help[]`.
