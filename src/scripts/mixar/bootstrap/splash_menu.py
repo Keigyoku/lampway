@@ -264,6 +264,9 @@ def register():
     global _splash_mode_chosen
     _splash_mode_chosen = False
     bpy.utils.register_class(LAMPWAY_MT_splash_help)
+    native = getattr(bpy.types, "WM_MT_splash", None)
+    if native is not None and native is not WM_MT_splash:
+        bpy.utils.unregister_class(native)      # replaced quietly: a same-name register_class prints "registered before" on every start
     bpy.utils.register_class(WM_MT_splash)
 
 
