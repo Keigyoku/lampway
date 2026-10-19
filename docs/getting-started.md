@@ -104,6 +104,7 @@ Profile menu, **Connect AI Apps (MCP)**, enable MCP, pick your app and click **A
 | Studio shelf | `LAMPWAY_STUDIO_SHELF` | a folder of AXI studio drivers that supersedes the bundled ports (`tripo_uv` and paired `--views` need it) |
 | tool browser | `LAMPWAY_STUDIO_CDP` | the debugging address of the browser holding your studio login (default `http://127.0.0.1:9333`) |
 | studio guard | `LAMPWAY_STUDIO_ARMED=1` | set by the confirmed run for that process only; never set it yourself globally |
+| motion browser | `LAMPWAY_CHROMIUM` | Chrome for Testing's `chrome-headless-shell`, which `lampway_motion_graphics` renders in; without it the tool refuses with `no headless Chromium (set LAMPWAY_CHROMIUM)` (install: [`BUILD-LAMPWAY.md`](../BUILD-LAMPWAY.md) section 8) |
 | AutoRemesher | `LAMPWAY_AUTOREMESHER_BIN` | the executable built by `native/quadremesh/build.sh`; the app never downloads one |
 | your own agents | `LAMPWAY_LOCAL_CLI=1` | lets the cockpit start your own Claude Code, Codex or OpenCode in its panes (see [cockpit](cockpit.md)) |
 | herdr | `LAMPWAY_HERDR_BIN`, `LAMPWAY_HERDR_BUILDS`, `LAMPWAY_HERDR_ROOT` | the cockpit's own herdr server (see [cockpit](cockpit.md)): the pinned build under `LAMPWAY_HERDR_BUILDS` (default `build/herdr`) is used ahead of one on PATH; `LAMPWAY_HERDR_BIN` overrides both |
