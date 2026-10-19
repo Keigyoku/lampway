@@ -537,7 +537,7 @@ class AgentHub:
         if call.name in engine_tools.NAMES:
             return await engine_tools.call(call.name, call.arguments)
         if call.name in motion_tools.NAMES:
-            return await motion_tools.call(self.assets, server_tools.project_root(), call.name, call.arguments)
+            return await self._run_motion_tool(call, stream, bubble_id, steps)
         if call.name in image_tools.NAMES:
             return await image_tools.call(self.prompts, call.name, call.arguments)
         if call.name in video_tools.NAMES:
@@ -575,15 +575,32 @@ class AgentHub:
             "script": script, "tool_name": tool_name, "session_id": session_id, "agent_ctx": agent_ctx,
         }, timeout=self.script_timeout_s)
 
-    async def _run_swarm_tool(self, socket, session, turn, call, stream, bubble_id, steps):
-        pending: list = []
-
-        def progress(text: str):
+    @staticmethod
+    def _step_detail(stream, bubble_id, steps, pending: list):
+        """A progress line shown as the tool bubble's last step detail (on the event loop); the emits land in ``pending``."""
+        def show(text: str):
             if stream is None or not steps:
                 return
             steps[-1]["detail"] = text[:160]
             pending.append(asyncio.ensure_future(
                 stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})))
+        return show
+
+    async def _run_motion_tool(self, call, stream, bubble_id, steps):
+        loop, pending = asyncio.get_running_loop(), []
+        show = self._step_detail(stream, bubble_id, steps, pending)
+
+        def progress(row):                                              # the render thread: the bubble is the loop's
+            loop.call_soon_threadsafe(show, motion_tools.progress_line(row))
+        try:
+            return await motion_tools.call(self.assets, server_tools.project_root(), call.name, call.arguments, progress=progress)
+        finally:
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
+
+    async def _run_swarm_tool(self, socket, session, turn, call, stream, bubble_id, steps):
+        pending: list = []
+        progress = self._step_detail(stream, bubble_id, steps, pending)
 
         async def emit_todo(rows):
             await stream.emit_quietly({"bubble_id": bubble_id, "todo": rows})
