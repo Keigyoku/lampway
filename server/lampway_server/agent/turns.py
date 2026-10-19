@@ -582,8 +582,8 @@ class AgentHub:
             if stream is None or not steps:
                 return
             steps[-1]["detail"] = text[:160]
-            pending.append(asyncio.ensure_future(
-                stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": list(steps)}})))
+            items = [dict(s) for s in steps]                            # this line's snapshot: the next one may land before this emit runs
+            pending.append(asyncio.ensure_future(stream.emit_quietly({"bubble_id": bubble_id, "steps": {"items": items}})))
         return show
 
     async def _run_motion_tool(self, call, stream, bubble_id, steps):

@@ -43,6 +43,18 @@ def test_each_motion_progress_row_becomes_the_bubbles_step_detail(monkeypatch):
     assert steps[-1]["detail"] == "render 60/60 frames, 5.1 s, eta 0 s"
 
 
+def test_two_lines_shown_before_either_emit_runs_each_keep_their_own_detail():
+    async def scenario():
+        stream, steps, pending = _Stream(), [{"label": MT.NAME, "detail": ""}], []
+        show = AgentHub._step_detail(stream, "b1", steps, pending)
+        show("first")
+        show("second")                                                  # both before the loop runs either emit
+        await asyncio.gather(*pending)
+        return stream.payloads
+
+    assert [p["steps"]["items"][-1]["detail"] for p in asyncio.run(scenario())] == ["first", "second"]
+
+
 def test_without_a_bubble_a_motion_render_still_runs_and_reports_nothing(monkeypatch):
     seen = []
 
