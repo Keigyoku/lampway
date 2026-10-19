@@ -114,6 +114,11 @@ clear notice and skips the review successfully. The Captain's seeder sets
 `CHATGPT_REVIEW_SEEDED` only after its run and independent durable read-back
 succeed. Seed dispatches can initialize the store; configured-session integrity
 and rotation failures still fail red. The current repo setting selects Tenki.
+The model provider is the `REVIEW_PROVIDER` variable: `anthropic` reviews with
+the `ANTHROPIC_API_KEY` secret (model `REVIEW_MODEL`, default the adapter's)
+and needs no ChatGPT session, so schedule and dispatch runs skip; unset keeps
+the ChatGPT bridge. Either way the pinned adapter package must be a revision
+that carries the provider (the adapter's `docs/anthropic-review-provider.md`).
 
 Each job installs an authenticated pinned adapter package, serves loopback,
 and uses this repo's stable SIWC host and encrypted durable credential store.
@@ -268,3 +273,4 @@ and restoring prior global scene state.
 | 2026-10-13 | unseeded review notice | Captain: merged caller before repo seeding | missing credentials turned ordinary PR openings red | check the verified-seed flag and configuration before setup; skip with notice while preserving configured-session failures | RED-first actual Node readiness gate; synthetic saved-key replay |
 | 2026-10-15 | trusted crew bot review admission | Captain: trust Vellum Bot Box for PR-open and requested reviews | human-only authorization refused crew PRs and their re-review requests | admit the exact vellum-bot-box[bot] Bot identity with app id 5311490 wherever metadata exists, retaining human checks, same-repo gates and review isolation | Captain decision, 2026-10-15 |
 | 2026-10-15 | incremental requested review rollout | Captain: incremental comments with explicit full override and safe readiness retry | callers lacked the third authenticated package chunk and the review-mode contract | forward PACKAGE_3 and document full PR-open, incremental comments, explicit full override and safe full fallback without changing admission gates | exact adapter source and generated caller digest recorded in the PR |
+| 2026-10-19 | Anthropic review provider | Captain approved switching Lampway's PR reviewer to the Anthropic route the org repos use (relayed by the Crew Lead) | every ChatGPT-plan review failed with HTTP 429, so no PR could reach its gate | the caller is the adapter's generated lampway caller at 53c5c95a: REVIEW_PROVIDER selects the model provider; trusted bots, runner variables and admission gates unchanged | generated caller byte-identical to the adapter's docs/caller-workflows/ephemeral-lampway.yml at 53c5c95a |

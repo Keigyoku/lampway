@@ -136,7 +136,8 @@ jobs:
     env:
       CHATGPT_TRUSTED_BOTS: '[{"login":"vellum-bot-box[bot]","type":"Bot","app_id":5311490}]'
     needs: authorize
-    if: needs.authorize.outputs.allowed == 'true' && github.event.inputs.mode != 'probe'
+    if: needs.authorize.outputs.allowed == 'true' && github.event.inputs.mode != 'probe' && !(contains(vars.REVIEW_PROVIDER,
+      'anthropic') && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))
     runs-on: ${{ vars.CHATGPT_REVIEW_RUNNER || 'shipfox-2vcpu-ubuntu-2404' }}
     timeout-minutes: 35
     concurrency:
@@ -150,6 +151,9 @@ jobs:
       env:
         SESSION_MODE: ${{ github.event.inputs.mode }}
         SESSION_SEEDED: ${{ vars.CHATGPT_REVIEW_SEEDED }}
+        EVENT_NAME: ${{ github.event_name }}
+        REVIEW_PROVIDER: ${{ vars.REVIEW_PROVIDER }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
         CHATGPT_ADAPTER_PACKAGE_1: ${{ secrets.CHATGPT_ADAPTER_PACKAGE_1 }}
         CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
@@ -160,12 +164,24 @@ jobs:
           const env = process.env;
           const configured = Boolean(env.CHATGPT_CREDENTIAL_KEY &&
             env.CHATGPT_ADAPTER_PACKAGE_1 && env.CHATGPT_REVIEW_HOST_ID);
-          const ready = configured && (env.SESSION_MODE === 'seed' ?
-            Boolean(env.CHATGPT_CREDENTIAL_SEED) : env.SESSION_SEEDED === 'true');
-          core.setOutput('ready', String(ready));
-          if (!ready) {
-            core.notice('ChatGPT review skipped: this repository has not completed credential seeding. ' +
-              'The Captain must run scripts/seed-ephemeral.sh; no review was posted.');
+          const provider = (env.REVIEW_PROVIDER || 'chatgpt').trim().toLowerCase();
+          if (provider === 'anthropic') {
+            // No ChatGPT session to seed or refresh; only review events need a runner.
+            const review = env.EVENT_NAME === 'pull_request' || env.EVENT_NAME === 'issue_comment';
+            const ready = configured && Boolean(env.ANTHROPIC_API_KEY) && review;
+            core.setOutput('ready', String(ready));
+            if (review && !ready) {
+              core.notice('Anthropic review skipped: ANTHROPIC_API_KEY or the adapter package is not ' +
+                'configured; no review was posted.');
+            }
+          } else {
+            const ready = configured && (env.SESSION_MODE === 'seed' ?
+              Boolean(env.CHATGPT_CREDENTIAL_SEED) : env.SESSION_SEEDED === 'true');
+            core.setOutput('ready', String(ready));
+            if (!ready) {
+              core.notice('ChatGPT review skipped: this repository has not completed credential seeding. ' +
+                'The Captain must run scripts/seed-ephemeral.sh; no review was posted.');
+            }
           }
     - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
@@ -269,6 +285,9 @@ jobs:
         CHATGPT_CREDENTIAL_KEY: ${{ secrets.CHATGPT_CREDENTIAL_KEY }}
         CHATGPT_REVIEW_HOST_ID: ${{ vars.CHATGPT_REVIEW_HOST_ID }}
         CHATGPT_CREDENTIAL_SEED: ${{ secrets.CHATGPT_CREDENTIAL_SEED }}
+        REVIEW_PROVIDER: ${{ vars.REVIEW_PROVIDER }}
+        REVIEW_MODEL: ${{ vars.REVIEW_MODEL }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       with:
         script: |
           const {spawnSync} = require('node:child_process');
