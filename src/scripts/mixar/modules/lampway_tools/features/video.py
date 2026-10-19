@@ -17,6 +17,18 @@ from . import common as C
 
 MAX_FRAMES = 1200
 ENGINES = {"workbench": "BLENDER_WORKBENCH", "eevee": "BLENDER_EEVEE"}
+DEFAULT_WORLD = (0.05, 0.05, 0.06)
+
+
+def _world_colour(background):
+    """A #RRGGBB (sRGB) background as the world's linear colour; None keeps the default near-black."""
+    if background is None:
+        return DEFAULT_WORLD
+    s = str(background)
+    if len(s) != 7 or s[0] != "#" or any(c not in "0123456789abcdefABCDEF" for c in s[1:]):
+        raise C.FeatureError(f"background {background!r}: pass a #RRGGBB colour, e.g. #0D0D0F")
+    srgb = [int(s[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    return tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in srgb)
 
 
 def _center_and_radius(ob):
@@ -27,7 +39,12 @@ def _center_and_radius(ob):
 
 
 def render_video(object, out, kind="turntable", frames=48, width=640, height=360, fps=24, engine="workbench", waypoints=None,
-                 elevation=20.0, distance=None):
+                 elevation=20.0, distance=None, background=None):
+    world_colour = _world_colour(background)
+    if not -89 <= float(elevation) <= 89:
+        raise C.FeatureError(f"elevation {elevation!r}: pass degrees in -89..89 (straight above or below has no turntable)")
+    if distance is not None and not 0.001 <= float(distance) < math.inf:
+        raise C.FeatureError(f"distance {distance!r}: pass metres, at least 0.001")
     if engine.startswith("model:"):
         raise C.FeatureError(f"{engine}: the generative video model is not wired (no driver exists); use engine='workbench' or 'eevee' for a rendered move")
     if engine == "cycles":
@@ -66,8 +83,11 @@ def render_video(object, out, kind="turntable", frames=48, width=640, height=360
                 a = 2 * math.pi * (f - 1) / frames
                 cam.location = center + Vector((dist * math.cos(el) * math.sin(a), -dist * math.cos(el) * math.cos(a), dist * math.sin(el)))
                 cam.keyframe_insert("location", frame=f)
+                if f == 1:
+                    start = list(cam.location)
         else:
             pts = sorted(waypoints, key=lambda w: int(w["frame"]))
+            start = list(Vector(pts[0]["location"]))
             sc.frame_end = int(pts[-1]["frame"])
             frames = sc.frame_end - sc.frame_start + 1
             edit = bpy.context.preferences.edit
@@ -90,7 +110,7 @@ def render_video(object, out, kind="turntable", frames=48, width=640, height=360
         r.filepath = out
         world = bpy.data.worlds.new("lw_video_world")
         world.use_nodes = False
-        world.color = (0.05, 0.05, 0.06)
+        world.color = world_colour
         sc.world = world
         if engine == "eevee":
             sun = bpy.data.objects.new("lw_video_sun", bpy.data.lights.new("lw_video_sun", "SUN"))
@@ -108,4 +128,4 @@ def render_video(object, out, kind="turntable", frames=48, width=640, height=360
     if not os.path.exists(path):
         raise C.FeatureError(f"the render produced no file at {out}")
     return {"file": path, "frames": frames, "fps": int(fps), "size": [int(width), int(height)], "engine": engine, "kind": kind,
-            "bytes": os.path.getsize(path), "waypoints": len(waypoints or [])}
+            "bytes": os.path.getsize(path), "waypoints": len(waypoints or []), "camera_start": [round(v, 6) for v in start]}

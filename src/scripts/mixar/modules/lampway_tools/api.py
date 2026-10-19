@@ -1949,11 +1949,14 @@ def splat_import(path, max_points=200000, name="lw_splat"):
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))
-def render_video(object, out, kind="turntable", frames=48, width=640, height=360, fps=24, engine="workbench", waypoints=None):
-    """Render a turntable or a keyframed camera path (``waypoints``: [{frame, location}]) of ``object`` to an H.264 mp4 under the project
-    root with the light engines (workbench | eevee; never Cycles), in a throw-away scene. engine=model:<name> is the generative video
-    slot: not wired."""
-    return _F_video.render_video(object, _p(out), kind, frames, width, height, fps, engine, waypoints)
+def render_video(object, out, kind="turntable", frames=48, width=640, height=360, fps=24, engine="workbench", waypoints=None,
+                 elevation=20.0, distance=None, background=None):
+    """Render a turntable (``elevation`` degrees, ``distance`` metres) or a keyframed camera path (``waypoints``: [{frame, location}]) of
+    ``object`` to an H.264 mp4 under the project root with the light engines (workbench | eevee; never Cycles), in a throw-away scene
+    with a ``background`` #RRGGBB world. ``file`` comes back project-relative. engine=model:<name> is the generative video slot: not wired."""
+    root = _settings().project_root
+    res = _F_video.render_video(object, _p(out, root), kind, frames, width, height, fps, engine, waypoints, elevation, distance, background)
+    return dict(res, file=os.path.relpath(res["file"], root))
 
 
 @tool(consumes=LEGACY("canon N2 rollout: declare Need/NONE (specs/canon/normalization contracts/canon_migration.md)"))

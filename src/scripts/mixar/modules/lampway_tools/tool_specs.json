@@ -1974,6 +1974,30 @@
      "required": false,
      "flag": null,
      "repeat": false
+    },
+    {
+     "name": "elevation",
+     "type": "number",
+     "desc": "Turntable camera height in degrees above the object's centre, default 20",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "distance",
+     "type": "number",
+     "desc": "Turntable camera distance in metres, default 3.2 x the object's bounding radius",
+     "required": false,
+     "flag": null,
+     "repeat": false
+    },
+    {
+     "name": "background",
+     "type": "string",
+     "desc": "World colour #RRGGBB, default a near-black grey; the scene's view transform still applies",
+     "required": false,
+     "flag": null,
+     "repeat": false
     }
    ]
   },
