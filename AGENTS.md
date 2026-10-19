@@ -90,50 +90,25 @@ The canonical source of each skill is `rail/skills/<name>/SKILL.md`; `.agents/sk
 | `docs/` | measured reports, the roadmap, the user documentation and the algorithm canon (`docs/canon/`) |
 | `docs/canon/motion_graphics/` | motion scene/tool contracts and acceptance; implemented behavior is pinned to PR3, open requirements remain explicit |
 | `rail/` | this rail: the canonical skills, the catalog and the check |
-| `.github/workflows/chatgpt-pr-review.yml` | same-repository PR-open and requested reviews on ephemeral runners |
+| `.github/workflows/ocr-pr-review.yml` | same-repository PR-open and requested reviews by OpenCodeReview on the Anthropic key |
 
-PR-open reviews and authorized `@pr-review` PR comments run on ephemeral
-GitHub Actions runners. `CHATGPT_REVIEW_RUNNER` is the single per-repo provider
-setting; the default is Shipfox's smallest documented Linux x64 label. OWNER,
-MEMBER or COLLABORATOR human authors retain their live permission checks.
-The explicit trusted-bot allow-list also admits only `vellum-bot-box[bot]`
-with account type `Bot` and app id `5311490` wherever the event carries app
-metadata, for both PR-open authors and `@pr-review` comment authors. A login
-match alone never grants trust. Hosted validation checks the live same-repo
-PR before allocating the review runner; other bots, ordinary comments, plain
-issues, closed PRs and fork heads are excluded.
+PR-open reviews and authorized `@pr-review` PR comments run OpenCodeReview
+(`alibaba/open-code-review`, pinned v1.13.1) on the `ANTHROPIC_API_KEY` secret
+(`.github/workflows/ocr-pr-review.yml`). The `authorize` job holds the trust
+model and needs no review secret. OWNER, MEMBER or COLLABORATOR human authors
+pass, and the explicit trusted-bot allow-list admits only `vellum-bot-box[bot]`
+with account type `Bot` and app id `5311490`, re-read live wherever the event
+carries app metadata. A login match alone never grants trust. Only an open
+same-repository PR gets a runner. Other bots, ordinary comments, plain issues,
+closed PRs and fork heads are excluded. `CI_RUNNER` selects the authorize
+runner and `CHATGPT_REVIEW_RUNNER` the review runner (both Tenki here).
 Pushes never request reviews. PR-open reviews are full; `@pr-review` reviews
-commits since the last trusted reviewed head, and `@pr-review full` requests a full
-pass. Missing or invalid incremental baselines fall back to a full review.
-A successful job verifies one fresh COMMENT review with an overview and exact
-inline findings. The authenticated adapter package includes all three chunks.
-The reviewer never checks out or executes PR files, applies fixes, offers suggestions, commits or pushes.
-
-Before setup, an unseeded repo or missing credential configuration emits a
-clear notice and skips the review successfully. The Captain's seeder sets
-`CHATGPT_REVIEW_SEEDED` only after its run and independent durable read-back
-succeed. Seed dispatches can initialize the store; configured-session integrity
-and rotation failures still fail red. The current repo setting selects Tenki.
-The model provider is the `REVIEW_PROVIDER` variable: `anthropic` reviews with
-the `ANTHROPIC_API_KEY` secret (model `REVIEW_MODEL`, default the adapter's)
-and needs no ChatGPT session, so schedule and dispatch runs skip; unset keeps
-the ChatGPT bridge. Either way the pinned adapter package must be a revision
-that carries the provider (the adapter's `docs/anthropic-review-provider.md`).
-
-Each job installs an authenticated pinned adapter package, serves loopback,
-and uses this repo's stable SIWC host and encrypted durable credential store.
-The whole credential job is serialized per repo, including weekly readiness
-and seeding. Rotated tokens must be uploaded and authenticated by read-back
-before new access is used; failed verification makes the job red. Credentials
-and source are absent from caches. Weekly readiness refreshes only when needed.
-The Captain logs in and seeds independent profiles. Comment dispatch requires
-this caller on the default branch. The no-secret provider probe proves routing
-and artifact capabilities, not a PR review. Stopped legacy Boat boxes and keys
-remain until PR-open and requested reviews are green on both repositories;
-then the authorized retirement removes their runners, boxes, keys and secrets.
-
-The public caller embeds the trusted workflow because a public repository
-cannot call a private reusable workflow.
+incrementally and `@pr-review full` requests a full pass. The review runs on the
+head SHA the live authorization read. Every completed run leaves a
+`github-actions[bot]` review on that exact head (OCR's inline review, or one
+COMMENT review carrying its summary), which is what the merge gate counts. The
+action checks out the trusted base and fetches only the head's objects; the
+reviewer never executes PR files, commits or pushes.
 
 ## Governing runtime contracts
 
@@ -274,3 +249,4 @@ and restoring prior global scene state.
 | 2026-10-15 | trusted crew bot review admission | Captain: trust Vellum Bot Box for PR-open and requested reviews | human-only authorization refused crew PRs and their re-review requests | admit the exact vellum-bot-box[bot] Bot identity with app id 5311490 wherever metadata exists, retaining human checks, same-repo gates and review isolation | Captain decision, 2026-10-15 |
 | 2026-10-15 | incremental requested review rollout | Captain: incremental comments with explicit full override and safe readiness retry | callers lacked the third authenticated package chunk and the review-mode contract | forward PACKAGE_3 and document full PR-open, incremental comments, explicit full override and safe full fallback without changing admission gates | exact adapter source and generated caller digest recorded in the PR |
 | 2026-10-19 | Anthropic review provider | Captain approved switching Lampway's PR reviewer to the Anthropic route the org repos use (relayed by the Crew Lead) | every ChatGPT-plan review failed with HTTP 429, so no PR could reach its gate | the caller is the adapter's generated lampway caller at 53c5c95a: REVIEW_PROVIDER selects the model provider; trusted bots, runner variables and admission gates unchanged | generated caller byte-identical to the adapter's docs/caller-workflows/ephemeral-lampway.yml at 53c5c95a |
+| 2026-10-19 | OCR replaces the ChatGPT PR reviewer | Captain's reviewer switch, relayed by the Crew Lead: journey's OCR reviewer (Vellum-ADE/journey #606) for this repo | the ChatGPT-plan caller depended on a seeded session, an encrypted adapter package and a usage-limited plan | ocr-pr-review.yml: lampway's authorize job without session-maintenance events, now passing the live head SHA, base ref and full flag; journey's OCR review job on ANTHROPIC_API_KEY with lampway's runner variable; chatgpt-pr-review.yml removed | the PR's own run posts a github-actions[bot] review on its exact head |
