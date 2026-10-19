@@ -28,6 +28,9 @@ class Progress:
             return
         if done in (1, total) or self._last is None or now - self._last >= self.every:
             self._last = now
-            eta = elapsed / (done - 1) * (total - done) if done > 1 else None     # the clock starts at the first frame: done - 1 intervals
+            if done >= total:
+                eta = 0.0
+            else:
+                eta = elapsed / (done - 1) * (total - done) if done > 1 else None  # the clock starts at the first frame: done - 1 intervals
             self.emit({"phase": phase, "frame": done, "frames": total, "elapsed_s": round(elapsed, 1),
                        "eta_s": round(eta, 1) if eta is not None else None})

@@ -666,6 +666,13 @@ def test_progress_is_throttled_and_reports_each_phase_first_and_last_frame():
     assert p.phases == [{"phase": "render", "frames": 100, "seconds": 49.5}, {"phase": "probe", "frames": 1, "seconds": 0.0}]
 
 
+def test_a_finished_phase_reports_eta_zero_even_with_one_frame():
+    from lampway_server.motion.progress import Progress
+    rows = []
+    Progress(rows.append, clock=lambda: 3.0).report("probe", 1, 1)
+    assert rows == [{"phase": "probe", "frame": 1, "frames": 1, "elapsed_s": 0.0, "eta_s": 0.0}]
+
+
 def test_render_and_verify_answer_with_their_phases_and_feed_a_callable(tmp_path):
     project = _project(tmp_path)
     rows = []
