@@ -165,6 +165,9 @@ jobs:
         head_sha: ${{ needs.authorize.outputs.head_sha }}
         incremental: 'true'
         sticky_summary: 'true'
+        # Without checkpoints every run reviews merge-base..head and full_review does nothing (the
+        # pinned action.yml): a request reviews only what changed since the last covered head.
+        checkpoint_range: 'true'
         full_review: ${{ needs.authorize.outputs.full }}
         max_tokens_budget: '2000000'
         upload_artifacts: 'true'
@@ -179,18 +182,23 @@ jobs:
         PR_NUMBER: ${{ needs.authorize.outputs.number }}
         HEAD_SHA: ${{ needs.authorize.outputs.head_sha }}
         SUMMARY_URL: ${{ steps.ocr.outputs.summary_comment_url }}
+        INLINE: ${{ steps.ocr.outputs.comments_inline }}
       with:
         script: |
           const {owner, repo} = context.repo;
           const pull_number = Number(process.env.PR_NUMBER);
           const head = process.env.HEAD_SHA;
+          if (Number(process.env.INLINE || 0) > 0) {
+            core.info('OCR posted its inline review on the head ' + head + '.');
+            return;
+          }
           const tag = `<!-- ocr-review-run:${process.env.GITHUB_RUN_ID}-${process.env.GITHUB_RUN_ATTEMPT} -->`;
           const reviews = await github.paginate(github.rest.pulls.listReviews,
             {owner, repo, pull_number, per_page: 100});
           const posted = reviews.some(review => review.user?.login === 'github-actions[bot]' &&
             review.commit_id === head && (review.body || '').includes(tag));
           if (posted) {
-            core.info('OCR posted its review on the head ' + head + '.');
+            core.info('This run already posted its review on the head ' + head + '.');
             return;
           }
           let summary = 'OpenCodeReview finished with no new inline findings.';
