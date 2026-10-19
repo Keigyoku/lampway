@@ -658,7 +658,8 @@ def test_progress_is_throttled_and_reports_each_phase_first_and_last_frame():
         now[0] = i * 0.5                                                     # 0.5 s a frame: 50 s for 100 frames
         p.report("render", i, 100)
     assert [r["frame"] for r in rows] == [1, 11, 21, 31, 41, 51, 61, 71, 81, 91, 100]
-    assert rows[1] == {"phase": "render", "frame": 11, "frames": 100, "elapsed_s": 5.0, "eta_s": 40.5}
+    assert rows[0]["eta_s"] is None                                          # one frame is no pace yet
+    assert rows[1] == {"phase": "render", "frame": 11, "frames": 100, "elapsed_s": 5.0, "eta_s": 44.5}   # 10 intervals in 5 s, 89 to go
     now[0] = 60.0
     p.report("probe", 1, 8)
     assert rows[-1]["phase"] == "probe" and rows[-1]["elapsed_s"] == 0.0
