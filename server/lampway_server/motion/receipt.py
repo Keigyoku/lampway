@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Lampway contributors
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The receipt, the per-frame hashes and the Vault filing (motion_graphics.md section 5).
+"""The receipt, the per-frame hashes and the Vault filing (docs/canon/motion_graphics/tool.md, Receipt and artifact inventory).
 
 ``frames.sha256`` holds one ``index t sha256`` row per frame, the hash taken over the decoded RGB pixels; ``frames_sha256_digest`` is the sha256 of
 that file. Frame hashes are the proof, not output hashes: in the spike a pair whose WebM hashes matched differed in one frame. Paths in a receipt are
@@ -40,7 +40,7 @@ def seal(receipt: dict, out: Path, project_root: Path, *, cancel=None) -> dict:
     root = Path(project_root).resolve()
     trusted = json.loads(json.dumps(receipt))
     copied = {}
-    for fmt in ("mp4", "webm", "receipt", "contact"):
+    for fmt in ("mp4", "webm", "receipt", "contact", "audit"):
         if cancel is not None:
             cancel.check()
         if fmt not in trusted["files"]:
@@ -54,6 +54,8 @@ def seal(receipt: dict, out: Path, project_root: Path, *, cancel=None) -> dict:
             raise F.SceneError(f"{fmt} changed before Vault sealing: render again")
         if fmt == "contact" and hashlib.sha256(data).hexdigest() != (trusted.get("artifact_hashes") or {}).get("contact"):
             raise F.SceneError("contact sheet changed or lacks a trusted generation hash: render again before Vault filing")
+        if fmt == "audit" and hashlib.sha256(data).hexdigest() != (trusted.get("artifact_hashes") or {}).get("audit"):
+            raise F.SceneError("audit.jsonl changed or lacks a trusted generation hash: render again before Vault filing")
         if fmt == "receipt" and json.loads(data) != trusted:
             raise F.SceneError("receipt changed before Vault sealing: render again")
         copied[fmt] = data
@@ -61,7 +63,8 @@ def seal(receipt: dict, out: Path, project_root: Path, *, cancel=None) -> dict:
 
 
 def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None, *, sealed=None, cancel=None) -> dict:
-    """ONE ``provenance.capture`` call: MP4 (or WebM when alone) is the primary video render, plus the QA receipt and image strip.
+    """ONE ``provenance.capture`` call: MP4 (or WebM when alone) is the primary video render, plus the QA receipt, image strip and, with
+    ``audit_every_s``, the audit stream.
     Relationship intents travel with the capture and spool, so replay completes an interrupted filing. Sealed bytes are never reopened."""
     from ..library import provenance as PV
     from ..library.store import LibraryError
@@ -82,6 +85,9 @@ def file_in_vault(vault, project_root: Path, receipt: dict, prompt_text=None, *,
     formats.append("receipt")
     outputs.append({"bytes": sealed["files"]["contact"], "kind": "image", "subtype": "strip", "name": f"{name} contact sheet"})
     formats.append("contact")
+    if "audit" in sealed["files"]:                                        # the audit-only stream (audit_every_s), sealed like the rest
+        outputs.append({"bytes": sealed["files"]["audit"], "kind": "receipt", "subtype": "audit", "name": f"{name} audit stream"})
+        formats.append("audit")
     inputs, engine = receipt["inputs"], receipt["engine"]
     template = inputs.get("template") or ""
     tid, _, tver = template.partition("@")

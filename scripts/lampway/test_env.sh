@@ -70,4 +70,11 @@ PYEOF
 "$PY" -m pip install -q -r "$ROOT/tests/requirements-test.txt" -r "$SERVER_REQS"
 # the i18n template is git-ignored (generated from the source and upstream/): tests/i18n reads it, so the environment writes it
 "$PY" "$ROOT/scripts/i18n/extract_messages.py" > /dev/null
+# The motion-graphics real-browser tests need the headless Chromium of step 6 (BUILD-LAMPWAY.md section 8): say first, in plain words,
+#    whether it is there. test_all.py --verify-env (step 8) refuses without it; a bare pytest run skips those tests instead.
+if [ -n "${LAMPWAY_CHROMIUM:-}" ] && [ -x "$LAMPWAY_CHROMIUM" ]; then
+  echo "motion: headless Chromium at LAMPWAY_CHROMIUM=$LAMPWAY_CHROMIUM"
+else
+  echo "motion: LAMPWAY_CHROMIUM is unset or not executable: the real-browser motion tests will SKIP (BUILD-LAMPWAY.md section 8)" >&2
+fi
 "$PY" "$ROOT/scripts/lampway/test_all.py" --verify-env

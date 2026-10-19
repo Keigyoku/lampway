@@ -14,7 +14,7 @@ from lampway_server.prompts import render as PR
 from .fake_motion import FakeCapture
 
 
-TEMPLATES = ("mg-site-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
+TEMPLATES = ("mg-site-clip", "mg-social-clip", "mg-tutorial", "mg-release", "mg-facelift-ui-demo", "mg-report-card", "mg-titan-animatic", "mg-titan-ui-motion")
 
 
 def rendered(tid):

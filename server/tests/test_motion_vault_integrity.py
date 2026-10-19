@@ -119,6 +119,33 @@ def test_contact_corruption_before_sealing_is_refused(tmp_path, monkeypatch):
     assert vault.lib._reader().execute("SELECT count(*) FROM asset").fetchone()[0] == 0
 
 
+def test_the_audit_stream_is_sealed_and_filed_with_the_render(tmp_path):
+    project, vault = tmp_path / "project", a_vault(tmp_path)
+    out, error = tool(project, {"scene": put_scene(project, "streamed", "<!doctype html>"), **SMALL, "duration_s": 1, "audit_every_s": 0.5},
+                      vault=vault, capture=FakeCapture)
+    assert not error and out["vault"]["filed"], out
+    audit = [a for a in out["vault"]["assets"] if a["format"] == "audit"]
+    assert len(audit) == 1 and audit[0]["kind"] == "receipt", out["vault"]
+    data = (project / out["files"]["audit"]).read_bytes()
+    asset = vault.lib.get(audit[0]["id"])
+    assert asset["subtype"] == "audit" and asset["files"][0]["sha256"] == hashlib.sha256(data).hexdigest()
+
+
+def test_audit_stream_corruption_before_sealing_is_refused(tmp_path, monkeypatch):
+    project, vault = tmp_path / "project", a_vault(tmp_path)
+    original = R.seal
+
+    def corrupt(receipt, out, root, **kwargs):
+        (out / "audit.jsonl").write_bytes(b'{"frame":0,"t":0,"audit":{"text":[],"marks":[]}}\n')
+        return original(receipt, out, root, **kwargs)
+
+    monkeypatch.setattr(R, "seal", corrupt)
+    result, error = tool(project, {"scene": put_scene(project, "bad-audit", "<!doctype html>"), **SMALL, "duration_s": 1, "audit_every_s": 0.5},
+                         vault=vault, capture=FakeCapture)
+    assert error and "audit.jsonl" in result["error"], result
+    assert vault.lib._reader().execute("SELECT count(*) FROM asset").fetchone()[0] == 0
+
+
 def test_cancellation_during_first_vault_commit_reports_only_that_asset(tmp_path, monkeypatch):
     project, vault = tmp_path / "project", a_vault(tmp_path)
     scene = put_scene(project, "cancel-filing", "<!doctype html>")
