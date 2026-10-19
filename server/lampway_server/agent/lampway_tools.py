@@ -679,7 +679,11 @@ DEFS = [
         "read back (frames, size, bytes). engine=model:<name> is the generative video slot: not wired." + _PATHS,
         [P("object", required=True), P("out", desc="mp4 path under the project root", required=True), P("kind", desc="turntable (default) | camera_path"),
          P("frames", "integer", "Turntable frames, default 48 (max 1200)"), P("width", "integer"), P("height", "integer"), P("fps", "integer"),
-         P("engine", desc="workbench (default) | eevee"), P("waypoints", "array", "camera_path waypoints")], api="render_video"),
+         P("engine", desc="workbench (default) | eevee"), P("waypoints", "array", "camera_path waypoints"),
+         P("elevation", "number", "Turntable camera height in degrees above the object's centre, default 20", minimum=-89, maximum=89),
+         P("distance", "number", "Turntable camera distance in metres, default 3.2 x the object's bounding radius", minimum=0.001,
+           maximum=sys.float_info.max),
+         P("background", desc="World colour #RRGGBB, default a near-black grey; the scene's view transform still applies")], api="render_video"),
     Def("lampway_project_views", "Project cardinal-view images ({\"Front\": path, ...}, each framed to the subject) into the UV atlas of a mesh by "
         "which way each texel faces (with an occlusion ray test) and apply it as the material `<object>_proj`; reports coverage and the share "
         "of texels each view painted. The object needs UVs." + _PATHS, [P("object", required=True), P("views", "object", "View -> image path", required=True),

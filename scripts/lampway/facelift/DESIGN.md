@@ -3,7 +3,7 @@
 
 # Lampway client: the design language
 
-Written 2026-10-05 for the client facelift. It carries lampway.dev (`specs/brand/site_v2/`) into a dense desktop 3D tool built on Blender 5.2. Brand rules it inherits and does not restate: `specs/brand/BRAND.md`. Every colour below is a token in `theme/tokens.json`; `theme/check_theme.py` fails when this file's table and that file disagree, and when the shipped theme XML strays from either.
+Written 2026-10-05 for the client facelift. It carries lampway.dev (whose source is the separate lampway-site repository) into a dense desktop 3D tool built on Blender 5.2. Brand rules it inherits and does not restate are in the brand guide, BRAND.md, which is kept outside this repository; "BRAND.md N" below cites its section N. The brand art in this repository is `scripts/dev/brand_art/`. Every colour below is a token in `theme/tokens.json`; `theme/check_theme.py` fails when this file's table and that file disagree, and when the shipped theme XML strays from either.
 
 ## 1. The idea
 
@@ -97,7 +97,7 @@ Worker ring colours are BRAND.md's six (Flame, Dusk, Mint #5BC48F, Coral #F0766B
 
 Scale (UI scale 1.0, px): widget 11 pt (`ThemeStyle.widget.points`), panel title 11.5 pt weight 600, tooltip 11 pt; chat body 13.5; caption 10; display 20 (card title), 24 (price), 28 (empty state), 44 (splash). Weights: Fraunces 340 for display, 420 for prices; Inter 400/600; Plex Mono 400/500. No shadow on text (`shadow="0"`): the theme is flat, light does the work.
 
-Fonts ship as subset woff2 (the site's own files: `site_v2/assets/fonts/`) with their OFL texts in `LICENSES/`, alongside Inter's.
+Fonts ship as subset woff2 (the site's own files, `public/assets/fonts/` in the lampway-site repository) with their OFL texts in `LICENSES/`, alongside Inter's.
 
 ## 4. Space, shape, elevation
 
@@ -159,7 +159,7 @@ The captain's rule: spend is a click you make, and it must be unmistakable. Thre
 
 ## 9. Privacy
 
-The captain's rule: loudly visible choices, opt in to each, and you can see when data goes over the wire (`specs/cloud/egress_consent.md`).
+The captain's rule: loudly visible choices, opt in to each, and you can see when data goes over the wire ([`docs/privacy.md`](../../../docs/privacy.md)).
 
 - **Route chips.** Every place a provider is named shows where the work runs: `on this machine` (lamp glyph, `go`) or `leaves this machine: openrouter.ai` (wire glyph, `wire`). Retention class beside it as a shield: ok (solid), conditional (half), retains (open), unknown (question mark), always with the word.
 - **The wire indicator** lives at the right of the status bar, in three states: all routes off ("Nothing leaves this machine", `muted`, lamp glyph); routes open and idle ("2 routes open", `wire` outline); sending (`wire_bed` pill, `wire` text, "Sending to OpenRouter, 1.2 MB", the dot travelling along the wire glyph). It is lit from the moment a gated call starts until it returns, as the contract says. Click opens the egress log.

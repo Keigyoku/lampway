@@ -393,7 +393,6 @@ def register():
     for cls in all_classes:
         try:
             bpy.utils.register_class(cls)
-            print(f"[agent_bubble] registered {cls.__name__}")
             logger.info("agent_bubble: registered %s", cls.__name__)
         except ValueError as e:
             if "already registered" not in str(e):

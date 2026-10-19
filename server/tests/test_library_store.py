@@ -186,6 +186,56 @@ def test_a_second_writer_is_refused_with_the_holders_pid(tmp_path):
     assert held.status()["schema_version"] >= 1
 
 
+def _hold_lock(tmp_path, content: str):
+    """Another writer between its flock and its pid write: the lock is held while the file says only ``content``."""
+    import fcntl
+    (tmp_path / "lib").mkdir(exist_ok=True)
+    f = open(tmp_path / "lib" / "writer.lock", "w")
+    f.write(content)
+    f.flush()
+    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    return f
+
+
+ONE_WRITER = ("one process writes a library at a time: file through that process (the server's routes and agent tools, "
+              "or one Vault shared within one process), or retry once it closes the library")
+
+
+def test_a_writer_still_acquiring_is_named_as_such_never_pid_question_mark(tmp_path):
+    held = _hold_lock(tmp_path, "")
+    with pytest.raises(LibraryError) as e:
+        AssetLibrary(tmp_path / "lib")
+    assert str(e.value) == f"library DB is locked by another writer (its pid is not written yet): {ONE_WRITER}"
+    held.close()
+
+
+def test_a_dead_pid_left_in_the_lock_file_is_not_named_as_the_holder(tmp_path):
+    import subprocess
+    import sys
+    gone = subprocess.Popen([sys.executable, "-c", "pass"])
+    gone.wait()
+    held = _hold_lock(tmp_path, str(gone.pid))                       # a crashed holder's pid, read before the new holder overwrote it
+    with pytest.raises(LibraryError) as e:
+        AssetLibrary(tmp_path / "lib")
+    assert str(e.value) == f"library DB is locked by another writer (its pid is not written yet): {ONE_WRITER}"
+    held.close()
+
+
+def test_the_live_holders_pid_and_the_one_writer_rule_are_named(tmp_path):
+    held = make(tmp_path)
+    with pytest.raises(LibraryError) as e:
+        AssetLibrary(tmp_path / "lib")
+    assert str(e.value) == f"library DB is locked by another writer (pid {os.getpid()}): {ONE_WRITER}"
+    held.close()
+
+
+def test_closing_clears_the_pid_so_the_next_holders_acquire_never_shows_it(tmp_path):
+    lib = make(tmp_path)
+    assert (tmp_path / "lib" / "writer.lock").read_text() == str(os.getpid())
+    lib.close()
+    assert (tmp_path / "lib" / "writer.lock").read_text() == ""
+
+
 def test_low_disk_refuses_managed_writes(tmp_path, monkeypatch):
     lib = make(tmp_path)
     monkeypatch.setattr("lampway_server.library.store._free_bytes", lambda p: 1 * 1024 ** 3)

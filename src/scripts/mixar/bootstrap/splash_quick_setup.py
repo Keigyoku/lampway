@@ -99,6 +99,9 @@ def register():
     from mixar.modules.onboarding.core.tour.language_preferences import restore_unsaved_choice
     language_props.register()
     restore_unsaved_choice()
+    native = getattr(bpy.types, "WM_MT_splash_quick_setup", None)
+    if native is not None and native is not WM_MT_splash_quick_setup:
+        bpy.utils.unregister_class(native)      # replaced quietly: a same-name register_class prints "registered before" on every start
     bpy.utils.register_class(WM_MT_splash_quick_setup)
 
 

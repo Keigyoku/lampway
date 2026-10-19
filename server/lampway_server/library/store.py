@@ -30,6 +30,21 @@ class LibraryError(RuntimeError):
     pass
 
 
+def _alive(pid: str) -> bool:
+    """The lock file names a running process (signal 0 checks without sending; another user's process answers EPERM)."""
+    if not pid.isdigit() or int(pid) <= 0:
+        return False
+    try:
+        os.kill(int(pid), 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
 def _free_bytes(path) -> int:
     return shutil.disk_usage(path).free
 
@@ -77,9 +92,12 @@ class AssetLibrary:
             fcntl.flock(self._lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
             self._lockfile.seek(0)
-            pid = (self._lockfile.read().strip() or "?")
+            pid = self._lockfile.read().strip()
             self._lockfile.close()
-            raise LibraryError(f"library DB is locked by another writer (pid {pid}): the server owns writes; use the REST API") from None
+            who = f"pid {pid}" if _alive(pid) else "its pid is not written yet"       # empty, or a dead holder's: the new one is between flock and write
+            raise LibraryError(f"library DB is locked by another writer ({who}): one process writes a library at a time: file through that "
+                               "process (the server's routes and agent tools, or one Vault shared within one process), or retry once it "
+                               "closes the library") from None
         self._lockfile.seek(0)
         self._lockfile.truncate()
         self._lockfile.write(str(os.getpid()))
@@ -107,6 +125,11 @@ class AssetLibrary:
             self._db = None
         lf = getattr(self, "_lockfile", None)
         if lf is not None and not lf.closed:
+            try:
+                lf.seek(0)
+                lf.truncate()                                         # still held: the next holder's acquire never shows this pid
+            except OSError:
+                pass
             lf.close()
 
     def _reader(self) -> sqlite3.Connection:
