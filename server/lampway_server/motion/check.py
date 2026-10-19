@@ -171,9 +171,9 @@ def stream_findings(stream: list, stride_s: float, duration: float, W: int, H: i
     ``safe_zone`` (fail) once per text, with the frames it covers, for frames not in ``skip`` (the samples report their own)."""
     out, runs, zone = [], {}, {}
 
-    def close(key, run):
-        (sel, text), (frame, t0, t1) = key, run
-        hold = min(t1 + stride_s, duration) - t0
+    def close(key, run, t_end):
+        (sel, text), (frame, t0, _) = key, run
+        hold = t_end - t0
         words = len(text.split())
         need = max(MIN_HOLD_S, words / READ_WPS)
         if hold + 1e-9 < need:
@@ -192,7 +192,7 @@ def stream_findings(stream: list, stride_s: float, duration: float, W: int, H: i
         t, frame, text = row["t"], row["frame"], row["audit"].get("text") or []
         full = {(r["sel"], r["text"]) for r in text if r["opacity"] >= FULL and r["text"].strip()}
         for key in [k for k in runs if k not in full]:
-            close(key, runs.pop(key))
+            close(key, runs.pop(key), t)                                   # the hold ends at the audit that saw it gone
         for key in full:
             runs[key] = (runs[key][0], runs[key][1], t) if key in runs else (frame, t, t)
         if t >= opening_s and not any(r["opacity"] >= VISIBLE and r["text"].strip() for r in text):
@@ -207,7 +207,7 @@ def stream_findings(stream: list, stride_s: float, duration: float, W: int, H: i
     if blank:
         gap(blank[0], blank[1], min(blank[2] + stride_s, duration))
     for key, run in runs.items():
-        close(key, run)
+        close(key, run, min(run[2] + stride_s, duration))
     for z in zone.values():
         out.append({"frame": z["frame"], "check": "safe_zone", "severity": "fail",
                     "detail": f"{_zone_detail(z['first'], safe_zone)} ({z['frames']} audited frame{'s' if z['frames'] != 1 else ''} from frame {z['frame']})"})

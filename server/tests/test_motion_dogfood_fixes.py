@@ -571,6 +571,38 @@ def test_a_one_second_hold_at_60_fps_does_not_warn_reading(tmp_path):
     assert rows[59]["t"] == 59 / 60                                                  # full precision in the file too
 
 
+def test_a_hold_ends_at_the_audit_that_saw_the_text_gone_not_one_stride_later():
+    from lampway_server.motion import check as C
+    word = ("#t", "hi", [40, 40, 120, 70], 1.0)
+    stream = [_row(0, 0.0), _row(10, 1.0, word), _row(19, 1.9)]                       # the last frame is 0.9 s after the one before it
+    reading = [f for f in C.stream_findings(stream, 1.0, 2.0, 320, 180) if f["check"] == "reading"]
+    assert len(reading) == 1 and reading[0]["frame"] == 10
+    assert "'hi' fully visible about 0.90 s from 1.00 s; 1 word need 1.00 s" in reading[0]["detail"]
+    to_the_end = [_row(0, 0.0), _row(10, 1.0, word), _row(19, 1.9, word)]            # still on screen at the last frame: held to the end
+    assert not [f for f in C.stream_findings(to_the_end, 1.0, 2.0, 320, 180) if f["check"] == "reading"]
+
+
+class _GoneAtTheLastFrame(FakeCapture):
+    """One word fully visible from 1.0 s, gone by the last frame (1.9 s at 10 fps over 2 s)."""
+    def frame(self, t):
+        self._t = t
+        return super().frame(t)
+
+    def audit(self):
+        if 1.0 <= getattr(self, "_t", 0.0) < 1.85:
+            return {"text": [{"sel": "#t", "text": "hi", "box": [40, 40, 120, 70], "font_px": 28, "opacity": 1}], "marks": []}
+        return {"text": [], "marks": []}
+
+
+def test_a_line_gone_by_the_last_frame_of_a_stream_render_warns_reading(tmp_path):
+    project = _project(tmp_path)
+    res = M.render(project, {"scene": "motion/scenes/vert", **SMALL, "duration_s": 2, "samples": [0], "audit_every_s": 1}, _GoneAtTheLastFrame)
+    receipt = json.loads((project / res["out_dir"] / "receipt.json").read_text())
+    assert receipt["audit_stream"] == {"every_frames": 10, "audits": 3}
+    reading = [f for f in res["self_check"]["findings"] if f["check"] == "reading"]
+    assert len(reading) == 1 and "'hi' fully visible about 0.90 s from 1.00 s" in reading[0]["detail"], res["self_check"]["findings"]
+
+
 def test_a_second_without_readable_text_warns_low_content_but_the_opening_does_not():
     from lampway_server.motion import check as C
     faint = ("#h", "fading", [100, 300, 900, 360], 0.2)
